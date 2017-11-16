@@ -1,7 +1,6 @@
-﻿using System.Web;
-using System.Web.Optimization;
+﻿using System.Web.Optimization;
 
-namespace CAPI.UI
+namespace VT.UI
 {
     public class BundleConfig
     {
@@ -26,6 +25,9 @@ namespace CAPI.UI
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new ScriptBundle("~/bundles/HomeJs").Include(
+                "~/js/Views/home.js", "~/js/Shared/ajax.js", "~/js/ViewModels/*.js"));
         }
     }
 }
