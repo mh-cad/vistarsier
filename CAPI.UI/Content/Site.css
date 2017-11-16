@@ -1,4 +1,5 @@
 ﻿body {
+    background-color: RGB(30,30,30);
     padding-top: 50px;
     padding-bottom: 20px;
 }
@@ -21,4 +22,8 @@ input,
 select,
 textarea {
     max-width: 280px;
+}
+
+.btn-group.btn-group-block {
+    display: flex;
 }
