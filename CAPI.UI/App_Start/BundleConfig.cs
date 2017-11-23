@@ -1,6 +1,6 @@
 ﻿using System.Web.Optimization;
 
-namespace VT.UI
+namespace CAPI.UI
 {
     public class BundleConfig
     {

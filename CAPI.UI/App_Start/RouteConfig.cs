@@ -1,7 +1,7 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace VT.UI
+namespace CAPI.UI
 {
     public class RouteConfig
     {

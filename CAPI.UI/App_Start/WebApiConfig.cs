@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Web.Http;
 
-namespace VT.UI
+namespace CAPI.UI
 {
     public static class WebApiConfig
     {

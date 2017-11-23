@@ -10,30 +10,32 @@ namespace CAPI.ImageProcessing
     {
         private readonly string _dicom2NiiFullPath;
         private readonly string _miconvFullPath;
-        private readonly string _imageRepoDir;
         private readonly string _viewableDir;
-        private const string Dcm2NiiExe = "dcm2nii.exe"; // TODO3: Hard-coded file name
-        private const string Dcm2NiiHdrParams = "-n N -f Y -r N"; // TODO3: Hard-coded Parameters
-        private const string Dcm2NiiNiiParams = "-n Y -f Y -r N -g N"; // TODO3: Hard-coded Parameters
-        private const string MiconvFileName = "miconv.exe"; // TODO3: Hard-coded file name
+        private readonly string _dcm2NiiHdrParams;
+        private readonly string _dcm2NiiNiiParams;
 
         public ImageConverter()
         {
+            var dcm2NiiExe = Properties.Settings.Default.Dcm2NiiExe;
+            _dcm2NiiHdrParams = Properties.Settings.Default.Dcm2NiiHdrParams;
+            _dcm2NiiNiiParams = Properties.Settings.Default.Dcm2NiiNiiParams;
+            var miconvFileName = Properties.Settings.Default.MiconvFileName;
+
             var executablesPath = Config.GetExecutablesPath();
-            _dicom2NiiFullPath = Path.Combine(executablesPath, Dcm2NiiExe);
-            _miconvFullPath = Path.Combine(executablesPath, "odin", MiconvFileName); // TODO3: Hard-coded path
-            _imageRepoDir = Config.GetImageRepositoryPath();
-            _viewableDir = $"{_imageRepoDir}\\Viewable"; // TODO3: Hard-coded path
+            _dicom2NiiFullPath = Path.Combine(executablesPath, dcm2NiiExe);
+            _miconvFullPath = Path.Combine(executablesPath, "odin", miconvFileName); // TODO3: Hard-coded path
+            var imageRepoDir = Config.GetImageRepositoryPath();
+            _viewableDir = $"{imageRepoDir}\\Viewable"; // TODO3: Hard-coded path
         }
 
-        public void ConvertDicom2Hdr(string dicomDir, string outputDir, string outputFileNameNoExt)
+        public void Dicom2Hdr(string dicomDir, string outputDir, string outputFileNameNoExt)
         {
-            CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, Dcm2NiiHdrParams);
+            CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiHdrParams);
         }
 
-        public void ConvertDicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt)
+        public void DicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt)
         {
-            CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, Dcm2NiiNiiParams);
+            CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiNiiParams);
         }
 
         private void CallDicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt, string parameters)
@@ -77,5 +79,12 @@ namespace CAPI.ImageProcessing
             //var arguments = $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii {outputDir}\{reslicedFloatingName}{FlippedSuffix}.dcm";
             //ProcessBuilder.CallExecutableFile($"{_executablesPath}\\odin\\{MiconvFileName}", arguments);
         //}
+
+        
+        public bool Hdr2Nii(string hdrFileFullPath, string outputDir, string niiFileNameNoExt)
+        {
+
+            return false;
+        }
     }
 }

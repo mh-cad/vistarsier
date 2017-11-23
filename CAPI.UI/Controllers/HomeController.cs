@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace VT.UI.Controllers
+namespace CAPI.UI.Controllers
 {
     public class HomeController : Controller
     {

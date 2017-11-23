@@ -1,9 +1,9 @@
-﻿using System.IO;
-using System.Linq;
-using System.Web.Http;
+﻿using CAPI.BLL.Model;
 using CAPI.Common;
 using CAPI.ImageProcessing;
-using CAPI.BLL.Model;
+using System.IO;
+using System.Linq;
+using System.Web.Http;
 
 namespace CAPI.UI.Controllers.Api
 {
@@ -30,7 +30,7 @@ namespace CAPI.UI.Controllers.Api
         public string RunAll()
         {
             var imgProcessor = new ImageProcessor();
-            imgProcessor.RunAll();
+            ImageProcessor.RunAll();
             return "RunAll process was called...";
         }
 
@@ -38,10 +38,10 @@ namespace CAPI.UI.Controllers.Api
         public string Step1()
         {
             var imgProcessor = new ImageConverter();
-            imgProcessor.ConvertDicom2Hdr(_fixedDcmDir, _outputDir, _fixed);
-            imgProcessor.ConvertDicom2Hdr(_floatingDcmDir, _outputDir, _floating);
-            //var resultFixed = imgProcessor.ConvertDicom2Hdr(_fixedDcmDir, _outputDir, _fixed);
-            //var resultFloating = imgProcessor.ConvertDicom2Hdr(_floatingDcmDir, _outputDir, _floating);
+            imgProcessor.Dicom2Hdr(_fixedDcmDir, _outputDir, _fixed);
+            imgProcessor.Dicom2Hdr(_floatingDcmDir, _outputDir, _floating);
+            //var resultFixed = imgProcessor.Dicom2Hdr(_fixedDcmDir, _outputDir, _fixed);
+            //var resultFloating = imgProcessor.Dicom2Hdr(_floatingDcmDir, _outputDir, _floating);
             //return $"Step 1 completed. [{resultFixed}] and [{resultFloating}] are now created.";
             return "";
         }
@@ -56,8 +56,8 @@ namespace CAPI.UI.Controllers.Api
             imgProcessor.ExtractBrainMask(new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), _outputDir, out SeriesHdr fixedBrainMaskRemoved, out SeriesHdr fixedBrainMask);
             imgProcessor.ExtractBrainMask(new SeriesHdr(_floating, $"{_outputDir}\\{_floating}.hdr", floatingImagesCount), _outputDir, out SeriesHdr floatingBrainMaskRemoved, out SeriesHdr floatingBrainMask);
             return "Step2 completed. Brain Mask is now extracted. " +
-                   $"[{fixedBrainMaskRemoved.Name}_brain_surface_extracted.hdr/img] - [{fixedBrainMask.Name}_brain_surface.hdr/img] - " +
-                   $"[{floatingBrainMaskRemoved.Name}_brain_surface_extracted.hdr/img] - [{floatingBrainMask.Name}_brain_surface.hdr/img]";
+                   $"[{fixedBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{fixedBrainMask.Description}_brain_surface.hdr/img] - " +
+                   $"[{floatingBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{floatingBrainMask.Description}_brain_surface.hdr/img]";
         }
 
         [HttpGet]
@@ -78,6 +78,9 @@ namespace CAPI.UI.Controllers.Api
 
             foreach (var hdrFileNameNoExt in hdrFilesNamesNoExt)
             {
+                var imgConverter = new ImageConverter();
+                imgConverter.Hdr2Nii(hdrFileNameNoExt+".hdr", _outputDir, hdrFileNameNoExt+".nii");
+
                 imgProcessor.ConvertHdrToNii(
                     new SeriesHdr(hdrFileNameNoExt, $"{_outputDir}\\{hdrFileNameNoExt}.hdr", fixedImagesCount),
                     new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), hdrFileNameNoExt

@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace VT.UI
+namespace CAPI.UI
 {
     public class FilterConfig
     {
