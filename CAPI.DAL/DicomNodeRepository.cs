@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using CAPI.Dicom.Model;
+using System.Collections.Generic;
 using System.Linq;
-using CAPI.Dicom.Model;
 
 namespace CAPI.DAL
 {
@@ -20,9 +20,11 @@ namespace CAPI.DAL
         {
             return new List<DicomNode>
             {
-                new DicomNode { AeTitle = "ORTHANC", IpAddress = "127.0.0.1", Port = 4242 },
-                new DicomNode { AeTitle = "KPSB", IpAddress = "172.28.42.42", Port = 104 },
-                new DicomNode { AeTitle = "VTAIO", IpAddress = "***REMOVED***", Port = 104 }
+                new DicomNode { LogicalName = "Home PC", AeTitle = "ORTHANC", IpAddress = "127.0.0.1", Port = 4242 },
+                new DicomNode { LogicalName = "Work PC", AeTitle = "KPSB", IpAddress = "172.28.42.42", Port = 104 },
+                new DicomNode { LogicalName = "CAPI Server", AeTitle = "VTAIO", IpAddress = "***REMOVED***", Port = 104 },
+                new DicomNode { LogicalName = "Synapse", AeTitle = "***REMOVED***", IpAddress = "***REMOVED***", Port = 104 },
+                new DicomNode { LogicalName = "Syn Mini", AeTitle = "***REMOVED***", IpAddress = "***REMOVED***", Port = 104 }
             }.AsQueryable();
         }
 

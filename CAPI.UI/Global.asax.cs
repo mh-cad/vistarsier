@@ -3,7 +3,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 
-namespace VT.UI
+namespace CAPI.UI
 {
     public class MvcApplication : System.Web.HttpApplication
     {

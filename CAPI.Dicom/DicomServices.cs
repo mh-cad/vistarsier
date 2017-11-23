@@ -1,10 +1,11 @@
 ﻿using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
+using ClearCanvas.Dicom.Iod.Iods;
 using ClearCanvas.Dicom.Network.Scu;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DicomTag = CAPI.Dicom.Model.DicomTag;
 
 namespace CAPI.Dicom
 {
@@ -132,113 +133,94 @@ namespace CAPI.Dicom
         {
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
-    }
 
-    public enum DicomNewObjectType
-    {
-        NoChange,
-        NewStudy,
-        NewSeries,
-        NewImage,
-        NewPatient,
-        Anonymized,
-        SiteDetailsRemoved,
-        CareProviderDetailsRemoved
-    }
-
-    public class DicomTagCollection : IEnumerable<DicomTag> {
-        public DicomTag PatientName { get; }
-        public DicomTag PatientId { get; }
-        public DicomTag PatientBirthDate { get; }
-        public DicomTag PatientSex { get; }
-        public DicomTag StudyAccessionNumber { get; }
-        public DicomTag StudyDescription { get; }
-        public DicomTag StudyUid { get; }
-        public DicomTag SeriesDescription { get; }
-        public DicomTag SeriesUid { get; }
-        public DicomTag ImageUid { get; }
-        public DicomTag RequestingService { get; }
-        public DicomTag InstitutionName { get; }
-        public DicomTag InstitutionAddress { get; }
-        public DicomTag InstitutionalDepartmentName { get; }
-        public DicomTag ReferringPhysician { get; }
-        public DicomTag RequestingPhysician { get; }
-        public DicomTag PhysiciansOfRecord { get; }
-        public DicomTag PerformingPhysiciansName { get; }
-
-        public DicomTagCollection()
-        {
-            PatientName = new DicomTag("Patient's Name", 1048592, DicomTag.TagType.Patient, typeof(string[]));
-            PatientId = new DicomTag ("Patient's Id", 1048608, DicomTag.TagType.Patient, typeof(string[]));
-            PatientBirthDate = new DicomTag ("Patient's Birth Date", 1048624, DicomTag.TagType.Patient, typeof(string[]));
-            PatientSex = new DicomTag ("Patient's Sex", 1048640, DicomTag.TagType.Patient, typeof(string[]));
-            StudyAccessionNumber = new DicomTag ("Study Accession Number", 524368, DicomTag.TagType.Study, typeof(string[]));
-            StudyDescription = new DicomTag ("Requested Procedure Description", 3280992, DicomTag.TagType.Study, typeof(string[]));
-            StudyUid = new DicomTag ("Study Instance UID", 2097165, DicomTag.TagType.Study, typeof(string[]));
-            SeriesUid = new DicomTag ("Series Instance UID", 2097166, DicomTag.TagType.Series, typeof(string[]));
-            SeriesDescription = new DicomTag ("Series Description", 528446, DicomTag.TagType.Series, typeof(string[]));
-            ImageUid = new DicomTag ("Sop Instance Id", 524312, DicomTag.TagType.Image, typeof(string[]));
-            RequestingService = new DicomTag ("Requesting Service", 3280947, DicomTag.TagType.Site, typeof(string[])); // e.g. RMH
-            InstitutionName = new DicomTag("Institution Name", 524416, DicomTag.TagType.Site, typeof(string[]));
-            InstitutionAddress = new DicomTag("Institution Address", 524417, DicomTag.TagType.Site, typeof(string));
-            InstitutionalDepartmentName = new DicomTag("Institutional Department Name", 528448, DicomTag.TagType.Site, typeof(string[]));
-            ReferringPhysician = new DicomTag ("Referring Physician's Name", 524432, DicomTag.TagType.CareProvider, typeof(string[]));
-            RequestingPhysician = new DicomTag ("Requesting Physician", 3280946, DicomTag.TagType.CareProvider, typeof(string[]));
-            PhysiciansOfRecord = new DicomTag ("Physician(s) of Record", 528456, DicomTag.TagType.CareProvider, typeof(string[]));
-            PerformingPhysiciansName = new DicomTag("Performing Physician's Name", 528464, DicomTag.TagType.CareProvider, typeof(string[]));
+        public static DicomTagCollection GetDicomTags(string filePath)
+        { 
+            var dcmFile = new DicomFile(filePath);
+            dcmFile.Load(filePath);
+            var tags = new DicomTagCollection();
+            var updatedTags = new DicomTagCollection();
+            foreach (var tag in tags.ToList())
+                updatedTags.SetTagValue(tag.GetTagValue(), dcmFile.DataSet[tag.GetTagValue()].Values);
+            return updatedTags;
         }
 
-        public IEnumerator<DicomTag> GetEnumerator()
+        public static IEnumerable<string> GetStudiesForPatientId(string patientId, DicomNode localNode, DicomNode remoteNode)
         {
-            var dicomTags = GetType().GetProperties()
-                .Select(propertyInfo => (DicomTag) propertyInfo.GetValue(this)).ToList();
-            return dicomTags.GetEnumerator();
+            CheckRemoteNodeAvailability(localNode, remoteNode);
+            var query = new StudyQueryIod();
+            query.SetCommonTags();
+            query.PatientId = patientId;
+            var findScu = new StudyRootFindScu();
+            var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query);
+            return studies.Count == 0 ? null : 
+                studies.Select(study => study.AccessionNumber+"|"+study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public static IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, DicomNode localNode, DicomNode remoteNode)
         {
-            return GetEnumerator();
-        }
-    }
+            CheckRemoteNodeAvailability(localNode, remoteNode);
+            if (string.IsNullOrEmpty(studyUid))
+                studyUid = GetSeriesUidForAccession(accession, localNode, remoteNode);
+            if (string.IsNullOrEmpty(studyUid)) throw new Exception($"Failed to find StudyInstanceUid for accession: {accession}");
 
-    public class DicomTag
-    {
-        private string Name { get; }
-        private uint TagValue { get; }
-        public string[] Values { get; set; }
-        private Type ValueType { get; }
-        public TagType DicomTagType { get; }
-        
-        public DicomTag(string name, uint tagValue, TagType dicomTagType, Type valueType)
-        {
-            Name = name;
-            TagValue = tagValue;
-            DicomTagType = dicomTagType;
-            ValueType = valueType;
+            var seriesQuery = new SeriesQueryIod();
+            seriesQuery.SetCommonTags();
+            seriesQuery.StudyInstanceUid = studyUid;
+            var find = new StudyRootFindScu();
+            var series = find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, seriesQuery)
+                .Select(s => $"{s.SeriesDescription}|{s.SeriesInstanceUid}");
+            return series;
         }
 
-        public string GetName()
+        public static string GetSeriesUidForAccession(string accession, DicomNode localNode, DicomNode remoteNode)
         {
-            return Name;
-        }
-        public uint GetTagValue()
-        {
-            return TagValue;
-        }
-        public Type GetValueType()
-        {
-            return ValueType;
+            CheckRemoteNodeAvailability(localNode, remoteNode);
+            var studyQuery = new StudyQueryIod();
+            studyQuery.SetCommonTags();
+            studyQuery.AccessionNumber = accession;
+            var findScu = new StudyRootFindScu();
+            var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port,
+                studyQuery);
+            return studies.Count == 0 ? "" : studies.FirstOrDefault()?.StudyInstanceUid;
         }
 
-        public enum TagType
+        private static void CheckRemoteNodeAvailability(DicomNode localNode, DicomNode remoteNode)
         {
-            Site,
-            CareProvider,
-            Patient,
-            Study,
-            Series,
-            Image,
-            All
+            var verificationScu = new VerificationScu();
+            var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
+            if (result != VerificationResult.Success)
+                throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
+        }
+
+        public static IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, DicomNode localNode, DicomNode remoteNode)
+        {
+            CheckRemoteNodeAvailability(localNode, remoteNode);
+
+            var imageQuery = new ImageQueryIod();
+            imageQuery.SetCommonTags();
+            imageQuery.StudyInstanceUid = studyUid;
+            imageQuery.SeriesInstanceUid = seriesUid;
+            var find = new StudyRootFindScu();
+            var results = find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress,
+                remoteNode.Port, imageQuery);
+
+            if (!string.IsNullOrEmpty(find.FailureDescription)) throw new DicomException($"Image query failed: {find.FailureDescription}{Environment.NewLine}" +
+                                                                                        $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
+                                                                                        $"Study Uid: {studyUid}{Environment.NewLine}" +
+                                                                                        $"Series Uid: {seriesUid}");
+            if (results == null || results.Count == 0) return null;
+
+
+            foreach (var imageQueryIod in results)
+                SaveToDisk(imageQueryIod, "C:\\temp\\test");
+            
+            return results.Select(img => img.SopInstanceUid);
+        }
+
+        private static void SaveToDisk(ImageQueryIod imageQueryIod, string folderPath)
+        {
+            //var scp = new scp;
         }
     }
 }

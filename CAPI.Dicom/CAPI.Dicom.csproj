@@ -45,9 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\DicomNewObjectType.cs" />
     <Compile Include="Model\DicomNode.cs" />
     <Compile Include="Model\DicomSeries.cs" />
     <Compile Include="DicomServices.cs" />
+    <Compile Include="Model\DicomTag.cs" />
+    <Compile Include="Model\DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

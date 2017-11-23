@@ -85,7 +85,7 @@ namespace CAPI.ImageProcessing
             if (!string.IsNullOrEmpty(executablesPath)) _executablesPath = Config.GetExecutablesPath();
         }
 
-        public void RunAll()
+        public static void RunAll()
         {
             ProcessBuilder.CallExecutableFile($@"{Config.GetProcessesRootDir()}\_runall.bat", "");
         } // TODO3: To be checked if this is stil working
@@ -149,12 +149,12 @@ namespace CAPI.ImageProcessing
 
         public void ExtractBrainMask(SeriesHdr hdrSeries, string outputPath, out SeriesHdr brainMaskRemoved, out SeriesHdr smoothBrainMask)
         {
-            var arguments = $"-i {hdrSeries.FileFullPath} --mask {outputPath}\\{hdrSeries.Name}{BrainSurfaceSuffix} " +
-                            $"-o {outputPath}\\{hdrSeries.Name}{BrainSurfaceExtSuffix} {BseParams}";
+            var arguments = $"-i {hdrSeries.FileFullPath} --mask {outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix} " +
+                            $"-o {outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix} {BseParams}";
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 
-            brainMaskRemoved = new SeriesHdr(hdrSeries.Name, $"{outputPath}\\{hdrSeries.Name}{BrainSurfaceExtSuffix}.hdr", hdrSeries.NumberOfImages);
-            smoothBrainMask = new SeriesHdr(hdrSeries.Name, $"{outputPath}\\{hdrSeries.Name}{BrainSurfaceSuffix}.hdr", hdrSeries.NumberOfImages);
+            brainMaskRemoved = new SeriesHdr(hdrSeries.Description, $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix}.hdr", hdrSeries.NumberOfImages);
+            smoothBrainMask = new SeriesHdr(hdrSeries.Description, $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix}.hdr", hdrSeries.NumberOfImages);
         }
 
         public SeriesNii ConvertHdrToNii(SeriesHdr seriesHdr, SeriesHdr originalHdr, string seriesName)
@@ -162,14 +162,14 @@ namespace CAPI.ImageProcessing
             try
             {
                 const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
-                var javaArgument = $"-classpath {_javaClassPath} {methodName} " + // TODO3: Hard-coded file name | Hard-coded Java Method Name
-                                   $"\"{seriesHdr.FolderPath}\\{originalHdr.Name}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.nii\"";
+                var javaArgument = $"-classpath {_javaClassPath} {methodName} " + // TODO3: Hard-coded file name | Hard-coded Java Method Description
+                                   $"\"{seriesHdr.FolderPath}\\{originalHdr.Description}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.nii\"";
 
                 ProcessBuilder.CallJava(javaArgument, methodName);
 
                 RemoveUnnecessaryFiles(
                     originalHdr.FolderPath,
-                    seriesHdr.Name,
+                    seriesHdr.Description,
                     new[] { $"{Fixed.ToLower()}.hdr", $"{Fixed.ToLower()}.img", $"{Floating.ToLower()}.hdr", $"{Floating.ToLower()}.img" });
 
                 return new SeriesNii(seriesName, seriesHdr.FileFullPath.Replace("hdr", "nii"), seriesHdr.NumberOfImages);
@@ -179,7 +179,7 @@ namespace CAPI.ImageProcessing
                 return null; // TODO3: Exception Handling
             }
         }
-        private void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
+        private static void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
         {
             var unused = Directory.GetFiles(path)
                 .Select(Path.GetFileName)
@@ -216,9 +216,9 @@ namespace CAPI.ImageProcessing
             try
             {
                 var srcDir = seriesFixed.FolderPath;
-                const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Name
+                const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
                 var javaArgument = $"-classpath {_javaClassPath} {methodname} " + 
-                                   $@"{srcDir}\{seriesFixed.Name}.nii {srcDir}\{seriesFloating.Name}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
+                                   $@"{srcDir}\{seriesFixed.Description}.nii {srcDir}\{seriesFloating.Description}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
 
                 ProcessBuilder.CallJava(javaArgument, methodname);
 
@@ -244,7 +244,7 @@ namespace CAPI.ImageProcessing
                 const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
                 ProcessBuilder.CallJava(
                     $"-classpath {_javaClassPath} {methodName} " +
-                    $@"{outputDir} {outputDir}\{seriesFixedHdr.Name}.hdr {outputDir}\{seriesFloatingReslicedNii.Name}.nii {outputDir}\{seriesBrainSurfaceNii.Name}.nii {sliceInset}"
+                    $@"{outputDir} {outputDir}\{seriesFixedHdr.Description}.hdr {outputDir}\{seriesFloatingReslicedNii.Description}.nii {outputDir}\{seriesBrainSurfaceNii.Description}.nii {sliceInset}"
                     , methodName);
 
                 CreatePropertiesFiles(outputDir);
@@ -268,7 +268,7 @@ namespace CAPI.ImageProcessing
 
         public void FlipAndConvertFloatingToDicom(SeriesNii seriesNii)
         {
-            var reslicedFloatingName = seriesNii.Name;
+            var reslicedFloatingName = seriesNii.Description;
             var outputDir = seriesNii.FolderPath;
 
             FlipFloatingReslicedImages(reslicedFloatingName, outputDir);

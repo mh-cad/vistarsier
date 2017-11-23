@@ -102,9 +102,9 @@ namespace CAPI.UI.Controllers.Api
             //DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.SiteDetailsRemoved);
             //DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.CareProviderDetailsRemoved);
 
-            var destinationDicomNode = new DicomNode { AeTitle = "ORTHANC", IpAddress = "127.0.0.1", Port = 4242 };
+            var dicomNode = new DicomNode { LogicalName = "Home PC", AeTitle = "ORTHANC", IpAddress = "127.0.0.1", Port = 4242 };
             //var destinationDicomNode = new DicomNode { AeTitle = "KPSB", IpAddress = "172.28.42.42", Port = 104 };
-            DicomServices.SendDicomFile(fileFullPath, "ORTHANC", destinationDicomNode);
+            DicomServices.SendDicomFile(fileFullPath, dicomNode.AeTitle, dicomNode);
             //DicomServices.SendDicomFile(dicomFileWithUpdatedHeaders, "KPSB", destinationDicomNode);
         }
     }
