@@ -1,4 +1,4 @@
-﻿namespace CAPI.BLL.Model
+﻿namespace CAPI.Domain.Model
 {
     public class SingleFileSeries : SeriesBase
     {

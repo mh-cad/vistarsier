@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CAPI.BLL.Model;
 using CAPI.Common;
 using CAPI.Common.Services;
-using SeriesHdr = CAPI.BLL.Model.SeriesHdr;
-using SeriesNii = CAPI.BLL.Model.SeriesNii;
+using CAPI.Domain.Model;
+using SeriesHdr = CAPI.Domain.Model.SeriesHdr;
+using SeriesNii = CAPI.Domain.Model.SeriesNii;
 
 namespace CAPI.ImageProcessing
 {

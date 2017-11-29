@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace CAPI.BLL.Model
+namespace CAPI.Domain.Model
 {
     public class SeriesHdr : ISeries
     {

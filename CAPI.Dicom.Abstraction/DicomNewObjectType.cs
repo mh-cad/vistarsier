@@ -1,4 +1,4 @@
-﻿namespace CAPI.Dicom.Model
+﻿namespace CAPI.Dicom.Abstraction
 {
     public enum DicomNewObjectType
     {

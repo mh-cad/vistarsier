@@ -1,6 +1,6 @@
-﻿namespace CAPI.BLL.Model
+﻿namespace CAPI.Domain.Model
 {
-    public class SeriesBase
+    public abstract class SeriesBase
     {
         public string Description { get; set; }
     }

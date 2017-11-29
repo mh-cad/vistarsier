@@ -60,6 +60,8 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.GbArchive = new System.Windows.Forms.GroupBox();
+            this.TxtImagesList = new System.Windows.Forms.TextBox();
+            this.BtnGetImages = new System.Windows.Forms.Button();
             this.CbSeriesForStudy = new System.Windows.Forms.ComboBox();
             this.BtnGetSeries = new System.Windows.Forms.Button();
             this.CbStudiesFromPacs = new System.Windows.Forms.ComboBox();
@@ -69,8 +71,7 @@
             this.BtnGetStudies = new System.Windows.Forms.Button();
             this.LblSourcePacs = new System.Windows.Forms.Label();
             this.FdLoadDicomFile = new System.Windows.Forms.OpenFileDialog();
-            this.BtnGetImages = new System.Windows.Forms.Button();
-            this.TxtImagesList = new System.Windows.Forms.TextBox();
+            this.BtnTestProcess = new System.Windows.Forms.Button();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -200,7 +201,7 @@
             this.LblPatientName.AutoSize = true;
             this.LblPatientName.Location = new System.Drawing.Point(9, 14);
             this.LblPatientName.Name = "LblPatientName";
-            this.LblPatientName.Size = new System.Drawing.Size(85, 15);
+            this.LblPatientName.Size = new System.Drawing.Size(114, 15);
             this.LblPatientName.TabIndex = 0;
             this.LblPatientName.Text = "Patient Description:";
             // 
@@ -386,9 +387,10 @@
             // 
             this.flowLayoutPanel1.Controls.Add(this.panel1);
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
+            this.flowLayoutPanel1.Controls.Add(this.BtnTestProcess);
             this.flowLayoutPanel1.Location = new System.Drawing.Point(12, 12);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(970, 570);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(1094, 570);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
             // panel1
@@ -417,6 +419,24 @@
             this.GbArchive.TabIndex = 9;
             this.GbArchive.TabStop = false;
             this.GbArchive.Text = "Archive";
+            // 
+            // TxtImagesList
+            // 
+            this.TxtImagesList.Location = new System.Drawing.Point(9, 224);
+            this.TxtImagesList.Multiline = true;
+            this.TxtImagesList.Name = "TxtImagesList";
+            this.TxtImagesList.Size = new System.Drawing.Size(290, 316);
+            this.TxtImagesList.TabIndex = 20;
+            // 
+            // BtnGetImages
+            // 
+            this.BtnGetImages.Location = new System.Drawing.Point(212, 182);
+            this.BtnGetImages.Name = "BtnGetImages";
+            this.BtnGetImages.Size = new System.Drawing.Size(87, 24);
+            this.BtnGetImages.TabIndex = 19;
+            this.BtnGetImages.Text = "Get Images";
+            this.BtnGetImages.UseVisualStyleBackColor = true;
+            this.BtnGetImages.Click += new System.EventHandler(this.BtnGetImages_Click);
             // 
             // CbSeriesForStudy
             // 
@@ -493,29 +513,21 @@
             // 
             this.FdLoadDicomFile.InitialDirectory = "C:\\temp\\test";
             // 
-            // BtnGetImages
+            // BtnTestProcess
             // 
-            this.BtnGetImages.Location = new System.Drawing.Point(212, 182);
-            this.BtnGetImages.Name = "BtnGetImages";
-            this.BtnGetImages.Size = new System.Drawing.Size(87, 24);
-            this.BtnGetImages.TabIndex = 19;
-            this.BtnGetImages.Text = "Get Images";
-            this.BtnGetImages.UseVisualStyleBackColor = true;
-            this.BtnGetImages.Click += new System.EventHandler(this.BtnGetImages_Click);
-            // 
-            // TxtImagesList
-            // 
-            this.TxtImagesList.Location = new System.Drawing.Point(9, 224);
-            this.TxtImagesList.Multiline = true;
-            this.TxtImagesList.Name = "TxtImagesList";
-            this.TxtImagesList.Size = new System.Drawing.Size(290, 316);
-            this.TxtImagesList.TabIndex = 20;
+            this.BtnTestProcess.Location = new System.Drawing.Point(672, 3);
+            this.BtnTestProcess.Name = "BtnTestProcess";
+            this.BtnTestProcess.Size = new System.Drawing.Size(95, 37);
+            this.BtnTestProcess.TabIndex = 8;
+            this.BtnTestProcess.Text = "Test Process";
+            this.BtnTestProcess.UseVisualStyleBackColor = true;
+            this.BtnTestProcess.Click += new System.EventHandler(this.BtnTestProcess_Click);
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1041, 591);
+            this.ClientSize = new System.Drawing.Size(1118, 591);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Font = new System.Drawing.Font("Calibri", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "FormMain";
@@ -580,6 +592,7 @@
         private System.Windows.Forms.Button BtnGetSeries;
         private System.Windows.Forms.TextBox TxtImagesList;
         private System.Windows.Forms.Button BtnGetImages;
+        private System.Windows.Forms.Button BtnTestProcess;
     }
 }
 

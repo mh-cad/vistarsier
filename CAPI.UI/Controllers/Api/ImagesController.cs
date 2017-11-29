@@ -1,14 +1,15 @@
-﻿using CAPI.Dicom;
+﻿using CAPI.Common;
 using CAPI.Dicom.Model;
+using CAPI.ImageProcessing;
+using CAPI.UI.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Mvc;
-using CAPI.Common;
-using CAPI.ImageProcessing;
-using CAPI.UI.Models;
+using CAPI.Dicom.Abstraction;
+using Unity;
 
 namespace CAPI.UI.Controllers.Api
 {
@@ -26,7 +27,7 @@ namespace CAPI.UI.Controllers.Api
                     in seriesDirNames
                     let dicomSeriesDirPath = $"{imageRepDirPath}\\Viewable\\{seriesDirName}"
                     where Directory.Exists(dicomSeriesDirPath)
-                    select new DicomSeries(seriesDirName, dicomSeriesDirPath).GetViewModel()).ToArray();
+                    select new DicomSeriesVm().MapDicomSeriesToVm(new DicomSeries(seriesDirName, dicomSeriesDirPath))).ToArray();
                 response.Data = seriesList;
             }
             catch (Exception exception)
@@ -50,7 +51,8 @@ namespace CAPI.UI.Controllers.Api
                     from seriesDirPath
                     in Directory.GetDirectories(dicomDir)
                     let test = Path.GetFileName(seriesDirPath)
-                    select new DicomSeries(Path.GetFileName(seriesDirPath), seriesDirPath).GetViewModel()).ToArray();
+                    // select new DicomSeries(Path.GetFileName(seriesDirPath), seriesDirPath).GetViewModel()).ToArray();
+                    select new DicomSeriesVm().MapDicomSeriesToVm(new DicomSeries(Path.GetFileName(seriesDirPath), seriesDirPath))).ToArray();
                 response.Data = seriesList;
             }
             catch (Exception exception)
@@ -87,25 +89,25 @@ namespace CAPI.UI.Controllers.Api
         [System.Web.Http.HttpGet]
         public void SendToPacs()
         {
-            //const string fileFullPath = @"C:\temp\test\1.3.12.2.1107.5.2.32.35208.2012081409204631896413069.dcm";
+            var container = new UnityContainer();
+            var dicomFactory = container.Resolve<IDicomFactory>();
+
+            var dicomTags = dicomFactory.CreateDicomTagCollection();
+            dicomTags.PatientName.Values = new[] { "Test1^Mehdi" };
+            dicomTags.PatientId.Values = new[] { "1999999998" };
+            dicomTags.PatientSex.Values = new[] { "O" };
+
             const string fileFullPath = @"C:\temp\test\00000010_modified";
             File.Copy(@"C:\temp\test\00000010", fileFullPath, true);
-            var dicomTags = new DicomTagCollection
-            {
-                PatientName = { Values = new [] { "Test1^Mehdi" } },
-                PatientId = { Values = new [] { "1999999998" } },
-                PatientSex = { Values = new [] { "O" } }
-            };
 
-            DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.NewImage);
-            //DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.Anonymized);
-            //DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.SiteDetailsRemoved);
-            //DicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.CareProviderDetailsRemoved);
+            var dicomServices = dicomFactory.CreateDicomServices();
 
-            var dicomNode = new DicomNode { LogicalName = "Home PC", AeTitle = "ORTHANC", IpAddress = "127.0.0.1", Port = 4242 };
-            //var destinationDicomNode = new DicomNode { AeTitle = "KPSB", IpAddress = "172.28.42.42", Port = 104 };
-            DicomServices.SendDicomFile(fileFullPath, dicomNode.AeTitle, dicomNode);
-            //DicomServices.SendDicomFile(dicomFileWithUpdatedHeaders, "KPSB", destinationDicomNode);
+            dicomServices.UpdateDicomHeaders(fileFullPath, dicomTags, DicomNewObjectType.NewImage);
+
+            var dicomNode = dicomFactory.CreateDicomNode("Home PC", "ORTHANC", "127.0.0.1", 4242);
+            var destinationDicomNode = dicomFactory.CreateDicomNode( "Work PC", "KPSB", "172.28.42.42", 104 );
+
+            dicomServices.SendDicomFile(fileFullPath, dicomNode.AeTitle, dicomNode);
         }
     }
 }

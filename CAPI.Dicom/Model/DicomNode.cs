@@ -1,6 +1,8 @@
-﻿namespace CAPI.Dicom.Model
+﻿using CAPI.Dicom.Abstraction;
+
+namespace CAPI.Dicom.Model
 {
-    public class DicomNode
+    public class DicomNode : IDicomNode
     {
         public string LogicalName { get; set; }
         public string AeTitle { get; set; }

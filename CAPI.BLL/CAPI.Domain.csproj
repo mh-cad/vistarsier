@@ -7,8 +7,8 @@
     <ProjectGuid>{3C5BE1A9-9F1B-458E-969B-7A819D8F3B31}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.BLL</RootNamespace>
-    <AssemblyName>CAPI.BLL</AssemblyName>
+    <RootNamespace>CAPI.Domain</RootNamespace>
+    <AssemblyName>CAPI.Domain</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,14 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\HdrSeries.cs" />
     <Compile Include="Model\ISeries.cs" />
-    <Compile Include="Model\ISeriesVm.cs" />
+    <Compile Include="Model\NiiSeries.cs" />
     <Compile Include="Model\SingleFileSeries.cs" />
-    <Compile Include="Model\MultiSliceSeries.cs" />
+    <Compile Include="Model\MultiFileSeries.cs" />
     <Compile Include="Model\SeriesBase.cs" />
-    <Compile Include="Model\SeriesDicomVm.cs" />
     <Compile Include="Model\SeriesHdr.cs" />
     <Compile Include="Model\SeriesNii.cs" />
+    <Compile Include="Model\Study.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

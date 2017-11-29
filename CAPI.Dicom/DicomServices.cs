@@ -5,13 +5,18 @@ using ClearCanvas.Dicom.Network.Scu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DicomTag = CAPI.Dicom.Model.DicomTag;
+using CAPI.Dicom.Abstraction;
 
 namespace CAPI.Dicom
 {
-    public static class DicomServices
+    public class DicomServices : IDicomServices
     {
-        public static void SendDicomFile(string filepath, string localAe, DicomNode destinationDicomNode)
+        public DicomServices()
+        {
+
+        }
+
+        public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
         {
             using (var scu = new StorageScu(localAe, destinationDicomNode.AeTitle, destinationDicomNode.IpAddress, destinationDicomNode.Port))
             {
@@ -20,12 +25,12 @@ namespace CAPI.Dicom
                 scu.Send();
             }
         }
-        
+
         private static void ScuOnImageStorageCompleted(object sender, ImageStoreEventArgs eventArgs)
         {
         }
 
-        public static void UpdateDicomHeaders(string filepath, DicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
+        public void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
         {
             var dcmFile = new DicomFile(filepath);
             dcmFile.Load(filepath);
@@ -34,40 +39,40 @@ namespace CAPI.Dicom
             {
                 case DicomNewObjectType.Anonymized:
                     tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Patient, true);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Image);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Patient, true);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
                     break;
                 case DicomNewObjectType.SiteDetailsRemoved:
                     tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Site, true);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Site, true);
                     break;
                 case DicomNewObjectType.CareProviderDetailsRemoved:
                     tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.CareProvider, true);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.CareProvider, true);
                     break;
                 case DicomNewObjectType.NewPatient:
                     tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Patient);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Image);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Patient);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
                     break;
                 case DicomNewObjectType.NewStudy:
                     tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Image);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
                     break;
                 case DicomNewObjectType.NewSeries:
                     tags = UpdateUidsForNewSeries(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Image);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
                     break;
                 case DicomNewObjectType.NewImage:
                     tags = UpdateUidsForNewImage(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, DicomTag.TagType.Image);
+                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
                     break;
                 case DicomNewObjectType.NoChange:
                     break;
@@ -77,7 +82,7 @@ namespace CAPI.Dicom
             dcmFile.Save(filepath);
         }
         
-        private static DicomFile UpdateTags(DicomFile dcmFile, DicomTagCollection newTags, DicomTag.TagType tagType, bool overwriteIfNotProvided = false)
+        private static DicomFile UpdateTags(DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
         {
             if (newTags == null) return dcmFile;
             newTags.ToList().ForEach(tag => {
@@ -86,20 +91,20 @@ namespace CAPI.Dicom
             });
             return dcmFile;
         }
-        private static DicomFile UpdateTag(DicomFile dcmFile, DicomTag newTag, bool overwriteIfNotProvided = false)
+        private static DicomFile UpdateTag(DicomFile dcmFile, IDicomTag newTag, bool overwriteIfNotProvided = false)
         {
             if (newTag.Values == null && !overwriteIfNotProvided) return dcmFile;
             var value = newTag.Values != null ? newTag.Values[0] : "";
             return UpdateTag(dcmFile, newTag, value);
         }
-        private static DicomFile UpdateTag(DicomFile dcmFile, DicomTag newTag, string value)
+        private static DicomFile UpdateTag(DicomFile dcmFile, IDicomTag newTag, string value)
         {
             if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new [] { value };
             else if (newTag.GetValueType() == typeof(string)) dcmFile.DataSet[newTag.GetTagValue()].Values = value;
             return dcmFile;
         }
 
-        private static DicomTagCollection UpdateUidsForNewStudy(DicomTagCollection tags)
+        private static IDicomTagCollection UpdateUidsForNewStudy(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.StudyUid.Values = new[] { GetNewStudyUid() };
@@ -107,14 +112,14 @@ namespace CAPI.Dicom
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        private static DicomTagCollection UpdateUidsForNewSeries(DicomTagCollection tags)
+        private static IDicomTagCollection UpdateUidsForNewSeries(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.SeriesUid.Values = new[] { GetNewSeriesUid() };
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        private static DicomTagCollection UpdateUidsForNewImage(DicomTagCollection tags)
+        private static IDicomTagCollection UpdateUidsForNewImage(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.ImageUid.Values = new [] { GetNewImageUid() };
@@ -134,7 +139,7 @@ namespace CAPI.Dicom
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
 
-        public static DicomTagCollection GetDicomTags(string filePath)
+        public IDicomTagCollection GetDicomTags(string filePath)
         { 
             var dcmFile = new DicomFile(filePath);
             dcmFile.Load(filePath);
@@ -145,7 +150,7 @@ namespace CAPI.Dicom
             return updatedTags;
         }
 
-        public static IEnumerable<string> GetStudiesForPatientId(string patientId, DicomNode localNode, DicomNode remoteNode)
+        public IEnumerable<string> GetStudiesForPatientId(string patientId, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             var query = new StudyQueryIod();
@@ -157,7 +162,7 @@ namespace CAPI.Dicom
                 studies.Select(study => study.AccessionNumber+"|"+study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
         }
 
-        public static IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, DicomNode localNode, DicomNode remoteNode)
+        public IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             if (string.IsNullOrEmpty(studyUid))
@@ -173,7 +178,7 @@ namespace CAPI.Dicom
             return series;
         }
 
-        public static string GetSeriesUidForAccession(string accession, DicomNode localNode, DicomNode remoteNode)
+        public string GetSeriesUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             var studyQuery = new StudyQueryIod();
@@ -185,7 +190,7 @@ namespace CAPI.Dicom
             return studies.Count == 0 ? "" : studies.FirstOrDefault()?.StudyInstanceUid;
         }
 
-        private static void CheckRemoteNodeAvailability(DicomNode localNode, DicomNode remoteNode)
+        private static void CheckRemoteNodeAvailability(IDicomNode localNode, IDicomNode remoteNode)
         {
             var verificationScu = new VerificationScu();
             var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
@@ -193,7 +198,7 @@ namespace CAPI.Dicom
                 throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
         }
 
-        public static IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, DicomNode localNode, DicomNode remoteNode)
+        public IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
 
@@ -222,5 +227,12 @@ namespace CAPI.Dicom
         {
             //var scp = new scp;
         }
+
+        public IStudy GetStudyForAccession(string accesstionNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        
     }
 }
