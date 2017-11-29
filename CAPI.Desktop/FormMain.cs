@@ -1,27 +1,57 @@
 ﻿using CAPI.DAL;
+using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
+using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
+using CAPI.JobManager;
+using CAPI.JobManager.Abstraction;
 using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Unity;
 
 namespace CAPI.Desktop
 {
     public partial class FormMain : Form
     {
-        private readonly DicomNodeRepository _dicomNodeRepo;
         private string _tempFileToSend;
         private const string SenderAet = "Home PC"; // TODO3: Hard-Coded PACS AET
-        private readonly DicomNode _localDicomNode;
+        private readonly IDicomNode _localDicomNode;
+        private IUnityContainer _unityContainer;
+        private IDicomFactory _dicomFactory;
+        private IDicomNodeRepository _dicomNodeRepo;
+        private IJobManagerFactory _jobManagerFactory;
+        private IRecipeRepositoryInMemory _recipeRepositoryInMemory;
 
         public FormMain()
         {
             InitializeComponent();
-            _dicomNodeRepo = new DicomNodeRepository();
-            _localDicomNode = _dicomNodeRepo.GetAll()
-                .FirstOrDefault(n => string.Equals(n.LogicalName, SenderAet, 
+
+            InitializeUnity();
+
+            _localDicomNode = _dicomNodeRepo.GetAll(_dicomFactory)
+                .FirstOrDefault(n => string.Equals(n.LogicalName, SenderAet,
                 StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        private void InitializeUnity()
+        {
+            _unityContainer = new UnityContainer();
+            RegisterClasses();
+            _dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepositoryInMemory>();
+            _dicomFactory = _unityContainer.Resolve<IDicomFactory>();
+            _jobManagerFactory = _unityContainer.Resolve<IJobManagerFactory>();
+            _recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory>();
+        }
+
+        private void RegisterClasses()
+        {
+            _unityContainer.RegisterType<IDicomNode, DicomNode>();
+            _unityContainer.RegisterType<IDicomFactory, DicomFactory>();
+            _unityContainer.RegisterType<IJobManagerFactory, JobManagerFactory>();
+            _unityContainer.RegisterType<IRecipeRepositoryInMemory, RecipeRepositoryInMemory>();
+            _unityContainer.RegisterType<IDicomNodeRepositoryInMemory, DicomNodeRepositoryInMemory>();
         }
 
         private void BindDicomHeaderModifiersEventHandlers()
@@ -35,22 +65,24 @@ namespace CAPI.Desktop
 
         private void LoadDicomNodes()
         {
-            var dicomNodes = _dicomNodeRepo.GetAll().ToList();
+            var dicomNodes = _dicomNodeRepo.GetAll(_dicomFactory).ToList();
             object[] items = dicomNodes.Select(n => n.LogicalName).ToArray();
-            
+
             CbPacsList.Items.AddRange(items);
             CbSourcePacs.Items.AddRange(items);
             if (CbPacsList.Items.Count > 0) CbPacsList.SelectedIndex = 1;
             if (CbSourcePacs.Items.Count > 0) CbSourcePacs.SelectedIndex = CbSourcePacs.Items.Count - 2;
         }
 
-        private DicomNode GetSelectedDicomNode() => _dicomNodeRepo.GetAll()
+        private IDicomNode GetSelectedDicomNode() => _dicomNodeRepo.GetAll(_dicomFactory)
             .FirstOrDefault(node => node.LogicalName == CbPacsList.SelectedItem.ToString());
 
         private void UpdateDicomTags()
         {
-            var dicomTags = new DicomTagCollection();
+            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+
             var dicomNewObjectType = DicomNewObjectType.NoChange;
+
             if (RbNewStudy.Checked) dicomNewObjectType = DicomNewObjectType.NewStudy;
             if (RbNewSeries.Checked) dicomNewObjectType = DicomNewObjectType.NewSeries;
             if (RbNewImage.Checked) dicomNewObjectType = DicomNewObjectType.NewImage;
@@ -65,19 +97,21 @@ namespace CAPI.Desktop
             if (TxtAccessionNumber.Enabled) dicomTags.StudyAccessionNumber.Values = new[] { TxtAccessionNumber.Text };
             if (TxtSeriesDescription.Enabled) dicomTags.SeriesDescription.Values = new[] { TxtSeriesDescription.Text };
 
-            DicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, dicomNewObjectType);
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            dicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, dicomNewObjectType);
 
             if (CbSiteRemoved.Checked)
-                DicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, DicomNewObjectType.SiteDetailsRemoved);
+                dicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, DicomNewObjectType.SiteDetailsRemoved);
 
             if (CbRemoveCarerDetails.Checked)
-                DicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, DicomNewObjectType.CareProviderDetailsRemoved);
+                dicomServices.UpdateDicomHeaders(_tempFileToSend, dicomTags, DicomNewObjectType.CareProviderDetailsRemoved);
         }
 
         private void LoadTagsPopulateFields()
         {
             if (_tempFileToSend == null) return;
-            var tags = DicomServices.GetDicomTags(_tempFileToSend);
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            var tags = dicomServices.GetDicomTags(_tempFileToSend);
             TxtPatientName.Text = tags.PatientName.Values.FirstOrDefault();
             TxtPatientIdFs.Text = tags.PatientId.Values.FirstOrDefault();
             TxtPatientBirthDate.Text = tags.PatientBirthDate.Values.FirstOrDefault();
@@ -97,7 +131,8 @@ namespace CAPI.Desktop
         {
             UpdateDicomTags();
             var destinationNode = GetSelectedDicomNode();
-            DicomServices.SendDicomFile(_tempFileToSend, SenderAet, destinationNode); 
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            dicomServices.SendDicomFile(_tempFileToSend, SenderAet, destinationNode);
             if (File.Exists(_tempFileToSend)) File.Delete(_tempFileToSend);
             _tempFileToSend = null;
             ResetAllControls();
@@ -108,7 +143,7 @@ namespace CAPI.Desktop
             PnlDcmHeaderModifiers.Controls.Cast<Control>()
                 .ToList().ForEach(c =>
                     {
-                        if (c.GetType() == typeof(CheckBox)) ((CheckBox) c).Checked = false;
+                        if (c.GetType() == typeof(CheckBox)) ((CheckBox)c).Checked = false;
                         if (c.GetType() == typeof(RadioButton)) ((RadioButton)c).Checked = false;
                         if (c.GetType() == typeof(TextBox)) ((TextBox)c).Text = "";
                     }
@@ -121,9 +156,9 @@ namespace CAPI.Desktop
         private void CheckBoxes_CheckedChanged(object sender, EventArgs e)
         {
             if (sender.GetType() == typeof(CheckBox) && ((CheckBox)sender).Checked)
-                    RbUnmodified.Checked = false;
+                RbUnmodified.Checked = false;
             if (sender.GetType() == typeof(RadioButton) && ((RadioButton)sender).Checked)
-                    RbUnmodified.Checked = false;
+                RbUnmodified.Checked = false;
 
             foreach (Control control in PnlPatientDetails.Controls)
                 control.Enabled = CbReidentify.Checked;
@@ -152,8 +187,8 @@ namespace CAPI.Desktop
             if (!RbUnmodified.Checked) return;
             foreach (Control control in PnlDcmHeaderModifiers.Controls)
             {
-                if (control.GetType() == typeof(CheckBox)) ((CheckBox) control).Checked = false;
-                if (control.GetType() == typeof(RadioButton)) ((RadioButton) control).Checked = false;
+                if (control.GetType() == typeof(CheckBox)) ((CheckBox)control).Checked = false;
+                if (control.GetType() == typeof(RadioButton)) ((RadioButton)control).Checked = false;
             }
         }
 
@@ -174,9 +209,10 @@ namespace CAPI.Desktop
         private void BtnGetStudies_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(TxtPatientIdPacs.Text)) return;
-            var dicomNode = _dicomNodeRepo.GetAll().ToList()
+            var dicomNode = _dicomNodeRepo.GetAll(_dicomFactory).ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
-            var accessions = DicomServices.GetStudiesForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode);
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            var accessions = dicomServices.GetStudiesForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode);
             CbStudiesFromPacs.Items.Clear();
             if (accessions == null) return;
             CbStudiesFromPacs.Items.AddRange(accessions.ToArray());
@@ -186,11 +222,12 @@ namespace CAPI.Desktop
         private void BtnGetSeries_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(CbStudiesFromPacs.Text)) return;
-            var dicomNode = _dicomNodeRepo.GetAll().ToList()
+            var dicomNode = _dicomNodeRepo.GetAll(_dicomFactory).ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
             var accession = CbStudiesFromPacs.Text.Split('|').FirstOrDefault();
             var studyUid = CbStudiesFromPacs.Text.Split('|').LastOrDefault();
-            var series = DicomServices.GetSeriesForStudy(studyUid, accession, _localDicomNode, dicomNode);
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            var series = dicomServices.GetSeriesForStudy(studyUid, accession, _localDicomNode, dicomNode);
             CbSeriesForStudy.Items.Clear();
             if (series == null) return;
             CbSeriesForStudy.Items.AddRange(series.ToArray());
@@ -201,14 +238,20 @@ namespace CAPI.Desktop
         {
             var studyUid = CbStudiesFromPacs.Text.Split('|').LastOrDefault();
             var seriesUid = CbSeriesForStudy.Text.Split('|').LastOrDefault();
-            var dicomNode = _dicomNodeRepo.GetAll().ToList()
+            var dicomNode = _dicomNodeRepo.GetAll(_dicomFactory).ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
-            var images = DicomServices.GetImagesForSeries(studyUid, seriesUid, _localDicomNode, dicomNode);
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            var images = dicomServices.GetImagesForSeries(studyUid, seriesUid, _localDicomNode, dicomNode);
             TxtImagesList.Text = "";
             foreach (var image in images)
             {
                 TxtImagesList.Text += image + Environment.NewLine;
             }
+        }
+
+        private void BtnTestProcess_Click(object sender, EventArgs e)
+        {
+            var recipes = _recipeRepositoryInMemory.GetAll(_jobManagerFactory);
         }
     }
 }

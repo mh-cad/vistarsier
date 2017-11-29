@@ -1,8 +1,9 @@
 using System;
+using CAPI.Dicom.Abstraction;
 
 namespace CAPI.Dicom.Model
 {
-    public class DicomTag
+    public class DicomTag : IDicomTag
     {
         private string Name { get; }
         private uint TagValue { get; }
@@ -29,17 +30,6 @@ namespace CAPI.Dicom.Model
         public Type GetValueType()
         {
             return ValueType;
-        }
-
-        public enum TagType
-        {
-            Site,
-            CareProvider,
-            Patient,
-            Study,
-            Series,
-            Image,
-            All
         }
     }
 }

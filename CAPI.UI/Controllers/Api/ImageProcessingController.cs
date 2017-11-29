@@ -1,5 +1,5 @@
-﻿using CAPI.BLL.Model;
-using CAPI.Common;
+﻿using CAPI.Common;
+using CAPI.Domain.Model;
 using CAPI.ImageProcessing;
 using System.IO;
 using System.Linq;
