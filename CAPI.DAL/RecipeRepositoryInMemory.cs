@@ -46,7 +46,7 @@ namespace CAPI.DAL
             recipeMs1.NewStudyCriteria = new List<IStudySelectionCriteria> { criterion1 };
             recipeMs1.IntegratedProcesses = new List<IIntegratedProcess>
             {
-                jobManagerFactory.CreateIntegratedProcess("1", "1", "-n 3 -d 25 -s 0.64 -r 1 --trim")
+                jobManagerFactory.CreateIntegratedProcess("2", "1", "-n 3 -d 25 -s 0.64 -r 1 --trim")
             };
             recipeMs1.Destinations = new List<IDestination> {
                 jobManagerFactory.CreateDestination("1", "", "ORTHANC")
