@@ -1,19 +1,21 @@
-﻿using CAPI.Dicom.Model;
+﻿using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod.Iods;
 using ClearCanvas.Dicom.Network.Scu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CAPI.Dicom.Abstraction;
 
 namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        public DicomServices()
-        {
+        private IDicomFactory _dicomFactory;
 
+        public DicomServices(IDicomFactory dicomFactory)
+        {
+            _dicomFactory = dicomFactory;
         }
 
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
@@ -81,11 +83,12 @@ namespace CAPI.Dicom
             }
             dcmFile.Save(filepath);
         }
-        
+
         private static DicomFile UpdateTags(DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
         {
             if (newTags == null) return dcmFile;
-            newTags.ToList().ForEach(tag => {
+            newTags.ToList().ForEach(tag =>
+            {
                 if (tag.DicomTagType == tagType)
                     dcmFile = UpdateTag(dcmFile, tag, overwriteIfNotProvided);
             });
@@ -99,7 +102,7 @@ namespace CAPI.Dicom
         }
         private static DicomFile UpdateTag(DicomFile dcmFile, IDicomTag newTag, string value)
         {
-            if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new [] { value };
+            if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new[] { value };
             else if (newTag.GetValueType() == typeof(string)) dcmFile.DataSet[newTag.GetTagValue()].Values = value;
             return dcmFile;
         }
@@ -122,7 +125,7 @@ namespace CAPI.Dicom
         private static IDicomTagCollection UpdateUidsForNewImage(IDicomTagCollection tags)
         {
             if (tags == null) return null;
-            tags.ImageUid.Values = new [] { GetNewImageUid() };
+            tags.ImageUid.Values = new[] { GetNewImageUid() };
             return tags;
         }
 
@@ -140,7 +143,7 @@ namespace CAPI.Dicom
         }
 
         public IDicomTagCollection GetDicomTags(string filePath)
-        { 
+        {
             var dcmFile = new DicomFile(filePath);
             dcmFile.Load(filePath);
             var tags = new DicomTagCollection();
@@ -158,8 +161,8 @@ namespace CAPI.Dicom
             query.PatientId = patientId;
             var findScu = new StudyRootFindScu();
             var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query);
-            return studies.Count == 0 ? null : 
-                studies.Select(study => study.AccessionNumber+"|"+study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
+            return studies.Count == 0 ? null :
+                studies.Select(study => study.AccessionNumber + "|" + study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
         }
 
         public IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, IDicomNode localNode, IDicomNode remoteNode)
@@ -210,16 +213,17 @@ namespace CAPI.Dicom
             var results = find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress,
                 remoteNode.Port, imageQuery);
 
-            if (!string.IsNullOrEmpty(find.FailureDescription)) throw new DicomException($"Image query failed: {find.FailureDescription}{Environment.NewLine}" +
-                                                                                        $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
-                                                                                        $"Study Uid: {studyUid}{Environment.NewLine}" +
-                                                                                        $"Series Uid: {seriesUid}");
+            if (!string.IsNullOrEmpty(find.FailureDescription))
+                throw new DicomException($"Image query failed: {find.FailureDescription}{Environment.NewLine}" +
+                                        $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
+                                        $"Study Uid: {studyUid}{Environment.NewLine}" +
+                                        $"Series Uid: {seriesUid}");
+
             if (results == null || results.Count == 0) return null;
-
-
+            
             foreach (var imageQueryIod in results)
                 SaveToDisk(imageQueryIod, "C:\\temp\\test");
-            
+
             return results.Select(img => img.SopInstanceUid);
         }
 
@@ -228,11 +232,13 @@ namespace CAPI.Dicom
             //var scp = new scp;
         }
 
-        public IStudy GetStudyForAccession(string accesstionNumber)
+        public IDicomStudy GetStudyForAccession(string accessionNumber)
         {
-            throw new NotImplementedException();
-        }
+            var study = _dicomFactory.CreateStudy();
+            study.AccessionNumber = accessionNumber;
 
-        
+
+            return study;
+        }
     }
 }

@@ -11,13 +11,13 @@ namespace CAPI.JobManager
             return new Job();
         }
 
-        public IJob CreateJob(IStudy studyUnderFocus, IStudy studyBeingComparedTo, 
+        public IJob CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo, 
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations)
         {
             return new Job
             {
-                StudyUnderFocus = studyUnderFocus,
-                StudyBeingComparedTo = studyBeingComparedTo,
+                DicomStudyUnderFocus = dicomStudyUnderFocus,
+                DicomStudyBeingComparedTo = dicomStudyBeingComparedTo,
                 IntegratedProcesses = integratedProcesses,
                 Destinations = destinations
             };

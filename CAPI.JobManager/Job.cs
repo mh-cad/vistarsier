@@ -6,8 +6,8 @@ namespace CAPI.JobManager
 {
     public class Job : IJob
     {
-        public IStudy StudyUnderFocus { get; set; }
-        public IStudy StudyBeingComparedTo { get; set; }
+        public IDicomStudy DicomStudyUnderFocus { get; set; }
+        public IDicomStudy DicomStudyBeingComparedTo { get; set; }
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 

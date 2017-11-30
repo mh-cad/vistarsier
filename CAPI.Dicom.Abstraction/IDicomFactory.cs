@@ -9,5 +9,6 @@ namespace CAPI.Dicom.Abstraction
         IDicomTag CreateDicomTag(string name, uint tagValue, TagType dicomTagType, Type valueType);
         IDicomTagCollection CreateDicomTagCollection();
         IDicomServices CreateDicomServices();
+        IDicomStudy CreateStudy();
     }
 }

@@ -18,7 +18,7 @@ namespace CAPI.JobManager
             );
         }
 
-        private IStudy FindStudyToCompareToForAccession(IList<IStudySelectionCriteria> recipePriorStudyCriteria)
+        private IDicomStudy FindStudyToCompareToForAccession(IList<IStudySelectionCriteria> recipePriorStudyCriteria)
         {
             throw new System.NotImplementedException();
         }
