@@ -229,7 +229,7 @@ namespace CAPI.Dicom
 
         private static void SaveToDisk(ImageQueryIod imageQueryIod, string folderPath)
         {
-            //var scp = new scp;
+            
         }
 
         public IDicomStudy GetStudyForAccession(string accessionNumber)
