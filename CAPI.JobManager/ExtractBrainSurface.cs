@@ -10,7 +10,7 @@ namespace CAPI.JobManager
         public string Id { get; set; }
         public string Version { get; set; }
         public string[] Parameters { get; set; }
-        public ISeries Series { get; set; }
+        public IDicomSeries DicomSeries { get; set; }
 
         public void Init()
         {

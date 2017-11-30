@@ -6,7 +6,7 @@ namespace CAPI.DAL
     {
         public IDicomNodeRepository CreateDicomNodeRepository()
         {
-            return new DicomNodeRepositoryInMemory();
+            return new DicomNodeRepositoryInMemory(null);
         }
     }
 }

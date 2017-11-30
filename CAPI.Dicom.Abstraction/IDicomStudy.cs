@@ -1,6 +1,6 @@
 ﻿namespace CAPI.Dicom.Abstraction
 {
-    public interface IStudy
+    public interface IDicomStudy
     {
         string AccessionNumber { get; set; }
         string Region { get; set; }

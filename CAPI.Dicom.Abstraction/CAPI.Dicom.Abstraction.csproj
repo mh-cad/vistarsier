@@ -46,8 +46,8 @@
     <Compile Include="IDicomServices.cs" />
     <Compile Include="IDicomTag.cs" />
     <Compile Include="IDicomTagCollection.cs" />
-    <Compile Include="ISeries.cs" />
-    <Compile Include="IStudy.cs" />
+    <Compile Include="IDicomSeries.cs" />
+    <Compile Include="IDicomStudy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TagType.cs" />
   </ItemGroup>

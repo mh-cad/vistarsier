@@ -22,8 +22,8 @@
                                     <div class="panel-title">Local Drive</div>
                                 </div>
                                 <div class="panel-body">
-                                    @*<button ng-click="LoadTwoSampleSeries()" class="btn btn-success">Load Two Sample Series</button>*@
-                                    <button ng-click="GetDicomSeries()" class="btn btn-success">Load Dicom Series</button>
+                                    @*<button ng-click="LoadTwoSampleDicomSeries()" class="btn btn-success">Load Two Sample DicomSeries</button>*@
+                                    <button ng-click="GetDicomDicomSeries()" class="btn btn-success">Load Dicom DicomSeries</button>
                                     <button ng-click="SendSampleFileToPacs()" class="btn btn-warning">Send Sample file to PACS</button>
                                 </div>
                             </div>
@@ -46,10 +46,10 @@
                         <div class="col-md-4">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <div class="panel-title">Loaded Series</div>
+                                    <div class="panel-title">Loaded DicomSeries</div>
                                 </div>
                                 <div class="panel-body">
-                                    <div ng-repeat="seriesVm in LoadedSeries.seriesArray">
+                                    <div ng-repeat="seriesVm in LoadedDicomSeries.seriesArray">
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-primary btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                 <span class="badge badge-default">{{seriesVm.fileFormat}}</span>
@@ -123,7 +123,7 @@
                                     <input ng-click="Step5()" type="button" class="btn btn-info btn-xs rounded-3" style="margin-top: 2px;" value="5- Take Difference" />
                                 </div>
                                 <div class="row">
-                                    <input ng-click="Step6()" type="button" class="btn btn-info btn-xs rounded-3" style="margin-top: 2px;" value="6- Convert Old Series into DICOM" />
+                                    <input ng-click="Step6()" type="button" class="btn btn-info btn-xs rounded-3" style="margin-top: 2px;" value="6- Convert Old DicomSeries into DICOM" />
                                 </div>
                                 <div class="row">
                                     <input ng-click="Step7()" type="button" class="btn btn-info btn-xs rounded-3" style="margin-top: 2px;" value="7- Colour Map Overlay" />

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DicomFactory.cs" />
+    <Compile Include="DicomStudy.cs" />
     <Compile Include="Model\DicomNode.cs" />
     <Compile Include="Model\DicomSeries.cs" />
     <Compile Include="DicomServices.cs" />

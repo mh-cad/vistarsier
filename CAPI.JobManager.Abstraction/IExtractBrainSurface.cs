@@ -4,6 +4,6 @@ namespace CAPI.JobManager.Abstraction
 {
     public interface IExtractBrainSurface : IIntegratedProcess
     {
-        ISeries Series { get; set; }
+        IDicomSeries DicomSeries { get; set; }
     }
 }

@@ -1,11 +1,11 @@
-﻿using System.Linq;
-using CAPI.Dicom.Abstraction;
+﻿using CAPI.Dicom.Abstraction;
+using System.Linq;
 
 namespace CAPI.DAL.Abstraction
 {
-    public interface IDicomNodeRepository : IRepository <IDicomNode>
+    public interface IDicomNodeRepository : IRepository<IDicomNode>
     {
         IDicomNode Get(int id);
-        IQueryable<IDicomNode> GetAll(IDicomFactory dicomFactory);
+        IQueryable<IDicomNode> GetAll();
     }
 }

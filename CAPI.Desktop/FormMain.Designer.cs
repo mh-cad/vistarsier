@@ -231,7 +231,7 @@
             this.LblSeriesDescription.Name = "LblSeriesDescription";
             this.LblSeriesDescription.Size = new System.Drawing.Size(78, 15);
             this.LblSeriesDescription.TabIndex = 17;
-            this.LblSeriesDescription.Text = "Series Desc:";
+            this.LblSeriesDescription.Text = "DicomSeries Desc:";
             // 
             // CbRemoveCarerDetails
             // 
@@ -290,7 +290,7 @@
             this.RbNewSeries.Name = "RbNewSeries";
             this.RbNewSeries.Size = new System.Drawing.Size(89, 19);
             this.RbNewSeries.TabIndex = 1;
-            this.RbNewSeries.Text = "New Series";
+            this.RbNewSeries.Text = "New DicomSeries";
             this.RbNewSeries.UseVisualStyleBackColor = true;
             // 
             // RbNewImage
@@ -452,7 +452,7 @@
             this.BtnGetSeries.Name = "BtnGetSeries";
             this.BtnGetSeries.Size = new System.Drawing.Size(87, 24);
             this.BtnGetSeries.TabIndex = 17;
-            this.BtnGetSeries.Text = "Get Series for Study";
+            this.BtnGetSeries.Text = "Get DicomSeries for Study";
             this.BtnGetSeries.UseVisualStyleBackColor = true;
             this.BtnGetSeries.Click += new System.EventHandler(this.BtnGetSeries_Click);
             // 

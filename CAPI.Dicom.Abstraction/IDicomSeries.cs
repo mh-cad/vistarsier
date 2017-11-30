@@ -1,7 +1,7 @@
 ﻿namespace CAPI.Dicom.Abstraction
 {
-    public interface ISeries
+    public interface IDicomSeries
     {
-        
+
     }
 }
