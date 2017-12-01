@@ -2,10 +2,12 @@
 using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod.Iods;
+using ClearCanvas.Dicom.Network.Scp;
 using ClearCanvas.Dicom.Network.Scu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace CAPI.Dicom
 {
@@ -220,7 +222,7 @@ namespace CAPI.Dicom
                                         $"Series Uid: {seriesUid}");
 
             if (results == null || results.Count == 0) return null;
-            
+
             foreach (var imageQueryIod in results)
                 SaveToDisk(imageQueryIod, "C:\\temp\\test");
 
@@ -229,7 +231,7 @@ namespace CAPI.Dicom
 
         private static void SaveToDisk(ImageQueryIod imageQueryIod, string folderPath)
         {
-            
+
         }
 
         public IDicomStudy GetStudyForAccession(string accessionNumber)
@@ -239,6 +241,19 @@ namespace CAPI.Dicom
 
 
             return study;
+        }
+
+        public void StartListening()
+        {
+            var dicomScp = new DicomScp<string>("", null)
+            {
+                AeTitle = "CC",
+                ListenAddress = IPAddress.Parse("127.0.0.1"),
+                ListenPort = 4241
+            };
+            dicomScp.Start();
+
+            //dicomScp.Stop();
         }
     }
 }

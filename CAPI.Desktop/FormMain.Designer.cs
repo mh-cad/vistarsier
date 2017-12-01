@@ -70,14 +70,20 @@
             this.CbSourcePacs = new System.Windows.Forms.ComboBox();
             this.BtnGetStudies = new System.Windows.Forms.Button();
             this.LblSourcePacs = new System.Windows.Forms.Label();
-            this.FdLoadDicomFile = new System.Windows.Forms.OpenFileDialog();
             this.BtnTestProcess = new System.Windows.Forms.Button();
+            this.FdLoadDicomFile = new System.Windows.Forms.OpenFileDialog();
+            this.DgvLogs = new System.Windows.Forms.DataGridView();
+            this.LogText = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.LogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.panel2 = new System.Windows.Forms.Panel();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.GbArchive.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DgvLogs)).BeginInit();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // TxtFilePath
@@ -229,7 +235,7 @@
             this.LblSeriesDescription.AutoSize = true;
             this.LblSeriesDescription.Location = new System.Drawing.Point(23, 281);
             this.LblSeriesDescription.Name = "LblSeriesDescription";
-            this.LblSeriesDescription.Size = new System.Drawing.Size(78, 15);
+            this.LblSeriesDescription.Size = new System.Drawing.Size(114, 15);
             this.LblSeriesDescription.TabIndex = 17;
             this.LblSeriesDescription.Text = "DicomSeries Desc:";
             // 
@@ -288,7 +294,7 @@
             this.RbNewSeries.AutoSize = true;
             this.RbNewSeries.Location = new System.Drawing.Point(7, 252);
             this.RbNewSeries.Name = "RbNewSeries";
-            this.RbNewSeries.Size = new System.Drawing.Size(89, 19);
+            this.RbNewSeries.Size = new System.Drawing.Size(125, 19);
             this.RbNewSeries.TabIndex = 1;
             this.RbNewSeries.Text = "New DicomSeries";
             this.RbNewSeries.UseVisualStyleBackColor = true;
@@ -388,9 +394,10 @@
             this.flowLayoutPanel1.Controls.Add(this.panel1);
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
             this.flowLayoutPanel1.Controls.Add(this.BtnTestProcess);
+            this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(12, 12);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(1094, 570);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(890, 572);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
             // panel1
@@ -509,28 +516,66 @@
             this.LblSourcePacs.TabIndex = 5;
             this.LblSourcePacs.Text = "Dicom Node To Query";
             // 
-            // FdLoadDicomFile
-            // 
-            this.FdLoadDicomFile.InitialDirectory = "C:\\temp\\test";
-            // 
             // BtnTestProcess
             // 
             this.BtnTestProcess.Location = new System.Drawing.Point(672, 3);
             this.BtnTestProcess.Name = "BtnTestProcess";
-            this.BtnTestProcess.Size = new System.Drawing.Size(95, 37);
+            this.BtnTestProcess.Size = new System.Drawing.Size(205, 37);
             this.BtnTestProcess.TabIndex = 8;
             this.BtnTestProcess.Text = "Test Process";
             this.BtnTestProcess.UseVisualStyleBackColor = true;
             this.BtnTestProcess.Click += new System.EventHandler(this.BtnTestProcess_Click);
             // 
+            // FdLoadDicomFile
+            // 
+            this.FdLoadDicomFile.InitialDirectory = "C:\\temp\\test";
+            // 
+            // DgvLogs
+            // 
+            this.DgvLogs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.DgvLogs.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.LogText,
+            this.LogTime});
+            this.DgvLogs.Location = new System.Drawing.Point(3, 3);
+            this.DgvLogs.Name = "DgvLogs";
+            this.DgvLogs.Size = new System.Drawing.Size(499, 222);
+            this.DgvLogs.TabIndex = 9;
+            // 
+            // LogText
+            // 
+            this.LogText.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.LogText.HeaderText = "Log Text";
+            this.LogText.Name = "LogText";
+            this.LogText.ReadOnly = true;
+            // 
+            // LogTime
+            // 
+            this.LogTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.LogTime.HeaderText = "Time";
+            this.LogTime.Name = "LogTime";
+            this.LogTime.ReadOnly = true;
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.DgvLogs);
+            this.panel2.Location = new System.Drawing.Point(12, 590);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(505, 228);
+            this.panel2.TabIndex = 8;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1118, 591);
+            this.ClientSize = new System.Drawing.Size(907, 823);
+            this.Controls.Add(this.panel2);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Font = new System.Drawing.Font("Calibri", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            this.MaximizeBox = false;
             this.Name = "FormMain";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CAPI";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.PnlDcmHeaderModifiers.ResumeLayout(false);
@@ -543,6 +588,8 @@
             this.panel1.ResumeLayout(false);
             this.GbArchive.ResumeLayout(false);
             this.GbArchive.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DgvLogs)).EndInit();
+            this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -593,6 +640,10 @@
         private System.Windows.Forms.TextBox TxtImagesList;
         private System.Windows.Forms.Button BtnGetImages;
         private System.Windows.Forms.Button BtnTestProcess;
+        private System.Windows.Forms.DataGridView DgvLogs;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LogText;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LogTime;
+        private System.Windows.Forms.Panel panel2;
     }
 }
 

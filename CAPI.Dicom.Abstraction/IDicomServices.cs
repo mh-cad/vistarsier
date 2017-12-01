@@ -18,7 +18,9 @@ namespace CAPI.Dicom.Abstraction
 
         IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, IDicomNode localNode,
             IDicomNode remoteNode);
-        
+
         IDicomStudy GetStudyForAccession(string accesstionNumber);
+
+        void StartListening();
     }
 }

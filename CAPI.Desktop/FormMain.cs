@@ -128,6 +128,7 @@ namespace CAPI.Desktop
         {
             LoadDicomNodes();
             BindDicomHeaderModifiersEventHandlers();
+            LogToDataGridView("This is a test");
         }
 
         private void BtnSend_Click(object sender, EventArgs e)
@@ -207,8 +208,6 @@ namespace CAPI.Desktop
             LoadTagsPopulateFields();
             BtnSend.Enabled = true;
         }
-        #endregion
-
         private void BtnGetStudies_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(TxtPatientIdPacs.Text)) return;
@@ -256,7 +255,25 @@ namespace CAPI.Desktop
         {
             var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
             var job = _jobBuilder.Build(recipe, _dicomFactory.CreateDicomServices(), _jobManagerFactory);
+            job.OnEachProcessCompleted += new EventHandler<ProcessEventArgument>(Process_Completed);
             job.Run();
+
+            //_dicomFactory.CreateDicomServices().StartListening();
+        }
+        #endregion
+
+        private void LogToDataGridView(string logContent)
+        {
+            var row = new DataGridViewRow();
+            var cell1 = new DataGridViewTextBoxCell { Value = logContent };
+            var cell2 = new DataGridViewTextBoxCell { Value = DateTime.Now.ToString("yyyy-MM-dd:HH:mm:ss") };
+            row.Cells.AddRange(cell1, cell2);
+            DgvLogs.Rows.Add(row);
+        }
+
+        private void Process_Completed(object sender, ProcessEventArgument e)
+        {
+            LogToDataGridView(e.LogContent);
         }
     }
 }

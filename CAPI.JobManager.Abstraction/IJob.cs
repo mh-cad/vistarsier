@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using CAPI.Dicom.Abstraction;
+﻿using CAPI.Dicom.Abstraction;
+using System;
+using System.Collections.Generic;
 
 namespace CAPI.JobManager.Abstraction
 {
@@ -9,6 +10,7 @@ namespace CAPI.JobManager.Abstraction
         IDicomStudy DicomStudyBeingComparedTo { get; set; }
         IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         IList<IDestination> Destinations { get; set; }
+        event EventHandler<ProcessEventArgument> OnEachProcessCompleted;
 
         void Run();
     }
