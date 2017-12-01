@@ -1,28 +1,26 @@
-﻿using CAPI.Dicom.Abstraction;
-using CAPI.JobManager.Abstraction;
+﻿using CAPI.JobManager.Abstraction;
 using System;
 
 namespace CAPI.JobManager
 {
-    public class ExtractBrainSurface : IExtractBrainSurface
+    public class TakeDifference : ITakeDifference
     {
         private string[] _parameters;
 
         public IntegratedProcessType Type
         {
-            get => IntegratedProcessType.ExtractBrainSurface;
-            set => value = IntegratedProcessType.ExtractBrainSurface;
+            get => IntegratedProcessType.TakeDifference;
+            set => value = IntegratedProcessType.TakeDifference;
         }
         public string Id { get; set; }
         public string Version { get; set; }
         public string[] Parameters { get; set; }
-        public IDicomSeries DicomSeries { get; set; }
         public event EventHandler<ProcessEventArgument> OnComplete;
 
         // Constructor
-        public ExtractBrainSurface(string[] parameters)
+        public TakeDifference(string[] parameters)
         {
-            Id = "1";
+            Id = "3";
             Version = "1";
             Init(parameters);
         }
@@ -40,7 +38,7 @@ namespace CAPI.JobManager
         public void Run()
         {
             var handler = OnComplete;
-            handler?.Invoke(this, new ProcessEventArgument("Brain Mask Extraction is completed"));
+            handler?.Invoke(this, new ProcessEventArgument("Take Difference process is completed"));
         }
     }
 }

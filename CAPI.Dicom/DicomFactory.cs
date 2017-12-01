@@ -28,7 +28,7 @@ namespace CAPI.Dicom
         }
         public IDicomStudy CreateStudy()
         {
-            return null;
+            return new DicomStudy();
         }
     }
 }

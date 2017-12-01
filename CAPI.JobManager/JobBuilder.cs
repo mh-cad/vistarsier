@@ -20,7 +20,7 @@ namespace CAPI.JobManager
 
         private IDicomStudy FindStudyToCompareToForAccession(IList<IStudySelectionCriteria> recipePriorStudyCriteria)
         {
-            throw new System.NotImplementedException();
+            return null;
         }
     }
 }

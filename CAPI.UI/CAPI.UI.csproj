@@ -290,6 +290,10 @@
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>CAPI.Dicom</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
+      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
+      <Name>CAPI.ImageProcessing.Abstraction</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VT.BLL\VT.BLL.csproj">
       <Project>{87f0f818-6c10-424c-95b8-992461561e72}</Project>
       <Name>VT.BLL</Name>

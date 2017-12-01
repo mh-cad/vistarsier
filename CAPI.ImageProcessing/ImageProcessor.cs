@@ -1,17 +1,18 @@
-﻿using System;
+﻿using CAPI.Common;
+using CAPI.Common.Services;
+using CAPI.Domain.Model;
+using CAPI.ImageProcessing.Abstraction;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CAPI.Common;
-using CAPI.Common.Services;
-using CAPI.Domain.Model;
 using SeriesHdr = CAPI.Domain.Model.SeriesHdr;
 using SeriesNii = CAPI.Domain.Model.SeriesNii;
 
 namespace CAPI.ImageProcessing
 {
-    public class ImageProcessor
+    public class ImageProcessor : IImageProcessor
     {
         private readonly string _executablesPath;
         private readonly string _javaClassPath;
@@ -217,7 +218,7 @@ namespace CAPI.ImageProcessing
             {
                 var srcDir = seriesFixed.FolderPath;
                 const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " + 
+                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
                                    $@"{srcDir}\{seriesFixed.Description}.nii {srcDir}\{seriesFloating.Description}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
 
                 ProcessBuilder.CallJava(javaArgument, methodname);
@@ -278,7 +279,7 @@ namespace CAPI.ImageProcessing
         private void FlipFloatingReslicedImages(string reslicedFloatingName, string outputDir)
         {
             const string methodName = "au.com.nicta.preprocess.main.FlipNii"; // TODO3: Hard-coded method name
-            var arguments = 
+            var arguments =
                 $"-classpath {_javaClassPath} {methodName} {outputDir}\\{reslicedFloatingName}.nii " +
                 $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii";
             ProcessBuilder.CallJava(arguments, methodName);
@@ -291,12 +292,12 @@ namespace CAPI.ImageProcessing
         private void MatchDicom2Nii(string reslicedFloatingName, string outputDir)
         {
             const string methodName = "au.com.nicta.preprocess.main.MatchDicom2Nii2Dicom"; // TODO3: Hard-coded method name
-            var arguments = 
+            var arguments =
                 $"-classpath {_javaClassPath} {methodName} {outputDir}/{Fixed}.img " +
-                $"{_fixedDicomPath} {outputDir}/{reslicedFloatingName}{FlippedSuffix}_dcm {outputDir}/{FlairOldReslicesFolderName}"; 
+                $"{_fixedDicomPath} {outputDir}/{reslicedFloatingName}{FlippedSuffix}_dcm {outputDir}/{FlairOldReslicesFolderName}";
             ProcessBuilder.CallJava(arguments, methodName);
         }
-        
+
         public void ColorMap(string outputDir)
         {
             const string methodName = "au.com.nicta.preprocess.main.ColorMap";
@@ -314,7 +315,7 @@ namespace CAPI.ImageProcessing
 
         public void ConvertBmpsToDicom(string outputDir)
         {
-            var folders = new [] { $"{outputDir}\\{DstPrefixNegative}", $"{outputDir}\\{DstPrefixPositive}" };
+            var folders = new[] { $"{outputDir}\\{DstPrefixNegative}", $"{outputDir}\\{DstPrefixPositive}" };
             foreach (var folder in folders)
             {
                 if (!Directory.Exists($"{folder}_dcm")) Directory.CreateDirectory($"{folder}_dcm");
@@ -346,7 +347,7 @@ namespace CAPI.ImageProcessing
                     var stdout = ProcessBuilder.CallExecutableFile($"{_executablesPath}\\{DcmtkFolderName}\\{DcmdumpFileName}", arguments);
 
                     var match = Regex.Match(stdout, $"{key}.*").Value;
-                    var value = Regex.Match(match, @"\[(.*)\]").Value.Replace("[","").Replace("]", "");
+                    var value = Regex.Match(match, @"\[(.*)\]").Value.Replace("[", "").Replace("]", "");
 
                     arguments = $"--no-backup -m {key}={value} {copiedFileFullPath}";
                     ProcessBuilder.CallExecutableFile($"{_executablesPath}\\{DcmtkFolderName}\\{DcmodifyFileName}", arguments);
