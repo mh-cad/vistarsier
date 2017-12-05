@@ -16,11 +16,11 @@ namespace CAPI.Dicom.Abstraction
 
         string GetSeriesUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode);
 
-        IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, IDicomNode localNode,
-            IDicomNode remoteNode);
+        IDicomSeries GetSeriesDataForSeriesUid(
+            string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode);
 
         IDicomStudy GetStudyForAccession(string accesstionNumber);
 
-        void StartListening();
+        void SaveSeriesToLocalDisk(IDicomSeries dicomSeries, string folderPath, IDicomNode localNode, IDicomNode remoteNode);
     }
 }

@@ -10,5 +10,7 @@ namespace CAPI.Dicom.Abstraction
         IDicomTagCollection CreateDicomTagCollection();
         IDicomServices CreateDicomServices();
         IDicomStudy CreateStudy();
+        IDicomSeries CreateDicomSeries();
+        IDicomImage CreateDicomImage();
     }
 }

@@ -8,8 +8,6 @@ namespace CAPI.JobManager.Abstraction
         string Id { get; set; }
         string Version { get; set; }
         string[] Parameters { get; set; }
-        void Init();
-        void Init(params string[] parameters);
         void Run();
         event EventHandler<ProcessEventArgument> OnComplete;
     }

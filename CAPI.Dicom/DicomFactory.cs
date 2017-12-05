@@ -30,5 +30,15 @@ namespace CAPI.Dicom
         {
             return new DicomStudy();
         }
+
+        public IDicomSeries CreateDicomSeries()
+        {
+            return new DicomSeries();
+        }
+
+        public IDicomImage CreateDicomImage()
+        {
+            return new DicomImage();
+        }
     }
 }

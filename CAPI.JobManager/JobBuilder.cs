@@ -7,7 +7,7 @@ namespace CAPI.JobManager
 {
     public class JobBuilder : IJobBuilder
     {
-        public IJob Build(IRecipe recipe, IDicomServices dicomServices, IJobManagerFactory jobManagerFactory)
+        public IJob<IRecipe> Build(IRecipe recipe, IDicomServices dicomServices, IJobManagerFactory jobManagerFactory)
         {
             return jobManagerFactory.CreateJob(
                 dicomServices.GetStudyForAccession(recipe.NewStudyCriteria

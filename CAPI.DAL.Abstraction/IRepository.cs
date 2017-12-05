@@ -2,12 +2,12 @@
 
 namespace CAPI.DAL.Abstraction
 {
-    public interface IRepository<in TEntity> : IDisposable 
-        where TEntity : class
+    public interface IRepository<in T> : IDisposable
+        where T : class
     {
-        bool Add(TEntity entity);
-        bool Update(TEntity entity);
+        bool Add(T entity);
+        bool Update(T entity);
         bool SaveChanges();
-        bool Delete(TEntity entity);
+        bool Delete(T entity);
     }
 }

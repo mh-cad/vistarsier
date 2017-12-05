@@ -2,18 +2,17 @@
 using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod.Iods;
-using ClearCanvas.Dicom.Network.Scp;
 using ClearCanvas.Dicom.Network.Scu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using StorageScp = ClearCanvas.Dicom.Samples.StorageScp;
 
 namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        private IDicomFactory _dicomFactory;
+        private readonly IDicomFactory _dicomFactory;
 
         public DicomServices(IDicomFactory dicomFactory)
         {
@@ -203,7 +202,8 @@ namespace CAPI.Dicom
                 throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
         }
 
-        public IEnumerable<string> GetImagesForSeries(string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode)
+        public IDicomSeries GetSeriesDataForSeriesUid(
+            string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
 
@@ -216,21 +216,46 @@ namespace CAPI.Dicom
                 remoteNode.Port, imageQuery);
 
             if (!string.IsNullOrEmpty(find.FailureDescription))
-                throw new DicomException($"Image query failed: {find.FailureDescription}{Environment.NewLine}" +
+                throw new DicomException($"Series query failed: {find.FailureDescription}{Environment.NewLine}" +
                                         $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
                                         $"Study Uid: {studyUid}{Environment.NewLine}" +
                                         $"Series Uid: {seriesUid}");
 
             if (results == null || results.Count == 0) return null;
 
-            foreach (var imageQueryIod in results)
-                SaveToDisk(imageQueryIod, "C:\\temp\\test");
-
-            return results.Select(img => img.SopInstanceUid);
+            return new DicomSeries
+            {
+                Images = results
+                .Select(r => new DicomImage { ImageUid = r.SopInstanceUid }).ToList()
+            };
         }
 
-        private static void SaveToDisk(ImageQueryIod imageQueryIod, string folderPath)
+        public void SaveSeriesToLocalDisk(
+            IDicomSeries dicomSeries, string folderPath, IDicomNode localNode, IDicomNode remoteNode)
         {
+            var moveScu = new StudyRootMoveScu(localNode.AeTitle, remoteNode.AeTitle,
+                remoteNode.IpAddress, remoteNode.Port, localNode.AeTitle);
+
+            moveScu.AddStudyInstanceUid(dicomSeries.StudyInstanceUid);
+            moveScu.AddSeriesInstanceUid(dicomSeries.SeriesInstanceUid);
+
+            StorageScp.StorageLocation = folderPath;
+
+            try
+            {
+                StorageScp.StartListening(localNode.AeTitle, localNode.Port);
+
+                moveScu.Move();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex); // TODO3: Implement proper logging
+                throw;
+            }
+            finally
+            {
+                StorageScp.StopListening(localNode.Port);
+            }
 
         }
 
@@ -239,21 +264,9 @@ namespace CAPI.Dicom
             var study = _dicomFactory.CreateStudy();
             study.AccessionNumber = accessionNumber;
 
+            // ???
 
             return study;
-        }
-
-        public void StartListening()
-        {
-            var dicomScp = new DicomScp<string>("", null)
-            {
-                AeTitle = "CC",
-                ListenAddress = IPAddress.Parse("127.0.0.1"),
-                ListenPort = 4241
-            };
-            dicomScp.Start();
-
-            //dicomScp.Stop();
         }
     }
 }

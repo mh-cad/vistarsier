@@ -5,12 +5,10 @@ namespace CAPI.JobManager
 {
     public class TakeDifference : ITakeDifference
     {
-        private string[] _parameters;
-
         public IntegratedProcessType Type
         {
             get => IntegratedProcessType.TakeDifference;
-            set => value = IntegratedProcessType.TakeDifference;
+            set { }
         }
         public string Id { get; set; }
         public string Version { get; set; }
@@ -22,23 +20,14 @@ namespace CAPI.JobManager
         {
             Id = "3";
             Version = "1";
-            Init(parameters);
-        }
-
-        public void Init()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Init(params string[] parameters)
-        {
-            _parameters = parameters;
+            Parameters = parameters;
         }
 
         public void Run()
         {
             var handler = OnComplete;
-            handler?.Invoke(this, new ProcessEventArgument("Take Difference process is completed"));
+            handler?.Invoke(this, new ProcessEventArgument(
+                $"Take Difference process is completed [Version: {Version}] [Parameters: {string.Join(" ", Parameters)}]"));
         }
     }
 }

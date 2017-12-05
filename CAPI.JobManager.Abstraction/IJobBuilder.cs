@@ -4,6 +4,6 @@ namespace CAPI.JobManager.Abstraction
 {
     public interface IJobBuilder
     {
-        IJob Build(IRecipe recipe, IDicomServices dicomServices, IJobManagerFactory jobManagerFactory);
+        IJob<IRecipe> Build(IRecipe recipe, IDicomServices dicomServices, IJobManagerFactory jobManagerFactory);
     }
 }
