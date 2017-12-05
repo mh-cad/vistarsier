@@ -5,8 +5,8 @@ namespace CAPI.JobManager.Abstraction
 {
     public interface IJobManagerFactory
     {
-        IJob CreateJob();
-        IJob CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
+        IJob<IRecipe> CreateJob();
+        IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations);
 
         IRecipe CreateRecipe();

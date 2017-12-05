@@ -6,12 +6,10 @@ namespace CAPI.JobManager
 {
     public class ExtractBrainSurface : IExtractBrainSurface
     {
-        private string[] _parameters;
-
         public IntegratedProcessType Type
         {
             get => IntegratedProcessType.ExtractBrainSurface;
-            set => value = IntegratedProcessType.ExtractBrainSurface;
+            set { }
         }
         public string Id { get; set; }
         public string Version { get; set; }
@@ -24,23 +22,14 @@ namespace CAPI.JobManager
         {
             Id = "1";
             Version = "1";
-            Init(parameters);
-        }
-
-        public void Init()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Init(params string[] parameters)
-        {
-            _parameters = parameters;
+            Parameters = parameters;
         }
 
         public void Run()
         {
             var handler = OnComplete;
-            handler?.Invoke(this, new ProcessEventArgument("Brain Mask Extraction is completed"));
+            handler?.Invoke(this, new ProcessEventArgument(
+                $"Brain Mask Extraction is completed [Version: {Version}] [Parameters: {string.Join(" ", Parameters)}]"));
         }
     }
 }

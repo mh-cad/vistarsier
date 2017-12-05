@@ -5,14 +5,13 @@ using System.Collections.Generic;
 
 namespace CAPI.JobManager
 {
-    public class Job : IJob
+    public class Job<T> : IJob<T>
     {
         private readonly IJobManagerFactory _jobManagerFactory;
         public IDicomStudy DicomStudyUnderFocus { get; set; }
         public IDicomStudy DicomStudyBeingComparedTo { get; set; }
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
-        public event EventHandler<ProcessEventArgument> OnEachProcessCompleted;
 
         public Job(IJobManagerFactory jobManagerFactory)
         {
@@ -58,8 +57,10 @@ namespace CAPI.JobManager
 
         private void RunProcess(IIntegratedProcess process)
         {
-            process.OnComplete += new EventHandler<ProcessEventArgument>(Process_OnComplete);
+            process.OnComplete += Process_OnComplete;
             process.Run();
         }
+
+        public event EventHandler<ProcessEventArgument> OnEachProcessCompleted;
     }
 }

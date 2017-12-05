@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearCanvas.Common", "..\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearCanvas.Dicom", "..\ExtLib\Dicom\ClearCanvas.Dicom.csproj", "{AD9ECE2B-8268-4115-8DC8-860FBD011FFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.ImageProcessing.Mock", "CAPI.ImageProcessing.Mock\CAPI.ImageProcessing.Mock.csproj", "{72E0C232-9F31-4EB2-ABFE-742AF964F210}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -124,12 +122,6 @@ Global
 		{AD9ECE2B-8268-4115-8DC8-860FBD011FFF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AD9ECE2B-8268-4115-8DC8-860FBD011FFF}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{AD9ECE2B-8268-4115-8DC8-860FBD011FFF}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.Release|Any CPU.Build.0 = Release|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
-		{72E0C232-9F31-4EB2-ABFE-742AF964F210}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

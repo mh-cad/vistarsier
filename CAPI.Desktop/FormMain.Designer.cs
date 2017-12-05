@@ -76,6 +76,8 @@
             this.LogText = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.BtnSaveToDisk = new System.Windows.Forms.Button();
+            this.TxtImageRepoDicom = new System.Windows.Forms.TextBox();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -89,9 +91,9 @@
             // TxtFilePath
             // 
             this.TxtFilePath.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtFilePath.Location = new System.Drawing.Point(29, 52);
+            this.TxtFilePath.Location = new System.Drawing.Point(33, 55);
             this.TxtFilePath.Name = "TxtFilePath";
-            this.TxtFilePath.Size = new System.Drawing.Size(233, 24);
+            this.TxtFilePath.Size = new System.Drawing.Size(266, 24);
             this.TxtFilePath.TabIndex = 0;
             this.TxtFilePath.Text = "C:\\temp\\test\\00000010";
             // 
@@ -110,18 +112,18 @@
             this.PnlDcmHeaderModifiers.Controls.Add(this.RbNewSeries);
             this.PnlDcmHeaderModifiers.Controls.Add(this.RbNewImage);
             this.PnlDcmHeaderModifiers.Font = new System.Drawing.Font("Marlett", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PnlDcmHeaderModifiers.Location = new System.Drawing.Point(6, 143);
+            this.PnlDcmHeaderModifiers.Location = new System.Drawing.Point(7, 153);
             this.PnlDcmHeaderModifiers.Name = "PnlDcmHeaderModifiers";
-            this.PnlDcmHeaderModifiers.Size = new System.Drawing.Size(329, 374);
+            this.PnlDcmHeaderModifiers.Size = new System.Drawing.Size(376, 399);
             this.PnlDcmHeaderModifiers.TabIndex = 1;
             // 
             // TxtAccessionNumber
             // 
             this.TxtAccessionNumber.Enabled = false;
             this.TxtAccessionNumber.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtAccessionNumber.Location = new System.Drawing.Point(126, 226);
+            this.TxtAccessionNumber.Location = new System.Drawing.Point(144, 241);
             this.TxtAccessionNumber.Name = "TxtAccessionNumber";
-            this.TxtAccessionNumber.Size = new System.Drawing.Size(196, 24);
+            this.TxtAccessionNumber.Size = new System.Drawing.Size(223, 24);
             this.TxtAccessionNumber.TabIndex = 16;
             // 
             // PnlPatientDetails
@@ -134,24 +136,24 @@
             this.PnlPatientDetails.Controls.Add(this.LblPatientIdFs);
             this.PnlPatientDetails.Controls.Add(this.TxtPatientName);
             this.PnlPatientDetails.Controls.Add(this.LblPatientName);
-            this.PnlPatientDetails.Location = new System.Drawing.Point(15, 70);
+            this.PnlPatientDetails.Location = new System.Drawing.Point(17, 75);
             this.PnlPatientDetails.Name = "PnlPatientDetails";
-            this.PnlPatientDetails.Size = new System.Drawing.Size(310, 126);
+            this.PnlPatientDetails.Size = new System.Drawing.Size(354, 134);
             this.PnlPatientDetails.TabIndex = 7;
             // 
             // TxtPatientSex
             // 
             this.TxtPatientSex.Enabled = false;
             this.TxtPatientSex.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtPatientSex.Location = new System.Drawing.Point(111, 90);
+            this.TxtPatientSex.Location = new System.Drawing.Point(127, 96);
             this.TxtPatientSex.Name = "TxtPatientSex";
-            this.TxtPatientSex.Size = new System.Drawing.Size(196, 24);
+            this.TxtPatientSex.Size = new System.Drawing.Size(223, 24);
             this.TxtPatientSex.TabIndex = 14;
             // 
             // LblPatientSex
             // 
             this.LblPatientSex.AutoSize = true;
-            this.LblPatientSex.Location = new System.Drawing.Point(9, 93);
+            this.LblPatientSex.Location = new System.Drawing.Point(10, 99);
             this.LblPatientSex.Name = "LblPatientSex";
             this.LblPatientSex.Size = new System.Drawing.Size(71, 15);
             this.LblPatientSex.TabIndex = 13;
@@ -161,15 +163,15 @@
             // 
             this.TxtPatientBirthDate.Enabled = false;
             this.TxtPatientBirthDate.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtPatientBirthDate.Location = new System.Drawing.Point(111, 64);
+            this.TxtPatientBirthDate.Location = new System.Drawing.Point(127, 68);
             this.TxtPatientBirthDate.Name = "TxtPatientBirthDate";
-            this.TxtPatientBirthDate.Size = new System.Drawing.Size(196, 24);
+            this.TxtPatientBirthDate.Size = new System.Drawing.Size(223, 24);
             this.TxtPatientBirthDate.TabIndex = 12;
             // 
             // LblPatientBirthDate
             // 
             this.LblPatientBirthDate.AutoSize = true;
-            this.LblPatientBirthDate.Location = new System.Drawing.Point(9, 67);
+            this.LblPatientBirthDate.Location = new System.Drawing.Point(10, 71);
             this.LblPatientBirthDate.Name = "LblPatientBirthDate";
             this.LblPatientBirthDate.Size = new System.Drawing.Size(105, 15);
             this.LblPatientBirthDate.TabIndex = 11;
@@ -179,15 +181,15 @@
             // 
             this.TxtPatientIdFs.Enabled = false;
             this.TxtPatientIdFs.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtPatientIdFs.Location = new System.Drawing.Point(111, 38);
+            this.TxtPatientIdFs.Location = new System.Drawing.Point(127, 41);
             this.TxtPatientIdFs.Name = "TxtPatientIdFs";
-            this.TxtPatientIdFs.Size = new System.Drawing.Size(196, 24);
+            this.TxtPatientIdFs.Size = new System.Drawing.Size(223, 24);
             this.TxtPatientIdFs.TabIndex = 10;
             // 
             // LblPatientIdFs
             // 
             this.LblPatientIdFs.AutoSize = true;
-            this.LblPatientIdFs.Location = new System.Drawing.Point(9, 41);
+            this.LblPatientIdFs.Location = new System.Drawing.Point(10, 44);
             this.LblPatientIdFs.Name = "LblPatientIdFs";
             this.LblPatientIdFs.Size = new System.Drawing.Size(61, 15);
             this.LblPatientIdFs.TabIndex = 9;
@@ -197,15 +199,15 @@
             // 
             this.TxtPatientName.Enabled = false;
             this.TxtPatientName.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtPatientName.Location = new System.Drawing.Point(111, 11);
+            this.TxtPatientName.Location = new System.Drawing.Point(127, 12);
             this.TxtPatientName.Name = "TxtPatientName";
-            this.TxtPatientName.Size = new System.Drawing.Size(196, 24);
+            this.TxtPatientName.Size = new System.Drawing.Size(223, 24);
             this.TxtPatientName.TabIndex = 8;
             // 
             // LblPatientName
             // 
             this.LblPatientName.AutoSize = true;
-            this.LblPatientName.Location = new System.Drawing.Point(9, 14);
+            this.LblPatientName.Location = new System.Drawing.Point(10, 15);
             this.LblPatientName.Name = "LblPatientName";
             this.LblPatientName.Size = new System.Drawing.Size(114, 15);
             this.LblPatientName.TabIndex = 0;
@@ -215,15 +217,15 @@
             // 
             this.TxtSeriesDescription.Enabled = false;
             this.TxtSeriesDescription.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtSeriesDescription.Location = new System.Drawing.Point(126, 277);
+            this.TxtSeriesDescription.Location = new System.Drawing.Point(144, 295);
             this.TxtSeriesDescription.Name = "TxtSeriesDescription";
-            this.TxtSeriesDescription.Size = new System.Drawing.Size(196, 24);
+            this.TxtSeriesDescription.Size = new System.Drawing.Size(223, 24);
             this.TxtSeriesDescription.TabIndex = 18;
             // 
             // CbReidentify
             // 
             this.CbReidentify.AutoSize = true;
-            this.CbReidentify.Location = new System.Drawing.Point(7, 50);
+            this.CbReidentify.Location = new System.Drawing.Point(8, 53);
             this.CbReidentify.Name = "CbReidentify";
             this.CbReidentify.Size = new System.Drawing.Size(84, 19);
             this.CbReidentify.TabIndex = 6;
@@ -233,7 +235,7 @@
             // LblSeriesDescription
             // 
             this.LblSeriesDescription.AutoSize = true;
-            this.LblSeriesDescription.Location = new System.Drawing.Point(23, 281);
+            this.LblSeriesDescription.Location = new System.Drawing.Point(26, 300);
             this.LblSeriesDescription.Name = "LblSeriesDescription";
             this.LblSeriesDescription.Size = new System.Drawing.Size(114, 15);
             this.LblSeriesDescription.TabIndex = 17;
@@ -242,7 +244,7 @@
             // CbRemoveCarerDetails
             // 
             this.CbRemoveCarerDetails.AutoSize = true;
-            this.CbRemoveCarerDetails.Location = new System.Drawing.Point(7, 28);
+            this.CbRemoveCarerDetails.Location = new System.Drawing.Point(8, 30);
             this.CbRemoveCarerDetails.Name = "CbRemoveCarerDetails";
             this.CbRemoveCarerDetails.Size = new System.Drawing.Size(192, 19);
             this.CbRemoveCarerDetails.TabIndex = 6;
@@ -252,7 +254,7 @@
             // LblAccession
             // 
             this.LblAccession.AutoSize = true;
-            this.LblAccession.Location = new System.Drawing.Point(24, 227);
+            this.LblAccession.Location = new System.Drawing.Point(27, 242);
             this.LblAccession.Name = "LblAccession";
             this.LblAccession.Size = new System.Drawing.Size(77, 15);
             this.LblAccession.TabIndex = 15;
@@ -261,7 +263,7 @@
             // CbSiteRemoved
             // 
             this.CbSiteRemoved.AutoSize = true;
-            this.CbSiteRemoved.Location = new System.Drawing.Point(7, 5);
+            this.CbSiteRemoved.Location = new System.Drawing.Point(8, 5);
             this.CbSiteRemoved.Name = "CbSiteRemoved";
             this.CbSiteRemoved.Size = new System.Drawing.Size(138, 19);
             this.CbSiteRemoved.TabIndex = 5;
@@ -272,7 +274,7 @@
             // 
             this.RbOverwriteImage.AutoSize = true;
             this.RbOverwriteImage.Enabled = false;
-            this.RbOverwriteImage.Location = new System.Drawing.Point(7, 335);
+            this.RbOverwriteImage.Location = new System.Drawing.Point(8, 357);
             this.RbOverwriteImage.Name = "RbOverwriteImage";
             this.RbOverwriteImage.Size = new System.Drawing.Size(114, 19);
             this.RbOverwriteImage.TabIndex = 3;
@@ -282,7 +284,7 @@
             // RbNewStudy
             // 
             this.RbNewStudy.AutoSize = true;
-            this.RbNewStudy.Location = new System.Drawing.Point(7, 201);
+            this.RbNewStudy.Location = new System.Drawing.Point(8, 214);
             this.RbNewStudy.Name = "RbNewStudy";
             this.RbNewStudy.Size = new System.Drawing.Size(83, 19);
             this.RbNewStudy.TabIndex = 2;
@@ -292,7 +294,7 @@
             // RbNewSeries
             // 
             this.RbNewSeries.AutoSize = true;
-            this.RbNewSeries.Location = new System.Drawing.Point(7, 252);
+            this.RbNewSeries.Location = new System.Drawing.Point(8, 269);
             this.RbNewSeries.Name = "RbNewSeries";
             this.RbNewSeries.Size = new System.Drawing.Size(125, 19);
             this.RbNewSeries.TabIndex = 1;
@@ -303,7 +305,7 @@
             // 
             this.RbNewImage.AutoSize = true;
             this.RbNewImage.Checked = true;
-            this.RbNewImage.Location = new System.Drawing.Point(7, 310);
+            this.RbNewImage.Location = new System.Drawing.Point(8, 331);
             this.RbNewImage.Name = "RbNewImage";
             this.RbNewImage.Size = new System.Drawing.Size(88, 19);
             this.RbNewImage.TabIndex = 0;
@@ -314,9 +316,9 @@
             // BtnSend
             // 
             this.BtnSend.Enabled = false;
-            this.BtnSend.Location = new System.Drawing.Point(21, 521);
+            this.BtnSend.Location = new System.Drawing.Point(24, 556);
             this.BtnSend.Name = "BtnSend";
-            this.BtnSend.Size = new System.Drawing.Size(87, 27);
+            this.BtnSend.Size = new System.Drawing.Size(99, 29);
             this.BtnSend.TabIndex = 2;
             this.BtnSend.Text = "Send To PACS";
             this.BtnSend.UseVisualStyleBackColor = true;
@@ -325,17 +327,17 @@
             // CbPacsList
             // 
             this.CbPacsList.FormattingEnabled = true;
-            this.CbPacsList.Location = new System.Drawing.Point(114, 523);
+            this.CbPacsList.Location = new System.Drawing.Point(130, 558);
             this.CbPacsList.Name = "CbPacsList";
-            this.CbPacsList.Size = new System.Drawing.Size(213, 23);
+            this.CbPacsList.Size = new System.Drawing.Size(243, 24);
             this.CbPacsList.TabIndex = 3;
             // 
             // LblFilePath
             // 
             this.LblFilePath.AutoSize = true;
-            this.LblFilePath.Location = new System.Drawing.Point(29, 33);
+            this.LblFilePath.Location = new System.Drawing.Point(33, 35);
             this.LblFilePath.Name = "LblFilePath";
-            this.LblFilePath.Size = new System.Drawing.Size(56, 17);
+            this.LblFilePath.Size = new System.Drawing.Size(65, 16);
             this.LblFilePath.TabIndex = 5;
             this.LblFilePath.Text = "File Path";
             // 
@@ -349,18 +351,18 @@
             this.groupBox1.Controls.Add(this.PnlDcmHeaderModifiers);
             this.groupBox1.Controls.Add(this.CbPacsList);
             this.groupBox1.Controls.Add(this.BtnSend);
-            this.groupBox1.Location = new System.Drawing.Point(325, 3);
+            this.groupBox1.Location = new System.Drawing.Point(437, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(341, 558);
+            this.groupBox1.Size = new System.Drawing.Size(390, 595);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Dicom File";
             // 
             // BtnLoadImage
             // 
-            this.BtnLoadImage.Location = new System.Drawing.Point(29, 82);
+            this.BtnLoadImage.Location = new System.Drawing.Point(33, 87);
             this.BtnLoadImage.Name = "BtnLoadImage";
-            this.BtnLoadImage.Size = new System.Drawing.Size(87, 27);
+            this.BtnLoadImage.Size = new System.Drawing.Size(99, 29);
             this.BtnLoadImage.TabIndex = 8;
             this.BtnLoadImage.Text = "Load Image";
             this.BtnLoadImage.UseVisualStyleBackColor = true;
@@ -370,9 +372,9 @@
             // 
             this.RbUnmodified.AutoSize = true;
             this.RbUnmodified.Checked = true;
-            this.RbUnmodified.Location = new System.Drawing.Point(30, 119);
+            this.RbUnmodified.Location = new System.Drawing.Point(34, 127);
             this.RbUnmodified.Name = "RbUnmodified";
-            this.RbUnmodified.Size = new System.Drawing.Size(91, 21);
+            this.RbUnmodified.Size = new System.Drawing.Size(97, 20);
             this.RbUnmodified.TabIndex = 7;
             this.RbUnmodified.TabStop = true;
             this.RbUnmodified.Text = "Unmodified";
@@ -381,9 +383,9 @@
             // 
             // BtnBrowseDicomFile
             // 
-            this.BtnBrowseDicomFile.Location = new System.Drawing.Point(175, 82);
+            this.BtnBrowseDicomFile.Location = new System.Drawing.Point(200, 87);
             this.BtnBrowseDicomFile.Name = "BtnBrowseDicomFile";
-            this.BtnBrowseDicomFile.Size = new System.Drawing.Size(87, 27);
+            this.BtnBrowseDicomFile.Size = new System.Drawing.Size(99, 29);
             this.BtnBrowseDicomFile.TabIndex = 6;
             this.BtnBrowseDicomFile.Text = "Browse...";
             this.BtnBrowseDicomFile.UseVisualStyleBackColor = true;
@@ -395,17 +397,19 @@
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
             this.flowLayoutPanel1.Controls.Add(this.BtnTestProcess);
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(12, 12);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(14, 13);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(890, 572);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(1121, 641);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.TxtImageRepoDicom);
+            this.panel1.Controls.Add(this.BtnSaveToDisk);
             this.panel1.Controls.Add(this.GbArchive);
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(316, 558);
+            this.panel1.Size = new System.Drawing.Size(428, 626);
             this.panel1.TabIndex = 7;
             // 
             // GbArchive
@@ -422,24 +426,26 @@
             this.GbArchive.Controls.Add(this.LblSourcePacs);
             this.GbArchive.Location = new System.Drawing.Point(3, 0);
             this.GbArchive.Name = "GbArchive";
-            this.GbArchive.Size = new System.Drawing.Size(305, 546);
+            this.GbArchive.Size = new System.Drawing.Size(422, 582);
             this.GbArchive.TabIndex = 9;
             this.GbArchive.TabStop = false;
             this.GbArchive.Text = "Archive";
             // 
             // TxtImagesList
             // 
-            this.TxtImagesList.Location = new System.Drawing.Point(9, 224);
+            this.TxtImagesList.Font = new System.Drawing.Font("Verdana", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TxtImagesList.Location = new System.Drawing.Point(10, 276);
             this.TxtImagesList.Multiline = true;
             this.TxtImagesList.Name = "TxtImagesList";
-            this.TxtImagesList.Size = new System.Drawing.Size(290, 316);
+            this.TxtImagesList.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.TxtImagesList.Size = new System.Drawing.Size(406, 300);
             this.TxtImagesList.TabIndex = 20;
             // 
             // BtnGetImages
             // 
-            this.BtnGetImages.Location = new System.Drawing.Point(212, 182);
+            this.BtnGetImages.Location = new System.Drawing.Point(317, 244);
             this.BtnGetImages.Name = "BtnGetImages";
-            this.BtnGetImages.Size = new System.Drawing.Size(87, 24);
+            this.BtnGetImages.Size = new System.Drawing.Size(99, 26);
             this.BtnGetImages.TabIndex = 19;
             this.BtnGetImages.Text = "Get Images";
             this.BtnGetImages.UseVisualStyleBackColor = true;
@@ -447,17 +453,18 @@
             // 
             // CbSeriesForStudy
             // 
+            this.CbSeriesForStudy.Font = new System.Drawing.Font("Verdana", 7.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CbSeriesForStudy.FormattingEnabled = true;
-            this.CbSeriesForStudy.Location = new System.Drawing.Point(9, 182);
+            this.CbSeriesForStudy.Location = new System.Drawing.Point(10, 212);
             this.CbSeriesForStudy.Name = "CbSeriesForStudy";
-            this.CbSeriesForStudy.Size = new System.Drawing.Size(196, 23);
+            this.CbSeriesForStudy.Size = new System.Drawing.Size(406, 20);
             this.CbSeriesForStudy.TabIndex = 18;
             // 
             // BtnGetSeries
             // 
-            this.BtnGetSeries.Location = new System.Drawing.Point(212, 142);
+            this.BtnGetSeries.Location = new System.Drawing.Point(284, 179);
             this.BtnGetSeries.Name = "BtnGetSeries";
-            this.BtnGetSeries.Size = new System.Drawing.Size(87, 24);
+            this.BtnGetSeries.Size = new System.Drawing.Size(132, 26);
             this.BtnGetSeries.TabIndex = 17;
             this.BtnGetSeries.Text = "Get DicomSeries for Study";
             this.BtnGetSeries.UseVisualStyleBackColor = true;
@@ -465,43 +472,44 @@
             // 
             // CbStudiesFromPacs
             // 
+            this.CbStudiesFromPacs.Font = new System.Drawing.Font("Verdana", 7.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CbStudiesFromPacs.FormattingEnabled = true;
-            this.CbStudiesFromPacs.Location = new System.Drawing.Point(9, 143);
+            this.CbStudiesFromPacs.Location = new System.Drawing.Point(10, 149);
             this.CbStudiesFromPacs.Name = "CbStudiesFromPacs";
-            this.CbStudiesFromPacs.Size = new System.Drawing.Size(196, 23);
+            this.CbStudiesFromPacs.Size = new System.Drawing.Size(406, 20);
             this.CbStudiesFromPacs.TabIndex = 16;
             // 
             // LblPatientIdPacs
             // 
             this.LblPatientIdPacs.AutoSize = true;
-            this.LblPatientIdPacs.Location = new System.Drawing.Point(6, 88);
+            this.LblPatientIdPacs.Location = new System.Drawing.Point(7, 94);
             this.LblPatientIdPacs.Name = "LblPatientIdPacs";
-            this.LblPatientIdPacs.Size = new System.Drawing.Size(67, 17);
+            this.LblPatientIdPacs.Size = new System.Drawing.Size(79, 16);
             this.LblPatientIdPacs.TabIndex = 15;
             this.LblPatientIdPacs.Text = "Patient Id:";
             // 
             // TxtPatientIdPacs
             // 
             this.TxtPatientIdPacs.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtPatientIdPacs.Location = new System.Drawing.Point(9, 108);
+            this.TxtPatientIdPacs.Location = new System.Drawing.Point(10, 115);
             this.TxtPatientIdPacs.Name = "TxtPatientIdPacs";
-            this.TxtPatientIdPacs.Size = new System.Drawing.Size(196, 24);
+            this.TxtPatientIdPacs.Size = new System.Drawing.Size(223, 24);
             this.TxtPatientIdPacs.TabIndex = 15;
             this.TxtPatientIdPacs.Text = "1200633";
             // 
             // CbSourcePacs
             // 
             this.CbSourcePacs.FormattingEnabled = true;
-            this.CbSourcePacs.Location = new System.Drawing.Point(9, 53);
+            this.CbSourcePacs.Location = new System.Drawing.Point(10, 57);
             this.CbSourcePacs.Name = "CbSourcePacs";
-            this.CbSourcePacs.Size = new System.Drawing.Size(196, 23);
+            this.CbSourcePacs.Size = new System.Drawing.Size(223, 24);
             this.CbSourcePacs.TabIndex = 9;
             // 
             // BtnGetStudies
             // 
-            this.BtnGetStudies.Location = new System.Drawing.Point(212, 108);
+            this.BtnGetStudies.Location = new System.Drawing.Point(239, 115);
             this.BtnGetStudies.Name = "BtnGetStudies";
-            this.BtnGetStudies.Size = new System.Drawing.Size(87, 24);
+            this.BtnGetStudies.Size = new System.Drawing.Size(99, 26);
             this.BtnGetStudies.TabIndex = 8;
             this.BtnGetStudies.Text = "Get Studies for Patient";
             this.BtnGetStudies.UseVisualStyleBackColor = true;
@@ -510,17 +518,17 @@
             // LblSourcePacs
             // 
             this.LblSourcePacs.AutoSize = true;
-            this.LblSourcePacs.Location = new System.Drawing.Point(6, 33);
+            this.LblSourcePacs.Location = new System.Drawing.Point(7, 35);
             this.LblSourcePacs.Name = "LblSourcePacs";
-            this.LblSourcePacs.Size = new System.Drawing.Size(130, 17);
+            this.LblSourcePacs.Size = new System.Drawing.Size(151, 16);
             this.LblSourcePacs.TabIndex = 5;
             this.LblSourcePacs.Text = "Dicom Node To Query";
             // 
             // BtnTestProcess
             // 
-            this.BtnTestProcess.Location = new System.Drawing.Point(672, 3);
+            this.BtnTestProcess.Location = new System.Drawing.Point(833, 3);
             this.BtnTestProcess.Name = "BtnTestProcess";
-            this.BtnTestProcess.Size = new System.Drawing.Size(205, 37);
+            this.BtnTestProcess.Size = new System.Drawing.Size(234, 39);
             this.BtnTestProcess.TabIndex = 8;
             this.BtnTestProcess.Text = "Test Process";
             this.BtnTestProcess.UseVisualStyleBackColor = true;
@@ -538,39 +546,60 @@
             this.LogTime});
             this.DgvLogs.Location = new System.Drawing.Point(3, 3);
             this.DgvLogs.Name = "DgvLogs";
-            this.DgvLogs.Size = new System.Drawing.Size(499, 222);
+            this.DgvLogs.Size = new System.Drawing.Size(1112, 237);
             this.DgvLogs.TabIndex = 9;
             // 
             // LogText
             // 
             this.LogText.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.LogText.FillWeight = 194.9239F;
             this.LogText.HeaderText = "Log Text";
             this.LogText.Name = "LogText";
             this.LogText.ReadOnly = true;
             // 
             // LogTime
             // 
-            this.LogTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.LogTime.FillWeight = 5.076141F;
             this.LogTime.HeaderText = "Time";
             this.LogTime.Name = "LogTime";
             this.LogTime.ReadOnly = true;
+            this.LogTime.Width = 200;
             // 
             // panel2
             // 
             this.panel2.Controls.Add(this.DgvLogs);
-            this.panel2.Location = new System.Drawing.Point(12, 590);
+            this.panel2.Location = new System.Drawing.Point(14, 660);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(505, 228);
+            this.panel2.Size = new System.Drawing.Size(1121, 212);
             this.panel2.TabIndex = 8;
+            // 
+            // BtnSaveToDisk
+            // 
+            this.BtnSaveToDisk.Location = new System.Drawing.Point(303, 588);
+            this.BtnSaveToDisk.Name = "BtnSaveToDisk";
+            this.BtnSaveToDisk.Size = new System.Drawing.Size(116, 26);
+            this.BtnSaveToDisk.TabIndex = 21;
+            this.BtnSaveToDisk.Text = "Save To Disk";
+            this.BtnSaveToDisk.UseVisualStyleBackColor = true;
+            this.BtnSaveToDisk.Click += new System.EventHandler(this.BtnSaveToDisk_Click);
+            // 
+            // TxtImageRepoDicom
+            // 
+            this.TxtImageRepoDicom.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TxtImageRepoDicom.Location = new System.Drawing.Point(13, 588);
+            this.TxtImageRepoDicom.Name = "TxtImageRepoDicom";
+            this.TxtImageRepoDicom.Size = new System.Drawing.Size(284, 24);
+            this.TxtImageRepoDicom.TabIndex = 21;
+            this.TxtImageRepoDicom.Text = "C:\\temp\\test\\CC-Storage";
             // 
             // FormMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(907, 823);
+            this.ClientSize = new System.Drawing.Size(1141, 878);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.flowLayoutPanel1);
-            this.Font = new System.Drawing.Font("Calibri", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
             this.Name = "FormMain";
@@ -586,6 +615,7 @@
             this.groupBox1.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.GbArchive.ResumeLayout(false);
             this.GbArchive.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvLogs)).EndInit();
@@ -641,9 +671,11 @@
         private System.Windows.Forms.Button BtnGetImages;
         private System.Windows.Forms.Button BtnTestProcess;
         private System.Windows.Forms.DataGridView DgvLogs;
+        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.DataGridViewTextBoxColumn LogText;
         private System.Windows.Forms.DataGridViewTextBoxColumn LogTime;
-        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Button BtnSaveToDisk;
+        private System.Windows.Forms.TextBox TxtImageRepoDicom;
     }
 }
 

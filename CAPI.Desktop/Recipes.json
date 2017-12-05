@@ -1,0 +1,62 @@
+{
+  "Destinations": [
+    {
+      "Id": "",
+      "FolderPath": "",
+      "AeTitle": ""
+    }
+  ],
+  "IntegratedProcesses": [
+    {
+      "Type": "",
+      "Id": "",
+      "Version": "",
+      "Parameters": [
+
+      ]
+    },
+    {
+      "Type": "",
+      "Id": "",
+      "Version": "",
+      "Parameters": [
+        { "Value": "" },
+        { "Value": "" },
+        { "Value": "" }
+      ]
+    },
+    {
+      "Id": "",
+      "Parameters": [
+        { "Value": "" },
+        { "Value": "" }
+      ],
+      "Type": "",
+      "Version": ""
+    }
+  ],
+  "NewStudyCriteria": [
+    {
+      "AccessionNumber": "",
+      "Region": "",
+      "StudyDescrioption": "",
+      "StudyDescriptionOperand": "",
+      "StudyDate": "",
+      "StudyDateOperand": "",
+      "SeriesDescription": "",
+      "SeriesDescriptionOperand": ""
+    }
+  ],
+  "PriorStudyCriteria": [
+    {
+      "AccessionNumber": "",
+      "Region": "",
+      "StudyDescrioption": "",
+      "StudyDescriptionOperand": "",
+      "StudyDate": "",
+      "StudyDateOperand": "",
+      "SeriesDescription": "",
+      "SeriesDescriptionOperand": ""
+    }
+  ]
+}

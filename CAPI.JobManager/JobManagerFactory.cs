@@ -7,15 +7,15 @@ namespace CAPI.JobManager
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobManagerFactory : IJobManagerFactory
     {
-        public IJob CreateJob()
+        public IJob<IRecipe> CreateJob()
         {
-            return new Job(this);
+            return new Job<IRecipe>(this);
         }
 
-        public IJob CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
+        public IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations)
         {
-            return new Job(this)
+            return new Job<IRecipe>(this)
             {
                 DicomStudyUnderFocus = dicomStudyUnderFocus,
                 DicomStudyBeingComparedTo = dicomStudyBeingComparedTo,
