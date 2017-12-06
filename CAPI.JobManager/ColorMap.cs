@@ -16,10 +16,14 @@ namespace CAPI.JobManager
         public event EventHandler<ProcessEventArgument> OnComplete;
 
         // Constructor
-        public ColorMap(string[] parameters)
+        public ColorMap()
         {
             Id = "4";
             Version = "1";
+        }
+
+        public ColorMap(string[] parameters) : this()
+        {
             Parameters = parameters;
         }
 

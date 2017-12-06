@@ -33,7 +33,8 @@ namespace CAPI.Dicom
         {
         }
 
-        public void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
+        public void UpdateDicomHeaders(
+            string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
         {
             var dcmFile = new DicomFile(filepath);
             dcmFile.Load(filepath);
@@ -85,7 +86,8 @@ namespace CAPI.Dicom
             dcmFile.Save(filepath);
         }
 
-        private static DicomFile UpdateTags(DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
+        private static DicomFile UpdateTags(
+            DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
         {
             if (newTags == null) return dcmFile;
             newTags.ToList().ForEach(tag =>
@@ -95,13 +97,15 @@ namespace CAPI.Dicom
             });
             return dcmFile;
         }
-        private static DicomFile UpdateTag(DicomFile dcmFile, IDicomTag newTag, bool overwriteIfNotProvided = false)
+        private static DicomFile UpdateTag(
+            DicomFile dcmFile, IDicomTag newTag, bool overwriteIfNotProvided = false)
         {
             if (newTag.Values == null && !overwriteIfNotProvided) return dcmFile;
             var value = newTag.Values != null ? newTag.Values[0] : "";
             return UpdateTag(dcmFile, newTag, value);
         }
-        private static DicomFile UpdateTag(DicomFile dcmFile, IDicomTag newTag, string value)
+        private static DicomFile UpdateTag(
+            DicomFile dcmFile, IDicomTag newTag, string value)
         {
             if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new[] { value };
             else if (newTag.GetValueType() == typeof(string)) dcmFile.DataSet[newTag.GetTagValue()].Values = value;
@@ -154,7 +158,8 @@ namespace CAPI.Dicom
             return updatedTags;
         }
 
-        public IEnumerable<string> GetStudiesForPatientId(string patientId, IDicomNode localNode, IDicomNode remoteNode)
+        public IEnumerable<string> GetStudyUidsForPatientId(
+            string patientId, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             var query = new StudyQueryIod();
@@ -166,7 +171,8 @@ namespace CAPI.Dicom
                 studies.Select(study => study.AccessionNumber + "|" + study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
         }
 
-        public IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, IDicomNode localNode, IDicomNode remoteNode)
+        public IEnumerable<string> GetSeriesUidsForStudy(
+            string studyUid, string accession, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             if (string.IsNullOrEmpty(studyUid))
@@ -207,27 +213,38 @@ namespace CAPI.Dicom
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
 
+            var imageQueryIods = GetImageIodsForSeries(studyUid, seriesUid, localNode, remoteNode)
+                                     as IList<ImageQueryIod>;
+
+            if (imageQueryIods?.ToList().Count == 0) return null;
+
+            return new DicomSeries
+            {
+                Images = imageQueryIods?
+                    .Select(r => new DicomImage { ImageUid = r.SopInstanceUid })
+                    .ToList()
+            };
+        }
+
+        private static IEnumerable<ImageQueryIod> GetImageIodsForSeries(
+            string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode)
+        {
             var imageQuery = new ImageQueryIod();
+
             imageQuery.SetCommonTags();
             imageQuery.StudyInstanceUid = studyUid;
             imageQuery.SeriesInstanceUid = seriesUid;
+
             var find = new StudyRootFindScu();
             var results = find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress,
                 remoteNode.Port, imageQuery);
 
             if (!string.IsNullOrEmpty(find.FailureDescription))
                 throw new DicomException($"Series query failed: {find.FailureDescription}{Environment.NewLine}" +
-                                        $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
-                                        $"Study Uid: {studyUid}{Environment.NewLine}" +
-                                        $"Series Uid: {seriesUid}");
-
-            if (results == null || results.Count == 0) return null;
-
-            return new DicomSeries
-            {
-                Images = results
-                .Select(r => new DicomImage { ImageUid = r.SopInstanceUid }).ToList()
-            };
+                                         $"AET: {remoteNode.AeTitle}{Environment.NewLine}" +
+                                         $"Study Uid: {studyUid}{Environment.NewLine}" +
+                                         $"Series Uid: {seriesUid}");
+            return results;
         }
 
         public void SaveSeriesToLocalDisk(

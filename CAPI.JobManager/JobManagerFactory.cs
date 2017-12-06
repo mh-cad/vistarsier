@@ -1,4 +1,5 @@
 ﻿using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
 using System.Collections.Generic;
 
@@ -7,6 +8,13 @@ namespace CAPI.JobManager
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobManagerFactory : IJobManagerFactory
     {
+        private readonly IImageProcessor _imageProcessor;
+
+        public JobManagerFactory(IImageProcessor imageProcessor)
+        {
+            _imageProcessor = imageProcessor;
+        }
+
         public IJob<IRecipe> CreateJob()
         {
             return new Job<IRecipe>(this);
@@ -31,7 +39,7 @@ namespace CAPI.JobManager
 
         public IIntegratedProcess CreateExtractBrinSurfaceIntegratedProcess(string version, params string[] parameters)
         {
-            return new ExtractBrainSurface(parameters) { Version = version };
+            return new ExtractBrainSurface(parameters, _imageProcessor) { Version = version };
         }
 
         public IIntegratedProcess CreateRegistrationIntegratedProcess(string version, params string[] parameters)

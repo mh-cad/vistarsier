@@ -16,10 +16,14 @@ namespace CAPI.JobManager
         public event EventHandler<ProcessEventArgument> OnComplete;
 
         // Constructor
-        public TakeDifference(string[] parameters)
+        public TakeDifference()
         {
             Id = "3";
             Version = "1";
+        }
+
+        public TakeDifference(string[] parameters) : this()
+        {
             Parameters = parameters;
         }
 
