@@ -40,5 +40,9 @@ namespace CAPI.Dicom
         {
             return new DicomImage();
         }
+        public IDicomImage CreateDicomImage(string imageUid)
+        {
+            return new DicomImage { ImageUid = imageUid };
+        }
     }
 }

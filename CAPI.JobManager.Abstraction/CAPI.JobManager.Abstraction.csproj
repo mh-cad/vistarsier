@@ -52,7 +52,6 @@
     <Compile Include="IJobManagerFactory.cs" />
     <Compile Include="IntegratedProcessType.cs" />
     <Compile Include="IRecipe.cs" />
-    <Compile Include="IRecipeJsonConverter.cs" />
     <Compile Include="IRegistration.cs" />
     <Compile Include="IStudySelectionCriteria.cs" />
     <Compile Include="IJobBuilder.cs" />

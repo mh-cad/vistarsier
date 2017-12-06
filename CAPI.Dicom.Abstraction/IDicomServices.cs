@@ -9,9 +9,9 @@ namespace CAPI.Dicom.Abstraction
 
         IDicomTagCollection GetDicomTags(string filePath);
 
-        IEnumerable<string> GetStudiesForPatientId(string patientId, IDicomNode localNode, IDicomNode remoteNode);
+        IEnumerable<string> GetStudyUidsForPatientId(string patientId, IDicomNode localNode, IDicomNode remoteNode);
 
-        IEnumerable<string> GetSeriesForStudy(string studyUid, string accession, IDicomNode localNode,
+        IEnumerable<string> GetSeriesUidsForStudy(string studyUid, string accession, IDicomNode localNode,
             IDicomNode remoteNode);
 
         string GetSeriesUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode);

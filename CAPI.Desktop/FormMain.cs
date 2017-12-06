@@ -217,7 +217,7 @@ namespace CAPI.Desktop
             var dicomNode = _dicomNodeRepo.GetAll().ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var accessions = dicomServices.GetStudiesForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode);
+            var accessions = dicomServices.GetStudyUidsForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode);
             CbStudiesFromPacs.Items.Clear();
             if (accessions == null) return;
             CbStudiesFromPacs.Items.AddRange(accessions.ToArray());
@@ -232,7 +232,7 @@ namespace CAPI.Desktop
             var accession = CbStudiesFromPacs.Text.Split('|').FirstOrDefault();
             var studyUid = CbStudiesFromPacs.Text.Split('|').LastOrDefault();
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var series = dicomServices.GetSeriesForStudy(studyUid, accession, _localDicomNode, dicomNode);
+            var series = dicomServices.GetSeriesUidsForStudy(studyUid, accession, _localDicomNode, dicomNode);
             CbSeriesForStudy.Items.Clear();
             if (series == null) return;
             CbSeriesForStudy.Items.AddRange(series.ToArray());
@@ -258,19 +258,15 @@ namespace CAPI.Desktop
             var series = _dicomFactory.CreateDicomSeries();
             var imageUidList = TxtImagesList.Lines
                 .Where(l => !string.IsNullOrEmpty(l) && !string.IsNullOrWhiteSpace(l));
-            series.Images = imageUidList
-                .Select(s =>
-                    {
-                        var image = _dicomFactory.CreateDicomImage();
-                        image.ImageUid = s;
-                        return image;
-                    });
+
+            series.Images = imageUidList.Select(s => _dicomFactory.CreateDicomImage(s));
             series.SeriesInstanceUid = CbSeriesForStudy.Text.Split('|').LastOrDefault();
             series.StudyInstanceUid = CbStudiesFromPacs.Text.Split('|').LastOrDefault();
 
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var dicomNode = _dicomNodeRepo.GetAll().ToList()
-                .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
+            var dicomNode = _dicomNodeRepo.GetAll().ToList().FirstOrDefault(n =>
+                string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
+
             dicomServices.SaveSeriesToLocalDisk(series, TxtImageRepoDicom.Text, _localDicomNode, dicomNode);
         }
 
@@ -278,7 +274,7 @@ namespace CAPI.Desktop
         {
             var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
             var job = _jobBuilder.Build(recipe, _dicomFactory.CreateDicomServices(), _jobManagerFactory);
-            job.OnEachProcessCompleted += new EventHandler<ProcessEventArgument>(Process_Completed);
+            job.OnEachProcessCompleted += Process_Completed;
             job.Run();
         }
         #endregion

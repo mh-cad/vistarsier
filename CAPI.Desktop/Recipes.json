@@ -1,62 +1,70 @@
-{
-  "Destinations": [
-    {
-      "Id": "",
-      "FolderPath": "",
-      "AeTitle": ""
-    }
-  ],
-  "IntegratedProcesses": [
-    {
-      "Type": "",
-      "Id": "",
-      "Version": "",
-      "Parameters": [
+[
+  {
+    "Destinations": [
+      {
+        "Id": "1",
+        "FolderPath": "C:\\test",
+        "AeTitle": "thisAet"
+      },
+      {
+        "Id": "2",
+        "FolderPath": "C:\\test\\temp",
+        "AeTitle": "thatAet"
+      }
+    ],
+    "IntegratedProcesses": [
+      {
+        "Id": "1",
+        "Version": "1",
+        "Parameters": [
+          "-n 3 -d 25 -s 0.64 -r 1 --trim"
+        ]
+      },
+      {
+        "Id": "2",
+        "Version": "1",
+        "Parameters": [
 
-      ]
-    },
-    {
-      "Type": "",
-      "Id": "",
-      "Version": "",
-      "Parameters": [
-        { "Value": "" },
-        { "Value": "" },
-        { "Value": "" }
-      ]
-    },
-    {
-      "Id": "",
-      "Parameters": [
-        { "Value": "" },
-        { "Value": "" }
-      ],
-      "Type": "",
-      "Version": ""
-    }
-  ],
-  "NewStudyCriteria": [
-    {
-      "AccessionNumber": "",
-      "Region": "",
-      "StudyDescrioption": "",
-      "StudyDescriptionOperand": "",
-      "StudyDate": "",
-      "StudyDateOperand": "",
-      "SeriesDescription": "",
-      "SeriesDescriptionOperand": ""
-    }
-  ],
-  "PriorStudyCriteria": [
-    {
-      "AccessionNumber": "",
-      "Region": "",
-      "StudyDescrioption": "",
-      "StudyDescriptionOperand": "",
-      "StudyDate": "",
-      "StudyDateOperand": "",
-      "SeriesDescription": "",
-      "SeriesDescriptionOperand": ""
-    }
-  ]
-}
+        ]
+      },
+      {
+        "Id": "3",
+        "Parameters": [
+
+        ],
+        "Version": "1"
+      },
+      {
+        "Id": "4",
+        "Parameters": [
+
+        ],
+        "Version": "1"
+      }
+    ],
+    "NewStudyCriteria": [
+      {
+        "AccessionNumber": "2017R0168610-1",
+        "Region": "",
+        "StudyDescription": "",
+        "StudyDescriptionOperand": "Contains",
+        "StudyDate": "",
+        "StudyDateOperand": "Equals",
+        "SeriesDescription": "",
+        "SeriesDescriptionOperand": "Equals"
+      }
+    ],
+    "PriorStudyCriteria": [
+      {
+        "AccessionNumber": "",
+        "Region": "",
+        "StudyDescription": "",
+        "StudyDescriptionOperand": "Equals",
+        "StudyDate": "",
+        "StudyDateOperand": "Equals",
+        "SeriesDescription": "",
+        "SeriesDescriptionOperand": "Equals"
+      }
+    ]
+  }
+]

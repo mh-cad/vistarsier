@@ -16,10 +16,14 @@ namespace CAPI.JobManager
         public event EventHandler<ProcessEventArgument> OnComplete;
 
         // Constructor
-        public Registration(string[] parameters)
+        public Registration()
         {
             Id = "2";
             Version = "1";
+        }
+
+        public Registration(string[] parameters) : this()
+        {
             Parameters = parameters;
         }
 
