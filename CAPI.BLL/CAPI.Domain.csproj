@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="Model\HdrSeries.cs" />
     <Compile Include="Model\ISeries.cs" />
+    <Compile Include="Model\ISeriesHdr.cs" />
+    <Compile Include="Model\ISeriesNii.cs" />
     <Compile Include="Model\NiiSeries.cs" />
     <Compile Include="Model\SingleFileSeries.cs" />
     <Compile Include="Model\MultiFileSeries.cs" />

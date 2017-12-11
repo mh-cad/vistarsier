@@ -3,6 +3,9 @@ using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
+using CAPI.Domain.Model;
+using CAPI.ImageProcessing;
+using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
 using System;
@@ -16,7 +19,7 @@ namespace CAPI.Desktop
     public partial class FormMain : Form
     {
         private string _tempFileToSend;
-        private const string SenderAet = "Work PC"; // TODO3: Hard-Coded PACS AET
+        private const string LocalNodeLogicalName = "Work PC"; // TODO3: Hard-Coded PACS AET
         private readonly IDicomNode _localDicomNode;
         private IUnityContainer _unityContainer;
         private IDicomFactory _dicomFactory;
@@ -32,7 +35,7 @@ namespace CAPI.Desktop
             InitializeUnity();
 
             _localDicomNode = _dicomNodeRepo.GetAll()
-                .FirstOrDefault(n => string.Equals(n.LogicalName, SenderAet,
+                .FirstOrDefault(n => string.Equals(n.LogicalName, LocalNodeLogicalName,
                 StringComparison.CurrentCultureIgnoreCase));
         }
 
@@ -41,7 +44,7 @@ namespace CAPI.Desktop
             _unityContainer = new UnityContainer();
             RegisterClasses();
             _dicomFactory = _unityContainer.Resolve<IDicomFactory>();
-            _dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepositoryInMemory>();
+            _dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
             _jobManagerFactory = _unityContainer.Resolve<IJobManagerFactory>();
             _jobBuilder = _unityContainer.Resolve<IJobBuilder>();
             _recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
@@ -51,13 +54,23 @@ namespace CAPI.Desktop
         {
             _unityContainer.RegisterType<IDicomNode, DicomNode>();
             _unityContainer.RegisterType<IDicomFactory, DicomFactory>();
+            _unityContainer.RegisterType<IDicomServices, DicomServices>();
+            _unityContainer.RegisterType<IImageConverter, ImageConverter>();
+            _unityContainer.RegisterType<IImageProcessor, ImageProcessor>();
+            _unityContainer.RegisterType<JobManager.Abstraction.IExtractBrainSurface, JobManager.ExtractBrainSurface>();
+            _unityContainer.RegisterType<ImageProcessing.Abstraction.IExtractBrainSurface, ImageProcessing.ExtractBrainSurface>();
             _unityContainer.RegisterType<IJobManagerFactory, JobManagerFactory>();
+            _unityContainer.RegisterType<IRecipe, Recipe>();
+            _unityContainer.RegisterType<ISeriesHdr, SeriesHdr>();
+            _unityContainer.RegisterType<ISeriesNii, SeriesNii>();
+            _unityContainer.RegisterType<IJob<IRecipe>, Job<IRecipe>>();
             _unityContainer.RegisterType<IJobBuilder, JobBuilder>();
-            _unityContainer.RegisterType<IStudySelectionCriteria, StudySelectionCriteria>();
+            _unityContainer.RegisterType<ISeriesSelectionCriteria, SeriesSelectionCriteria>();
             _unityContainer.RegisterType<IIntegratedProcess, IntegratedProcess>();
             _unityContainer.RegisterType<IDestination, Destination>();
             _unityContainer.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
-            _unityContainer.RegisterType<IDicomNodeRepositoryInMemory, DicomNodeRepositoryInMemory>();
+            _unityContainer.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
+            _unityContainer.RegisterType<IValueComparer, ValueComparer>();
         }
 
         private void BindDicomHeaderModifiersEventHandlers()
@@ -74,14 +87,17 @@ namespace CAPI.Desktop
             var dicomNodes = _dicomNodeRepo.GetAll().ToList();
             object[] items = dicomNodes.Select(n => n.LogicalName).ToArray();
 
-            CbPacsList.Items.AddRange(items);
+            CbDestinationPacs.Items.AddRange(items);
             CbSourcePacs.Items.AddRange(items);
-            if (CbPacsList.Items.Count > 0) CbPacsList.SelectedIndex = 1;
+            if (CbDestinationPacs.Items.Count > 0) CbDestinationPacs.SelectedIndex = 1;
             if (CbSourcePacs.Items.Count > 0) CbSourcePacs.SelectedIndex = CbSourcePacs.Items.Count - 2;
         }
 
-        private IDicomNode GetSelectedDicomNode() => _dicomNodeRepo.GetAll()
-            .FirstOrDefault(node => node.LogicalName == CbPacsList.SelectedItem.ToString());
+        private IDicomNode GetSelectedDestinationDicomNode() => _dicomNodeRepo.GetAll()
+            .FirstOrDefault(node => node.LogicalName == CbDestinationPacs.SelectedItem.ToString());
+
+        private IDicomNode GetSelectedSourceDicomNode() => _dicomNodeRepo.GetAll()
+            .FirstOrDefault(node => node.LogicalName == CbSourcePacs.SelectedItem.ToString());
 
         private void UpdateDicomTags()
         {
@@ -137,9 +153,9 @@ namespace CAPI.Desktop
         private void BtnSend_Click(object sender, EventArgs e)
         {
             UpdateDicomTags();
-            var destinationNode = GetSelectedDicomNode();
+            var destinationNode = GetSelectedDestinationDicomNode();
             var dicomServices = _dicomFactory.CreateDicomServices();
-            dicomServices.SendDicomFile(_tempFileToSend, SenderAet, destinationNode);
+            dicomServices.SendDicomFile(_tempFileToSend, LocalNodeLogicalName, destinationNode);
             if (File.Exists(_tempFileToSend)) File.Delete(_tempFileToSend);
             _tempFileToSend = null;
             ResetAllControls();
@@ -217,10 +233,12 @@ namespace CAPI.Desktop
             var dicomNode = _dicomNodeRepo.GetAll().ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var accessions = dicomServices.GetStudyUidsForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode);
+            var accessions = dicomServices.GetStudiesForPatientId(TxtPatientIdPacs.Text, _localDicomNode, dicomNode)
+                .Select(study => study.AccessionNumber + "|" + study.StudyInstanceUid);
             CbStudiesFromPacs.Items.Clear();
-            if (accessions == null) return;
-            CbStudiesFromPacs.Items.AddRange(accessions.ToArray());
+            var accessionNos = accessions as string[] ?? accessions.ToArray();
+            if (!accessionNos.Any()) return;
+            CbStudiesFromPacs.Items.AddRange(accessionNos.ToArray());
             if (CbStudiesFromPacs.Items.Count > 0) CbStudiesFromPacs.SelectedIndex = 0;
         }
 
@@ -229,12 +247,12 @@ namespace CAPI.Desktop
             if (string.IsNullOrEmpty(CbStudiesFromPacs.Text)) return;
             var dicomNode = _dicomNodeRepo.GetAll().ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
-            var accession = CbStudiesFromPacs.Text.Split('|').FirstOrDefault();
             var studyUid = CbStudiesFromPacs.Text.Split('|').LastOrDefault();
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var series = dicomServices.GetSeriesUidsForStudy(studyUid, accession, _localDicomNode, dicomNode);
+            var series = dicomServices.GetSeriesForStudy(studyUid, _localDicomNode, dicomNode)
+                .Select(s => $"{s.SeriesDescription}|{s.SeriesInstanceUid}");
             CbSeriesForStudy.Items.Clear();
-            if (series == null) return;
+            if (!series.Any()) return;
             CbSeriesForStudy.Items.AddRange(series.ToArray());
             if (CbSeriesForStudy.Items.Count > 0) CbSeriesForStudy.SelectedIndex = 0;
         }
@@ -246,7 +264,7 @@ namespace CAPI.Desktop
             var dicomNode = _dicomNodeRepo.GetAll().ToList()
                 .FirstOrDefault(n => string.Equals(n.LogicalName, CbSourcePacs.Text, StringComparison.CurrentCultureIgnoreCase));
             var dicomServices = _dicomFactory.CreateDicomServices();
-            var series = dicomServices.GetSeriesDataForSeriesUid(studyUid, seriesUid, _localDicomNode, dicomNode);
+            var series = dicomServices.GetSeriesForSeriesUid(studyUid, seriesUid, _localDicomNode, dicomNode);
 
             TxtImagesList.Text = "";
             foreach (var image in series.Images)
@@ -273,7 +291,12 @@ namespace CAPI.Desktop
         private void BtnTestProcess_Click(object sender, EventArgs e)
         {
             var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
-            var job = _jobBuilder.Build(recipe, _dicomFactory.CreateDicomServices(), _jobManagerFactory);
+            var localNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.LogicalName == LocalNodeLogicalName);
+            if (string.IsNullOrEmpty(recipe.SourceAet) || string.IsNullOrWhiteSpace(recipe.SourceAet))
+                throw new ArgumentNullException(nameof(recipe.SourceAet), "Source AE Title in recipe is not specified");
+            var sourceNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
+
+            var job = _jobBuilder.Build(recipe, localNode, sourceNode);
             job.OnEachProcessCompleted += Process_Completed;
             job.Run();
         }

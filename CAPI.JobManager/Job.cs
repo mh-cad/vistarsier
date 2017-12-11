@@ -8,14 +8,21 @@ namespace CAPI.JobManager
     public class Job<T> : IJob<T>
     {
         private readonly IJobManagerFactory _jobManagerFactory;
-        public IDicomStudy DicomStudyUnderFocus { get; set; }
-        public IDicomStudy DicomStudyBeingComparedTo { get; set; }
+        private readonly IDicomServices _dicomServices;
+
+        public IDicomStudy DicomStudyFixed { get; set; }
+        public IDicomSeries DicomSeriesFixed { get; set; }
+        public string DicomSeriesFixedFolderPath { get; set; }
+        public IDicomStudy DicomStudyFloating { get; set; }
+        public IDicomSeries DicomSeriesFloating { get; set; }
+        public string DicomSeriesFloatingFolderPath { get; set; }
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 
-        public Job(IJobManagerFactory jobManagerFactory)
+        public Job(IJobManagerFactory jobManagerFactory, IDicomServices dicomServices)
         {
             _jobManagerFactory = jobManagerFactory;
+            _dicomServices = dicomServices;
         }
 
         public void Run()
@@ -25,24 +32,22 @@ namespace CAPI.JobManager
                 switch (integratedProcess.Type)
                 {
                     case IntegratedProcessType.ExtractBrainSurface:
-                        RunProcess(_jobManagerFactory
-                            .CreateExtractBrinSurfaceIntegratedProcess(
-                                integratedProcess.Version, integratedProcess.Parameters));
+                        RunExtractBrainSurfaceProcess(integratedProcess);
                         break;
                     case IntegratedProcessType.Registeration:
-                        RunProcess(_jobManagerFactory
-                            .CreateRegistrationIntegratedProcess(
-                                integratedProcess.Version, integratedProcess.Parameters));
+                        //RunProcess(_jobManagerFactory
+                        //    .CreateRegistrationIntegratedProcess(
+                        //        integratedProcess.Version, integratedProcess.Parameters));
                         break;
                     case IntegratedProcessType.TakeDifference:
-                        RunProcess(_jobManagerFactory
-                            .CreateTakeDifferenceIntegratedProcess(
-                                integratedProcess.Version, integratedProcess.Parameters));
+                        //RunProcess(_jobManagerFactory
+                        //    .CreateTakeDifferenceIntegratedProcess(
+                        //        integratedProcess.Version, integratedProcess.Parameters));
                         break;
                     case IntegratedProcessType.ColorMap:
-                        RunProcess(_jobManagerFactory
-                            .CreateColorMapIntegratedProcess(
-                                integratedProcess.Version, integratedProcess.Parameters));
+                        //RunProcess(_jobManagerFactory
+                        //    .CreateColorMapIntegratedProcess(
+                        //        integratedProcess.Version, integratedProcess.Parameters));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -50,15 +55,22 @@ namespace CAPI.JobManager
             }
         }
 
+        private void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess)
+        {
+            //DicomStudyFixedFolderPath = _dicomServices.get
+
+            var extractBrainSurfaceProcess = _jobManagerFactory
+                .CreateExtractBrinSurfaceIntegratedProcess(
+                integratedProcess.Version, integratedProcess.Parameters);
+
+            extractBrainSurfaceProcess.OnComplete += Process_OnComplete;
+
+            //extractBrainSurfaceProcess.Run();
+        }
+
         private void Process_OnComplete(object sender, ProcessEventArgument e)
         {
             OnEachProcessCompleted?.Invoke(sender, e);
-        }
-
-        private void RunProcess(IIntegratedProcess process)
-        {
-            process.OnComplete += Process_OnComplete;
-            process.Run();
         }
 
         public event EventHandler<ProcessEventArgument> OnEachProcessCompleted;

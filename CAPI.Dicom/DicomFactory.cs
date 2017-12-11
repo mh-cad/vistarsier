@@ -24,7 +24,7 @@ namespace CAPI.Dicom
         }
         public IDicomServices CreateDicomServices()
         {
-            return new DicomServices(this);
+            return new DicomServices();
         }
         public IDicomStudy CreateStudy()
         {

@@ -2,8 +2,9 @@
 
 namespace CAPI.JobManager
 {
-    public class StudySelectionCriteria : IStudySelectionCriteria
+    public class SeriesSelectionCriteria : ISeriesSelectionCriteria
     {
+        public bool PriorStudy { get; set; }
         public string AccessionNumber { get; set; }
         public string Region { get; set; }
         public string StudyDescription { get; set; }
@@ -12,5 +13,6 @@ namespace CAPI.JobManager
         public DateOperand StudyDateOperand { get; set; }
         public string SeriesDescription { get; set; }
         public StringOperand SeriesDescriptionOperand { get; set; }
+        public string SeriesDescriptionDelimiter { get; set; }
     }
 }

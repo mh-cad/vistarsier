@@ -11,7 +11,7 @@ namespace CAPI.ImageProcessing
             Parameters = parameters;
         }
 
-        public void Run()
+        public void Run(out string brainMaskExtracted, out string brainMask)
         {
             throw new System.NotImplementedException();
         }

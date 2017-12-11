@@ -58,7 +58,7 @@ namespace CAPI.DAL
             //criterion1.AccessionNumber = "2017R0168610-1";
 
             //var recipeMs1 = _jobManagerFactory.CreateRecipe();
-            //recipeMs1.NewStudyCriteria = new List<IStudySelectionCriteria> { criterion1 };
+            //recipeMs1.NewStudyCriteria = new List<ISeriesSelectionCriteria> { criterion1 };
             //recipeMs1.IntegratedProcesses = new List<IIntegratedProcess>
             //{
             //    _jobManagerFactory.CreateExtractBrinSurfaceIntegratedProcess("1", "-n 3 -d 25 -s 0.64 -r 1 --trim"),

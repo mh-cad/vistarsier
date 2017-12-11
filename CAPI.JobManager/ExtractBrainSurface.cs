@@ -19,8 +19,11 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
         public IDicomSeries DicomSeries { get; set; }
+        public string InputHdrFileFullPath { get; set; }
+        public string OutputPath { get; set; }
         public string BrainMaskRemovedHdrFilePath { get; set; }
         public string BrainMaskHdrFilePath { get; set; }
+
         public event EventHandler<ProcessEventArgument> OnComplete;
 
         // Constructor
@@ -31,14 +34,17 @@ namespace CAPI.JobManager
             Version = "1";
         }
 
-        public ExtractBrainSurface(string[] parameters, IImageProcessor imageProcessing) : this(imageProcessing)
+        public ExtractBrainSurface(string inputHdrFileFullPath, string outputPath, string parameters,
+            IImageProcessor imageProcessing) : this(imageProcessing)
         {
-            Parameters = parameters;
+            Parameters[0] = parameters;
+            InputHdrFileFullPath = inputHdrFileFullPath;
+            OutputPath = outputPath;
         }
 
-        public void Run()
+        public void Run(out string brainMaskExtracted, out string brainMask)
         {
-            //_imageProcessor.ExtractBrainMask(null, "", out BrainMaskRemovedHdrFilePath, out BrainMaskHdrFilePath);
+            _imageProcessor.ExtractBrainMask(InputHdrFileFullPath, OutputPath, out brainMaskExtracted, out brainMask);
 
             var handler = OnComplete;
             handler?.Invoke(this, new ProcessEventArgument(

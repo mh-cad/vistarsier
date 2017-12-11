@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="IExtractBrainSurface.cs" />
     <Compile Include="IImageProcessor.cs" />
+    <Compile Include="IImageConverter.cs" />
     <Compile Include="IUnitProcess.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
