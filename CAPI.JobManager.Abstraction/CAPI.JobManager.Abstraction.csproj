@@ -53,12 +53,13 @@
     <Compile Include="IntegratedProcessType.cs" />
     <Compile Include="IRecipe.cs" />
     <Compile Include="IRegistration.cs" />
-    <Compile Include="IStudySelectionCriteria.cs" />
+    <Compile Include="ISeriesSelectionCriteria.cs" />
     <Compile Include="IJobBuilder.cs" />
     <Compile Include="ITakeDifference.cs" />
     <Compile Include="ProcessEventArgument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringOperand.cs" />
+    <Compile Include="IValueComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">

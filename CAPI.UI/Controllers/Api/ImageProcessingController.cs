@@ -53,11 +53,12 @@ namespace CAPI.UI.Controllers.Api
             var fixedImagesCount = Directory.GetFiles(_fixedDcmDir).Length;
             var floatingImagesCount = Directory.GetFiles(_floatingDcmDir).Length;
 
-            imgProcessor.ExtractBrainMask(new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), _outputDir, out SeriesHdr fixedBrainMaskRemoved, out SeriesHdr fixedBrainMask);
-            imgProcessor.ExtractBrainMask(new SeriesHdr(_floating, $"{_outputDir}\\{_floating}.hdr", floatingImagesCount), _outputDir, out SeriesHdr floatingBrainMaskRemoved, out SeriesHdr floatingBrainMask);
-            return "Step2 completed. Brain Mask is now extracted. " +
-                   $"[{fixedBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{fixedBrainMask.Description}_brain_surface.hdr/img] - " +
-                   $"[{floatingBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{floatingBrainMask.Description}_brain_surface.hdr/img]";
+            //imgProcessor.ExtractBrainMask(new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), _outputDir, out SeriesHdr fixedBrainMaskRemoved, out SeriesHdr fixedBrainMask);
+            //imgProcessor.ExtractBrainMask(new SeriesHdr(_floating, $"{_outputDir}\\{_floating}.hdr", floatingImagesCount), _outputDir, out SeriesHdr floatingBrainMaskRemoved, out SeriesHdr floatingBrainMask);
+            //return "Step2 completed. Brain Mask is now extracted. " +
+            //$"[{fixedBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{fixedBrainMask.Description}_brain_surface.hdr/img] - " +
+            //$"[{floatingBrainMaskRemoved.Description}_brain_surface_extracted.hdr/img] - [{floatingBrainMask.Description}_brain_surface.hdr/img]";
+            return "";
         }
 
         [HttpGet]
@@ -79,14 +80,14 @@ namespace CAPI.UI.Controllers.Api
             foreach (var hdrFileNameNoExt in hdrFilesNamesNoExt)
             {
                 var imgConverter = new ImageConverter();
-                imgConverter.Hdr2Nii(hdrFileNameNoExt+".hdr", _outputDir, hdrFileNameNoExt+".nii");
+                imgConverter.Hdr2Nii(hdrFileNameNoExt + ".hdr", _outputDir, hdrFileNameNoExt + ".nii");
 
                 imgProcessor.ConvertHdrToNii(
                     new SeriesHdr(hdrFileNameNoExt, $"{_outputDir}\\{hdrFileNameNoExt}.hdr", fixedImagesCount),
                     new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), hdrFileNameNoExt
                 );
             }
-            
+
             return $"Step 3 completed. HDR/IMG pairs converted to NII. {string.Join(", ", hdrFilesNamesNoExt)}";
         }
 
@@ -105,12 +106,12 @@ namespace CAPI.UI.Controllers.Api
                 foreach (var floatingNiiFile in floatingNiiFiles)
                 {
                     if (floatingNiiFile.Replace(_floating, _fixed) != fixedNiiFile) continue;
-                    if (fixedNiiFile.Contains(BrainSurfaceExtSuffix))
-                        imgProcessor.Registration(
-                            new SeriesNii(fixedNiiFile.Replace(".nii", "").Split('\\').LastOrDefault(), fixedNiiFile, fixedImagesCount),
-                            new SeriesNii(floatingNiiFile.Replace(".nii", "").Split('\\').LastOrDefault(), floatingNiiFile, floatingImagesCount),
-                            _outputDir
-                        );
+                    //if (fixedNiiFile.Contains(BrainSurfaceExtSuffix))
+                    //imgProcessor.Registration(
+                    //new SeriesNii(fixedNiiFile.Replace(".nii", "").Split('\\').LastOrDefault(), fixedNiiFile, fixedImagesCount),
+                    //new SeriesNii(floatingNiiFile.Replace(".nii", "").Split('\\').LastOrDefault(), floatingNiiFile, floatingImagesCount),
+                    //_outputDir
+                    //);
                 }
 
             return "";
@@ -123,11 +124,11 @@ namespace CAPI.UI.Controllers.Api
             var fixedImagesCount = Directory.GetFiles(_fixedDcmDir).Length;
             var floatingImagesCount = Directory.GetFiles(_floatingDcmDir).Length;
 
-            imgProcessor.TakeDifference(
-                new SeriesHdr(_fixed,$@"{_outputDir}\{_fixed}.hdr",fixedImagesCount),
-                new SeriesNii($"{ _floating }{ ReslicedSuffix}", $@"{_outputDir}\{_floating}{ReslicedSuffix}.nii", floatingImagesCount), 
-                new SeriesNii($"{_fixed}{BrainSurfaceSuffix}", $@"{_outputDir}\{_fixed}{BrainSurfaceSuffix}.nii", fixedImagesCount), 
-                _outputDir, "0");
+            //imgProcessor.TakeDifference(
+            //new SeriesHdr(_fixed,$@"{_outputDir}\{_fixed}.hdr",fixedImagesCount),
+            //new SeriesNii($"{ _floating }{ ReslicedSuffix}", $@"{_outputDir}\{_floating}{ReslicedSuffix}.nii", floatingImagesCount), 
+            //new SeriesNii($"{_fixed}{BrainSurfaceSuffix}", $@"{_outputDir}\{_fixed}{BrainSurfaceSuffix}.nii", fixedImagesCount), 
+            //_outputDir, "0");
 
             return "";
         }
@@ -138,7 +139,7 @@ namespace CAPI.UI.Controllers.Api
             var imgProcessor = new ImageProcessor();
             var floatingImagesCount = Directory.GetFiles(_floatingDcmDir).Length;
 
-            imgProcessor.FlipAndConvertFloatingToDicom(new SeriesNii($"{_floating}{ReslicedSuffix}", $"{_outputDir}\\{_floating}{ReslicedSuffix}.nii",floatingImagesCount));
+            imgProcessor.FlipAndConvertFloatingToDicom(new SeriesNii($"{_floating}{ReslicedSuffix}", $"{_outputDir}\\{_floating}{ReslicedSuffix}.nii", floatingImagesCount));
 
             return "";
         }

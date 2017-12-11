@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CAPI.DAL
 {
-    public class DicomNodeRepositoryInMemory : IDicomNodeRepositoryInMemory
+    public class DicomNodeRepositoryInMemory : IDicomNodeRepository
     {
         private readonly IDicomFactory _dicomFactory;
 

@@ -17,6 +17,6 @@ namespace CAPI.JobManager.Abstraction
         IIntegratedProcess CreateColorMapIntegratedProcess(string version, params string[] integratedProcessParameters);
 
         IDestination CreateDestination(string id, string folderPath, string aeTitle);
-        IStudySelectionCriteria CreateStudySelectionCriteria();
+        ISeriesSelectionCriteria CreateStudySelectionCriteria();
     }
 }

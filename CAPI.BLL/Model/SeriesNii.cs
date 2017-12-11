@@ -2,7 +2,7 @@
 
 namespace CAPI.Domain.Model
 {
-    public class SeriesNii : ISeries
+    public class SeriesNii : ISeriesNii
     {
         public string Description { get; set; }
         public string FileFullPath { get; set; }

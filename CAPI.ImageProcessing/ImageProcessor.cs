@@ -14,6 +14,8 @@ namespace CAPI.ImageProcessing
 {
     public class ImageProcessor : IImageProcessor
     {
+        private readonly IImageConverter _imageConverter;
+
         private readonly string _executablesPath;
         private readonly string _javaClassPath;
         private const string Fixed = "fixed"; // TODO3: Hard-coded name
@@ -81,10 +83,10 @@ namespace CAPI.ImageProcessing
             _processesRootDir = Config.GetProcessesRootDir();
         }
 
-        public ImageProcessor(string executablesPath) : this()
-        {
-            if (!string.IsNullOrEmpty(executablesPath)) _executablesPath = Config.GetExecutablesPath();
-        }
+        //public ImageProcessor(string executablesPath) : this()
+        //{
+        //    if (!string.IsNullOrEmpty(executablesPath)) _executablesPath = Config.GetExecutablesPath();
+        //}
 
         public static void RunAll()
         {
@@ -148,17 +150,32 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        public void ExtractBrainMask(SeriesHdr hdrSeries, string outputPath, out SeriesHdr brainMaskRemoved, out SeriesHdr smoothBrainMask)
+        public void ExtractBrainMask(ISeriesHdr hdrSeries, string outputPath,
+            out ISeriesHdr brainMaskRemoved, out ISeriesHdr smoothBrainMask)
         {
             var arguments = $"-i {hdrSeries.FileFullPath} --mask {outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix} " +
                             $"-o {outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix} {BseParams}";
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 
-            brainMaskRemoved = new SeriesHdr(hdrSeries.Description, $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix}.hdr", hdrSeries.NumberOfImages);
-            smoothBrainMask = new SeriesHdr(hdrSeries.Description, $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix}.hdr", hdrSeries.NumberOfImages);
+            brainMaskRemoved = new SeriesHdr(hdrSeries.Description
+                , $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix}.hdr", hdrSeries.NumberOfImages);
+            smoothBrainMask = new SeriesHdr(hdrSeries.Description
+                , $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix}.hdr", hdrSeries.NumberOfImages);
         }
 
-        public SeriesNii ConvertHdrToNii(SeriesHdr seriesHdr, SeriesHdr originalHdr, string seriesName)
+        public void ExtractBrainMask(string inputHdrFullPath, string outputPath,
+            out string brainMaskRemoved, out string smoothBrainMask)
+        {
+            var arguments = $"-i {inputHdrFullPath} --mask {outputPath}\\{BrainSurfaceSuffix} " +
+                            $"-o {outputPath}\\{BrainSurfaceExtSuffix} {BseParams}";
+
+            ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
+
+            brainMaskRemoved = BrainSurfaceExtSuffix + ".hdr";
+            smoothBrainMask = BrainSurfaceSuffix + ".hdr";
+        }
+
+        public ISeriesNii ConvertHdrToNii(ISeriesHdr seriesHdr, ISeriesHdr originalHdr, string seriesName)
         {
             try
             {
@@ -267,7 +284,7 @@ namespace CAPI.ImageProcessing
                 File.Move($"{outputDir}\\{fileToBeRenamed.Key}", $"{outputDir}\\{fileToBeRenamed.Value}");
         }
 
-        public void FlipAndConvertFloatingToDicom(SeriesNii seriesNii)
+        public void FlipAndConvertFloatingToDicom(ISeriesNii seriesNii)
         {
             var reslicedFloatingName = seriesNii.Description;
             var outputDir = seriesNii.FolderPath;

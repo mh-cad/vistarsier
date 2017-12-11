@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using CAPI.Common;
+using CAPI.Common.Services;
+using CAPI.ImageProcessing.Abstraction;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CAPI.Common;
-using CAPI.Common.Services;
 
 namespace CAPI.ImageProcessing
 {
-    public class ImageConverter
+    public class ImageConverter : IImageConverter
     {
         private readonly string _dicom2NiiFullPath;
         private readonly string _miconvFullPath;
@@ -71,16 +72,16 @@ namespace CAPI.ImageProcessing
                 var arguments = $@"{dicomFileFullPath} {seriesDirPath}\{fileNameNoExt}.{outFileFormat}";
                 ProcessBuilder.CallExecutableFile(_miconvFullPath, arguments);
             }
-            return Directory.GetFiles(seriesDirPath).Select(f => f.Replace($@"{_viewableDir}\","")).ToArray();
+            return Directory.GetFiles(seriesDirPath).Select(f => f.Replace($@"{_viewableDir}\", "")).ToArray();
         }
 
         //private void ConvertNii2Dicom(string reslicedFloatingName, string outputDir)
         //{
-            //var arguments = $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii {outputDir}\{reslicedFloatingName}{FlippedSuffix}.dcm";
-            //ProcessBuilder.CallExecutableFile($"{_executablesPath}\\odin\\{MiconvFileName}", arguments);
+        //var arguments = $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii {outputDir}\{reslicedFloatingName}{FlippedSuffix}.dcm";
+        //ProcessBuilder.CallExecutableFile($"{_executablesPath}\\odin\\{MiconvFileName}", arguments);
         //}
 
-        
+
         public bool Hdr2Nii(string hdrFileFullPath, string outputDir, string niiFileNameNoExt)
         {
 

@@ -1,10 +1,12 @@
 ﻿using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
+using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;
 using ClearCanvas.Dicom.Network.Scu;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using StorageScp = ClearCanvas.Dicom.Samples.StorageScp;
 
@@ -12,11 +14,8 @@ namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        private readonly IDicomFactory _dicomFactory;
-
-        public DicomServices(IDicomFactory dicomFactory)
+        public DicomServices()
         {
-            _dicomFactory = dicomFactory;
         }
 
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
@@ -158,49 +157,82 @@ namespace CAPI.Dicom
             return updatedTags;
         }
 
-        public IEnumerable<string> GetStudyUidsForPatientId(
+        public IEnumerable<IDicomStudy> GetStudiesForPatientId(
             string patientId, IDicomNode localNode, IDicomNode remoteNode)
         {
-            CheckRemoteNodeAvailability(localNode, remoteNode);
             var query = new StudyQueryIod();
             query.SetCommonTags();
             query.PatientId = patientId;
-            var findScu = new StudyRootFindScu();
-            var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query);
-            return studies.Count == 0 ? null :
-                studies.Select(study => study.AccessionNumber + "|" + study.StudyInstanceUid);//.Where(a => !string.IsNullOrEmpty(a));
+
+            return GetStudies(query, localNode, remoteNode);
         }
 
-        public IEnumerable<string> GetSeriesUidsForStudy(
-            string studyUid, string accession, IDicomNode localNode, IDicomNode remoteNode)
+        public IEnumerable<IDicomStudy> GetStudiesForPatient(string patientFullName, string patientBirthDate,
+            IDicomNode localNode, IDicomNode sourceNode)
+        {
+            var query = new StudyQueryIod();
+            query.SetCommonTags();
+            query.PatientsName = new PersonName(patientFullName);
+            query.PatientsBirthDate = DateTime.ParseExact(patientBirthDate, "yyyyMMdd", new DateTimeFormatInfo());
+
+            return GetStudies(query, localNode, sourceNode);
+        }
+
+        private IEnumerable<IDicomStudy> GetStudies(StudyQueryIod query, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
-            if (string.IsNullOrEmpty(studyUid))
-                studyUid = GetSeriesUidForAccession(accession, localNode, remoteNode);
-            if (string.IsNullOrEmpty(studyUid)) throw new Exception($"Failed to find StudyInstanceUid for accession: {accession}");
+            var findScu = new StudyRootFindScu();
+            return findScu
+                .Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query)
+                .Select(study => new DicomStudy
+                {
+                    AccessionNumber = study.AccessionNumber,
+                    StudyDescription = study.StudyDescription,
+                    StudyInstanceUid = study.StudyInstanceUid,
+                    StudyDate = study.StudyDate,
+                    PatientBirthDate = study.PatientsBirthDate,
+                    PatientId = study.PatientId,
+                    PatientsName = study.PatientsName,
+                    PatientsSex = study.PatientsSex
+                });
+        }
+
+        public IEnumerable<IDicomSeries> GetSeriesForStudy(
+            string studyUid, IDicomNode localNode, IDicomNode remoteNode)
+        {
+            CheckRemoteNodeAvailability(localNode, remoteNode);
 
             var seriesQuery = new SeriesQueryIod();
             seriesQuery.SetCommonTags();
             seriesQuery.StudyInstanceUid = studyUid;
             var find = new StudyRootFindScu();
-            var series = find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, seriesQuery)
-                .Select(s => $"{s.SeriesDescription}|{s.SeriesInstanceUid}");
-            return series;
+
+            return find.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, seriesQuery)
+                .Select(s => new DicomSeries
+                {
+                    SeriesInstanceUid = s.SeriesInstanceUid,
+                    SeriesDescription = s.SeriesDescription,
+                    StudyInstanceUid = s.StudyInstanceUid
+                });
         }
 
-        public string GetSeriesUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode)
+        public string GetStudyUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
+
             var studyQuery = new StudyQueryIod();
             studyQuery.SetCommonTags();
             studyQuery.AccessionNumber = accession;
+
             var findScu = new StudyRootFindScu();
-            var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port,
-                studyQuery);
+            var studies = findScu.Find(localNode.AeTitle, remoteNode.AeTitle,
+                remoteNode.IpAddress, remoteNode.Port, studyQuery);
+
+            if (studies.Count == 0) throw new DicomException($"No study was found for accession: {accession}");
             return studies.Count == 0 ? "" : studies.FirstOrDefault()?.StudyInstanceUid;
         }
 
-        private static void CheckRemoteNodeAvailability(IDicomNode localNode, IDicomNode remoteNode)
+        public void CheckRemoteNodeAvailability(IDicomNode localNode, IDicomNode remoteNode)
         {
             var verificationScu = new VerificationScu();
             var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
@@ -208,18 +240,30 @@ namespace CAPI.Dicom
                 throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
         }
 
-        public IDicomSeries GetSeriesDataForSeriesUid(
+        public IDicomSeries GetSeriesForSeriesUid(
             string studyUid, string seriesUid, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
 
-            var imageQueryIods = GetImageIodsForSeries(studyUid, seriesUid, localNode, remoteNode)
-                                     as IList<ImageQueryIod>;
+            var seriesQueryIod = new SeriesQueryIod();
+            seriesQueryIod.SetCommonTags();
+            seriesQueryIod.StudyInstanceUid = studyUid;
+            seriesQueryIod.SeriesInstanceUid = seriesUid;
+
+            var findScu = new StudyRootFindScu();
+            var series = findScu.Find(localNode.AeTitle, remoteNode.AeTitle,
+                remoteNode.IpAddress, remoteNode.Port, seriesQueryIod);
+            var seriesDescription = series.Count == 0 ? "" : series.FirstOrDefault()?.SeriesDescription;
+
+            var imageQueryIods = GetImageIodsForSeries(studyUid, seriesUid, localNode, remoteNode) as IList<ImageQueryIod>;
 
             if (imageQueryIods?.ToList().Count == 0) return null;
 
             return new DicomSeries
             {
+                StudyInstanceUid = studyUid,
+                SeriesInstanceUid = seriesUid,
+                SeriesDescription = seriesDescription,
                 Images = imageQueryIods?
                     .Select(r => new DicomImage { ImageUid = r.SopInstanceUid })
                     .ToList()
@@ -278,8 +322,7 @@ namespace CAPI.Dicom
 
         public IDicomStudy GetStudyForAccession(string accessionNumber)
         {
-            var study = _dicomFactory.CreateStudy();
-            study.AccessionNumber = accessionNumber;
+            var study = new DicomStudy { AccessionNumber = accessionNumber };
 
             // ???
 

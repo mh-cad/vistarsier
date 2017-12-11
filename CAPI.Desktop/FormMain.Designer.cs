@@ -51,7 +51,7 @@
             this.RbNewSeries = new System.Windows.Forms.RadioButton();
             this.RbNewImage = new System.Windows.Forms.RadioButton();
             this.BtnSend = new System.Windows.Forms.Button();
-            this.CbPacsList = new System.Windows.Forms.ComboBox();
+            this.CbDestinationPacs = new System.Windows.Forms.ComboBox();
             this.LblFilePath = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.BtnLoadImage = new System.Windows.Forms.Button();
@@ -59,6 +59,8 @@
             this.BtnBrowseDicomFile = new System.Windows.Forms.Button();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.TxtImageRepoDicom = new System.Windows.Forms.TextBox();
+            this.BtnSaveToDisk = new System.Windows.Forms.Button();
             this.GbArchive = new System.Windows.Forms.GroupBox();
             this.TxtImagesList = new System.Windows.Forms.TextBox();
             this.BtnGetImages = new System.Windows.Forms.Button();
@@ -76,8 +78,6 @@
             this.LogText = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.BtnSaveToDisk = new System.Windows.Forms.Button();
-            this.TxtImageRepoDicom = new System.Windows.Forms.TextBox();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -324,13 +324,13 @@
             this.BtnSend.UseVisualStyleBackColor = true;
             this.BtnSend.Click += new System.EventHandler(this.BtnSend_Click);
             // 
-            // CbPacsList
+            // CbDestinationPacs
             // 
-            this.CbPacsList.FormattingEnabled = true;
-            this.CbPacsList.Location = new System.Drawing.Point(130, 558);
-            this.CbPacsList.Name = "CbPacsList";
-            this.CbPacsList.Size = new System.Drawing.Size(243, 24);
-            this.CbPacsList.TabIndex = 3;
+            this.CbDestinationPacs.FormattingEnabled = true;
+            this.CbDestinationPacs.Location = new System.Drawing.Point(130, 558);
+            this.CbDestinationPacs.Name = "CbDestinationPacs";
+            this.CbDestinationPacs.Size = new System.Drawing.Size(243, 24);
+            this.CbDestinationPacs.TabIndex = 3;
             // 
             // LblFilePath
             // 
@@ -349,7 +349,7 @@
             this.groupBox1.Controls.Add(this.LblFilePath);
             this.groupBox1.Controls.Add(this.TxtFilePath);
             this.groupBox1.Controls.Add(this.PnlDcmHeaderModifiers);
-            this.groupBox1.Controls.Add(this.CbPacsList);
+            this.groupBox1.Controls.Add(this.CbDestinationPacs);
             this.groupBox1.Controls.Add(this.BtnSend);
             this.groupBox1.Location = new System.Drawing.Point(437, 3);
             this.groupBox1.Name = "groupBox1";
@@ -411,6 +411,25 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(428, 626);
             this.panel1.TabIndex = 7;
+            // 
+            // TxtImageRepoDicom
+            // 
+            this.TxtImageRepoDicom.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TxtImageRepoDicom.Location = new System.Drawing.Point(13, 588);
+            this.TxtImageRepoDicom.Name = "TxtImageRepoDicom";
+            this.TxtImageRepoDicom.Size = new System.Drawing.Size(284, 24);
+            this.TxtImageRepoDicom.TabIndex = 21;
+            this.TxtImageRepoDicom.Text = "C:\\temp\\test\\CC-Storage";
+            // 
+            // BtnSaveToDisk
+            // 
+            this.BtnSaveToDisk.Location = new System.Drawing.Point(303, 588);
+            this.BtnSaveToDisk.Name = "BtnSaveToDisk";
+            this.BtnSaveToDisk.Size = new System.Drawing.Size(116, 26);
+            this.BtnSaveToDisk.TabIndex = 21;
+            this.BtnSaveToDisk.Text = "Save To Disk";
+            this.BtnSaveToDisk.UseVisualStyleBackColor = true;
+            this.BtnSaveToDisk.Click += new System.EventHandler(this.BtnSaveToDisk_Click);
             // 
             // GbArchive
             // 
@@ -520,7 +539,7 @@
             this.LblSourcePacs.AutoSize = true;
             this.LblSourcePacs.Location = new System.Drawing.Point(7, 35);
             this.LblSourcePacs.Name = "LblSourcePacs";
-            this.LblSourcePacs.Size = new System.Drawing.Size(151, 16);
+            this.LblSourcePacs.Size = new System.Drawing.Size(150, 16);
             this.LblSourcePacs.TabIndex = 5;
             this.LblSourcePacs.Text = "Dicom Node To Query";
             // 
@@ -573,25 +592,6 @@
             this.panel2.Size = new System.Drawing.Size(1121, 212);
             this.panel2.TabIndex = 8;
             // 
-            // BtnSaveToDisk
-            // 
-            this.BtnSaveToDisk.Location = new System.Drawing.Point(303, 588);
-            this.BtnSaveToDisk.Name = "BtnSaveToDisk";
-            this.BtnSaveToDisk.Size = new System.Drawing.Size(116, 26);
-            this.BtnSaveToDisk.TabIndex = 21;
-            this.BtnSaveToDisk.Text = "Save To Disk";
-            this.BtnSaveToDisk.UseVisualStyleBackColor = true;
-            this.BtnSaveToDisk.Click += new System.EventHandler(this.BtnSaveToDisk_Click);
-            // 
-            // TxtImageRepoDicom
-            // 
-            this.TxtImageRepoDicom.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TxtImageRepoDicom.Location = new System.Drawing.Point(13, 588);
-            this.TxtImageRepoDicom.Name = "TxtImageRepoDicom";
-            this.TxtImageRepoDicom.Size = new System.Drawing.Size(284, 24);
-            this.TxtImageRepoDicom.TabIndex = 21;
-            this.TxtImageRepoDicom.Text = "C:\\temp\\test\\CC-Storage";
-            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -634,7 +634,7 @@
         private System.Windows.Forms.CheckBox CbRemoveCarerDetails;
         private System.Windows.Forms.CheckBox CbSiteRemoved;
         private System.Windows.Forms.Button BtnSend;
-        private System.Windows.Forms.ComboBox CbPacsList;
+        private System.Windows.Forms.ComboBox CbDestinationPacs;
         private System.Windows.Forms.CheckBox CbReidentify;
         private System.Windows.Forms.Label LblFilePath;
         private System.Windows.Forms.GroupBox groupBox1;

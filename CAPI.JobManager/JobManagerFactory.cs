@@ -9,24 +9,28 @@ namespace CAPI.JobManager
     public class JobManagerFactory : IJobManagerFactory
     {
         private readonly IImageProcessor _imageProcessor;
+        private readonly IDicomServices _dicomServices;
+        private readonly IImageConverter _imageConverter;
 
-        public JobManagerFactory(IImageProcessor imageProcessor)
+        public JobManagerFactory(IImageProcessor imageProcessor, IDicomServices dicomServices, IImageConverter imageConverter)
         {
             _imageProcessor = imageProcessor;
+            _dicomServices = dicomServices;
+            _imageConverter = imageConverter;
         }
 
         public IJob<IRecipe> CreateJob()
         {
-            return new Job<IRecipe>(this);
+            return new Job<IRecipe>(this, _dicomServices);
         }
 
         public IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations)
         {
-            return new Job<IRecipe>(this)
+            return new Job<IRecipe>(this, _dicomServices)
             {
-                DicomStudyUnderFocus = dicomStudyUnderFocus,
-                DicomStudyBeingComparedTo = dicomStudyBeingComparedTo,
+                DicomStudyFixed = dicomStudyUnderFocus,
+                DicomStudyFloating = dicomStudyBeingComparedTo,
                 IntegratedProcesses = integratedProcesses,
                 Destinations = destinations
             };
@@ -37,9 +41,13 @@ namespace CAPI.JobManager
             return new Recipe();
         }
 
-        public IIntegratedProcess CreateExtractBrinSurfaceIntegratedProcess(string version, params string[] parameters)
+        public IIntegratedProcess CreateExtractBrinSurfaceIntegratedProcess(string version, string[] parameters)
         {
-            return new ExtractBrainSurface(parameters, _imageProcessor) { Version = version };
+            return new ExtractBrainSurface(_imageProcessor)
+            {
+                Version = version,
+                Parameters = parameters
+            };
         }
 
         public IIntegratedProcess CreateRegistrationIntegratedProcess(string version, params string[] parameters)
@@ -62,9 +70,9 @@ namespace CAPI.JobManager
             return new Destination(id, folderPath, aeTitle);
         }
 
-        public IStudySelectionCriteria CreateStudySelectionCriteria()
+        public ISeriesSelectionCriteria CreateStudySelectionCriteria()
         {
-            return new StudySelectionCriteria();
+            return new SeriesSelectionCriteria();
         }
     }
 }

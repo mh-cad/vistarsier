@@ -43,9 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IDicomNodeRepositoryInMemory.cs" />
-    <Compile Include="IRecipeRepository.cs" />
+    <Compile Include="IDicomNodeRepositoryReadOnly.cs" />
     <Compile Include="IDicomNodeRepository.cs" />
+    <Compile Include="IRecipeRepository.cs" />
     <Compile Include="IRecipeRepositoryInMemory.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="IRepositoryFactory.cs" />

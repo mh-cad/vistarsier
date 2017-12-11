@@ -1,5 +1,9 @@
 [
   {
+    "SourceAet": "***REMOVED***",
+    "PatientId": "1200633",
+    "PatientFullName": "Test^Patient",
+    "PatientBirthDate": "19800101",
     "Destinations": [
       {
         "Id": "1",
@@ -42,28 +46,33 @@
         "Version": "1"
       }
     ],
+    "NewStudyAccession": "",
     "NewStudyCriteria": [
       {
-        "AccessionNumber": "2017R0168610-1",
+        "AccessionNumber": "2017R0040769-1",
         "Region": "",
         "StudyDescription": "",
+        "StudyDescriptionOperand": "",
+        "StudyDate": "",
+        "StudyDateOperand": "Equals",
+        "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
+        "SeriesDescriptionOperand": "OccursIn",
+        "SeriesDescriptionDelimiter": ";"
+      }
+    ],
+    "PriorStudyAccession": "",
+    "PriorStudyCriteria": [
+      {
+        "PriorStudy": true,
+        "AccessionNumber": "",
+        "Region": "",
+        "StudyDescription": "Demyelinating",
         "StudyDescriptionOperand": "Contains",
         "StudyDate": "",
         "StudyDateOperand": "Equals",
-        "SeriesDescription": "",
-        "SeriesDescriptionOperand": "Equals"
-      }
-    ],
-    "PriorStudyCriteria": [
-      {
-        "AccessionNumber": "",
-        "Region": "",
-        "StudyDescription": "",
-        "StudyDescriptionOperand": "Equals",
-        "StudyDate": "",
-        "StudyDateOperand": "Equals",
-        "SeriesDescription": "",
-        "SeriesDescriptionOperand": "Equals"
+        "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
+        "SeriesDescriptionOperand": "OccursIn",
+        "SeriesDescriptionDelimiter": ";"
       }
     ]
   }
