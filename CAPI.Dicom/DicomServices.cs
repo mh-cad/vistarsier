@@ -14,10 +14,6 @@ namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        public DicomServices()
-        {
-        }
-
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
         {
             using (var scu = new StorageScu(localAe, destinationDicomNode.AeTitle, destinationDicomNode.IpAddress, destinationDicomNode.Port))
@@ -114,7 +110,7 @@ namespace CAPI.Dicom
         private static IDicomTagCollection UpdateUidsForNewStudy(IDicomTagCollection tags)
         {
             if (tags == null) return null;
-            tags.StudyUid.Values = new[] { GetNewStudyUid() };
+            tags.StudyInstanceUid.Values = new[] { GetNewStudyUid() };
             tags = UpdateUidsForNewSeries(tags);
             tags = UpdateUidsForNewImage(tags);
             return tags;
@@ -122,7 +118,7 @@ namespace CAPI.Dicom
         private static IDicomTagCollection UpdateUidsForNewSeries(IDicomTagCollection tags)
         {
             if (tags == null) return null;
-            tags.SeriesUid.Values = new[] { GetNewSeriesUid() };
+            tags.SeriesInstanceUid.Values = new[] { GetNewSeriesUid() };
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }

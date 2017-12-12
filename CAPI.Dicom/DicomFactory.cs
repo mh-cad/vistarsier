@@ -6,6 +6,11 @@ namespace CAPI.Dicom
 {
     public class DicomFactory : IDicomFactory
     {
+        public DicomFactory()
+        {
+            
+        }
+
         public IDicomNode CreateDicomNode()
         {
             return new DicomNode();
