@@ -18,6 +18,8 @@ namespace CAPI.IntegratedTests.Dicom
         private IDicomNode _localNode;
         private IDicomNode _remoteNode;
         private string _testObjectsPath;
+        private const string TestDicomRelativePath = "Dicom\\DicomFile1";
+        private const string TestDicomUpdatedTagsRelativePath = "Dicom\\DicomFile1_UpdatedTags";
 
         [TestInitialize]
         public void TestInit()
@@ -35,6 +37,14 @@ namespace CAPI.IntegratedTests.Dicom
             var projectPath = Directory.GetParent(binPath).FullName;
             var projectsParentPath = Directory.GetParent(projectPath).FullName;
             return Path.Combine(projectsParentPath, "TestObjects");
+        }
+
+        [TestCleanup]
+        public void TestCleanUp()
+        {
+            // Delete Updated Tag File
+            var updatedTagFile = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
+            if (File.Exists(updatedTagFile)) File.Delete(updatedTagFile);
         }
 
         [TestMethod]
@@ -119,13 +129,32 @@ namespace CAPI.IntegratedTests.Dicom
         [TestMethod]
         public void GetDicomTags()
         {
-            var dicomFilePath = Path.Combine(_testObjectsPath, "Dicom\\DicomFile1");
+            var dicomFilePath = Path.Combine(_testObjectsPath, TestDicomRelativePath);
 
             var dicomTagsFile = _dicomServices.GetDicomTags(dicomFilePath);
 
             Assert.IsNotNull(dicomTagsFile);
             Assert.IsTrue(dicomTagsFile.StudyInstanceUid.Values.Length > 0);
             Assert.IsFalse(string.IsNullOrEmpty(dicomTagsFile.SeriesDescription.Values[0]));
+        }
+
+        [TestMethod]
+        public void UpdateDicomTagsOnFile()
+        {
+            var testDicomFile = Path.Combine(_testObjectsPath, TestDicomRelativePath);
+            var filePathToUpdate = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
+            File.Copy(testDicomFile, filePathToUpdate, true);
+
+            var dicomTags = _dicomServices.GetDicomTags(testDicomFile);
+
+            _dicomServices.UpdateDicomHeaders(filePathToUpdate, new DicomTagCollection(), DicomNewObjectType.NewStudy);
+
+            var updatedDicomTags = _dicomServices.GetDicomTags(filePathToUpdate);
+
+            Assert.IsFalse(dicomTags.StudyInstanceUid.Values[0] == updatedDicomTags.StudyInstanceUid.Values[0],
+                $"Dicom tags have not been updated. StudyInstanceUid has not changed.{Environment.NewLine}" +
+                $"Original Study Instance Uid: { dicomTags.StudyInstanceUid.Values[0] }{Environment.NewLine}" +
+                $"Updated Study Instance Uid:  { updatedDicomTags.StudyInstanceUid.Values[0] }");
         }
 
         [TestMethod]
