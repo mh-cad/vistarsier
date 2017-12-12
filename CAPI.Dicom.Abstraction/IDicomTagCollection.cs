@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CAPI.Dicom.Abstraction
 {
@@ -11,9 +10,9 @@ namespace CAPI.Dicom.Abstraction
         IDicomTag PatientSex { get; }
         IDicomTag StudyAccessionNumber { get; }
         IDicomTag StudyDescription { get; }
-        IDicomTag StudyUid { get; }
+        IDicomTag StudyInstanceUid { get; }
         IDicomTag SeriesDescription { get; }
-        IDicomTag SeriesUid { get; }
+        IDicomTag SeriesInstanceUid { get; }
         IDicomTag ImageUid { get; }
         IDicomTag RequestingService { get; }
         IDicomTag InstitutionName { get; }

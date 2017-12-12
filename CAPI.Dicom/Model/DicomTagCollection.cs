@@ -13,9 +13,9 @@ namespace CAPI.Dicom.Model
         public IDicomTag PatientSex { get; }
         public IDicomTag StudyAccessionNumber { get; }
         public IDicomTag StudyDescription { get; }
-        public IDicomTag StudyUid { get; }
+        public IDicomTag StudyInstanceUid { get; }
         public IDicomTag SeriesDescription { get; }
-        public IDicomTag SeriesUid { get; }
+        public IDicomTag SeriesInstanceUid { get; }
         public IDicomTag ImageUid { get; }
         public IDicomTag RequestingService { get; }
         public IDicomTag InstitutionName { get; }
@@ -34,8 +34,8 @@ namespace CAPI.Dicom.Model
             PatientSex = new DicomTag ("Patient's Sex", 1048640, TagType.Patient, typeof(string[]));
             StudyAccessionNumber = new DicomTag ("Study Accession Number", 524368, TagType.Study, typeof(string[]));
             StudyDescription = new DicomTag ("Requested Procedure Description", 3280992, TagType.Study, typeof(string[]));
-            StudyUid = new DicomTag ("Study Instance UID", 2097165, TagType.Study, typeof(string[]));
-            SeriesUid = new DicomTag ("Series Instance UID", 2097166, TagType.Series, typeof(string[]));
+            StudyInstanceUid = new DicomTag ("Study Instance UID", 2097165, TagType.Study, typeof(string[]));
+            SeriesInstanceUid = new DicomTag ("Series Instance UID", 2097166, TagType.Series, typeof(string[]));
             SeriesDescription = new DicomTag ("Series Description", 528446, TagType.Series, typeof(string[]));
             ImageUid = new DicomTag ("Sop Instance Id", 524312, TagType.Image, typeof(string[]));
             RequestingService = new DicomTag ("Requesting Service", 3280947, TagType.Site, typeof(string[])); // e.g. RMH
