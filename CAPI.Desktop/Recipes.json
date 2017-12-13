@@ -2,8 +2,8 @@
   {
     "SourceAet": "***REMOVED***",
     "PatientId": "1200633",
-    "PatientFullName": "Test^Patient",
-    "PatientBirthDate": "19800101",
+    "PatientFullName": "",
+    "PatientBirthDate": "",
     "Destinations": [
       {
         "Id": "1",
@@ -46,15 +46,14 @@
         "Version": "1"
       }
     ],
-    "NewStudyAccession": "",
+    "NewStudyAccession": "2012R0158427-1",
     "NewStudyCriteria": [
       {
-        "AccessionNumber": "2017R0040769-1",
-        "Region": "",
         "StudyDescription": "",
-        "StudyDescriptionOperand": "",
+        "StudyDescriptionOperand": "Equals",
         "StudyDate": "",
         "StudyDateOperand": "Equals",
+        "Region": "",
         "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
         "SeriesDescriptionOperand": "OccursIn",
         "SeriesDescriptionDelimiter": ";"
@@ -63,13 +62,14 @@
     "PriorStudyAccession": "",
     "PriorStudyCriteria": [
       {
-        "PriorStudy": true,
-        "AccessionNumber": "",
-        "Region": "",
-        "StudyDescription": "Demyelinating",
+        "MostRecentPriorStudy": false,
+        "OldestPriorStudy": true,
+        "CutOffPeriodValueInMonths": "36",
+        "StudyDescription": "spine",
         "StudyDescriptionOperand": "Contains",
         "StudyDate": "",
         "StudyDateOperand": "Equals",
+        "Region": "",
         "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
         "SeriesDescriptionOperand": "OccursIn",
         "SeriesDescriptionDelimiter": ";"

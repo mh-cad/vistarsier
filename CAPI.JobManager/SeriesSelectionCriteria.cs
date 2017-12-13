@@ -4,8 +4,9 @@ namespace CAPI.JobManager
 {
     public class SeriesSelectionCriteria : ISeriesSelectionCriteria
     {
-        public bool PriorStudy { get; set; }
-        public string AccessionNumber { get; set; }
+        public bool MostRecentPriorStudy { get; set; }
+        public bool OldestPriorStudy { get; set; }
+        public string CutOffPeriodValueInMonths { get; set; }
         public string Region { get; set; }
         public string StudyDescription { get; set; }
         public StringOperand StudyDescriptionOperand { get; set; }

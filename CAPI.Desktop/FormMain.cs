@@ -19,7 +19,6 @@ namespace CAPI.Desktop
     public partial class FormMain : Form
     {
         private string _tempFileToSend;
-        private const string LocalNodeLogicalName = "Work PC"; // TODO3: Hard-Coded PACS AET
         private readonly IDicomNode _localDicomNode;
         private IUnityContainer _unityContainer;
         private IDicomFactory _dicomFactory;
@@ -28,6 +27,7 @@ namespace CAPI.Desktop
         private IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
         private IJobBuilder _jobBuilder;
 
+
         public FormMain()
         {
             InitializeComponent();
@@ -35,7 +35,8 @@ namespace CAPI.Desktop
             InitializeUnity();
 
             _localDicomNode = _dicomNodeRepo.GetAll()
-                .FirstOrDefault(n => string.Equals(n.LogicalName, LocalNodeLogicalName,
+                .FirstOrDefault(n => string.Equals(n.AeTitle,
+                Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User),
                 StringComparison.CurrentCultureIgnoreCase));
         }
 
@@ -155,7 +156,7 @@ namespace CAPI.Desktop
             UpdateDicomTags();
             var destinationNode = GetSelectedDestinationDicomNode();
             var dicomServices = _dicomFactory.CreateDicomServices();
-            dicomServices.SendDicomFile(_tempFileToSend, LocalNodeLogicalName, destinationNode);
+            dicomServices.SendDicomFile(_tempFileToSend, _localDicomNode.AeTitle, destinationNode);
             if (File.Exists(_tempFileToSend)) File.Delete(_tempFileToSend);
             _tempFileToSend = null;
             ResetAllControls();
@@ -291,14 +292,16 @@ namespace CAPI.Desktop
         private void BtnTestProcess_Click(object sender, EventArgs e)
         {
             var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
-            var localNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.LogicalName == LocalNodeLogicalName);
+            var localNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == _localDicomNode.AeTitle);
             if (string.IsNullOrEmpty(recipe.SourceAet) || string.IsNullOrWhiteSpace(recipe.SourceAet))
                 throw new ArgumentNullException(nameof(recipe.SourceAet), "Source AE Title in recipe is not specified");
             var sourceNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
 
             var job = _jobBuilder.Build(recipe, localNode, sourceNode);
             job.OnEachProcessCompleted += Process_Completed;
-            job.Run();
+            //job.Run();
+            LogToDataGridView($"Fixed: {job.DicomStudyFixed.AccessionNumber}");
+            LogToDataGridView($"Floating: {job.DicomStudyFloating.AccessionNumber}");
         }
         #endregion
 
