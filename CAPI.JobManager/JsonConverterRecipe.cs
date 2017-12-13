@@ -34,7 +34,9 @@ namespace CAPI.JobManager
                 SourceAet = jsonToken["SourceAet"].ToString(),
                 PatientId = jsonToken["PatientId"].ToString(),
                 PatientFullName = jsonToken["PatientFullName"].ToString(),
-                PatientBirthDate = jsonToken["PatientBirthDate"].ToString()
+                PatientBirthDate = jsonToken["PatientBirthDate"].ToString(),
+                NewStudyAccession = jsonToken["NewStudyAccession"].ToString(),
+                PriorStudyAccession = jsonToken["PriorStudyAccession"].ToString()
             };
 
             var destinations = JsonConvert.DeserializeObject<List<Destination>>(jsonToken["Destinations"].ToString());

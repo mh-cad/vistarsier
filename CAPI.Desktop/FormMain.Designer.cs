@@ -78,6 +78,7 @@
             this.LogText = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -86,6 +87,7 @@
             this.GbArchive.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvLogs)).BeginInit();
             this.panel2.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // TxtFilePath
@@ -395,11 +397,10 @@
             // 
             this.flowLayoutPanel1.Controls.Add(this.panel1);
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
-            this.flowLayoutPanel1.Controls.Add(this.BtnTestProcess);
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(14, 13);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(1121, 641);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(835, 641);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
             // panel1
@@ -539,15 +540,15 @@
             this.LblSourcePacs.AutoSize = true;
             this.LblSourcePacs.Location = new System.Drawing.Point(7, 35);
             this.LblSourcePacs.Name = "LblSourcePacs";
-            this.LblSourcePacs.Size = new System.Drawing.Size(150, 16);
+            this.LblSourcePacs.Size = new System.Drawing.Size(151, 16);
             this.LblSourcePacs.TabIndex = 5;
             this.LblSourcePacs.Text = "Dicom Node To Query";
             // 
             // BtnTestProcess
             // 
-            this.BtnTestProcess.Location = new System.Drawing.Point(833, 3);
+            this.BtnTestProcess.Location = new System.Drawing.Point(13, 15);
             this.BtnTestProcess.Name = "BtnTestProcess";
-            this.BtnTestProcess.Size = new System.Drawing.Size(234, 39);
+            this.BtnTestProcess.Size = new System.Drawing.Size(119, 39);
             this.BtnTestProcess.TabIndex = 8;
             this.BtnTestProcess.Text = "Test Process";
             this.BtnTestProcess.UseVisualStyleBackColor = true;
@@ -592,11 +593,20 @@
             this.panel2.Size = new System.Drawing.Size(1121, 212);
             this.panel2.TabIndex = 8;
             // 
+            // panel3
+            // 
+            this.panel3.Controls.Add(this.BtnTestProcess);
+            this.panel3.Location = new System.Drawing.Point(855, 13);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(274, 641);
+            this.panel3.TabIndex = 22;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1141, 878);
+            this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Font = new System.Drawing.Font("Verdana", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -620,6 +630,7 @@
             this.GbArchive.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvLogs)).EndInit();
             this.panel2.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -676,6 +687,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn LogTime;
         private System.Windows.Forms.Button BtnSaveToDisk;
         private System.Windows.Forms.TextBox TxtImageRepoDicom;
+        private System.Windows.Forms.Panel panel3;
     }
 }
 

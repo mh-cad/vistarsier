@@ -16,9 +16,7 @@ namespace CAPI.JobManager
                         return true;
                     break;
                 case StringOperand.Contains:
-                    if (val1.Split(delimiter[0])
-                        .Any(str => string.Equals(str, val2,
-                            StringComparison.OrdinalIgnoreCase)))
+                    if (val1.ToLower().Contains(val2.ToLower()))
                         return true;
                     break;
                 case StringOperand.StartsWith:

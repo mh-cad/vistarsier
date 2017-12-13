@@ -2,8 +2,9 @@
 {
     public interface ISeriesSelectionCriteria
     {
-        string AccessionNumber { get; set; }
-        bool PriorStudy { get; set; }
+        bool MostRecentPriorStudy { get; set; }
+        bool OldestPriorStudy { get; set; }
+        string CutOffPeriodValueInMonths { get; set; }
         string Region { get; set; }
         string StudyDescription { get; set; }
         StringOperand StudyDescriptionOperand { get; set; }
