@@ -196,12 +196,13 @@ namespace CAPI.JobManager
 
             var matchedStudies = studies.Where(s =>
             {
-                if (studyDescCriteria.All(criterion =>
+                return studyDescCriteria.All(criterion =>
                     _valueComparer.CompareStrings(
                         s.StudyDescription, criterion.StudyDescription, criterion.StudyDescriptionOperand
-                    ))) return true;
-                throw new Exception("No study found for study criteria");
-            });
+                    ));
+            }).ToList();
+
+            if (!matchedStudies.Any()) throw new Exception("No study found for study criteria");
 
             return matchedStudies;
         }
