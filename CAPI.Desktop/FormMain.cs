@@ -299,9 +299,11 @@ namespace CAPI.Desktop
 
             var job = _jobBuilder.Build(recipe, localNode, sourceNode);
             job.OnEachProcessCompleted += Process_Completed;
-            //job.Run();
+
             LogToDataGridView($"Fixed: {job.DicomStudyFixed.AccessionNumber}");
             LogToDataGridView($"Floating: {job.DicomStudyFloating.AccessionNumber}");
+
+            //job.Run();
         }
         #endregion
 

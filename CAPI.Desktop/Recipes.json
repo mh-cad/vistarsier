@@ -1,9 +1,9 @@
 [
   {
     "SourceAet": "RMHSYNSCP",
-    "PatientId": "1200633",
-    "PatientFullName": "",
-    "PatientBirthDate": "",
+    "PatientId": "",
+    "PatientFullName": "Durali^Arife",
+    "PatientBirthDate": "19810510",
     "Destinations": [
       {
         "Id": "1",
@@ -46,7 +46,7 @@
         "Version": "1"
       }
     ],
-    "NewStudyAccession": "2012R0158427-1",
+    "NewStudyAccession": "2017R0040769-1",
     "NewStudyCriteria": [
       {
         "StudyDescription": "",
@@ -65,7 +65,7 @@
         "MostRecentPriorStudy": false,
         "OldestPriorStudy": true,
         "CutOffPeriodValueInMonths": "36",
-        "StudyDescription": "spine",
+        "StudyDescription": "",
         "StudyDescriptionOperand": "Contains",
         "StudyDate": "",
         "StudyDateOperand": "Equals",
