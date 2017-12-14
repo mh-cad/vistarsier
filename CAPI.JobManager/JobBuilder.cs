@@ -2,11 +2,13 @@
 using CAPI.JobManager.Abstraction;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 
 namespace CAPI.JobManager
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class JobBuilder : IJobBuilder
     {
         private readonly IDicomServices _dicomServices;
@@ -19,8 +21,6 @@ namespace CAPI.JobManager
         /// <param name="dicomServices"></param>
         /// <param name="jobManagerFactory"></param>
         /// <param name="valueComparer"></param>
-        /// <param name="localNode"></param>
-        /// <param name="sourceNode"></param>
         public JobBuilder(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
             IValueComparer valueComparer)
         {
@@ -40,7 +40,9 @@ namespace CAPI.JobManager
         {
             _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
 
-            var allStudiesForPatient = GetDicomStudiesForPatient(recipe.PatientId,
+            var patientId = GetPatientIdFromRecipe(recipe, localNode, sourceNode);
+
+            var allStudiesForPatient = GetDicomStudiesForPatient(patientId,
                 recipe.PatientFullName, recipe.PatientBirthDate, localNode, sourceNode)
                     .OrderByDescending(s => s.StudyDate).ToList();
 
@@ -71,6 +73,27 @@ namespace CAPI.JobManager
                 recipe.Destinations
             );
             return job;
+        }
+
+        /// <summary>
+        /// In case patient Id is not available get patient Id using accession number
+        /// </summary>
+        /// <param name="recipe"></param>
+        /// <param name="localNode"></param>
+        /// <param name="sourceNode"></param>
+        /// <returns></returns>
+        private string GetPatientIdFromRecipe(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
+        {
+            if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
+            if (!string.IsNullOrEmpty(recipe.PatientFullName)
+                && !string.IsNullOrEmpty(recipe.PatientBirthDate))
+                return _dicomServices.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate,
+                    localNode, sourceNode).PatientId;
+
+            if (string.IsNullOrEmpty(recipe.NewStudyAccession))
+                throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
+            var study = _dicomServices.GetStudyForAccession(recipe.NewStudyAccession, localNode, sourceNode);
+            return study.PatientId;
         }
 
         /// <summary>
@@ -159,6 +182,14 @@ namespace CAPI.JobManager
             });
         }
 
+        /// <summary>
+        /// Check series for studies and return ones which contain series matching criteria passed
+        /// </summary>
+        /// <param name="studies"></param>
+        /// <param name="criteria"></param>
+        /// <param name="localNode"></param>
+        /// <param name="sourceNode"></param>
+        /// <returns></returns>
         private IEnumerable<IDicomStudy> GetStudiesContainingMatchingSeries(
             IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria,
             IDicomNode localNode, IDicomNode sourceNode)

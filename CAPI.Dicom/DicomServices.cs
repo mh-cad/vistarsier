@@ -174,23 +174,56 @@ namespace CAPI.Dicom
             return GetStudies(query, localNode, sourceNode);
         }
 
+        public IDicomPatient GetPatientIdFromPatientDetails(
+            string patientFullname, string patientBirthDate,
+            IDicomNode localNode, IDicomNode sourceNode)
+        {
+            var query = new PatientQueryIod();
+            query.SetCommonTags();
+            query.PatientsName = new PersonName(patientFullname);
+            query.PatientsBirthDate = DateTime.ParseExact(patientBirthDate, "yyyyMMdd", CultureInfo.CurrentCulture);
+            var findScu = new PatientRootFindScu();
+            var patient = findScu.Find(localNode.AeTitle, sourceNode.AeTitle,
+                sourceNode.IpAddress, sourceNode.Port, query).ToList();
+            if (!patient.Any()) throw new Exception($"No patient found with name [{patientFullname}] " +
+                                                    $"and birth date [{patientBirthDate}]");
+            if (patient.Count > 1) throw new Exception($"{patient.Count} patients were found for name [{patientFullname}] " +
+                                                    $"and birth date [{patientBirthDate}]");
+            return patient.Select(MapToDicomPatient).FirstOrDefault();
+        }
+
+        private static IDicomPatient MapToDicomPatient(PatientQueryIod patientQueryIod)
+        {
+            return new DicomPatient
+            {
+                PatientId = patientQueryIod.PatientId,
+                PatientFullName = patientQueryIod.PatientsName,
+                PatientBirthDate = patientQueryIod.PatientsBirthDate.Date.ToString("yyyyMMdd")
+            };
+        }
+
         private IEnumerable<IDicomStudy> GetStudies(StudyQueryIod query, IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             var findScu = new StudyRootFindScu();
             return findScu
                 .Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query)
-                .Select(study => new DicomStudy
-                {
-                    AccessionNumber = study.AccessionNumber,
-                    StudyDescription = study.StudyDescription,
-                    StudyInstanceUid = study.StudyInstanceUid,
-                    StudyDate = study.StudyDate,
-                    PatientBirthDate = study.PatientsBirthDate,
-                    PatientId = study.PatientId,
-                    PatientsName = study.PatientsName,
-                    PatientsSex = study.PatientsSex
-                });
+                .Select(MapToDicomStudy);
+        }
+
+        private static IDicomStudy MapToDicomStudy(StudyQueryIod study)
+        {
+            return new DicomStudy
+            {
+                AccessionNumber = study.AccessionNumber,
+                StudyDescription = study.StudyDescription,
+                StudyInstanceUid = study.StudyInstanceUid,
+                StudyDate = study.StudyDate,
+                PatientBirthDate = study.PatientsBirthDate,
+                PatientId = study.PatientId,
+                PatientsName = study.PatientsName,
+                PatientsSex = study.PatientsSex
+            };
         }
 
         public IEnumerable<IDicomSeries> GetSeriesForStudy(
@@ -316,13 +349,18 @@ namespace CAPI.Dicom
 
         }
 
-        public IDicomStudy GetStudyForAccession(string accessionNumber)
+        public IDicomStudy GetStudyForAccession(string accessionNumber, IDicomNode localNode, IDicomNode remoteNode)
         {
-            var study = new DicomStudy { AccessionNumber = accessionNumber };
-
-            // ???
-
-            return study;
+            var query = new StudyQueryIod();
+            query.SetCommonTags();
+            query.AccessionNumber = accessionNumber;
+            var findScu = new StudyRootFindScu();
+            var studies = findScu
+                .Find(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port, query)
+                .Select(MapToDicomStudy).ToList();
+            if (studies.Count > 1)
+                throw new Exception($"{studies.Count} studies returned for accession {accessionNumber}");
+            return studies.FirstOrDefault();
         }
     }
 }
