@@ -8,21 +8,15 @@ namespace CAPI.JobManager
     public class Job<T> : IJob<T>
     {
         private readonly IJobManagerFactory _jobManagerFactory;
-        private readonly IDicomServices _dicomServices;
 
         public IDicomStudy DicomStudyFixed { get; set; }
-        public IDicomSeries DicomSeriesFixed { get; set; }
-        public string DicomSeriesFixedFolderPath { get; set; }
         public IDicomStudy DicomStudyFloating { get; set; }
-        public IDicomSeries DicomSeriesFloating { get; set; }
-        public string DicomSeriesFloatingFolderPath { get; set; }
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 
         public Job(IJobManagerFactory jobManagerFactory, IDicomServices dicomServices)
         {
             _jobManagerFactory = jobManagerFactory;
-            _dicomServices = dicomServices;
         }
 
         public void Run()
@@ -53,6 +47,7 @@ namespace CAPI.JobManager
                         throw new ArgumentOutOfRangeException();
                 }
             }
+
         }
 
         private void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess)

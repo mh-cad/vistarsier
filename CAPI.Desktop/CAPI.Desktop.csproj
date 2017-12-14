@@ -149,6 +149,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Recipes - Copy.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Recipes.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

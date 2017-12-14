@@ -303,7 +303,7 @@ namespace CAPI.Desktop
             LogToDataGridView($"Fixed: {job.DicomStudyFixed.AccessionNumber}");
             LogToDataGridView($"Floating: {job.DicomStudyFloating.AccessionNumber}");
 
-            //job.Run();
+            job.Run();
         }
         #endregion
 
