@@ -9,14 +9,10 @@ namespace CAPI.JobManager
     public class JobManagerFactory : IJobManagerFactory
     {
         private readonly IImageProcessor _imageProcessor;
-        private readonly IDicomServices _dicomServices;
-        private readonly IImageConverter _imageConverter;
 
-        public JobManagerFactory(IImageProcessor imageProcessor, IDicomServices dicomServices, IImageConverter imageConverter)
+        public JobManagerFactory(IImageProcessor imageProcessor)
         {
             _imageProcessor = imageProcessor;
-            _dicomServices = dicomServices;
-            _imageConverter = imageConverter;
         }
 
         public IJob<IRecipe> CreateJob()
