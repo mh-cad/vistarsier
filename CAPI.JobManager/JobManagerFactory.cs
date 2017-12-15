@@ -21,13 +21,13 @@ namespace CAPI.JobManager
 
         public IJob<IRecipe> CreateJob()
         {
-            return new Job<IRecipe>(this, _dicomServices);
+            return new Job<IRecipe>(this);
         }
 
         public IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations)
         {
-            return new Job<IRecipe>(this, _dicomServices)
+            return new Job<IRecipe>(this)
             {
                 DicomStudyFixed = dicomStudyUnderFocus,
                 DicomStudyFloating = dicomStudyBeingComparedTo,

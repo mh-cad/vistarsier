@@ -14,7 +14,7 @@ namespace CAPI.JobManager
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 
-        public Job(IJobManagerFactory jobManagerFactory, IDicomServices dicomServices)
+        public Job(IJobManagerFactory jobManagerFactory)
         {
             _jobManagerFactory = jobManagerFactory;
         }
