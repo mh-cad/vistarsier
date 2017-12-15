@@ -1,14 +1,11 @@
 ﻿using CAPI.Common;
 using CAPI.Common.Services;
-using CAPI.Domain.Model;
 using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SeriesHdr = CAPI.Domain.Model.SeriesHdr;
-using SeriesNii = CAPI.Domain.Model.SeriesNii;
 
 namespace CAPI.ImageProcessing
 {
@@ -150,19 +147,6 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        public void ExtractBrainMask(ISeriesHdr hdrSeries, string outputPath,
-            out ISeriesHdr brainMaskRemoved, out ISeriesHdr smoothBrainMask)
-        {
-            var arguments = $"-i {hdrSeries.FileFullPath} --mask {outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix} " +
-                            $"-o {outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix} {BseParams}";
-            ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
-
-            brainMaskRemoved = new SeriesHdr(hdrSeries.Description
-                , $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceExtSuffix}.hdr", hdrSeries.NumberOfImages);
-            smoothBrainMask = new SeriesHdr(hdrSeries.Description
-                , $"{outputPath}\\{hdrSeries.Description}{BrainSurfaceSuffix}.hdr", hdrSeries.NumberOfImages);
-        }
-
         public void ExtractBrainMask(string inputHdrFullPath, string outputPath,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
@@ -175,27 +159,28 @@ namespace CAPI.ImageProcessing
             smoothBrainMask = BrainSurfaceSuffix + ".hdr";
         }
 
-        public ISeriesNii ConvertHdrToNii(ISeriesHdr seriesHdr, ISeriesHdr originalHdr, string seriesName)
+        public string ConvertHdrToNii(string hdrFileFullPath, string originalHdr, string seriesName)
         {
-            try
-            {
-                const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
-                var javaArgument = $"-classpath {_javaClassPath} {methodName} " + // TODO3: Hard-coded file name | Hard-coded Java Method Description
-                                   $"\"{seriesHdr.FolderPath}\\{originalHdr.Description}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.hdr\" \"{seriesHdr.FolderPath}\\{seriesName}.nii\"";
+            //try
+            //{
+            //    const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
+            //    var javaArgument = $"-classpath {_javaClassPath} {methodName} " +
+            //                       $"\"{hdrFileFullPath.FolderPath}\\{originalHdr.Description}.hdr\" \"{hdrFileFullPath.FolderPath}\\{seriesName}.hdr\" \"{hdrFileFullPath.FolderPath}\\{seriesName}.nii\"";
 
-                ProcessBuilder.CallJava(javaArgument, methodName);
+            //    ProcessBuilder.CallJava(javaArgument, methodName);
 
-                RemoveUnnecessaryFiles(
-                    originalHdr.FolderPath,
-                    seriesHdr.Description,
-                    new[] { $"{Fixed.ToLower()}.hdr", $"{Fixed.ToLower()}.img", $"{Floating.ToLower()}.hdr", $"{Floating.ToLower()}.img" });
+            //    RemoveUnnecessaryFiles(
+            //        originalHdr.FolderPath,
+            //        hdrFileFullPath.Description,
+            //        new[] { $"{Fixed.ToLower()}.hdr", $"{Fixed.ToLower()}.img", $"{Floating.ToLower()}.hdr", $"{Floating.ToLower()}.img" });
 
-                return new SeriesNii(seriesName, seriesHdr.FileFullPath.Replace("hdr", "nii"), seriesHdr.NumberOfImages);
-            }
-            catch
-            {
-                return null; // TODO3: Exception Handling
-            }
+            //    return new SeriesNii(seriesName, hdrFileFullPath.FileFullPath.Replace("hdr", "nii"), hdrFileFullPath.NumberOfImages);
+            //}
+            //catch
+            //{
+            //    return null; // TODO3: Exception Handling
+            //}
+            return "";
         }
         private static void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
         {
@@ -213,39 +198,39 @@ namespace CAPI.ImageProcessing
             File.Delete($"{path}\\{Floating}.nii");
         }
 
-        public void Registration(ISeries seriesFixed, ISeries seriesFloating, string outputPath)
+        public void Registration(string seriesFixed, string seriesFloating, string outputPath)
         {
             CreateRawXform(seriesFixed, seriesFloating, outputPath);
             CreateResultXform(seriesFixed, seriesFloating);
             ResliceFloatingImages(outputPath);
         }
-        private void CreateRawXform(ISeries seriesFixed, ISeries seriesFloating, string outputPath)
+        private void CreateRawXform(string seriesFixed, string seriesFloating, string outputPath)
         {
-            var cmtkOutputDir = $@"{outputPath}\{CmtkOutputDirName}";
-            if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
-            Directory.CreateDirectory($@"{outputPath}\{CmtkOutputDirName}");
+            //var cmtkOutputDir = $@"{outputPath}\{CmtkOutputDirName}";
+            //if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
+            //Directory.CreateDirectory($@"{outputPath}\{CmtkOutputDirName}");
 
-            var arguments = $@"{CmtkParams} {outputPath}\{CmtkRawXformFileName} {CmtkOutputParam} {seriesFixed.FileFullPath} {seriesFloating.FileFullPath}";
+            //var arguments = $@"{CmtkParams} {outputPath}\{CmtkRawXformFileName} {CmtkOutputParam} {seriesFixed.FileFullPath} {seriesFloating.FileFullPath}";
 
-            ProcessBuilder.CallExecutableFile($@"{_executablesPath}\CMTK\bin\{RegistrationExeFileName}", arguments, cmtkOutputDir);
+            //ProcessBuilder.CallExecutableFile($@"{_executablesPath}\CMTK\bin\{RegistrationExeFileName}", arguments, cmtkOutputDir);
         }
-        private void CreateResultXform(ISeries seriesFixed, ISeries seriesFloating) // Outputs to the same folder as fixed series
+        private void CreateResultXform(string seriesFixed, string seriesFloating) // Outputs to the same folder as fixed series
         {
-            try
-            {
-                var srcDir = seriesFixed.FolderPath;
-                const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   $@"{srcDir}\{seriesFixed.Description}.nii {srcDir}\{seriesFloating.Description}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
+            //try
+            //{
+            //    var srcDir = seriesFixed.FolderPath;
+            //    const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
+            //    var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
+            //                       $@"{srcDir}\{seriesFixed.Description}.nii {srcDir}\{seriesFloating.Description}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
 
-                ProcessBuilder.CallJava(javaArgument, methodname);
+            //    ProcessBuilder.CallJava(javaArgument, methodname);
 
-                File.Delete($@"{srcDir}\{CmtkRawXformFileName}");
-            }
-            catch
-            {
-                //return null; // TODO3: Exception Handling
-            }
+            //    File.Delete($@"{srcDir}\{CmtkRawXformFileName}");
+            //}
+            //catch
+            //{
+            //    //return null; // TODO3: Exception Handling
+            //}
         }
         private void ResliceFloatingImages(string outputPath)
         {
@@ -255,23 +240,23 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\CMTK\bin\{ReformatXFileName}", arguments);
         }
 
-        public void TakeDifference(ISeries seriesFixedHdr, ISeries seriesFloatingReslicedNii, ISeries seriesBrainSurfaceNii, string outputDir, string sliceInset) // Outputs to the same folder as fixed series
+        public void TakeDifference(string seriesFixedHdr, string seriesFloatingReslicedNii, string seriesBrainSurfaceNii, string outputDir, string sliceInset) // Outputs to the same folder as fixed series
         {
-            try
-            {
-                const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
-                ProcessBuilder.CallJava(
-                    $"-classpath {_javaClassPath} {methodName} " +
-                    $@"{outputDir} {outputDir}\{seriesFixedHdr.Description}.hdr {outputDir}\{seriesFloatingReslicedNii.Description}.nii {outputDir}\{seriesBrainSurfaceNii.Description}.nii {sliceInset}"
-                    , methodName);
+            //try
+            //{
+            //    const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
+            //    ProcessBuilder.CallJava(
+            //        $"-classpath {_javaClassPath} {methodName} " +
+            //        $@"{outputDir} {outputDir}\{seriesFixedHdr.Description}.hdr {outputDir}\{seriesFloatingReslicedNii.Description}.nii {outputDir}\{seriesBrainSurfaceNii.Description}.nii {sliceInset}"
+            //        , methodName);
 
-                CreatePropertiesFiles(outputDir);
-                RenameDiffNiiFiles(outputDir);
-            }
-            catch
-            {
-                //return; // TODO3: Exception Handling
-            }
+            //    CreatePropertiesFiles(outputDir);
+            //    RenameDiffNiiFiles(outputDir);
+            //}
+            //catch
+            //{
+            //    //return; // TODO3: Exception Handling
+            //}
         }
         private static void CreatePropertiesFiles(string outputDir)
         {
@@ -284,14 +269,14 @@ namespace CAPI.ImageProcessing
                 File.Move($"{outputDir}\\{fileToBeRenamed.Key}", $"{outputDir}\\{fileToBeRenamed.Value}");
         }
 
-        public void FlipAndConvertFloatingToDicom(ISeriesNii seriesNii)
+        public void FlipAndConvertFloatingToDicom(string seriesNii)
         {
-            var reslicedFloatingName = seriesNii.Description;
-            var outputDir = seriesNii.FolderPath;
+            //var reslicedFloatingName = seriesNii.Description;
+            //var outputDir = seriesNii.FolderPath;
 
-            FlipFloatingReslicedImages(reslicedFloatingName, outputDir);
-            ConvertNii2Dicom(reslicedFloatingName, outputDir);
-            MatchDicom2Nii(reslicedFloatingName, outputDir);
+            //FlipFloatingReslicedImages(reslicedFloatingName, outputDir);
+            //ConvertNii2Dicom(reslicedFloatingName, outputDir);
+            //MatchDicom2Nii(reslicedFloatingName, outputDir);
         }
         private void FlipFloatingReslicedImages(string reslicedFloatingName, string outputDir)
         {

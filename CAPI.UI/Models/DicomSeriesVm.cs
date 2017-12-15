@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using CAPI.Common;
-using CAPI.Dicom.Model;
+﻿using CAPI.Dicom.Model;
 
 namespace CAPI.UI.Models
 {
@@ -22,18 +19,19 @@ namespace CAPI.UI.Models
 
         public DicomSeriesVm MapDicomSeriesToVm(DicomSeries dicomSeries)
         {
-            return new DicomSeriesVm()
-            {
-                Name = dicomSeries.Description,
-                NumberOfImages = NumberOfImages,
-                FilesList = Directory.GetFiles(dicomSeries.FolderPath)
-                    .Select(f =>
-                    {
-                        var imgRepPathLength = Config.GetImageRepositoryPath().Length + 1;
-                        var filePathLength = f.Length;
-                        return f.Substring(imgRepPathLength, filePathLength - imgRepPathLength);
-                    }).ToArray() // TODO1: Modify to reflect relative path to files in the website
-            };
+            //return new DicomSeriesVm()
+            //{
+            //    Name = dicomSeries.Description,
+            //    NumberOfImages = NumberOfImages,
+            //    FilesList = Directory.GetFiles(dicomSeries.FolderPath)
+            //        .Select(f =>
+            //        {
+            //            var imgRepPathLength = Config.GetImageRepositoryPath().Length + 1;
+            //            var filePathLength = f.Length;
+            //            return f.Substring(imgRepPathLength, filePathLength - imgRepPathLength);
+            //        }).ToArray() // TODO1: Modify to reflect relative path to files in the website
+            //};
+            return null;
         }
     }
 }
