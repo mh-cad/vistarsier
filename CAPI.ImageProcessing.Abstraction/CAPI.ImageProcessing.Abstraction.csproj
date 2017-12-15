@@ -46,11 +46,5 @@
     <Compile Include="IUnitProcess.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CAPI.BLL\CAPI.Domain.csproj">
-      <Project>{3c5be1a9-9f1b-458e-969b-7a819d8f3b31}</Project>
-      <Name>CAPI.Domain</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

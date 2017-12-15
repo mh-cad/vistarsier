@@ -1,10 +1,8 @@
-﻿using CAPI.Domain.Model;
-
-namespace CAPI.Dicom.Model
+﻿namespace CAPI.Dicom.Model
 {
-    public class DicomSeries : MultiFileSeries
+    public class DicomSeries
     {
-        public string SeriesUid { get; set;}
+        public string SeriesUid { get; set; }
 
         public DicomSeries(string description, string folderPath)
         {

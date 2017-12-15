@@ -1,5 +1,4 @@
 ﻿using CAPI.Common;
-using CAPI.Domain.Model;
 using CAPI.ImageProcessing;
 using System.IO;
 using System.Linq;
@@ -82,10 +81,10 @@ namespace CAPI.UI.Controllers.Api
                 var imgConverter = new ImageConverter();
                 imgConverter.Hdr2Nii(hdrFileNameNoExt + ".hdr", _outputDir, hdrFileNameNoExt + ".nii");
 
-                imgProcessor.ConvertHdrToNii(
-                    new SeriesHdr(hdrFileNameNoExt, $"{_outputDir}\\{hdrFileNameNoExt}.hdr", fixedImagesCount),
-                    new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), hdrFileNameNoExt
-                );
+                //imgProcessor.ConvertHdrToNii(
+                //    new SeriesHdr(hdrFileNameNoExt, $"{_outputDir}\\{hdrFileNameNoExt}.hdr", fixedImagesCount),
+                //    new SeriesHdr(_fixed, $"{_outputDir}\\{_fixed}.hdr", fixedImagesCount), hdrFileNameNoExt
+                //);
             }
 
             return $"Step 3 completed. HDR/IMG pairs converted to NII. {string.Join(", ", hdrFilesNamesNoExt)}";
@@ -139,7 +138,7 @@ namespace CAPI.UI.Controllers.Api
             var imgProcessor = new ImageProcessor();
             var floatingImagesCount = Directory.GetFiles(_floatingDcmDir).Length;
 
-            imgProcessor.FlipAndConvertFloatingToDicom(new SeriesNii($"{_floating}{ReslicedSuffix}", $"{_outputDir}\\{_floating}{ReslicedSuffix}.nii", floatingImagesCount));
+            //imgProcessor.FlipAndConvertFloatingToDicom(new SeriesNii($"{_floating}{ReslicedSuffix}", $"{_outputDir}\\{_floating}{ReslicedSuffix}.nii", floatingImagesCount));
 
             return "";
         }
