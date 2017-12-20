@@ -1,12 +1,11 @@
-﻿using CAPI.Dicom.Abstraction;
-using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
 using System;
-using IExtractBrainSurface = CAPI.JobManager.Abstraction.IExtractBrainSurface;
+using System.IO;
 
 namespace CAPI.JobManager
 {
-    public class ExtractBrainSurface : IExtractBrainSurface
+    public class ExtractBrainSurface : IIntegratedProcess
     {
         private readonly IImageProcessor _imageProcessor;
 
@@ -18,13 +17,8 @@ namespace CAPI.JobManager
         public string Id { get; set; }
         public string Version { get; set; }
         public string[] Parameters { get; set; }
-        public IDicomSeries DicomSeries { get; set; }
-        public string InputHdrFileFullPath { get; set; }
-        public string OutputPath { get; set; }
-        public string BrainMaskRemovedHdrFilePath { get; set; }
-        public string BrainMaskHdrFilePath { get; set; }
 
-        public event EventHandler<ProcessEventArgument> OnComplete;
+        public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
         public ExtractBrainSurface(IImageProcessor imageProcessor)
@@ -34,21 +28,33 @@ namespace CAPI.JobManager
             Version = "1";
         }
 
-        public ExtractBrainSurface(string inputHdrFileFullPath, string outputPath, string parameters,
-            IImageProcessor imageProcessing) : this(imageProcessing)
+        public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
-            Parameters[0] = parameters;
-            InputHdrFileFullPath = inputHdrFileFullPath;
-            OutputPath = outputPath;
+            jobToBeProcessed.DicomSeriesFixed =
+                ExtractBrainMask(jobToBeProcessed.DicomSeriesFixed);
+
+            jobToBeProcessed.DicomSeriesFloating =
+                ExtractBrainMask(jobToBeProcessed.DicomSeriesFloating);
+
+            OnComplete?.Invoke(this, new ProcessEventArgument(
+                "Brain Mask Extraction is completed " +
+                $"[Version: {Version}] [Parameters: {string.Join(" | ", Parameters)}]"));
+
+            return jobToBeProcessed;
         }
 
-        public void Run(out string brainMaskExtracted, out string brainMask)
+        private IJobSeriesBundle ExtractBrainMask(IJobSeriesBundle jobSeriesBundle)
         {
-            _imageProcessor.ExtractBrainMask(InputHdrFileFullPath, OutputPath, out brainMaskExtracted, out brainMask);
+            var fixedHdrFileFullPath = jobSeriesBundle.Original.HdrFileFullPath;
+            var outputPath = Path.GetDirectoryName(fixedHdrFileFullPath);
 
-            var handler = OnComplete;
-            handler?.Invoke(this, new ProcessEventArgument(
-                $"Brain Mask Extraction is completed [Version: {Version}] [Parameters: {string.Join(" ", Parameters)}]"));
+            _imageProcessor.ExtractBrainMask(fixedHdrFileFullPath, outputPath,
+                out var brainMaskRemoved, out var brainMask);
+
+            jobSeriesBundle.Transformed.HdrFileFullPath = outputPath + "\\" + brainMaskRemoved;
+            jobSeriesBundle.BrainMask.HdrFileFullPath = outputPath + "\\" + brainMask;
+
+            return jobSeriesBundle;
         }
     }
 }

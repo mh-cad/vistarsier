@@ -9,27 +9,36 @@ namespace CAPI.JobManager
     public class JobManagerFactory : IJobManagerFactory
     {
         private readonly IImageProcessor _imageProcessor;
+        private readonly IImageConverter _imageConverter;
+        private readonly IDicomFactory _dicomFactory;
 
-        public JobManagerFactory(IImageProcessor imageProcessor)
+        public JobManagerFactory(IImageProcessor imageProcessor, IDicomFactory dicomFactory, IImageConverter imageConverter)
         {
             _imageProcessor = imageProcessor;
+            _dicomFactory = dicomFactory;
+            _imageConverter = imageConverter;
         }
 
-        public IJob<IRecipe> CreateJob()
+        public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
         {
-            return new Job<IRecipe>(this);
+            return new Job<IRecipe>(
+                this, _dicomFactory, localNode, remoteNode, _imageConverter);
         }
 
-        public IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
-            IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations)
+        public IJob<IRecipe> CreateJob(
+            IJobSeriesBundle dicomStudyUnderFocus, IJobSeriesBundle dicomStudyBeingComparedTo,
+            IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations,
+            string outputFolderPath, IDicomNode localNode, IDicomNode remoteNode)
         {
-            return new Job<IRecipe>(this)
-            {
-                DicomStudyFixed = dicomStudyUnderFocus,
-                DicomStudyFloating = dicomStudyBeingComparedTo,
-                IntegratedProcesses = integratedProcesses,
-                Destinations = destinations
-            };
+            var job = CreateJob(localNode, remoteNode);
+
+            job.DicomSeriesFixed = dicomStudyUnderFocus;
+            job.DicomSeriesFloating = dicomStudyBeingComparedTo;
+            job.IntegratedProcesses = integratedProcesses;
+            job.Destinations = destinations;
+            job.OutputFolderPath = outputFolderPath;
+
+            return job;
         }
 
         public IRecipe CreateRecipe()
@@ -69,6 +78,11 @@ namespace CAPI.JobManager
         public ISeriesSelectionCriteria CreateStudySelectionCriteria()
         {
             return new SeriesSelectionCriteria();
+        }
+
+        public IJobSeriesBundle CreateJobSeriesBundle()
+        {
+            return new JobSeriesBundle();
         }
     }
 }

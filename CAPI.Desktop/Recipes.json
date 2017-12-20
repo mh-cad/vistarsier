@@ -41,7 +41,7 @@
         "Version": "1"
       }
     ],
-    "NewStudyAccession": "2017R0040769-1",
+    "NewStudyAccession": "2017R0168610-1",
     "NewStudyCriteria": [
       {
         "StudyDescription": "",
@@ -57,8 +57,8 @@
     "PriorStudyAccession": "",
     "PriorStudyCriteria": [
       {
-        "MostRecentPriorStudy": false,
-        "OldestPriorStudy": true,
+        "MostRecentPriorStudy": true,
+        "OldestPriorStudy": false,
         "CutOffPeriodValueInMonths": "36",
         "StudyDescription": "",
         "StudyDescriptionOperand": "Contains",

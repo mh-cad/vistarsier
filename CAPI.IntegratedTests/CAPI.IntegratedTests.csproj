@@ -72,13 +72,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\ConfigsIntegratedTests.cs" />
     <Compile Include="Dicom\DicomServicesIntegratedTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestTemplate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
+      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
+      <Name>CAPI.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstraction</Name>

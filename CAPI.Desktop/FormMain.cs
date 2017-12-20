@@ -57,7 +57,6 @@ namespace CAPI.Desktop
             _unityContainer.RegisterType<IDicomServices, DicomServices>();
             _unityContainer.RegisterType<IImageConverter, ImageConverter>();
             _unityContainer.RegisterType<IImageProcessor, ImageProcessor>();
-            _unityContainer.RegisterType<JobManager.Abstraction.IExtractBrainSurface, JobManager.ExtractBrainSurface>();
             _unityContainer.RegisterType<IJobManagerFactory, JobManagerFactory>();
             _unityContainer.RegisterType<IRecipe, Recipe>();
             _unityContainer.RegisterType<IJob<IRecipe>, Job<IRecipe>>();
@@ -296,8 +295,8 @@ namespace CAPI.Desktop
             var job = _jobBuilder.Build(recipe, localNode, sourceNode);
             job.OnEachProcessCompleted += Process_Completed;
 
-            LogToDataGridView($"Fixed: {job.DicomStudyFixed.AccessionNumber}");
-            LogToDataGridView($"Floating: {job.DicomStudyFloating.AccessionNumber}");
+            LogToDataGridView($"Fixed: {job.DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber}");
+            LogToDataGridView($"Floating: {job.DicomSeriesFloating.Original.ParentDicomStudy.AccessionNumber}");
 
             job.Run();
         }
@@ -312,7 +311,7 @@ namespace CAPI.Desktop
             DgvLogs.Rows.Insert(0, row);
         }
 
-        private void Process_Completed(object sender, ProcessEventArgument e)
+        private void Process_Completed(object sender, IProcessEventArgument e)
         {
             LogToDataGridView(e.LogContent);
         }

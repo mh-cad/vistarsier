@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using Configs = CAPI.Common.Config;
 
 namespace CAPI.JobManager
 {
@@ -36,7 +37,8 @@ namespace CAPI.JobManager
         /// <param name="localNode">Details of this dicom node the app is running on</param>
         /// <param name="sourceNode">Details of archive dicom node</param>
         /// <returns></returns>
-        public IJob<IRecipe> Build(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
+        public IJob<IRecipe> Build(IRecipe recipe, IDicomNode localNode,
+            IDicomNode sourceNode)
         {
             _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
 
@@ -50,27 +52,36 @@ namespace CAPI.JobManager
                 throw new ArgumentOutOfRangeException($"No studies could be found in node AET: [{sourceNode.AeTitle}]");
 
             // Get Current Study (Fixed)
-            var studyFixed = string.IsNullOrEmpty(recipe.NewStudyAccession)
+            var fixedSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
+            fixedSeriesBundle.Original.ParentDicomStudy =
+                string.IsNullOrEmpty(recipe.NewStudyAccession)
                 ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.NewStudyCriteria, -1, localNode, sourceNode)
                 : FindStudyMatchingAccession(allStudiesForPatient, recipe.NewStudyAccession);
 
-            AddMatchingSeriesToStudy(studyFixed, recipe.NewStudyCriteria, localNode, sourceNode);
-            var studyFixedIndex = allStudiesForPatient.IndexOf(studyFixed);
+            fixedSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
+                fixedSeriesBundle.Original.ParentDicomStudy, recipe.NewStudyCriteria, localNode, sourceNode);
+            var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
 
             // Get Prior Study (Floating)
-            var studyFloating = string.IsNullOrEmpty(recipe.PriorStudyAccession)
+            var floatingSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
+            floatingSeriesBundle.Original.ParentDicomStudy =
+                string.IsNullOrEmpty(recipe.PriorStudyAccession)
                 ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorStudyCriteria,
                     studyFixedIndex, localNode, sourceNode)
                 : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorStudyAccession);
 
-            studyFloating = AddMatchingSeriesToStudy(
-                studyFloating, recipe.PriorStudyCriteria, localNode, sourceNode);
+            floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
+                floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
 
+            var imgRepository = Configs.GetImageRepositoryPath();
             var job = _jobManagerFactory.CreateJob(
-                studyFixed,
-                studyFloating,
+                fixedSeriesBundle,
+                floatingSeriesBundle,
                 recipe.IntegratedProcesses,
-                recipe.Destinations
+                recipe.Destinations,
+                imgRepository,
+                localNode,
+                sourceNode
             );
             return job;
         }
@@ -82,7 +93,8 @@ namespace CAPI.JobManager
         /// <param name="localNode"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private string GetPatientIdFromRecipe(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
+        private string GetPatientIdFromRecipe(IRecipe recipe, IDicomNode localNode,
+            IDicomNode sourceNode)
         {
             if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
             if (!string.IsNullOrEmpty(recipe.PatientFullName)
@@ -246,7 +258,8 @@ namespace CAPI.JobManager
         /// <param name="referenceStudyIndex"></param>
         /// <returns></returns>
         private static IEnumerable<IDicomStudy> GetStudiesMatchingDateCriteria(
-            IEnumerable<IDicomStudy> allStudies, IEnumerable<ISeriesSelectionCriteria> seriesSelectionCriteria,
+            IEnumerable<IDicomStudy> allStudies,
+            IEnumerable<ISeriesSelectionCriteria> seriesSelectionCriteria,
             int referenceStudyIndex)
         {
             var studies = allStudies as IDicomStudy[] ?? allStudies.ToArray();
@@ -291,7 +304,8 @@ namespace CAPI.JobManager
         /// <param name="allStudies">All Studies passed to find one that matches accession number</param>
         /// <param name="accessionNumber">Accession number to check against each study accession number [Case insensitive]</param>
         /// <returns></returns>
-        private IDicomStudy FindStudyMatchingAccession(IEnumerable<IDicomStudy> allStudies, string accessionNumber)
+        private IDicomStudy FindStudyMatchingAccession(IEnumerable<IDicomStudy> allStudies,
+            string accessionNumber)
         {
             var studyMatchingAccession = allStudies.Where(s =>
                 _valueComparer.CompareStrings(s.AccessionNumber, accessionNumber, StringOperand.Equals));
@@ -303,7 +317,7 @@ namespace CAPI.JobManager
                 $"Only one study should match accession number. {matchingAccession.Count} " +
                 $"studies found for accession: {accessionNumber}");
 
-            return matchingAccession.FirstOrDefault();
+            return matchingAccession.FirstOrDefault(); ;
         }
 
         /// <summary>
@@ -314,8 +328,9 @@ namespace CAPI.JobManager
         /// <param name="localNode"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private IDicomStudy AddMatchingSeriesToStudy(IDicomStudy study,
-            IEnumerable<ISeriesSelectionCriteria> criteria, IDicomNode localNode, IDicomNode sourceNode)
+        private IDicomStudy AddMatchingSeriesToStudy(
+            IDicomStudy study, IEnumerable<ISeriesSelectionCriteria> criteria,
+            IDicomNode localNode, IDicomNode sourceNode)
         {
             var allSeries = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid, localNode, sourceNode);
             var criterion = criteria.FirstOrDefault(c => !string.IsNullOrEmpty(c.SeriesDescription));

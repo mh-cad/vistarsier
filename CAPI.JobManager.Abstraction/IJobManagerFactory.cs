@@ -5,9 +5,10 @@ namespace CAPI.JobManager.Abstraction
 {
     public interface IJobManagerFactory
     {
-        IJob<IRecipe> CreateJob();
-        IJob<IRecipe> CreateJob(IDicomStudy dicomStudyUnderFocus, IDicomStudy dicomStudyBeingComparedTo,
-            IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations);
+        IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode);
+        IJob<IRecipe> CreateJob(IJobSeriesBundle dicomStudyUnderFocus, IJobSeriesBundle dicomStudyBeingComparedTo,
+            IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations,
+            string outputFolderPath, IDicomNode localNode, IDicomNode remoteNode);
 
         IRecipe CreateRecipe();
 
@@ -18,5 +19,6 @@ namespace CAPI.JobManager.Abstraction
 
         IDestination CreateDestination(string id, string folderPath, string aeTitle);
         ISeriesSelectionCriteria CreateStudySelectionCriteria();
+        IJobSeriesBundle CreateJobSeriesBundle();
     }
 }

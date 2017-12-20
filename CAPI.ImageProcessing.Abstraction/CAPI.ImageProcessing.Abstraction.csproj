@@ -40,11 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IExtractBrainSurface.cs" />
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="IImageConverter.cs" />
-    <Compile Include="IUnitProcess.cs" />
+    <Compile Include="ISeries.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
+      <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
+      <Name>CAPI.Dicom.Abstraction</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
