@@ -46,17 +46,19 @@
     <Compile Include="DateOperand.cs" />
     <Compile Include="IColorMap.cs" />
     <Compile Include="IDestination.cs" />
-    <Compile Include="IExtractBrainSurface.cs" />
     <Compile Include="IIntegratedProcess.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="IJobManagerFactory.cs" />
+    <Compile Include="IJobSeries.cs" />
+    <Compile Include="IJobSeriesBundle.cs" />
+    <Compile Include="ILogEventArgument.cs" />
     <Compile Include="IntegratedProcessType.cs" />
     <Compile Include="IRecipe.cs" />
     <Compile Include="IRegistration.cs" />
     <Compile Include="ISeriesSelectionCriteria.cs" />
     <Compile Include="IJobBuilder.cs" />
     <Compile Include="ITakeDifference.cs" />
-    <Compile Include="ProcessEventArgument.cs" />
+    <Compile Include="IProcessEventArgument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringOperand.cs" />
     <Compile Include="IValueComparer.cs" />
@@ -65,6 +67,10 @@
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstraction</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
+      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
+      <Name>CAPI.ImageProcessing.Abstraction</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

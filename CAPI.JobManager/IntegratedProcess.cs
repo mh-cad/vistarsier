@@ -3,6 +3,7 @@ using System;
 
 namespace CAPI.JobManager
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class IntegratedProcess : IIntegratedProcess
     {
         public IntegratedProcessType Type { get; set; }
@@ -10,11 +11,11 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
-        public void Run()
+        public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
             throw new NotImplementedException();
         }
 
-        public event EventHandler<ProcessEventArgument> OnComplete;
+        public event EventHandler<IProcessEventArgument> OnComplete;
     }
 }

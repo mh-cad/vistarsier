@@ -163,7 +163,8 @@ namespace CAPI.Dicom
             return GetStudies(query, localNode, remoteNode);
         }
 
-        public IEnumerable<IDicomStudy> GetStudiesForPatient(string patientFullName, string patientBirthDate,
+        public IEnumerable<IDicomStudy> GetStudiesForPatient(
+            string patientFullName, string patientBirthDate,
             IDicomNode localNode, IDicomNode sourceNode)
         {
             var query = new StudyQueryIod();
@@ -202,7 +203,8 @@ namespace CAPI.Dicom
             };
         }
 
-        private IEnumerable<IDicomStudy> GetStudies(StudyQueryIod query, IDicomNode localNode, IDicomNode remoteNode)
+        private IEnumerable<IDicomStudy> GetStudies(StudyQueryIod query,
+            IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
             var findScu = new StudyRootFindScu();
@@ -245,7 +247,8 @@ namespace CAPI.Dicom
                 });
         }
 
-        public string GetStudyUidForAccession(string accession, IDicomNode localNode, IDicomNode remoteNode)
+        public string GetStudyUidForAccession(string accession,
+            IDicomNode localNode, IDicomNode remoteNode)
         {
             CheckRemoteNodeAvailability(localNode, remoteNode);
 
@@ -336,6 +339,9 @@ namespace CAPI.Dicom
                 StorageScp.StartListening(localNode.AeTitle, localNode.Port);
 
                 moveScu.Move();
+
+                if (!string.IsNullOrEmpty(moveScu.FailureDescription))
+                    throw new DicomException(moveScu.FailureDescription);
             }
             catch (Exception ex)
             {
@@ -349,7 +355,8 @@ namespace CAPI.Dicom
 
         }
 
-        public IDicomStudy GetStudyForAccession(string accessionNumber, IDicomNode localNode, IDicomNode remoteNode)
+        public IDicomStudy GetStudyForAccession(string accessionNumber,
+            IDicomNode localNode, IDicomNode remoteNode)
         {
             var query = new StudyQueryIod();
             query.SetCommonTags();

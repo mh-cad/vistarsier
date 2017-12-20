@@ -150,13 +150,16 @@ namespace CAPI.ImageProcessing
         public void ExtractBrainMask(string inputHdrFullPath, string outputPath,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
-            var arguments = $"-i {inputHdrFullPath} --mask {outputPath}\\{BrainSurfaceSuffix} " +
-                            $"-o {outputPath}\\{BrainSurfaceExtSuffix} {BseParams}";
+            var inputFileName = Path.GetFileName(inputHdrFullPath);
+
+            var arguments = $"-i {inputHdrFullPath} --mask " +
+                            $"{outputPath}\\{inputFileName}{BrainSurfaceSuffix} " +
+                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix} {BseParams}";
 
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 
-            brainMaskRemoved = BrainSurfaceExtSuffix + ".hdr";
-            smoothBrainMask = BrainSurfaceSuffix + ".hdr";
+            brainMaskRemoved = inputFileName + BrainSurfaceExtSuffix + ".hdr";
+            smoothBrainMask = inputFileName + BrainSurfaceSuffix + ".hdr";
         }
 
         public string ConvertHdrToNii(string hdrFileFullPath, string originalHdr, string seriesName)

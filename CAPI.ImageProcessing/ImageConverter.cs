@@ -1,6 +1,7 @@
 ﻿using CAPI.Common;
 using CAPI.Common.Services;
 using CAPI.ImageProcessing.Abstraction;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,14 +40,21 @@ namespace CAPI.ImageProcessing
             CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiNiiParams);
         }
 
-        private void CallDicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt, string parameters)
+        private void CallDicomToNii(
+            string dicomDir, string outputDir,
+            string outputFileNameNoExt, string parameters)
         {
+            // Make sure dicom files exist in the folder
+            if (Directory.GetFiles(dicomDir).Length == 0)
+                throw new Exception($"There is no files in following path: {dicomDir}");
+
             // Make sure temp folder exists
             var tmpDir = $"{outputDir}\\tmpDir";
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
             Directory.CreateDirectory(tmpDir);
 
-            ProcessBuilder.CallExecutableFile($@"{_dicom2NiiFullPath}", $"{parameters} -o {tmpDir} {dicomDir}");
+            ProcessBuilder.CallExecutableFile(
+                $@"{_dicom2NiiFullPath}", $"{parameters} -o {tmpDir} {dicomDir}");
 
             // Copy files into output folder with desirable filenames
             var outputFiles = Directory.GetFiles(tmpDir).ToList();

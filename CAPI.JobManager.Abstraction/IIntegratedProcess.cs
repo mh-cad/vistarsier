@@ -9,6 +9,8 @@ namespace CAPI.JobManager.Abstraction
         string Version { get; set; }
         string[] Parameters { get; set; }
 
-        event EventHandler<ProcessEventArgument> OnComplete;
+        IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed);
+
+        event EventHandler<IProcessEventArgument> OnComplete;
     }
 }
