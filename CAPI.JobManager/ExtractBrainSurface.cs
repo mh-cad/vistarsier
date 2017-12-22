@@ -43,16 +43,27 @@ namespace CAPI.JobManager
             return jobToBeProcessed;
         }
 
+        /// <summary>
+        /// Extracts Brain Mask and output Brain Mask as well as Brain-Mask-Removed series as hdr files and add back to job
+        /// </summary>
+        /// <param name="jobSeriesBundle">Job to be processed</param>
+        /// <returns>back the job being processed now containing hdr files 1. Brain-Mask-Removed series 2. Brain Mask</returns>
         private IJobSeriesBundle ExtractBrainMask(IJobSeriesBundle jobSeriesBundle)
         {
-            var fixedHdrFileFullPath = jobSeriesBundle.Original.HdrFileFullPath;
-            var outputPath = Path.GetDirectoryName(fixedHdrFileFullPath);
+            var hdrFileFullPath = jobSeriesBundle.Original.HdrFileFullPath;
+            var outputPath = Path.GetDirectoryName(hdrFileFullPath);
 
-            _imageProcessor.ExtractBrainMask(fixedHdrFileFullPath, outputPath,
+            // Extract Brain Mask and output Brain Mask as well as Brain-Mask-Removed series as hdr files and add back to job
+            _imageProcessor.ExtractBrainMask(hdrFileFullPath, outputPath,
                 out var brainMaskRemoved, out var brainMask);
 
+            // Add hdr file path for Brain-Mask-Removed series to each JobSeriesBundle
             jobSeriesBundle.Transformed.HdrFileFullPath = outputPath + "\\" + brainMaskRemoved;
+            jobSeriesBundle.Transformed.CompletedProcesses.Add(IntegratedProcessType.ExtractBrainSurface);
+
+            // Add hdr file path for Brain Mask to each JobSeriesBundle
             jobSeriesBundle.BrainMask.HdrFileFullPath = outputPath + "\\" + brainMask;
+            jobSeriesBundle.BrainMask.CompletedProcesses.Add(IntegratedProcessType.ExtractBrainSurface);
 
             return jobSeriesBundle;
         }

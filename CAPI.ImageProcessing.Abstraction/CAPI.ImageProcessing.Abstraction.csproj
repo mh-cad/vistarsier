@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IFrameOfReference.cs" />
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="IImageConverter.cs" />
     <Compile Include="ISeries.cs" />

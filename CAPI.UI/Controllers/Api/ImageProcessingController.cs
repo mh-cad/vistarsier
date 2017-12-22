@@ -79,7 +79,7 @@ namespace CAPI.UI.Controllers.Api
             foreach (var hdrFileNameNoExt in hdrFilesNamesNoExt)
             {
                 var imgConverter = new ImageConverter();
-                imgConverter.Hdr2Nii(hdrFileNameNoExt + ".hdr", _outputDir, hdrFileNameNoExt + ".nii");
+                // imgConverter.Hdr2Nii(hdrFileNameNoExt + ".hdr", _outputDir, hdrFileNameNoExt + ".nii");
 
                 //imgProcessor.ConvertHdrToNii(
                 //    new SeriesHdr(hdrFileNameNoExt, $"{_outputDir}\\{hdrFileNameNoExt}.hdr", fixedImagesCount),

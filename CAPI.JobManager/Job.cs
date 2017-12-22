@@ -33,13 +33,6 @@ namespace CAPI.JobManager
             _imageConverter = imageConverter;
         }
 
-        public Job(string outputFolderPath, IJobManagerFactory jobManagerFactory,
-            IDicomFactory dicomFactory, IDicomNode localNode, IDicomNode remoteNode, IImageConverter imageConverter)
-            : this(jobManagerFactory, dicomFactory, localNode, remoteNode, imageConverter)
-        {
-            OutputFolderPath = outputFolderPath;
-        }
-
         public void Run()
         {
             try
@@ -56,43 +49,55 @@ namespace CAPI.JobManager
                 switch (integratedProcess.Type)
                 {
                     case IntegratedProcessType.ExtractBrainSurface:
-                        DicomSeriesFixed.Original.HdrFileFullPath =
-                            CreateHdrFiles(DicomSeriesFixed.Original.DicomFolderPath);
+                        DicomSeriesFixed.Original =
+                            HdrFileDoesExist(DicomSeriesFixed.Original);
 
-                        DicomSeriesFloating.Original.HdrFileFullPath =
-                            CreateHdrFiles(DicomSeriesFloating.Original.DicomFolderPath);
+                        DicomSeriesFloating.Original =
+                            HdrFileDoesExist(DicomSeriesFloating.Original);
 
                         RunExtractBrainSurfaceProcess(integratedProcess);
                         break;
                     case IntegratedProcessType.Registeration:
-                        //RunProcess(_jobManagerFactory
-                        //    .CreateRegistrationIntegratedProcess(
-                        //        integratedProcess.Version, integratedProcess.Parameters));
+                        DicomSeriesFixed.Transformed =
+                            NiiFileDoesExist(DicomSeriesFixed.Transformed);
+
+                        DicomSeriesFloating.Transformed =
+                            NiiFileDoesExist(DicomSeriesFloating.Transformed);
+
+                        RunRegistrationProcess(integratedProcess);
                         break;
                     case IntegratedProcessType.TakeDifference:
-                        //RunProcess(_jobManagerFactory
-                        //    .CreateTakeDifferenceIntegratedProcess(
-                        //        integratedProcess.Version, integratedProcess.Parameters));
+                        RunTakeDifference(integratedProcess);
                         break;
                     case IntegratedProcessType.ColorMap:
-                        //RunProcess(_jobManagerFactory
-                        //    .CreateColorMapIntegratedProcess(
-                        //        integratedProcess.Version, integratedProcess.Parameters));
+                        RunColorMap(integratedProcess);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
+
+            // TODO1: Convert to Dicom & Copy headers and send to destinations
         }
 
-        private string CreateHdrFiles(string dicomFolderPath)
+        private IJobSeries HdrFileDoesExist(IJobSeries jobSeries)
         {
-            var hdrFileName = dicomFolderPath.Split('\\').LastOrDefault();
-            var outputPath = dicomFolderPath.Replace("\\" + hdrFileName, "");
+            var hdrFileName = jobSeries.DicomFolderPath.Split('\\').LastOrDefault();
+            var outputPath = jobSeries.DicomFolderPath.Replace("\\" + hdrFileName, "");
 
-            _imageConverter.Dicom2Hdr(dicomFolderPath, outputPath, hdrFileName);
+            _imageConverter.Dicom2Hdr(jobSeries.DicomFolderPath, outputPath, hdrFileName);
 
-            return outputPath + "\\" + hdrFileName;
+            jobSeries.HdrFileFullPath = outputPath + "\\" + hdrFileName;
+
+            return jobSeries;
+        }
+        private IJobSeries NiiFileDoesExist(IJobSeries jobSeries)
+        {
+            _imageConverter.Hdr2Nii(jobSeries.HdrFileFullPath);
+
+            jobSeries.NiiFileFullPath = jobSeries.HdrFileFullPath.Replace(".hdr", ".nii");
+
+            return jobSeries;
         }
 
         private void FetchSeriesAndSaveToDisk()
@@ -102,36 +107,35 @@ namespace CAPI.JobManager
 
             var patientDetails = DicomSeriesFixed.Original.ParentDicomStudy.PatientsName
                                  + "_" + DicomSeriesFixed.Original.ParentDicomStudy.PatientId;
-            var patientFolderPath = $@"{OutputFolderPath}\{patientDetails}";
-            FileSystem.DirectoryExists(patientFolderPath);
+            OutputFolderPath = $@"{OutputFolderPath}\{patientDetails}";
+            FileSystem.DirectoryExists(OutputFolderPath);
 
             DicomSeriesFixed.Original.DicomFolderPath =
-                SaveSeriesToDisk(patientFolderPath, "Fixed",
+                SaveSeriesToDisk(OutputFolderPath, "Fixed",
                     DicomSeriesFixed.Original.ParentDicomStudy, dicomServices);
 
             DicomSeriesFloating.Original.DicomFolderPath =
-                SaveSeriesToDisk(patientFolderPath, "Floating",
+                SaveSeriesToDisk(OutputFolderPath, "Floating",
                     DicomSeriesFloating.Original.ParentDicomStudy, dicomServices);
         }
 
-        private string SaveSeriesToDisk(string patientFolderPath, string seriesPrefix,
+        private string SaveSeriesToDisk(string outputPath, string seriesPrefix,
             IDicomStudy study, IDicomServices dicomServices)
         {
             var series = study.Series.ToList().FirstOrDefault();
 
             // Retrieve Series From Pacs
-            dicomServices.SaveSeriesToLocalDisk(series, patientFolderPath
+            dicomServices.SaveSeriesToLocalDisk(series, outputPath
                 , _localNode, _remoteNode);
 
             // Rename Study Folder Name - Add Fixed
-            var studyFolderPath = $@"{patientFolderPath}\{series?.StudyInstanceUid}";
-            var newStudyPath = $@"{patientFolderPath}\{seriesPrefix}-{series?.StudyInstanceUid}";
+            var studyFolderPath = $@"{outputPath}\{series?.StudyInstanceUid}";
+            var newStudyPath = $@"{outputPath}\{seriesPrefix}-{series?.StudyInstanceUid}";
             if (Directory.Exists(studyFolderPath))
                 Directory.Move(studyFolderPath, newStudyPath);
 
             return newStudyPath + "\\" + series?.SeriesInstanceUid;
         }
-
 
         private void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess)
         {
@@ -142,6 +146,39 @@ namespace CAPI.JobManager
             extractBrainSurfaceProcess.OnComplete += Process_OnComplete;
 
             extractBrainSurfaceProcess.Run(this as IJob<IRecipe>);
+        }
+
+        private void RunRegistrationProcess(IIntegratedProcess integratedProcess)
+        {
+            var registrationProcess = _jobManagerFactory
+                .CreateRegistrationIntegratedProcess(
+                    integratedProcess.Version, integratedProcess.Parameters);
+
+            registrationProcess.OnComplete += Process_OnComplete;
+
+            registrationProcess.Run(this as IJob<IRecipe>);
+        }
+
+        private void RunTakeDifference(IIntegratedProcess integratedProcess)
+        {
+            var takeDifferenceProcess = _jobManagerFactory
+                .CreateTakeDifferenceIntegratedProcess(
+                    integratedProcess.Version, integratedProcess.Parameters);
+
+            takeDifferenceProcess.OnComplete += Process_OnComplete;
+
+            takeDifferenceProcess.Run(this as IJob<IRecipe>);
+        }
+
+        private void RunColorMap(IIntegratedProcess integratedProcess)
+        {
+            var colorMapProcess = _jobManagerFactory
+                .CreateColorMapIntegratedProcess(
+                    integratedProcess.Version, integratedProcess.Parameters);
+
+            colorMapProcess.OnComplete += Process_OnComplete;
+
+            colorMapProcess.Run(this as IJob<IRecipe>);
         }
 
         private void Process_OnComplete(object sender, IProcessEventArgument e)
