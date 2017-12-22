@@ -201,46 +201,74 @@ namespace CAPI.ImageProcessing
             File.Delete($"{path}\\{Floating}.nii");
         }
 
-        public void Registration(string seriesFixed, string seriesFloating, string outputPath)
+        public void Registration(string outputPath, string fixedFullPath, string floatingFullPath,
+            out string floatingReslicedFullPath, out IFrameOfReference fixedFrameOfRef)
         {
-            CreateRawXform(seriesFixed, seriesFloating, outputPath);
-            CreateResultXform(seriesFixed, seriesFloating);
-            ResliceFloatingImages(outputPath);
+            CreateRawXform(outputPath, fixedFullPath, floatingFullPath);
+
+            CreateResultXform(outputPath, fixedFullPath, floatingFullPath,
+                out fixedFrameOfRef);
+
+            ResliceFloatingImages(outputPath, fixedFullPath, floatingFullPath,
+                out floatingReslicedFullPath);
         }
-        private void CreateRawXform(string seriesFixed, string seriesFloating, string outputPath)
+        private void CreateRawXform(string outputPath, string fixedHdrFullPath, string floatingHdrFullPath)
         {
-            //var cmtkOutputDir = $@"{outputPath}\{CmtkOutputDirName}";
-            //if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
-            //Directory.CreateDirectory($@"{outputPath}\{CmtkOutputDirName}");
+            var cmtkOutputDir = $@"{outputPath}\{CmtkOutputDirName}";
+            if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
+            Directory.CreateDirectory($@"{outputPath}\{CmtkOutputDirName}");
 
-            //var arguments = $@"{CmtkParams} {outputPath}\{CmtkRawXformFileName} {CmtkOutputParam} {seriesFixed.FileFullPath} {seriesFloating.FileFullPath}";
+            var arguments = $@"{CmtkParams} {outputPath}\{CmtkRawXformFileName} {CmtkOutputParam} " +
+                            $"{fixedHdrFullPath} {floatingHdrFullPath}";
 
-            //ProcessBuilder.CallExecutableFile($@"{_executablesPath}\CMTK\bin\{RegistrationExeFileName}", arguments, cmtkOutputDir);
+            ProcessBuilder.CallExecutableFile(
+                $@"{_executablesPath}\CMTK\bin\{RegistrationExeFileName}", arguments, cmtkOutputDir);
         }
-        private void CreateResultXform(string seriesFixed, string seriesFloating) // Outputs to the same folder as fixed series
+        private void CreateResultXform(string workingDir, string fixedFullPath, string floatingFullPath,
+            out IFrameOfReference fixedFrameOfRef) // Outputs to the same folder as fixed series
         {
-            //try
-            //{
-            //    var srcDir = seriesFixed.FolderPath;
-            //    const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
-            //    var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-            //                       $@"{srcDir}\{seriesFixed.Description}.nii {srcDir}\{seriesFloating.Description}.nii {srcDir}\{CmtkRawXformFileName} {srcDir}\{CmtkResultXformFileName}";
+            var fixedNoExtension = fixedFullPath.Replace(".hdr", "");
+            var floatingNoExtension = floatingFullPath.Replace(".hdr", "");
 
-            //    ProcessBuilder.CallJava(javaArgument, methodname);
+            try
+            {
+                const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
+                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
+                                   //$@"{srcDir}\{fixedFullPath.Description}.nii {srcDir}\{seriesFloating.Description}.nii "+
+                                   $@"{fixedNoExtension}.nii {floatingNoExtension}.nii " +
+                                   $@"{workingDir}\{CmtkRawXformFileName} {workingDir}\{CmtkResultXformFileName}";
 
-            //    File.Delete($@"{srcDir}\{CmtkRawXformFileName}");
-            //}
-            //catch
-            //{
-            //    //return null; // TODO3: Exception Handling
-            //}
+                ProcessBuilder.CallJava(javaArgument, methodname);
+
+                File.Delete($@"{workingDir}\{CmtkRawXformFileName}");
+            }
+            catch
+            {
+                //return null; // TODO3: Exception Handling
+            }
+
+            fixedFrameOfRef = GetFrameOfReference(workingDir, CmtkResultXformFileName);
         }
-        private void ResliceFloatingImages(string outputPath)
+        private void ResliceFloatingImages(string outputPath, string fixedHdrFullPath, string floatingHdrFullPath,
+            out string floatingReslicedFullPath)
         {
+            var floatingHdrFileNameNoExt = Path.GetFileNameWithoutExtension(floatingHdrFullPath);
+            var floatingFolderPath = Path.GetDirectoryName(floatingHdrFullPath);
+
+            floatingReslicedFullPath = $@"{floatingFolderPath}\{floatingHdrFileNameNoExt}_resliced.nii";
+
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
-            var arguments = $@"-o {outputPath}\{Floating}_resliced.nii --floating {outputPath}\{Floating}.hdr {outputPath}\{Fixed}.hdr {outputPath}\{CmtkOutputDirName}";
+            var arguments = $@"-o {floatingReslicedFullPath} " +
+                            $@"--floating {floatingHdrFullPath} " +
+                            $@"{fixedHdrFullPath} {outputPath}\{CmtkOutputDirName}";
 
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\CMTK\bin\{ReformatXFileName}", arguments);
+        }
+
+        private IFrameOfReference GetFrameOfReference(string workingDir, string fixedToFloatingRapXformTxt)
+        // TODO3: out IFrameOfReference not implemented
+        {
+            return new FrameOfReference();
         }
 
         public void TakeDifference(string seriesFixedHdr, string seriesFloatingReslicedNii, string seriesBrainSurfaceNii, string outputDir, string sliceInset) // Outputs to the same folder as fixed series

@@ -10,7 +10,7 @@ namespace CAPI.JobManager
         public string DicomFolderPath { get; set; }
         public string HdrFileFullPath { get; set; }
         public string NiiFileFullPath { get; set; }
-        public IEnumerable<IntegratedProcessType> CompletedProcesses { get; set; }
+        public ICollection<IntegratedProcessType> CompletedProcesses { get; set; }
 
         public JobSeries()
         {

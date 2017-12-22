@@ -90,10 +90,12 @@ namespace CAPI.ImageProcessing
         //}
 
 
-        public bool Hdr2Nii(string hdrFileFullPath, string outputDir, string niiFileNameNoExt)
+        public void Hdr2Nii(string hdrFileFullPath)
         {
+            var niiFileFullPath = hdrFileFullPath.Replace(".hdr", ".nii");
 
-            return false;
+            var arguments = $"-rf analyze -wf analyze {hdrFileFullPath} {niiFileFullPath}";
+            ProcessBuilder.CallExecutableFile(_miconvFullPath, arguments);
         }
     }
 }

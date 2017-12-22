@@ -6,6 +6,6 @@ namespace CAPI.JobManager.Abstraction
     public interface IJobSeries : ISeries
     {
 
-        IEnumerable<IntegratedProcessType> CompletedProcesses { get; set; }
+        ICollection<IntegratedProcessType> CompletedProcesses { get; set; }
     }
 }

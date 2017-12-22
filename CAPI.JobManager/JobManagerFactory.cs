@@ -57,7 +57,11 @@ namespace CAPI.JobManager
 
         public IIntegratedProcess CreateRegistrationIntegratedProcess(string version, params string[] parameters)
         {
-            return new Registration(parameters) { Version = version };
+            return new Registration(_imageProcessor)
+            {
+                Version = version,
+                Parameters = parameters
+            };
         }
 
         public IIntegratedProcess CreateTakeDifferenceIntegratedProcess(string version, params string[] parameters)

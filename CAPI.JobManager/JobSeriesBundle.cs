@@ -1,4 +1,5 @@
-﻿using CAPI.JobManager.Abstraction;
+﻿using CAPI.ImageProcessing.Abstraction;
+using CAPI.JobManager.Abstraction;
 
 namespace CAPI.JobManager
 {
@@ -7,6 +8,7 @@ namespace CAPI.JobManager
         public IJobSeries Original { get; set; }
         public IJobSeries BrainMask { get; set; }
         public IJobSeries Transformed { get; set; }
+        public IFrameOfReference FrameOfReference { get; set; }
 
         public JobSeriesBundle()
         {

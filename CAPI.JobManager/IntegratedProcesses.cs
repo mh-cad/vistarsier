@@ -19,7 +19,7 @@ namespace CAPI.JobManager
             return new List<IIntegratedProcess>
             {
                 new ExtractBrainSurface(_imageProcessor),
-                new Registration(),
+                new Registration(_imageProcessor),
                 new TakeDifference(),
                 new ColorMap()
             }.GetEnumerator();
