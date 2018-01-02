@@ -17,7 +17,6 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
-
         public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
@@ -26,11 +25,6 @@ namespace CAPI.JobManager
             _imageProcessor = imageProcessor;
             Id = "2";
             Version = "1";
-        }
-
-        public Registration(string[] parameters, IImageProcessor imageProcessor) : this(imageProcessor)
-        {
-            Parameters = parameters;
         }
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)

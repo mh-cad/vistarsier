@@ -40,6 +40,7 @@ namespace CAPI.ImageProcessing
         private const string DstPrefixNegative = "flair_new_with_changes_overlay_negative";
         private const string StructChangesDarkFloat2BrightFixed = "structural_changes_dark_in_floating_to_bright_in_fixed";
         private const string StructChangesBrightFloat2DarkFixed = "structural_changes_bright_in_floating_to_dark_in_fixed";
+        private const string StructChangesBrainMask = "structural_changes_brain_surface_mask";
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
         private const string Img2DcmFileName = "img2dcm.exe";
         private const string FlairOldReslicesFolderName = "flair_old_resliced";
@@ -75,15 +76,11 @@ namespace CAPI.ImageProcessing
         {
             _executablesPath = Config.GetExecutablesPath();
             var javaUtilsPath = Config.GetJavaUtilsPath();
-            _javaClassPath = $".;{javaUtilsPath}/*";
+            _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
+                $"{javaUtilsPath}/lib/vecmath.jar;{javaUtilsPath}/lib/ij.jar";
             _fixedDicomPath = Config.GetFixedDicomDir();
             _processesRootDir = Config.GetProcessesRootDir();
         }
-
-        //public ImageProcessor(string executablesPath) : this()
-        //{
-        //    if (!string.IsNullOrEmpty(executablesPath)) _executablesPath = Config.GetExecutablesPath();
-        //}
 
         public static void RunAll()
         {
@@ -150,11 +147,11 @@ namespace CAPI.ImageProcessing
         public void ExtractBrainMask(string inputHdrFullPath, string outputPath,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
-            var inputFileName = Path.GetFileName(inputHdrFullPath);
+            var inputFileName = Path.GetFileNameWithoutExtension(inputHdrFullPath);
 
-            var arguments = $"-i {inputHdrFullPath} --mask " +
-                            $"{outputPath}\\{inputFileName}{BrainSurfaceSuffix} " +
-                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix} {BseParams}";
+            var arguments = $"-i {inputHdrFullPath} " +
+                            $"--mask {outputPath}\\{inputFileName}{BrainSurfaceSuffix}.hdr " +
+                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix}.hdr {BseParams}";
 
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 
@@ -271,23 +268,33 @@ namespace CAPI.ImageProcessing
             return new FrameOfReference();
         }
 
-        public void TakeDifference(string seriesFixedHdr, string seriesFloatingReslicedNii, string seriesBrainSurfaceNii, string outputDir, string sliceInset) // Outputs to the same folder as fixed series
+        public void TakeDifference(string fixedHdrFullPath, string floatingReslicedNiiFullPath,
+            string brainSurfaceNiiFullPath, string outputDir,
+            out string darkInFloating2BrightInFixed, out string brightInFloating2DarkInFixed, out string brainMask,
+            string sliceInset = "0")
+        // Outputs to the same folder as fixed series
         {
-            //try
-            //{
-            //    const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
-            //    ProcessBuilder.CallJava(
-            //        $"-classpath {_javaClassPath} {methodName} " +
-            //        $@"{outputDir} {outputDir}\{seriesFixedHdr.Description}.hdr {outputDir}\{seriesFloatingReslicedNii.Description}.nii {outputDir}\{seriesBrainSurfaceNii.Description}.nii {sliceInset}"
-            //        , methodName);
+            darkInFloating2BrightInFixed = $@"{outputDir}\{StructChangesDarkFloat2BrightFixed}.nii";
+            brightInFloating2DarkInFixed = $@"{outputDir}\{StructChangesBrightFloat2DarkFixed}.nii";
+            brainMask = $@"{outputDir}\{StructChangesBrainMask}.nii";
 
-            //    CreatePropertiesFiles(outputDir);
-            //    RenameDiffNiiFiles(outputDir);
-            //}
-            //catch
-            //{
-            //    //return; // TODO3: Exception Handling
-            //}
+            try
+            {
+                const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
+                var arguments = $"-classpath \"{_javaClassPath}\" {methodName} " +
+                                $"\"{outputDir}\" " +
+                                $"\"{fixedHdrFullPath}\" \"{floatingReslicedNiiFullPath}\" " +
+                                $"\"{brainSurfaceNiiFullPath}\" {sliceInset}";
+
+                ProcessBuilder.CallJava(arguments, methodName);
+
+                CreatePropertiesFiles(outputDir);
+                RenameDiffNiiFiles(outputDir);
+            }
+            catch (Exception ex)
+            {
+                throw ex; // TODO3: Exception Handling
+            }
         }
         private static void CreatePropertiesFiles(string outputDir)
         {
@@ -297,7 +304,15 @@ namespace CAPI.ImageProcessing
         private static void RenameDiffNiiFiles(string outputDir)
         {
             foreach (var fileToBeRenamed in GetFilesToBeRenamed())
-                File.Move($"{outputDir}\\{fileToBeRenamed.Key}", $"{outputDir}\\{fileToBeRenamed.Value}");
+            {
+                var sourceFileName = $@"{outputDir}\{fileToBeRenamed.Key}";
+                var targetFileName = $@"{outputDir}\{fileToBeRenamed.Value}";
+
+                if (!File.Exists(sourceFileName))
+                    throw new FileNotFoundException($"File was not found to be removed: {sourceFileName}");
+
+                File.Move(sourceFileName, targetFileName);
+            }
         }
 
         public void FlipAndConvertFloatingToDicom(string seriesNii)
@@ -331,19 +346,35 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallJava(arguments, methodName);
         }
 
-        public void ColorMap(string outputDir)
+        public void ColorMap(
+            string fixedHdrFullPath, string fixedDicomFolderPath,
+            string brainSurfaceNiiFullPath,
+            string darkFloatToBrightFixedNiiFullPath,
+            string brightFloatToDarkFixedNiiFullPath,
+            string outputDir, out string positive, out string negative)
         {
+            var colorMapConfigFullPath = $"{_processesRootDir}/colormap.config";
+
             const string methodName = "au.com.nicta.preprocess.main.ColorMap";
             var arguments =
-                $"-classpath {_javaClassPath} {methodName} {_processesRootDir}/colormap.config {outputDir}/{DstPrefixPositive} " +
-                $"{outputDir}/{Fixed}.hdr {_fixedDicomPath} {outputDir}/{Fixed}{BrainSurfaceSuffix}.nii " +
-                $"{outputDir}/{StructChangesDarkFloat2BrightFixed}.nii {outputDir}/{StructChangesBrightFloat2DarkFixed}.nii positive"; // TODO3: Hard-coded method name
+                $"-classpath {_javaClassPath} {methodName} {colorMapConfigFullPath} " +
+                $@"{outputDir}\{DstPrefixPositive} " +
+                $"{fixedHdrFullPath} {fixedDicomFolderPath} {brainSurfaceNiiFullPath} " +
+                $"{darkFloatToBrightFixedNiiFullPath} {brightFloatToDarkFixedNiiFullPath} positive";
+
             ProcessBuilder.CallJava(arguments, methodName);
+
+            positive = $@"{outputDir}\{DstPrefixPositive}";
+
             arguments =
-                $"-classpath {_javaClassPath} {methodName} {_processesRootDir}/colormap.config {outputDir}/{DstPrefixNegative} " +
-                $"{outputDir}/{Fixed}.hdr {_fixedDicomPath} {outputDir}/{Fixed}{BrainSurfaceSuffix}.nii " +
-                $"{outputDir}/{StructChangesDarkFloat2BrightFixed}.nii {outputDir}/{StructChangesBrightFloat2DarkFixed}.nii negative"; // TODO3: Hard-coded method name
+                $"-classpath {_javaClassPath} {methodName} {colorMapConfigFullPath} " +
+                $@"{outputDir}\{DstPrefixNegative} " +
+                $"{fixedHdrFullPath} {fixedDicomFolderPath} {brainSurfaceNiiFullPath} " +
+                $"{darkFloatToBrightFixedNiiFullPath} {brightFloatToDarkFixedNiiFullPath} negative";
+
             ProcessBuilder.CallJava(arguments, methodName);
+
+            negative = $@"{outputDir}\{DstPrefixNegative}";
         }
 
         public void ConvertBmpsToDicom(string outputDir)

@@ -20,8 +20,8 @@ namespace CAPI.JobManager
             {
                 new ExtractBrainSurface(_imageProcessor),
                 new Registration(_imageProcessor),
-                new TakeDifference(),
-                new ColorMap()
+                new TakeDifference(_imageProcessor),
+                new ColorMap(_imageProcessor)
             }.GetEnumerator();
         }
 

@@ -66,12 +66,20 @@ namespace CAPI.JobManager
 
         public IIntegratedProcess CreateTakeDifferenceIntegratedProcess(string version, params string[] parameters)
         {
-            return new TakeDifference(parameters) { Version = version };
+            return new TakeDifference(_imageProcessor)
+            {
+                Version = version,
+                Parameters = parameters
+            };
         }
 
         public IIntegratedProcess CreateColorMapIntegratedProcess(string version, params string[] parameters)
         {
-            return new ColorMap(parameters) { Version = version };
+            return new ColorMap(_imageProcessor)
+            {
+                Version = version,
+                Parameters = parameters
+            };
         }
 
         public IDestination CreateDestination(string id, string folderPath, string aeTitle)

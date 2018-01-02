@@ -15,6 +15,7 @@ namespace CAPI.ImageProcessing
         private readonly string _viewableDir;
         private readonly string _dcm2NiiHdrParams;
         private readonly string _dcm2NiiNiiParams;
+        private readonly string _javaClassPath;
 
         public ImageConverter()
         {
@@ -22,6 +23,10 @@ namespace CAPI.ImageProcessing
             _dcm2NiiHdrParams = Properties.Settings.Default.Dcm2NiiHdrParams;
             _dcm2NiiNiiParams = Properties.Settings.Default.Dcm2NiiNiiParams;
             var miconvFileName = Properties.Settings.Default.MiconvFileName;
+
+            var javaUtilsPath = Config.GetJavaUtilsPath();
+            _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
+                             $"{javaUtilsPath}/lib/vecmath.jar;{javaUtilsPath}/lib/ij.jar";
 
             var executablesPath = Config.GetExecutablesPath();
             _dicom2NiiFullPath = Path.Combine(executablesPath, dcm2NiiExe);
@@ -68,7 +73,8 @@ namespace CAPI.ImageProcessing
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
         }
 
-        public IEnumerable<string> ConvertDicom2Viewable(string dicomDir, string outputDir = "", string outFileFormat = "png")
+        public IEnumerable<string> ConvertDicom2Viewable(
+            string dicomDir, string outputDir = "", string outFileFormat = "png")
         {
             if (string.IsNullOrEmpty(outputDir)) outputDir = _viewableDir;
             var dicomFilesFullPaths = Directory.GetFiles(dicomDir);
@@ -89,13 +95,19 @@ namespace CAPI.ImageProcessing
         //ProcessBuilder.CallExecutableFile($"{_executablesPath}\\odin\\{MiconvFileName}", arguments);
         //}
 
-
-        public void Hdr2Nii(string hdrFileFullPath)
+        public void Hdr2Nii(string fromHdrFileFullPath,
+            string intoHdrFileFullPath, out string niiFileFullPath)
         {
-            var niiFileFullPath = hdrFileFullPath.Replace(".hdr", ".nii");
+            niiFileFullPath = intoHdrFileFullPath.Replace(".hdr", ".nii");
 
-            var arguments = $"-rf analyze -wf analyze {hdrFileFullPath} {niiFileFullPath}";
-            ProcessBuilder.CallExecutableFile(_miconvFullPath, arguments);
+            //var arguments = $"-rf analyze -wf analyze {intoHdrFileFullPath} {niiFileFullPath}";
+            //ProcessBuilder.CallExecutableFile(_miconvFullPath, arguments);
+
+            const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
+            var arguments = $"-classpath \"{_javaClassPath}\" {methodName} " +
+                $"\"{fromHdrFileFullPath}\" \"{intoHdrFileFullPath}\" \"{niiFileFullPath}\"";
+
+            ProcessBuilder.CallJava(arguments, methodName);
         }
     }
 }
