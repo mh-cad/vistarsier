@@ -7,5 +7,6 @@ namespace CAPI.JobManager.Abstraction
     {
 
         ICollection<IntegratedProcessType> CompletedProcesses { get; set; }
+
     }
 }

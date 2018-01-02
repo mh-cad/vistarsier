@@ -1,10 +1,13 @@
-﻿using CAPI.JobManager.Abstraction;
+﻿using CAPI.ImageProcessing.Abstraction;
+using CAPI.JobManager.Abstraction;
 using System;
 
 namespace CAPI.JobManager
 {
     public class TakeDifference : ITakeDifference
     {
+        private readonly IImageProcessor _imageProcessor;
+
         public IntegratedProcessType Type
         {
             get => IntegratedProcessType.TakeDifference;
@@ -18,24 +21,45 @@ namespace CAPI.JobManager
         public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
-        public TakeDifference()
+        public TakeDifference(IImageProcessor imageProcessor)
         {
+            _imageProcessor = imageProcessor;
             Id = "3";
             Version = "1";
         }
 
-        public TakeDifference(string[] parameters) : this()
-        {
-            Parameters = parameters;
-        }
-
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
-            var handler = OnComplete;
-            handler?.Invoke(this, new ProcessEventArgument(
-                $"Take Difference process is completed [Version: {Version}] [Parameters: {string.Join(" ", Parameters)}]"));
+            jobToBeProcessed = DoTakeDifference(jobToBeProcessed);
 
-            throw new NotImplementedException();
+            OnComplete?.Invoke(this, new ProcessEventArgument(
+                $"Take Difference process is completed [Version: {Version}] " +
+                $"[Parameters: {string.Join(" ", Parameters)}]"));
+
+            return jobToBeProcessed;
+        }
+
+        private IJob<IRecipe> DoTakeDifference(IJob<IRecipe> job)
+        {
+            var fixedHdrFullPath = job.DicomSeriesFixed.Original.HdrFileFullPath;
+            var floatingReslicedNiiFullPath = job.DicomSeriesFloating.Transformed.NiiFileFullPath;
+            var brainMaskNiiFullPath = job.DicomSeriesFixed.BrainMask.NiiFileFullPath;
+
+            _imageProcessor.TakeDifference(
+                fixedHdrFullPath, floatingReslicedNiiFullPath,
+                brainMaskNiiFullPath, job.OutputFolderPath,
+                out var darkInFloatingToBrightInFexed, out var brightInFloatingToDarkInFexed,
+                out var brainMask);
+
+            job.StructChangesDarkInFloating2BrightInFixed.NiiFileFullPath =
+                darkInFloatingToBrightInFexed;
+
+            job.StructChangesBrightInFloating2DarkInFixed.NiiFileFullPath =
+                brightInFloatingToDarkInFexed;
+
+            job.StructChangesBrainMask.NiiFileFullPath = brainMask;
+
+            return job;
         }
     }
 }

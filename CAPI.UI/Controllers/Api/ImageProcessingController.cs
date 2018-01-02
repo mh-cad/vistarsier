@@ -148,9 +148,9 @@ namespace CAPI.UI.Controllers.Api
         {
             var imgProcessor = new ImageProcessor();
 
-            imgProcessor.ColorMap(_outputDir);
+            //imgProcessor.ColorMap(_outputDir);
 
-            imgProcessor.ConvertBmpsToDicom(_outputDir);
+            //imgProcessor.ConvertBmpsToDicom(_outputDir);
 
             return "";
         }
@@ -160,7 +160,7 @@ namespace CAPI.UI.Controllers.Api
         {
             var imgProcessor = new ImageProcessor();
 
-            imgProcessor.CopyDicomHeaders(_outputDir);
+            //imgProcessor.CopyDicomHeaders(_outputDir);
 
             return "";
         }
