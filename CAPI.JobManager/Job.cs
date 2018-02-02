@@ -16,6 +16,7 @@ namespace CAPI.JobManager
         private readonly IDicomNode _localNode;
         private readonly IDicomNode _remoteNode;
         private readonly IImageConverter _imageConverter;
+        private readonly IImageProcessor _imageProcessor;
 
         public string OutputFolderPath { get; set; }
         public IJobSeriesBundle DicomSeriesFixed { get; set; }
@@ -28,14 +29,16 @@ namespace CAPI.JobManager
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 
-        public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory
-            , IDicomNode localNode, IDicomNode remoteNode, IImageConverter imageConverter)
+        public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
+            IDicomNode localNode, IDicomNode remoteNode,
+            IImageConverter imageConverter, IImageProcessor imageProcessor)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
             _localNode = localNode;
             _remoteNode = remoteNode;
             _imageConverter = imageConverter;
+            _imageProcessor = imageProcessor;
 
             DicomSeriesFixed = new JobSeriesBundle();
             DicomSeriesFloating = new JobSeriesBundle();
@@ -105,11 +108,14 @@ namespace CAPI.JobManager
                 }
             }
 
-            ConvertBmpsToDicom(); // TODO1: Implement
+            _imageProcessor.ConvertBmpsToDicom(OutputFolderPath);
 
-            CopyDicomHeadersToNewDicomFiles(); // TODO1: Implement
+            //_imageProcessor.CopyDicomHeaders(DicomSeriesFixed.Original.DicomFolderPath,
+            //OutputFolderPath, out var dicomFolderNewHeaders);
 
-            SendDicomFilesToDestinations(); // TODO1: Implement
+            UpdateDicomHeaders(); // TODO1: Implement
+
+            //SendDicomFilesToDestinations(); // TODO1: Implement
         }
 
         private void FetchSeriesAndSaveToDisk()
@@ -226,15 +232,29 @@ namespace CAPI.JobManager
             colorMapProcess.Run(this as IJob<IRecipe>);
         }
 
-        private void ConvertBmpsToDicom()
+        private void UpdateDicomHeaders()
         {
-            throw new NotImplementedException();
+            var dicomServices = _dicomFactory.CreateDicomServices();
+
+            // Update Negative Folder
+            var seriesDescription = "VT Decreased Signal";
+            var negativeFiles =
+                Directory.GetFiles($@"{OutputFolderPath}\{"flair_new_with_changes_overlay_negative_dcm"}");
+
+            var negDicomTags = _dicomFactory.CreateDicomTagCollection();
+            negDicomTags.SeriesDescription.Values = new[] { seriesDescription };
+            dicomServices.UpdateSeriesHeadersForAllFiles(negativeFiles, negDicomTags);
+
+            // Update Positive Folder
+            seriesDescription = "VT Increased Signal";
+            var positiveFiles =
+                Directory.GetFiles($@"{OutputFolderPath}\{"flair_new_with_changes_overlay_positive_dcm"}");
+
+            var posDicomTags = _dicomFactory.CreateDicomTagCollection();
+            posDicomTags.SeriesDescription.Values = new[] { seriesDescription };
+            dicomServices.UpdateSeriesHeadersForAllFiles(positiveFiles, posDicomTags);
         }
         private void SendDicomFilesToDestinations()
-        {
-            throw new NotImplementedException();
-        }
-        private void CopyDicomHeadersToNewDicomFiles()
         {
             throw new NotImplementedException();
         }
