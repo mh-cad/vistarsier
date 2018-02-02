@@ -387,34 +387,43 @@ namespace CAPI.ImageProcessing
                 foreach (var file in files)
                 {
                     var filenameNoExt = Path.GetFileNameWithoutExtension(file);
-                    var arguments = $"-i BMP {filenameNoExt}.bmp {folder}_dcm\\{filenameNoExt}"; // TODO3: Hard-coded method name
-                    ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}", arguments, folder);
+                    var arguments = $"-df {outputDir}\\{Fixed}\\Dicom\\{filenameNoExt} " +
+                                    $"-i BMP {filenameNoExt}.bmp {folder}_dcm\\{filenameNoExt}"; // TODO3: Hard-coded method name
+                    ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
+                        arguments, folder);
                 }
             }
         }
 
-        public void CopyDicomHeaders(string outputDir)
+        public void CopyDicomHeaders(string fixedDicomFolderPath, string outputDir,
+            out string dicomFolderNewHeaders)
         {
-            var fixedFiles = Directory.GetFiles(_fixedDicomPath);
-            var destinationFolder = $"{outputDir}\\{DicomFilesWithNewHeadersFolder}";
-            if (!Directory.Exists(destinationFolder)) Directory.CreateDirectory(destinationFolder);
-            var keys = new[] { "(0020,0032)", "(0020,0037)" }; // TODO3: Hard-coded data
+            var fixedFiles = Directory.GetFiles(fixedDicomFolderPath);
+            if (!fixedFiles.Any())
+                throw new FileNotFoundException($"No files found in folder: {fixedDicomFolderPath}");
+
+            dicomFolderNewHeaders = $"{outputDir}\\{DicomFilesWithNewHeadersFolder}";
+            if (!Directory.Exists(dicomFolderNewHeaders)) Directory.CreateDirectory(dicomFolderNewHeaders);
+            var keys = new[] { "(0020,0032)", "(0020,0037)", "(0020,0013)" }; // TODO3: Hard-coded data
 
             foreach (var fixedFileFullPath in fixedFiles)
             {
                 var filenameWithExt = Path.GetFileName(fixedFileFullPath);
-                var copiedFileFullPath = $"{destinationFolder}\\{filenameWithExt}";
+                var copiedFileFullPath = $"{dicomFolderNewHeaders}\\{filenameWithExt}";
                 File.Copy(fixedFileFullPath, copiedFileFullPath, true);
+
                 foreach (var key in keys)
                 {
                     var arguments = $"+L -M {fixedFileFullPath}";
-                    var stdout = ProcessBuilder.CallExecutableFile($"{_executablesPath}\\{DcmtkFolderName}\\{DcmdumpFileName}", arguments);
+                    var stdout = ProcessBuilder.CallExecutableFile(
+                        $"{_executablesPath}\\{DcmtkFolderName}\\{DcmdumpFileName}", arguments);
 
                     var match = Regex.Match(stdout, $"{key}.*").Value;
                     var value = Regex.Match(match, @"\[(.*)\]").Value.Replace("[", "").Replace("]", "");
 
                     arguments = $"--no-backup -m {key}={value} {copiedFileFullPath}";
-                    ProcessBuilder.CallExecutableFile($"{_executablesPath}\\{DcmtkFolderName}\\{DcmodifyFileName}", arguments);
+                    ProcessBuilder.CallExecutableFile(
+                        $"{_executablesPath}\\{DcmtkFolderName}\\{DcmodifyFileName}", arguments);
                 }
             }
         }

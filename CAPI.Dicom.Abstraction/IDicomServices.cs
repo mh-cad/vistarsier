@@ -6,6 +6,9 @@ namespace CAPI.Dicom.Abstraction
     {
         void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode);
         void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType);
+        void UpdateSeriesHeadersForAllFiles(string[] filesPath, IDicomTagCollection tags);
+        void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,
+            string ouputFolder);
 
         IDicomTagCollection GetDicomTags(string filePath);
 
@@ -27,6 +30,11 @@ namespace CAPI.Dicom.Abstraction
         IEnumerable<IDicomStudy> GetStudiesForPatient(
             string patientFullName, string patientBirthDate, IDicomNode localNode, IDicomNode sourceNode);
 
-        IDicomPatient GetPatientIdFromPatientDetails(string patientFullName, string patientBirthDate, IDicomNode localNode, IDicomNode sourceNode);
+        IDicomPatient GetPatientIdFromPatientDetails(string patientFullName, string patientBirthDate,
+            IDicomNode localNode, IDicomNode sourceNode);
+
+        string GenerateNewStudyUid();
+        string GenerateNewSeriesUid();
+        string GenerateNewImageUid();
     }
 }

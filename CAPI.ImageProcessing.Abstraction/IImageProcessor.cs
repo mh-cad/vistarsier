@@ -20,5 +20,10 @@
             string darkFloatToBrightFixedNiiFullPath,
             string brightFloatToDarkFixedNiiFullPath,
             string outputDir, out string positive, out string negative);
+
+        void ConvertBmpsToDicom(string outputDir);
+
+        void CopyDicomHeaders(string fixedDicomFolderPath, string outputDir
+            , out string dicomFolderNewHeaders);
     }
 }

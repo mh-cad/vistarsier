@@ -26,7 +26,6 @@ namespace CAPI.Desktop
         private IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
         private IJobBuilder _jobBuilder;
 
-
         public FormMain()
         {
             InitializeComponent();
@@ -314,6 +313,13 @@ namespace CAPI.Desktop
         private void Process_Completed(object sender, IProcessEventArgument e)
         {
             LogToDataGridView(e.LogContent);
+        }
+
+        private void BtnTestDicomheaderCopy_Click(object sender, EventArgs e)
+        {
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            dicomServices.CopyDicomHeadersToNewFiles("D:\\temp\\Fixed", "D:\\temp\\NegativeDicoms",
+                "D:\\temp\\Negatives");
         }
     }
 }
