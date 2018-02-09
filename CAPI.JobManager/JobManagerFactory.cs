@@ -1,4 +1,5 @@
-﻿using CAPI.Dicom.Abstraction;
+﻿using CAPI.DAL.Abstraction;
+using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
 using System.Collections.Generic;
@@ -11,18 +12,21 @@ namespace CAPI.JobManager
         private readonly IImageProcessor _imageProcessor;
         private readonly IImageConverter _imageConverter;
         private readonly IDicomFactory _dicomFactory;
+        private readonly IDicomNodeRepository _dicomNodeRepo;
 
-        public JobManagerFactory(IImageProcessor imageProcessor, IDicomFactory dicomFactory, IImageConverter imageConverter)
+        public JobManagerFactory
+            (IImageProcessor imageProcessor, IDicomFactory dicomFactory, IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo)
         {
             _imageProcessor = imageProcessor;
             _dicomFactory = dicomFactory;
             _imageConverter = imageConverter;
+            _dicomNodeRepo = dicomNodeRepo;
         }
 
         public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
         {
             return new Job<IRecipe>(
-                this, _dicomFactory, localNode, remoteNode, _imageConverter, _imageProcessor);
+                this, _dicomFactory, localNode, remoteNode, _imageConverter, _imageProcessor, _dicomNodeRepo);
         }
 
         public IJob<IRecipe> CreateJob(

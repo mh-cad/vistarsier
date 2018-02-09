@@ -1,4 +1,5 @@
 ﻿using CAPI.Common.Services;
+using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
@@ -17,6 +18,10 @@ namespace CAPI.JobManager
         private readonly IDicomNode _remoteNode;
         private readonly IImageConverter _imageConverter;
         private readonly IImageProcessor _imageProcessor;
+        private readonly IDicomNodeRepository _dicomNodeRepository;
+
+        private const string NegativeDcmFolderName = "flair_new_with_changes_overlay_negative_dcm";
+        private const string PositiveDcmFolderName = "flair_new_with_changes_overlay_positive_dcm";
 
         public string OutputFolderPath { get; set; }
         public IJobSeriesBundle DicomSeriesFixed { get; set; }
@@ -31,7 +36,7 @@ namespace CAPI.JobManager
 
         public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
-            IImageConverter imageConverter, IImageProcessor imageProcessor)
+            IImageConverter imageConverter, IImageProcessor imageProcessor, IDicomNodeRepository dicomNodeRepository)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -39,6 +44,7 @@ namespace CAPI.JobManager
             _remoteNode = remoteNode;
             _imageConverter = imageConverter;
             _imageProcessor = imageProcessor;
+            _dicomNodeRepository = dicomNodeRepository;
 
             DicomSeriesFixed = new JobSeriesBundle();
             DicomSeriesFloating = new JobSeriesBundle();
@@ -108,14 +114,23 @@ namespace CAPI.JobManager
                 }
             }
 
-            _imageProcessor.ConvertBmpsToDicom(OutputFolderPath);
+            var dicomServices = _dicomFactory.CreateDicomServices();
 
-            //_imageProcessor.CopyDicomHeaders(DicomSeriesFixed.Original.DicomFolderPath,
-            //OutputFolderPath, out var dicomFolderNewHeaders);
+            NegativeOverlay.DicomFolderPath = NegativeOverlay.BmpFolderPath + "_dcm";
+            dicomServices.ConvertBmpsToDicom(
+                NegativeOverlay.BmpFolderPath, $@"{NegativeOverlay.DicomFolderPath}",
+                DicomSeriesFixed.Original.DicomFolderPath);
 
-            UpdateDicomHeaders(); // TODO1: Implement
+            PositiveOverlay.DicomFolderPath = PositiveOverlay.BmpFolderPath + "_dcm";
+            dicomServices.ConvertBmpsToDicom(
+                PositiveOverlay.BmpFolderPath, $@"{PositiveOverlay.DicomFolderPath}",
+                DicomSeriesFixed.Original.DicomFolderPath);
 
-            //SendDicomFilesToDestinations(); // TODO1: Implement
+            //_imageProcessor.ConvertBmpsToDicom(OutputFolderPath);
+
+            UpdateDicomHeaders();
+
+            SendDicomFilesToDestinations(); // TODO1: Implement
         }
 
         private void FetchSeriesAndSaveToDisk()
@@ -232,14 +247,14 @@ namespace CAPI.JobManager
             colorMapProcess.Run(this as IJob<IRecipe>);
         }
 
-        private void UpdateDicomHeaders()
+        private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates - remove hard-written folder paths
         {
             var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
             var seriesDescription = "VT Decreased Signal";
             var negativeFiles =
-                Directory.GetFiles($@"{OutputFolderPath}\{"flair_new_with_changes_overlay_negative_dcm"}");
+                Directory.GetFiles($@"{OutputFolderPath}\{NegativeDcmFolderName}");
 
             var negDicomTags = _dicomFactory.CreateDicomTagCollection();
             negDicomTags.SeriesDescription.Values = new[] { seriesDescription };
@@ -248,15 +263,50 @@ namespace CAPI.JobManager
             // Update Positive Folder
             seriesDescription = "VT Increased Signal";
             var positiveFiles =
-                Directory.GetFiles($@"{OutputFolderPath}\{"flair_new_with_changes_overlay_positive_dcm"}");
+                Directory.GetFiles($@"{OutputFolderPath}\{PositiveDcmFolderName}");
 
             var posDicomTags = _dicomFactory.CreateDicomTagCollection();
             posDicomTags.SeriesDescription.Values = new[] { seriesDescription };
             dicomServices.UpdateSeriesHeadersForAllFiles(positiveFiles, posDicomTags);
         }
+
         private void SendDicomFilesToDestinations()
         {
-            throw new NotImplementedException();
+            foreach (var destination in Destinations)
+            {
+                destination.DicomNode = _dicomNodeRepository.GetAll()
+                    .FirstOrDefault(n => n.AeTitle == destination.AeTitle);
+                //var seriesToSave = OutputFolderPath
+
+                // AET is not defined
+                if (string.IsNullOrEmpty(destination.AeTitle))
+                {
+
+                }
+                // AET is defined
+                else
+                {
+                    OnLogContentReady?.Invoke(this, new LogEventArgument
+                    {
+                        LogContent = $"Sending files to Dicom node AET: {destination.AeTitle}"
+                    });
+                    var dicomServices = _dicomFactory.CreateDicomServices();
+
+                    var negativeFiles = Directory.GetFiles(NegativeOverlay.DicomFolderPath);
+                    foreach (var negativeFile in negativeFiles)
+                        dicomServices.SendDicomFile(negativeFile, _localNode.AeTitle, destination.DicomNode);
+
+                    var positiveFiles = Directory.GetFiles(PositiveOverlay.DicomFolderPath);
+                    foreach (var positiveFile in positiveFiles)
+                        dicomServices.SendDicomFile(positiveFile, _localNode.AeTitle, destination.DicomNode);
+
+                    OnLogContentReady?.Invoke(this, new LogEventArgument
+                    {
+                        LogContent =
+                            $"Finished sending files to Dicom node AET: {destination.AeTitle}"
+                    });
+                }
+            }
         }
 
         private void Process_OnComplete(object sender, IProcessEventArgument e)
