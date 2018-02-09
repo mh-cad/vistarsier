@@ -1,4 +1,5 @@
-﻿using CAPI.DAL;
+﻿using CAPI.Common.Services;
+using CAPI.DAL;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
@@ -8,6 +9,7 @@ using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -22,9 +24,9 @@ namespace CAPI.Desktop
         private IUnityContainer _unityContainer;
         private IDicomFactory _dicomFactory;
         private IDicomNodeRepository _dicomNodeRepo;
-        private IJobManagerFactory _jobManagerFactory;
         private IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
         private IJobBuilder _jobBuilder;
+        private IJobManagerFactory _jobManagerFactory;
 
         public FormMain()
         {
@@ -283,13 +285,15 @@ namespace CAPI.Desktop
             dicomServices.SaveSeriesToLocalDisk(series, TxtImageRepoDicom.Text, _localDicomNode, dicomNode);
         }
 
-        private void BtnTestProcess_Click(object sender, EventArgs e)
+        private void BtnReadRecipeAndRun_Click(object sender, EventArgs e)
         {
             var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
             var localNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == _localDicomNode.AeTitle);
             if (string.IsNullOrEmpty(recipe.SourceAet) || string.IsNullOrWhiteSpace(recipe.SourceAet))
                 throw new ArgumentNullException(nameof(recipe.SourceAet), "Source AE Title in recipe is not specified");
             var sourceNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
+
+            recipe = GetDicomDesntinations(recipe);
 
             var job = _jobBuilder.Build(recipe, localNode, sourceNode);
             job.OnEachProcessCompleted += Process_Completed;
@@ -299,6 +303,29 @@ namespace CAPI.Desktop
 
             job.Run();
         }
+
+        private IRecipe GetDicomDesntinations(IRecipe recipe)
+        {
+            var updatedRecipe = recipe;
+            updatedRecipe.Destinations = new List<IDestination>();
+
+            foreach (var destination in recipe.Destinations)
+            {
+                var updatedDestination = destination;
+
+                if (string.IsNullOrEmpty(destination.AeTitle))
+                    FileSystem.DirectoryExists(updatedDestination.FolderPath);
+                else
+                {
+                    var dicomNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == destination.AeTitle);
+                    updatedDestination.DicomNode = dicomNode ??
+                        throw new Exception($"Unable to find dicom node for AE Title [{destination.AeTitle}] in datasource {nameof(_dicomNodeRepo)}");
+                }
+                updatedRecipe.Destinations.Add(updatedDestination);
+            }
+            return updatedRecipe;
+        }
+
         #endregion
 
         private void LogToDataGridView(string logContent)
@@ -313,13 +340,6 @@ namespace CAPI.Desktop
         private void Process_Completed(object sender, IProcessEventArgument e)
         {
             LogToDataGridView(e.LogContent);
-        }
-
-        private void BtnTestDicomheaderCopy_Click(object sender, EventArgs e)
-        {
-            var dicomServices = _dicomFactory.CreateDicomServices();
-            dicomServices.CopyDicomHeadersToNewFiles("D:\\temp\\Fixed", "D:\\temp\\NegativeDicoms",
-                "D:\\temp\\Negatives");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using CAPI.JobManager.Abstraction;
+﻿using CAPI.Dicom.Abstraction;
+using CAPI.JobManager.Abstraction;
 
 namespace CAPI.JobManager
 {
@@ -14,5 +15,6 @@ namespace CAPI.JobManager
         public string Id { get; set; }
         public string FolderPath { get; set; }
         public string AeTitle { get; set; }
+        public IDicomNode DicomNode { get; set; }
     }
 }

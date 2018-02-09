@@ -387,7 +387,7 @@ namespace CAPI.ImageProcessing
                 foreach (var file in files)
                 {
                     var filenameNoExt = Path.GetFileNameWithoutExtension(file);
-                    var arguments = $"-df {outputDir}\\{Fixed}\\Dicom\\{filenameNoExt} " +
+                    var arguments = $"-df {outputDir}\\{Fixed}\\Dicom\\{filenameNoExt} " + // Copy dicom headers from dicom file: -df =  dataset file
                                     $"-i BMP {filenameNoExt}.bmp {folder}_dcm\\{filenameNoExt}"; // TODO3: Hard-coded method name
                     ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
                         arguments, folder);
@@ -404,7 +404,7 @@ namespace CAPI.ImageProcessing
 
             dicomFolderNewHeaders = $"{outputDir}\\{DicomFilesWithNewHeadersFolder}";
             if (!Directory.Exists(dicomFolderNewHeaders)) Directory.CreateDirectory(dicomFolderNewHeaders);
-            var keys = new[] { "(0020,0032)", "(0020,0037)", "(0020,0013)" }; // TODO3: Hard-coded data
+            var keys = new[] { "(0020,0032)", "(0020,0037)" }; // TODO3: Hard-coded data
 
             foreach (var fixedFileFullPath in fixedFiles)
             {

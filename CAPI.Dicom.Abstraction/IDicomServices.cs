@@ -7,8 +7,8 @@ namespace CAPI.Dicom.Abstraction
         void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode);
         void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType);
         void UpdateSeriesHeadersForAllFiles(string[] filesPath, IDicomTagCollection tags);
-        void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,
-            string ouputFolder);
+        //void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,
+        //    string ouputFolder);
 
         IDicomTagCollection GetDicomTags(string filePath);
 
@@ -36,5 +36,7 @@ namespace CAPI.Dicom.Abstraction
         string GenerateNewStudyUid();
         string GenerateNewSeriesUid();
         string GenerateNewImageUid();
+
+        void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "");
     }
 }

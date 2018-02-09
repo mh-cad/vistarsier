@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClearCanvas.Dicom", "..\Ext
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.IntegratedTests", "CAPI.IntegratedTests\CAPI.IntegratedTests.csproj", "{1A6A4354-16EA-4024-8768-B8529796D690}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Agent-Console", "CAPI.Agent-Console\CAPI.Agent-Console.csproj", "{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -122,6 +124,12 @@ Global
 		{1A6A4354-16EA-4024-8768-B8529796D690}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1A6A4354-16EA-4024-8768-B8529796D690}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{1A6A4354-16EA-4024-8768-B8529796D690}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

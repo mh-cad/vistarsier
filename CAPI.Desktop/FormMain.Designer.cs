@@ -79,7 +79,6 @@
             this.LogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.BtnTestDicomHeaderCopy = new System.Windows.Forms.Button();
             this.PnlDcmHeaderModifiers.SuspendLayout();
             this.PnlPatientDetails.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -553,7 +552,7 @@
             this.BtnTestProcess.TabIndex = 8;
             this.BtnTestProcess.Text = "Read Recipe and Run it";
             this.BtnTestProcess.UseVisualStyleBackColor = true;
-            this.BtnTestProcess.Click += new System.EventHandler(this.BtnTestProcess_Click);
+            this.BtnTestProcess.Click += new System.EventHandler(this.BtnReadRecipeAndRun_Click);
             // 
             // FdLoadDicomFile
             // 
@@ -596,22 +595,11 @@
             // 
             // panel3
             // 
-            this.panel3.Controls.Add(this.BtnTestDicomHeaderCopy);
             this.panel3.Controls.Add(this.BtnTestProcess);
             this.panel3.Location = new System.Drawing.Point(855, 13);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(274, 641);
             this.panel3.TabIndex = 22;
-            // 
-            // BtnTestDicomHeaderCopy
-            // 
-            this.BtnTestDicomHeaderCopy.Location = new System.Drawing.Point(13, 103);
-            this.BtnTestDicomHeaderCopy.Name = "BtnTestDicomHeaderCopy";
-            this.BtnTestDicomHeaderCopy.Size = new System.Drawing.Size(119, 69);
-            this.BtnTestDicomHeaderCopy.TabIndex = 9;
-            this.BtnTestDicomHeaderCopy.Text = "Test Copying Dicom headers to new file";
-            this.BtnTestDicomHeaderCopy.UseVisualStyleBackColor = true;
-            this.BtnTestDicomHeaderCopy.Click += new System.EventHandler(this.BtnTestDicomheaderCopy_Click);
             // 
             // FormMain
             // 
@@ -700,7 +688,6 @@
         private System.Windows.Forms.Button BtnSaveToDisk;
         private System.Windows.Forms.TextBox TxtImageRepoDicom;
         private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Button BtnTestDicomHeaderCopy;
     }
 }
 

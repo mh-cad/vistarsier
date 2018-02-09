@@ -37,8 +37,7 @@ namespace CAPI.JobManager
         /// <param name="localNode">Details of this dicom node the app is running on</param>
         /// <param name="sourceNode">Details of archive dicom node</param>
         /// <returns></returns>
-        public IJob<IRecipe> Build(IRecipe recipe, IDicomNode localNode,
-            IDicomNode sourceNode)
+        public IJob<IRecipe> Build(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
         {
             _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
 
@@ -73,13 +72,13 @@ namespace CAPI.JobManager
             floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
                 floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
 
-            var imgRepository = Configs.GetImageRepositoryPath();
+            var imageRepositoryPath = Configs.GetImageRepositoryPath();
             var job = _jobManagerFactory.CreateJob(
                 fixedSeriesBundle,
                 floatingSeriesBundle,
                 recipe.IntegratedProcesses,
                 recipe.Destinations,
-                imgRepository,
+                imageRepositoryPath,
                 localNode,
                 sourceNode
             );
