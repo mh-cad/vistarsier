@@ -20,7 +20,6 @@ namespace CAPI.Agent_Console
         private static int _interval;
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
-        private static IJobManagerFactory _jobManagerFactory;
         private static IDicomNodeRepository _dicomNodeRepo;
         private static UnityContainer _unityContainer;
         private static IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
@@ -30,6 +29,9 @@ namespace CAPI.Agent_Console
         private static void Main(string[] args)
         {
             Log.Write("Agent started");
+
+            SetEnvironmentVariables();
+
             InitializeUnity();
 
             GetFirstParamFromArgs(args);
@@ -40,20 +42,51 @@ namespace CAPI.Agent_Console
             while (Console.Read() != 'q') { }
         }
 
+        private static void SetEnvironmentVariables()
+        {
+            var settings = Properties.Settings.Default;
+
+            var dcmNodeAetLocal = Environment.GetEnvironmentVariable("DcmNodeAET_Local");
+            if (dcmNodeAetLocal == null)
+                Environment.SetEnvironmentVariable("DcmNodeAET_Local", settings.DcmNodeAET_Local, EnvironmentVariableTarget.User);
+
+            var dcmNodeIpLocal = Environment.GetEnvironmentVariable("DcmNodeIP_Local");
+            if (dcmNodeIpLocal == null)
+                Environment.SetEnvironmentVariable("DcmNodeIP_Local", settings.DcmNodeIP_Local, EnvironmentVariableTarget.User);
+
+            var dcmNodePortLocal = Environment.GetEnvironmentVariable("DcmNodePort_Local");
+            if (dcmNodePortLocal == null)
+                Environment.SetEnvironmentVariable("DcmNodePort_Local", settings.DcmNodePort_Local, EnvironmentVariableTarget.User);
+
+            var dcmNodeAetRemote = Environment.GetEnvironmentVariable("DcmNodeAET_Remote");
+            if (dcmNodeAetRemote == null)
+                Environment.SetEnvironmentVariable("DcmNodeAET_Remote", settings.DcmNodeAET_Remote, EnvironmentVariableTarget.User);
+
+            var dcmNodeIpRemote = Environment.GetEnvironmentVariable("DcmNodeIP_Remote");
+            if (dcmNodeIpRemote == null)
+                Environment.SetEnvironmentVariable("DcmNodeIP_Remote", settings.DcmNodeIP_Remote, EnvironmentVariableTarget.User);
+
+            var dcmNodePortRemote = Environment.GetEnvironmentVariable("DcmNodePort_Remote");
+            if (dcmNodePortRemote == null)
+                Environment.SetEnvironmentVariable("DcmNodePort_Remote", settings.DcmNodePort_Remote, EnvironmentVariableTarget.User);
+        }
+
         private static void ProcessAllPendingCases()
         {
             var currentAccession = string.Empty;
 
             try
             {
-                CopyPendingCasesFromVtDbToCapiDb();
+                var resultLog = Broker.CopyPendingCasesFromVtDbToCapiDb(_numberOfCasesToCheck);
+                Log.Write(resultLog);
                 Log.Write("Pending cases copied from old database to CAPI database");
+
                 StartTimer();
                 Log.Write("Timer started");
 
                 _localDicomNode = GetLocalNode();
 
-                var pendingCases = GetPendingCasesFromCapiDb();
+                var pendingCases = Broker.GetPendingCasesFromCapiDb();
 
                 foreach (var pendingCase in pendingCases)
                 {
@@ -65,7 +98,7 @@ namespace CAPI.Agent_Console
             catch (Exception ex)
             {
                 Log.Write($"Job failed for accession {currentAccession}");
-                Log.Exception(ex);
+                Log.Error(ex);
                 Log.Write("trying again...");
                 ProcessAllPendingCases();
             }
@@ -79,16 +112,15 @@ namespace CAPI.Agent_Console
                     StringComparison.CurrentCultureIgnoreCase));
         }
 
+        // Unity
         private static void InitializeUnity()
         {
             _unityContainer = new UnityContainer();
             RegisterClasses();
             _dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
-            _jobManagerFactory = _unityContainer.Resolve<IJobManagerFactory>();
             _jobBuilder = _unityContainer.Resolve<IJobBuilder>();
             _recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
         }
-
         private static void RegisterClasses()
         {
             _unityContainer.RegisterType<IDicomNode, DicomNode>();
@@ -123,28 +155,17 @@ namespace CAPI.Agent_Console
 
             job.Run();
 
-            SetJobStatusToComplete(job.DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber);
+            Broker.SetJobStatusToComplete(job.DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber);
         }
 
+        // Events // TODO3: Make JobProcessCompleted event to call JobLogContentReady
         private static void JobProcessCompleted(object sender, IProcessEventArgument e)
         {
             Log.Write(e.LogContent);
         }
-
         private static void JobLogContentReady(object sender, ILogEventArgument e)
         {
             Log.Write(e.LogContent);
-        }
-
-        private static void SetJobStatusToComplete(string accessionNumber)
-        {
-            var pendingCase = new PendingAccessions { Accession = accessionNumber };
-            pendingCase.SetStatus("Completed");
-        }
-
-        private static IEnumerable<PendingAccessions> GetPendingCasesFromCapiDb()
-        {
-            return Broker.GetPendingCasesFromCapiDb();
         }
 
         private static void StartTimer()
@@ -156,23 +177,16 @@ namespace CAPI.Agent_Console
             timer.Enabled = true;
             timer.Start();
         }
+        private static void OnTimeEvent(object sender, ElapsedEventArgs e)
+        {
+            ProcessAllPendingCases();
+        }
 
         private static void GetFirstParamFromArgs(IReadOnlyList<string> args)
         {
             if (args != null && args.Count > 0 && int.TryParse(args[1], out var arg1))
                 _numberOfCasesToCheck = arg1;
             else _numberOfCasesToCheck = DefaultNoOfCasesToCheck;
-        }
-
-        private static void OnTimeEvent(object sender, ElapsedEventArgs e)
-        {
-            CopyPendingCasesFromVtDbToCapiDb();
-        }
-
-        private static void CopyPendingCasesFromVtDbToCapiDb()
-        {
-            var resultLog = Broker.CopyPendingCasesFromVtDbToCapiDb(_numberOfCasesToCheck);
-            Log.Write(resultLog);
         }
     }
 }

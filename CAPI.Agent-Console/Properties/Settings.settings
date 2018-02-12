@@ -21,5 +21,23 @@
 &lt;/SerializableConnectionString&gt;</DesignTimeValue>
       <Value Profile="(Default)">Data Source=***REMOVED***;Initial Catalog=CAPI;User ID=sa;Password=***REMOVED***</Value>
     </Setting>
+    <Setting Name="DcmNodeAET_Local" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">CAPI</Value>
+    </Setting>
+    <Setting Name="DcmNodeIP_Local" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">***REMOVED***</Value>
+    </Setting>
+    <Setting Name="DcmNodePort_Local" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">4104</Value>
+    </Setting>
+    <Setting Name="DcmNodeAET_Remote" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">RMHSYNAPSESCP</Value>
+    </Setting>
+    <Setting Name="DcmNodeIP_Remote" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">***REMOVED***</Value>
+    </Setting>
+    <Setting Name="DcmNodePort_Remote" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">104</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

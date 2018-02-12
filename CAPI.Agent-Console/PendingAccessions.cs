@@ -72,9 +72,9 @@ namespace CAPI.Agent_Console
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Exception Message: {e.Message}");
-                Console.WriteLine($"Exception Source: {e.Source}");
-                Console.WriteLine("Exception Stack Trace:");
+                Console.WriteLine($"Error Message: {e.Message}");
+                Console.WriteLine($"Error Source: {e.Source}");
+                Console.WriteLine("Error Stack Trace:");
                 Console.WriteLine(e.StackTrace);
                 throw;
             }

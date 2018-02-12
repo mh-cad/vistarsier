@@ -28,7 +28,8 @@ namespace CAPI.DAL
             {
                 _dicomFactory.CreateDicomNode("Home PC", "ORTHANC", "127.0.0.1", 4242),
                 _dicomFactory.CreateDicomNode("Work PC", "KPSB", "172.28.42.42", 104),
-                _dicomFactory.CreateDicomNode("CAPI Server", "VTAIO", "***REMOVED***", 104),
+                _dicomFactory.CreateDicomNode("VT Server", "VTAIO", "***REMOVED***", 104),
+                _dicomFactory.CreateDicomNode("CAPI Server", "CAPI", "***REMOVED***", 4104),
                 _dicomFactory.CreateDicomNode("Synapse", "***REMOVED***", "***REMOVED***", 104),
                 _dicomFactory.CreateDicomNode("Syn-Mini", "***REMOVED***", "***REMOVED***", 104)
             }.AsQueryable();
