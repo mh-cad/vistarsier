@@ -9,11 +9,11 @@ namespace CAPI.Agent_Console
             Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logContent}");
         }
 
-        public static void Exception(Exception ex)
+        public static void Error(Exception ex)
         {
-            Log.Write($"Exception Message: {ex.Message}");
-            Log.Write($"Exception Source: {ex.Source}");
-            Log.Write($"Exception StackTrace: \r\n{ex.StackTrace}");
+            Write($"Error Message: {ex.Message}");
+            Write($"Error Source: {ex.Source}");
+            Write($"Error StackTrace: \r\n{ex.StackTrace}");
         }
     }
 }

@@ -52,5 +52,59 @@ namespace CAPI.Agent_Console.Properties {
                 return ((string)(this["CapiConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CAPI")]
+        public string DcmNodeAET_Local {
+            get {
+                return ((string)(this["DcmNodeAET_Local"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("172.28.43.65")]
+        public string DcmNodeIP_Local {
+            get {
+                return ((string)(this["DcmNodeIP_Local"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4104")]
+        public string DcmNodePort_Local {
+            get {
+                return ((string)(this["DcmNodePort_Local"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("RMHSYNAPSESCP")]
+        public string DcmNodeAET_Remote {
+            get {
+                return ((string)(this["DcmNodeAET_Remote"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("172.28.40.151")]
+        public string DcmNodeIP_Remote {
+            get {
+                return ((string)(this["DcmNodeIP_Remote"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("104")]
+        public string DcmNodePort_Remote {
+            get {
+                return ((string)(this["DcmNodePort_Remote"]));
+            }
+        }
     }
 }

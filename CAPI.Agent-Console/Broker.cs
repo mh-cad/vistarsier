@@ -9,13 +9,15 @@ namespace CAPI.Agent_Console
 
         public static string CopyPendingCasesFromVtDbToCapiDb(int numberOfCasesToCheck)
         {
-            if (_isBusy) return string.Empty;
+            const string brokerIsBusy = "Checking for new cases to process...";
+
+            if (_isBusy) return brokerIsBusy;
             _isBusy = true;
 
             CopyAllUnprocessedCasesFromVtDb(numberOfCasesToCheck);
 
             _isBusy = false;
-            return "";
+            return brokerIsBusy;
         }
 
         private static void CopyAllUnprocessedCasesFromVtDb(int numberOfCasesToCheck)
@@ -47,6 +49,12 @@ namespace CAPI.Agent_Console
                 Log.Write($"Accession copied to CAPI database: {pendingCase.Accession}");
 
             return pendingCases;
+        }
+
+        public static void SetJobStatusToComplete(string accessionNumber)
+        {
+            var pendingCase = new PendingAccessions { Accession = accessionNumber };
+            pendingCase.SetStatus("Completed");
         }
     }
 }
