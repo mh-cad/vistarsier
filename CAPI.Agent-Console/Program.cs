@@ -17,14 +17,11 @@ namespace CAPI.Agent_Console
 {
     internal static class Program
     {
+        // Fields
         private static int _interval;
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
-        private static IDicomNodeRepository _dicomNodeRepo;
         private static UnityContainer _unityContainer;
-        private static IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
-        private static IJobBuilder _jobBuilder;
-        private static IDicomNode _localDicomNode;
 
         private static void Main(string[] args)
         {
@@ -36,12 +33,110 @@ namespace CAPI.Agent_Console
 
             GetFirstParamFromArgs(args);
 
-            ProcessAllPendingCases();
+            SetFailedCasesStatusToPending(); // These are cases which failed in the middle of being processed - Set status to "Pending" so they get processed
+
+            Run(); // Run for the first time
+            StartTimer();
 
             Log.Write("Enter 'q' to quit!");
             while (Console.Read() != 'q') { }
         }
 
+        private static void SetFailedCasesStatusToPending()
+        {
+            var incompleteCases = new PendingCase().GetProcessingCapiCases(_numberOfCasesToCheck).ToList();
+            incompleteCases.AddRange(new PendingCase().GetQueuedCapiCases(_numberOfCasesToCheck));
+
+            foreach (var processingCase in incompleteCases)
+            {
+                try
+                {
+                    processingCase.SetStatus("Pending");
+                }
+                catch
+                {
+                    Log.WriteError($"Failed to set case status from Processing/Queued to Pending. Accession: ${processingCase.Accession}");
+                    throw;
+                }
+            }
+        }
+
+        private static void StartTimer()
+        {
+            _interval = Properties.Settings.Default.DbCheckInterval;
+
+            var timer = new Timer { Interval = _interval * 1000, Enabled = true };
+            timer.Elapsed += OnTimeEvent;
+            timer.Start();
+            Log.Write("Timer started");
+        }
+        private static void OnTimeEvent(object sender, ElapsedEventArgs e)
+        {
+            Run();
+        }
+        private static void Run()
+        {
+            var completedCases = ProcessAllPendingCases(out var failedCases);
+
+            foreach (var completedCase in completedCases)
+                Log.Write($"Job completed for accession {completedCase.Accession}");
+
+            foreach (var failedCase in failedCases)
+            {
+                Log.Write($"Job failed for accession {failedCase.Accession}");
+                Log.Exception(failedCase.Exception);
+            }
+
+            Log.Write($"Checking for new cases in {_interval} seconds...");
+        }
+        // Main Process
+        private static IEnumerable<PendingCase> ProcessAllPendingCases(out List<PendingCase> failedCases)
+        {
+            failedCases = new List<PendingCase>();
+            var completedCases = new List<PendingCase>();
+            var broker = GetBroker();
+
+            // Get Pending Cases and return an empty list if nothing found
+            var pendingCases = Broker.GetPendingCasesFromCapiDb(_numberOfCasesToCheck).ToList();
+            if (pendingCases.Count < 1) return completedCases;
+
+            // Set status of all pending cases to Queued
+            foreach (var pendingCase in pendingCases) pendingCase.SetStatus("Queued");
+
+            foreach (var pendingCase in pendingCases)
+            {
+                pendingCase.SetStatus("Processing");
+                var success = broker.ProcessCase(pendingCase);
+
+                if (success)
+                {
+                    pendingCase.SetStatus("Completed");
+                    completedCases.Add(pendingCase);
+                }
+                else
+                {
+                    pendingCase.SetStatus("Pending");
+                    failedCases.Add(pendingCase);
+                }
+            }
+
+            return completedCases;
+        }
+        private static Broker GetBroker()
+        {
+            var dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
+            var recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
+            var jobBuilder = _unityContainer.Resolve<IJobBuilder>();
+            return new Broker(dicomNodeRepo, recipeRepositoryInMemory, jobBuilder);
+        }
+
+        // Set up
+        private static void GetFirstParamFromArgs(IReadOnlyList<string> args)
+        {
+            if (args != null && args.Count > 0 && int.TryParse(args[1], out var arg1))
+                _numberOfCasesToCheck = arg1;
+            else _numberOfCasesToCheck = DefaultNoOfCasesToCheck;
+        }
         private static void SetEnvironmentVariables()
         {
             var settings = Properties.Settings.Default;
@@ -71,55 +166,12 @@ namespace CAPI.Agent_Console
                 Environment.SetEnvironmentVariable("DcmNodePort_Remote", settings.DcmNodePort_Remote, EnvironmentVariableTarget.User);
         }
 
-        private static void ProcessAllPendingCases()
-        {
-            var currentAccession = string.Empty;
-
-            try
-            {
-                var resultLog = Broker.CopyPendingCasesFromVtDbToCapiDb(_numberOfCasesToCheck);
-                Log.Write(resultLog);
-                Log.Write("Pending cases copied from old database to CAPI database");
-
-                StartTimer();
-                Log.Write("Timer started");
-
-                _localDicomNode = GetLocalNode();
-
-                var pendingCases = Broker.GetPendingCasesFromCapiDb();
-
-                foreach (var pendingCase in pendingCases)
-                {
-                    currentAccession = pendingCase.Accession;
-                    ProcessCase(pendingCase);
-                    Log.Write($"Job completed for accession {pendingCase.Accession}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Write($"Job failed for accession {currentAccession}");
-                Log.Error(ex);
-                Log.Write("trying again...");
-                ProcessAllPendingCases();
-            }
-        }
-
-        private static IDicomNode GetLocalNode()
-        {
-            return _dicomNodeRepo.GetAll()
-                .FirstOrDefault(n => string.Equals(n.AeTitle,
-                    Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User),
-                    StringComparison.CurrentCultureIgnoreCase));
-        }
-
         // Unity
         private static void InitializeUnity()
         {
             _unityContainer = new UnityContainer();
             RegisterClasses();
-            _dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
-            _jobBuilder = _unityContainer.Resolve<IJobBuilder>();
-            _recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
+
         }
         private static void RegisterClasses()
         {
@@ -139,54 +191,6 @@ namespace CAPI.Agent_Console
             _unityContainer.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             _unityContainer.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
             _unityContainer.RegisterType<IValueComparer, ValueComparer>();
-        }
-
-        private static void ProcessCase(PendingAccessions pendingCase)
-        {
-            var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
-            if (recipe != null) recipe.NewStudyAccession = pendingCase.Accession;
-
-            var sourceNode = _dicomNodeRepo.GetAll()
-                .FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
-
-            var job = _jobBuilder.Build(recipe, _localDicomNode, sourceNode);
-            job.OnLogContentReady += JobLogContentReady;
-            job.OnEachProcessCompleted += JobProcessCompleted;
-
-            job.Run();
-
-            Broker.SetJobStatusToComplete(job.DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber);
-        }
-
-        // Events // TODO3: Make JobProcessCompleted event to call JobLogContentReady
-        private static void JobProcessCompleted(object sender, IProcessEventArgument e)
-        {
-            Log.Write(e.LogContent);
-        }
-        private static void JobLogContentReady(object sender, ILogEventArgument e)
-        {
-            Log.Write(e.LogContent);
-        }
-
-        private static void StartTimer()
-        {
-            var timer = new Timer();
-            timer.Elapsed += OnTimeEvent;
-            _interval = Properties.Settings.Default.DbCheckInterval * 1000;
-            timer.Interval = _interval;
-            timer.Enabled = true;
-            timer.Start();
-        }
-        private static void OnTimeEvent(object sender, ElapsedEventArgs e)
-        {
-            ProcessAllPendingCases();
-        }
-
-        private static void GetFirstParamFromArgs(IReadOnlyList<string> args)
-        {
-            if (args != null && args.Count > 0 && int.TryParse(args[1], out var arg1))
-                _numberOfCasesToCheck = arg1;
-            else _numberOfCasesToCheck = DefaultNoOfCasesToCheck;
         }
     }
 }

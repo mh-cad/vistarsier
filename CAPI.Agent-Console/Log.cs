@@ -9,7 +9,12 @@ namespace CAPI.Agent_Console
             Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logContent}");
         }
 
-        public static void Error(Exception ex)
+        public static void WriteError(string logContent)
+        {
+            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {logContent}");
+        }
+
+        public static void Exception(Exception ex)
         {
             Write($"Error Message: {ex.Message}");
             Write($"Error Source: {ex.Source}");

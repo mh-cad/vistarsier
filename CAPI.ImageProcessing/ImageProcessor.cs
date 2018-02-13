@@ -78,7 +78,6 @@ namespace CAPI.ImageProcessing
             var javaUtilsPath = Config.GetJavaUtilsPath();
             _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
                 $"{javaUtilsPath}/lib/vecmath.jar;{javaUtilsPath}/lib/ij.jar";
-            _fixedDicomPath = Config.GetFixedDicomDir();
             _processesRootDir = Config.GetProcessesRootDir();
         }
 
