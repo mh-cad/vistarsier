@@ -252,7 +252,7 @@ namespace CAPI.JobManager
             var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
-            var seriesDescription = "VT Decreased Signal";
+            var seriesDescription = "CAPI Decreased Signal";
             var negativeFiles =
                 Directory.GetFiles($@"{OutputFolderPath}\{NegativeDcmFolderName}");
 
@@ -261,7 +261,7 @@ namespace CAPI.JobManager
             dicomServices.UpdateSeriesHeadersForAllFiles(negativeFiles, negDicomTags);
 
             // Update Positive Folder
-            seriesDescription = "VT Increased Signal";
+            seriesDescription = "CAPI Increased Signal";
             var positiveFiles =
                 Directory.GetFiles($@"{OutputFolderPath}\{PositiveDcmFolderName}");
 

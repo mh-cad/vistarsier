@@ -1,38 +1,65 @@
-﻿using System.Collections.Generic;
+﻿using CAPI.DAL.Abstraction;
+using CAPI.Dicom.Abstraction;
+using CAPI.JobManager;
+using CAPI.JobManager.Abstraction;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CAPI.Agent_Console
 {
-    public static class Broker
+    public class Broker
     {
-        private static bool _isBusy;
+        private readonly IDicomNodeRepository _dicomNodeRepo;
+        private readonly IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
+        private readonly IJobBuilder _jobBuilder;
 
-        public static string CopyPendingCasesFromVtDbToCapiDb(int numberOfCasesToCheck)
+        // Constructor
+        public Broker(
+            IDicomNodeRepository dicomNodeRepo,
+            IRecipeRepositoryInMemory<IRecipe> recipeRepositoryInMemory,
+            IJobBuilder jobBuilder)
         {
-            const string brokerIsBusy = "Checking for new cases to process...";
+            _dicomNodeRepo = dicomNodeRepo;
+            _recipeRepositoryInMemory = recipeRepositoryInMemory;
+            _jobBuilder = jobBuilder;
+        }
 
-            if (_isBusy) return brokerIsBusy;
-            _isBusy = true;
+        // Broker Entry Point
+        public static IEnumerable<PendingCase> GetPendingCasesFromCapiDb(int numberOfRowsToCheckInDb)
+        {
+            CopyAllUnprocessedCasesFromVtDb(numberOfRowsToCheckInDb);
 
-            CopyAllUnprocessedCasesFromVtDb(numberOfCasesToCheck);
+            var pendingCases = new PendingCase().GetPendingCapiCases()
+                .OrderBy(c => c.Accession).ToList();
 
-            _isBusy = false;
-            return brokerIsBusy;
+            return pendingCases;
         }
 
         private static void CopyAllUnprocessedCasesFromVtDb(int numberOfCasesToCheck)
         {
-            var unprocessedCases = GetLatestUnprocessedVtCases(numberOfCasesToCheck)
+            var unprocessedCases = GetLatestVtCasesNotProcessedByCapi(numberOfCasesToCheck)
                 .OrderBy(c => c.Accession);
 
             foreach (var unprocessedCase in unprocessedCases)
-                unprocessedCase.AddToCapiDb();
+            {
+                try
+                {
+                    unprocessedCase.AddToCapiDb();
+                    Log.Write($"Accession copied to CAPI database: {unprocessedCase.Accession}");
+                }
+                catch
+                {
+                    Log.WriteError($"Failed to add unprocessed case with accession {unprocessedCase.Accession} to CAPI database");
+                    throw;
+                }
+            }
         }
 
-        private static IEnumerable<PendingAccessions> GetLatestUnprocessedVtCases(int numberOfCasesToCheck)
+        private static IEnumerable<PendingCase> GetLatestVtCasesNotProcessedByCapi(int numberOfCasesToCheck)
         {
-            var latestVtCases = new PendingAccessions().GetVtCases(numberOfCasesToCheck);
-            var latestCapiCases = new PendingAccessions().GetCapiCases(numberOfCasesToCheck);
+            var latestVtCases = new PendingCase().GetVtCases(numberOfCasesToCheck);
+            var latestCapiCases = new PendingCase().GetCapiCases(numberOfCasesToCheck);
             var latestCapiAccessions = latestCapiCases.Select(c => c.Accession);
 
             return latestVtCases
@@ -40,21 +67,47 @@ namespace CAPI.Agent_Console
                 .Where(c => !latestCapiAccessions.Contains(c.Accession));
         }
 
-        public static IEnumerable<PendingAccessions> GetPendingCasesFromCapiDb()
+        public bool ProcessCase(PendingCase pendingCase)
         {
-            var pendingCases = new PendingAccessions().GetPendingCapiCases()
-                .OrderBy(c => c.Accession).ToList();
+            try
+            {
+                var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
+                if (recipe != null) recipe.NewStudyAccession = pendingCase.Accession;
 
-            foreach (var pendingCase in pendingCases)
-                Log.Write($"Accession copied to CAPI database: {pendingCase.Accession}");
+                var localDicomNode = GetLocalNode();
+                var sourceNode = _dicomNodeRepo.GetAll()
+                    .FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
 
-            return pendingCases;
+                var job = _jobBuilder.Build(recipe, localDicomNode, sourceNode);
+                job.OnLogContentReady += JobLogContentReady;
+                job.OnEachProcessCompleted += JobProcessCompleted;
+
+                job.Run();
+                return true;
+            }
+            catch (Exception e)
+            {
+                pendingCase.Exception = e;
+                return false;
+            }
+        }
+        private IDicomNode GetLocalNode()
+        {
+            return _dicomNodeRepo.GetAll()
+                .FirstOrDefault(n => string.Equals(n.AeTitle,
+                    Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User),
+                    StringComparison.CurrentCultureIgnoreCase));
         }
 
-        public static void SetJobStatusToComplete(string accessionNumber)
+        // Events // TODO3: Make JobProcessCompleted event to call JobLogContentReady i.e. remove duplication
+        private static void JobProcessCompleted(object sender, IProcessEventArgument e)
         {
-            var pendingCase = new PendingAccessions { Accession = accessionNumber };
-            pendingCase.SetStatus("Completed");
+            JobLogContentReady(sender, new LogEventArgument { LogContent = e.LogContent });
+            //Log.Write(e.LogContent);
+        }
+        private static void JobLogContentReady(object sender, ILogEventArgument e)
+        {
+            Log.Write(e.LogContent);
         }
     }
 }

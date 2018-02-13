@@ -18,21 +18,6 @@ namespace CAPI.Common
             return string.IsNullOrEmpty(executablesFolderName) ? "" :
                 GetProcessesRootDir() + "\\" + executablesFolderName;
         }
-        public static string GetOutputDir()
-        {
-            return "Not Set!";
-            //return ConfigurationManager.AppSettings.Get("OutputDir");
-        }
-        public static string GetFixedDicomDir()
-        {
-            return "Not Set!";
-            //return ConfigurationManager.AppSettings.Get("FixedDicomDir");
-        }
-        public static string GetFloatingDicomDir()
-        {
-            return "Not Set!";
-            //return ConfigurationManager.AppSettings.Get("FloatingDicomDir");
-        }
         public static string GetJavaExePath()
         {
             return RegKey?.GetValue("JavaBinPath").ToString() ?? "";
