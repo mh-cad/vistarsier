@@ -54,22 +54,6 @@ namespace CAPI.DAL
 
             var recipe = JsonConvert.DeserializeObject<IList<TRecipe>>(recipesJsonString);
 
-            //var criterion1 = _jobManagerFactory.CreateStudySelectionCriteria();
-            //criterion1.AccessionNumber = "2017R0168610-1";
-
-            //var recipeMs1 = _jobManagerFactory.CreateRecipe();
-            //recipeMs1.NewStudyCriteria = new List<ISeriesSelectionCriteria> { criterion1 };
-            //recipeMs1.IntegratedProcesses = new List<IIntegratedProcess>
-            //{
-            //    _jobManagerFactory.CreateExtractBrinSurfaceIntegratedProcess("1", "-n 3 -d 25 -s 0.64 -r 1 --trim"),
-            //    _jobManagerFactory.CreateTakeDifferenceIntegratedProcess("1", ""),
-            //    _jobManagerFactory.CreateRegistrationIntegratedProcess("1", ""),
-            //    _jobManagerFactory.CreateColorMapIntegratedProcess("1", "")
-            //};
-            //recipeMs1.Destinations = new List<IDestination> {
-            //    _jobManagerFactory.CreateDestination("1", "", "ORTHANC")
-            //};
-
             return (IQueryable<IRecipe>)recipe.AsQueryable();
         }
     }

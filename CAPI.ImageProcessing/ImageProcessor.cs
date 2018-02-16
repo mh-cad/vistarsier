@@ -25,7 +25,7 @@ namespace CAPI.ImageProcessing
         private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
         private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
         private const string BseExe = "bse09e.exe";
-        private const string BseParams = "-n 3 -d 25 -s 0.64 -r 1 --trim";
+        private const string BseParams = "-n 3 -d 25 -s 0.6 -r 1 --trim";
         private const string BrainSurfaceSuffix = "_brain_surface";
         private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";

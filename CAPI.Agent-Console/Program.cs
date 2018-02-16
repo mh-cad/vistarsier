@@ -7,6 +7,7 @@ using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
+using Nancy.Hosting.Self;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,9 @@ namespace CAPI.Agent_Console
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
         private static UnityContainer _unityContainer;
+        private static NancyHost _nancy;
+        private const string Url = "http://localhost";
+        private const string Port = "81";
 
         private static void Main(string[] args)
         {
@@ -37,6 +41,10 @@ namespace CAPI.Agent_Console
 
             Run(); // Run for the first time
             StartTimer();
+
+            var uri = new Uri($"{Url}:{Port}/");
+            _nancy = new NancyHost(uri);
+            //_nancy.Start();
 
             Log.Write("Enter 'q' to quit!");
             while (Console.Read() != 'q') { }
