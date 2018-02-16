@@ -22,6 +22,8 @@ namespace CAPI.JobManager
 
         private const string NegativeDcmFolderName = "flair_new_with_changes_overlay_negative_dcm";
         private const string PositiveDcmFolderName = "flair_new_with_changes_overlay_positive_dcm";
+        private const string IncreasedSignalSeriesName = "CAPI Increased Signal";
+        private const string DecreasedSignalSeriesName = "CAPI Decreased Signal";
 
         public string OutputFolderPath { get; set; }
         public IJobSeriesBundle DicomSeriesFixed { get; set; }
@@ -247,12 +249,12 @@ namespace CAPI.JobManager
             colorMapProcess.Run(this as IJob<IRecipe>);
         }
 
-        private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates - remove hard-written folder paths
+        private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates
         {
             var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
-            var seriesDescription = "CAPI Decreased Signal";
+            var seriesDescription = DecreasedSignalSeriesName;
             var negativeFiles =
                 Directory.GetFiles($@"{OutputFolderPath}\{NegativeDcmFolderName}");
 
@@ -261,7 +263,7 @@ namespace CAPI.JobManager
             dicomServices.UpdateSeriesHeadersForAllFiles(negativeFiles, negDicomTags);
 
             // Update Positive Folder
-            seriesDescription = "CAPI Increased Signal";
+            seriesDescription = IncreasedSignalSeriesName;
             var positiveFiles =
                 Directory.GetFiles($@"{OutputFolderPath}\{PositiveDcmFolderName}");
 
