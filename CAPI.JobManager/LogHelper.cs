@@ -1,7 +1,7 @@
 ﻿using log4net;
 using System.Runtime.CompilerServices;
 
-namespace CAPI.Agent_Console
+namespace CAPI.JobManager
 {
     internal static class LogHelper
     {

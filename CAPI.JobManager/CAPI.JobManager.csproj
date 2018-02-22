@@ -58,6 +58,7 @@
     <Compile Include="JobBuilder.cs" />
     <Compile Include="JobSeries.cs" />
     <Compile Include="JobSeriesBundle.cs" />
+    <Compile Include="LogHelper.cs" />
     <Compile Include="ProcessEventArgument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recipe.cs" />

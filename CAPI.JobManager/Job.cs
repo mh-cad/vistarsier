@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
+
 namespace CAPI.JobManager
 {
     public class Job<T> : IJob<T>
@@ -38,10 +40,20 @@ namespace CAPI.JobManager
         public IList<IIntegratedProcess> IntegratedProcesses { get; set; }
         public IList<IDestination> Destinations { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="jobManagerFactory"></param>
+        /// <param name="dicomFactory"></param>
+        /// <param name="localNode"></param>
+        /// <param name="remoteNode"></param>
+        /// <param name="imageConverter"></param>
+        /// <param name="imageProcessor"></param>
+        /// <param name="dicomNodeRepository"></param>
         public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
             IImageConverter imageConverter, IImageProcessor imageProcessor,
-            IDicomNodeRepository dicomNodeRepository, ILog log)
+            IDicomNodeRepository dicomNodeRepository)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -50,7 +62,7 @@ namespace CAPI.JobManager
             _imageConverter = imageConverter;
             _imageProcessor = imageProcessor;
             _dicomNodeRepository = dicomNodeRepository;
-            _log = log;
+            _log = LogHelper.GetLogger();
 
             DicomSeriesFixed = new JobSeriesBundle();
             DicomSeriesFloating = new JobSeriesBundle();
@@ -65,16 +77,16 @@ namespace CAPI.JobManager
 
         public void Run()
         {
-            Log("Started processing job");
+            _log.Info("Started processing job");
 
             try
             {
-                Log("Receiving dicom files from source");
+                _log.Info("Receiving dicom files from source");
                 FetchSeriesAndSaveToDisk();
             }
             catch (Exception ex)
             {
-                Log("Failed to retreive images from PACS!", ex);
+                _log.Info("Failed to retreive images from PACS!", ex);
                 throw;
             }
 
@@ -255,7 +267,7 @@ namespace CAPI.JobManager
 
         private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates
         {
-            Log("Updating Dicom Headers");
+            _log.Info("Updating Dicom Headers");
             var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
@@ -275,7 +287,7 @@ namespace CAPI.JobManager
             var posDicomTags = _dicomFactory.CreateDicomTagCollection();
             posDicomTags.SeriesDescription.Values = new[] { seriesDescription };
             dicomServices.UpdateSeriesHeadersForAllFiles(positiveFiles, posDicomTags);
-            Log("Updated Dicom Headers");
+            _log.Info("Updated Dicom Headers");
         }
 
         private void SendDicomFilesToDestinations()
@@ -291,7 +303,7 @@ namespace CAPI.JobManager
                 else
                 // AET is defined
                 {
-                    Log($"Sending files to Dicom node AET: {destination.AeTitle}");
+                    _log.Info($"Sending files to Dicom node AET: {destination.AeTitle}");
 
                     var dicomServices = _dicomFactory.CreateDicomServices();
 
@@ -303,7 +315,7 @@ namespace CAPI.JobManager
                     foreach (var positiveFile in positiveFiles)
                         dicomServices.SendDicomFile(positiveFile, _localNode.AeTitle, destination.DicomNode);
 
-                    Log($"Finished sending files to Dicom node AET: {destination.AeTitle}");
+                    _log.Info($"Finished sending files to Dicom node AET: {destination.AeTitle}");
                 }
             }
         }
@@ -313,19 +325,19 @@ namespace CAPI.JobManager
             OnEachProcessCompleted?.Invoke(sender, e);
         }
 
-        private void Log(string logContent, Exception exception = null)
-        {
-            var accession = DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber;
+        //private void Log(string logContent, Exception exception = null)
+        //{
+        //    var accession = DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber;
 
-            OnLogContentReady?.Invoke(this, new LogEventArgument
-            {
-                LogContent = $"[{accession}] {logContent}",
-                Exception = exception
-            });
+        //    OnLogContentReady?.Invoke(this, new LogEventArgument
+        //    {
+        //        LogContent = $"[{accession}] {logContent}",
+        //        Exception = exception
+        //    });
 
-            if (exception == null) _log.Info(logContent);
-            else _log.Error(logContent, exception);
-        }
+        //    if (exception == null) _log.Info(logContent);
+        //    else _log.Error(logContent, exception);
+        //}
 
         public event EventHandler<IProcessEventArgument> OnEachProcessCompleted;
         public event EventHandler<ILogEventArgument> OnLogContentReady;

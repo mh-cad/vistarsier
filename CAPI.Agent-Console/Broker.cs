@@ -4,6 +4,7 @@ using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,7 @@ namespace CAPI.Agent_Console
         private readonly IDicomNodeRepository _dicomNodeRepo;
         private readonly IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
         private readonly IJobBuilder _jobBuilder;
+        private static readonly ILog Log = LogHelper.GetLogger();
 
         // Constructor
         public Broker(
@@ -23,6 +25,7 @@ namespace CAPI.Agent_Console
             IRecipeRepositoryInMemory<IRecipe> recipeRepositoryInMemory,
             IJobBuilder jobBuilder)
         {
+            //Log = LogHelper.GetLogger();
             _dicomNodeRepo = dicomNodeRepo;
             _recipeRepositoryInMemory = recipeRepositoryInMemory;
             _jobBuilder = jobBuilder;
@@ -73,11 +76,13 @@ namespace CAPI.Agent_Console
                 try
                 {
                     unprocessedCase.AddToCapiDb();
-                    Log.Write($"Accession copied to CAPI database: {unprocessedCase.Accession}");
+                    Log.Info($"Accession copied to CAPI database: {unprocessedCase.Accession}");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Log.WriteError($"Failed to add unprocessed case with accession {unprocessedCase.Accession} to CAPI database");
+                    Log.Error(
+                        $"Failed to add unprocessed case with accession {unprocessedCase.Accession} to CAPI database"
+                        , ex);
                     throw;
                 }
             }
@@ -134,7 +139,7 @@ namespace CAPI.Agent_Console
         }
         private static void JobLogContentReady(object sender, ILogEventArgument e)
         {
-            Log.Write(e.LogContent);
+            Log.Info(e.LogContent);
         }
     }
 }

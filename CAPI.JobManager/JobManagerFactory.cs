@@ -2,7 +2,6 @@
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
-using log4net;
 using System.Collections.Generic;
 
 namespace CAPI.JobManager
@@ -14,24 +13,22 @@ namespace CAPI.JobManager
         private readonly IImageConverter _imageConverter;
         private readonly IDicomFactory _dicomFactory;
         private readonly IDicomNodeRepository _dicomNodeRepo;
-        private readonly ILog _log;
 
         public JobManagerFactory
             (IImageProcessor imageProcessor, IDicomFactory dicomFactory,
-            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo, ILog log)
+            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo)
         {
             _imageProcessor = imageProcessor;
             _dicomFactory = dicomFactory;
             _imageConverter = imageConverter;
             _dicomNodeRepo = dicomNodeRepo;
-            _log = log;
         }
 
         public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
         {
             return new Job<IRecipe>(
                 this, _dicomFactory, localNode, remoteNode, _imageConverter,
-                _imageProcessor, _dicomNodeRepo, _log);
+                _imageProcessor, _dicomNodeRepo);
         }
 
         public IJob<IRecipe> CreateJob(
