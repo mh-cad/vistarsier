@@ -30,10 +30,12 @@ namespace CAPI.Agent_Console
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
         private static UnityContainer _unityContainer;
+        private static bool _isBusy;
 
         private static void Main(string[] args)
         {
             Log.Info("Agent Started");
+            Console.WriteLine("Enter 'q' to quit!");
 
             SetEnvironmentVariables();
 
@@ -44,9 +46,9 @@ namespace CAPI.Agent_Console
             SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
             Run(); // Run for the first time
+
             StartTimer();
 
-            Agent_Console.Log.Write("Enter 'q' to quit!");
             while (Console.Read() != 'q') { }
         }
 
@@ -80,10 +82,21 @@ namespace CAPI.Agent_Console
         }
         private static void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
-            Run();
+            if (_isBusy) return;
+
+            try
+            {
+                Run();
+            }
+            catch
+            {
+                _isBusy = false;
+                throw;
+            }
         }
         private static void Run()
         {
+            _isBusy = true;
             var thisMachineProcessesManualCases = Config.GetProcessManuallyAddedCases() == "1";
 
             var pendingCasesHl7Added = Broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
@@ -103,6 +116,7 @@ namespace CAPI.Agent_Console
             }
 
             LogProcessedCases(completedCasesAll, failedCasesAll);
+            _isBusy = false;
         }
 
         private static void DeleteManuallyAddedCompletedFiles(IEnumerable<IPendingCase> completedCasesManual)
@@ -226,7 +240,6 @@ namespace CAPI.Agent_Console
             _unityContainer.RegisterType<ISeriesSelectionCriteria, SeriesSelectionCriteria>();
             _unityContainer.RegisterType<IIntegratedProcess, IntegratedProcess>();
             _unityContainer.RegisterType<IDestination, Destination>();
-
             _unityContainer.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             _unityContainer.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
             _unityContainer.RegisterType<IValueComparer, ValueComparer>();
