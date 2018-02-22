@@ -106,5 +106,14 @@ namespace CAPI.Agent_Console.Properties {
                 return ((string)(this["DcmNodePort_Remote"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Process {
+            get {
+                return ((bool)(this["Process"]));
+            }
+        }
     }
 }

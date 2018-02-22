@@ -3,6 +3,7 @@ using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,7 @@ namespace CAPI.JobManager
         private readonly IImageConverter _imageConverter;
         private readonly IImageProcessor _imageProcessor;
         private readonly IDicomNodeRepository _dicomNodeRepository;
+        private readonly ILog _log;
 
         private const string NegativeDcmFolderName = "flair_new_with_changes_overlay_negative_dcm";
         private const string PositiveDcmFolderName = "flair_new_with_changes_overlay_positive_dcm";
@@ -38,7 +40,8 @@ namespace CAPI.JobManager
 
         public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
-            IImageConverter imageConverter, IImageProcessor imageProcessor, IDicomNodeRepository dicomNodeRepository)
+            IImageConverter imageConverter, IImageProcessor imageProcessor,
+            IDicomNodeRepository dicomNodeRepository, ILog log)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -47,6 +50,7 @@ namespace CAPI.JobManager
             _imageConverter = imageConverter;
             _imageProcessor = imageProcessor;
             _dicomNodeRepository = dicomNodeRepository;
+            _log = log;
 
             DicomSeriesFixed = new JobSeriesBundle();
             DicomSeriesFloating = new JobSeriesBundle();
@@ -61,17 +65,17 @@ namespace CAPI.JobManager
 
         public void Run()
         {
+            Log("Started processing job");
+
             try
             {
+                Log("Receiving dicom files from source");
                 FetchSeriesAndSaveToDisk();
             }
             catch (Exception ex)
             {
-                OnLogContentReady?.Invoke(this, new LogEventArgument
-                {
-                    LogContent = "Failure in retreiving images from PACS!",
-                    Exception = ex
-                });
+                Log("Failed to retreive images from PACS!", ex);
+                throw;
             }
 
             foreach (var integratedProcess in IntegratedProcesses)
@@ -128,11 +132,11 @@ namespace CAPI.JobManager
                 PositiveOverlay.BmpFolderPath, $@"{PositiveOverlay.DicomFolderPath}",
                 DicomSeriesFixed.Original.DicomFolderPath);
 
-            //_imageProcessor.ConvertBmpsToDicom(OutputFolderPath);
-
             UpdateDicomHeaders();
 
-            SendDicomFilesToDestinations(); // TODO1: Implement
+            SendDicomFilesToDestinations();
+
+            Directory.Delete(OutputFolderPath, true);
         }
 
         private void FetchSeriesAndSaveToDisk()
@@ -251,6 +255,7 @@ namespace CAPI.JobManager
 
         private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates
         {
+            Log("Updating Dicom Headers");
             var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
@@ -270,6 +275,7 @@ namespace CAPI.JobManager
             var posDicomTags = _dicomFactory.CreateDicomTagCollection();
             posDicomTags.SeriesDescription.Values = new[] { seriesDescription };
             dicomServices.UpdateSeriesHeadersForAllFiles(positiveFiles, posDicomTags);
+            Log("Updated Dicom Headers");
         }
 
         private void SendDicomFilesToDestinations()
@@ -278,20 +284,15 @@ namespace CAPI.JobManager
             {
                 destination.DicomNode = _dicomNodeRepository.GetAll()
                     .FirstOrDefault(n => n.AeTitle == destination.AeTitle);
-                //var seriesToSave = OutputFolderPath
 
-                // AET is not defined
                 if (string.IsNullOrEmpty(destination.AeTitle))
-                {
-
-                }
-                // AET is defined
+                    // AET is not defined
+                    FileSystem.CopyDirectory(OutputFolderPath, destination.FolderPath);
                 else
+                // AET is defined
                 {
-                    OnLogContentReady?.Invoke(this, new LogEventArgument
-                    {
-                        LogContent = $"Sending files to Dicom node AET: {destination.AeTitle}"
-                    });
+                    Log($"Sending files to Dicom node AET: {destination.AeTitle}");
+
                     var dicomServices = _dicomFactory.CreateDicomServices();
 
                     var negativeFiles = Directory.GetFiles(NegativeOverlay.DicomFolderPath);
@@ -302,11 +303,7 @@ namespace CAPI.JobManager
                     foreach (var positiveFile in positiveFiles)
                         dicomServices.SendDicomFile(positiveFile, _localNode.AeTitle, destination.DicomNode);
 
-                    OnLogContentReady?.Invoke(this, new LogEventArgument
-                    {
-                        LogContent =
-                            $"Finished sending files to Dicom node AET: {destination.AeTitle}"
-                    });
+                    Log($"Finished sending files to Dicom node AET: {destination.AeTitle}");
                 }
             }
         }
@@ -314,6 +311,20 @@ namespace CAPI.JobManager
         private void Process_OnComplete(object sender, IProcessEventArgument e)
         {
             OnEachProcessCompleted?.Invoke(sender, e);
+        }
+
+        private void Log(string logContent, Exception exception = null)
+        {
+            var accession = DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber;
+
+            OnLogContentReady?.Invoke(this, new LogEventArgument
+            {
+                LogContent = $"[{accession}] {logContent}",
+                Exception = exception
+            });
+
+            if (exception == null) _log.Info(logContent);
+            else _log.Error(logContent, exception);
         }
 
         public event EventHandler<IProcessEventArgument> OnEachProcessCompleted;

@@ -27,5 +27,25 @@ namespace CAPI.Common.Services
                 return false;
             }
         }
+
+        public static void CopyDirectory(string source, string target)
+        {
+            var directoryName = Path.GetFileName(source);
+            target = $@"{target}\{directoryName}";
+            if (Directory.Exists(target))
+                throw new Exception($"Directory {target} exists already. Unable to copy to destination.");
+
+            Directory.CreateDirectory(target);
+
+            foreach (var dirPath in Directory.GetDirectories(source))
+            {
+                var dirName = Path.GetFileName(dirPath);
+
+                CopyDirectory(dirPath, $"{target}\\{dirName}");
+            }
+
+            foreach (var file in Directory.GetFiles(source))
+                File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+        }
     }
 }

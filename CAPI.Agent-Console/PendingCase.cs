@@ -1,39 +1,43 @@
-﻿using Dapper;
+﻿using CAPI.Agent_Console.Abstractions;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace CAPI.Agent_Console
 {
-    public class PendingCase
+    public class PendingCase : IPendingCase
     {
+        // Fields
         private readonly string _vtConnectionString;
         private readonly string _capiConnectionString;
 
+        // Constructor
         public PendingCase()
         {
             _vtConnectionString = Properties.Settings.Default.VtConnectionString;
             _capiConnectionString = Properties.Settings.Default.CapiConnectionString;
         }
 
+        // Properties
         public string Id { get; set; }
         public string Accession { get; set; }
         public string Status { get; set; }
-        public bool ProcessCompleted { get; set; }
-        public bool ProcessFailed { get; set; }
+        public string AdditionMethod { get; set; }
         public Exception Exception { get; set; }
 
-        public IEnumerable<PendingCase> GetVtCases(int count)
+        // Public Methods
+        public IEnumerable<IPendingCase> GetVtCases(int count)
         {
             return GetCases(count, _vtConnectionString);
         }
-
-        public IEnumerable<PendingCase> GetCapiCases(int count)
+        public IEnumerable<IPendingCase> GetCapiCases(int count)
         {
             return GetCases(count, _capiConnectionString);
         }
-        private static IEnumerable<PendingCase> GetCases(int count, string connectionString)
+        private static IEnumerable<IPendingCase> GetCases(int count, string connectionString)
         {
             IEnumerable<PendingCase> latestVtCases;
 
@@ -47,7 +51,7 @@ namespace CAPI.Agent_Console
 
             return latestVtCases;
         }
-        public IEnumerable<PendingCase> GetPendingCapiCases(int numOfcasesToCheckInDb = 1000)
+        public IEnumerable<IPendingCase> GetRecentPendingCapiCases(bool manual, int numOfcasesToCheckInDb = 1000)
         {
             IEnumerable<PendingCase> capiPendingCases;
 
@@ -61,7 +65,7 @@ namespace CAPI.Agent_Console
 
             return capiPendingCases;
         }
-        public IEnumerable<PendingCase> GetProcessingCapiCases(int numOfcasesToCheckInDb = 1000)
+        public IEnumerable<IPendingCase> GetProcessingCapiCases(int numOfcasesToCheckInDb = 1000)
         {
             IEnumerable<PendingCase> processingCapiCases;
 
@@ -75,7 +79,7 @@ namespace CAPI.Agent_Console
 
             return processingCapiCases;
         }
-        public IEnumerable<PendingCase> GetQueuedCapiCases(int numOfcasesToCheckInDb = 1000)
+        public IEnumerable<IPendingCase> GetQueuedCapiCases(int numOfcasesToCheckInDb = 1000)
         {
             IEnumerable<PendingCase> queuedCapiCases;
 
@@ -90,15 +94,16 @@ namespace CAPI.Agent_Console
             return queuedCapiCases;
         }
 
-        public void AddToCapiDb()
+        public void AddToCapiDb(bool manual = false)
         {
             try
             {
                 using (IDbConnection db = new SqlConnection(_capiConnectionString))
                 {
                     const string sqlCommand =
-                        "INSERT INTO PendingAccessions (Accession, Status) VALUES (@accession, @status)";
-                    db.Query(sqlCommand, new { accession = Accession, status = "Pending" });
+                        "INSERT INTO PendingAccessions (Accession, Status, AdditionMethod) VALUES (@accession, @status, @method)";
+                    db.Query(sqlCommand,
+                        new { accession = Accession, status = "Pending", method = manual ? "Manual" : "HL7" });
                 }
             }
             catch (Exception e)
@@ -122,7 +127,30 @@ namespace CAPI.Agent_Console
             }
         }
 
+        public void UpdateAdditionMethodToManual(bool manual)
+        {
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "UPDATE PendingAccessions SET AdditionMethod=(@method) WHERE Accession=(@accession)";
 
+                db.Query<PendingCase>(sqlCommand, new { method = manual ? "Manual" : "Hl7", accession = Accession });
+            }
+        }
 
+        public IQueryable<IPendingCase> GetAllCapiCases()
+        {
+            IEnumerable<PendingCase> allCapiCases;
+
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "Select * FROM PendingAccessions";
+
+                allCapiCases = db.Query<PendingCase>(sqlCommand);
+            }
+
+            return allCapiCases.AsQueryable();
+        }
     }
 }

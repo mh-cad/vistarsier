@@ -25,7 +25,7 @@ namespace CAPI.ImageProcessing
         private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
         private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
         private const string BseExe = "bse09e.exe";
-        private const string BseParams = "-n 3 -d 25 -s 0.6 -r 1 --trim";
+        //private const string BseParams = "-n 3 -d 25 -s 0.64 -r 1 --trim";
         private const string BrainSurfaceSuffix = "_brain_surface";
         private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";
@@ -143,14 +143,14 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        public void ExtractBrainMask(string inputHdrFullPath, string outputPath,
+        public void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
             var inputFileName = Path.GetFileNameWithoutExtension(inputHdrFullPath);
 
             var arguments = $"-i {inputHdrFullPath} " +
                             $"--mask {outputPath}\\{inputFileName}{BrainSurfaceSuffix}.hdr " +
-                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix}.hdr {BseParams}";
+                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix}.hdr {bseParams}";
 
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 

@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.IntegratedTests", "CAP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Agent-Console", "CAPI.Agent-Console\CAPI.Agent-Console.csproj", "{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Agent-Console.Abstractions", "CAPI.Agent-Console.Abstractions\CAPI.Agent-Console.Abstractions.csproj", "{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,12 @@ Global
 		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{B3050AD2-688B-46F8-B594-CC6B8D4CC02D}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
