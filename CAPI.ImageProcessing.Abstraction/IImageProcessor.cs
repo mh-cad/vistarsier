@@ -2,7 +2,7 @@
 {
     public interface IImageProcessor
     {
-        void ExtractBrainMask(string inputHdrFullPath, string outputPath,
+        void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
             out string brainMaskRemoved, out string smoothBrainMask);
 
         void Registration(string fixedFullPath, string seriesFloating, string outputPath,

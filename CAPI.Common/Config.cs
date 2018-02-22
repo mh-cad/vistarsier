@@ -34,5 +34,13 @@ namespace CAPI.Common
         {
             return RegKey?.GetValue("ImageRepositoryPath").ToString() ?? "";
         }
+        public static string GetManualProcessPath()
+        {
+            return RegKey?.GetValue("ManualProcessPath").ToString() ?? "";
+        }
+        public static string GetProcessManuallyAddedCases()
+        {
+            return RegKey?.GetValue("ProcessManuallyAddedCases").ToString() ?? "";
+        }
     }
 }

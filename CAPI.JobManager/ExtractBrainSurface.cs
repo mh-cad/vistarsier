@@ -26,6 +26,7 @@ namespace CAPI.JobManager
             _imageProcessor = imageProcessor;
             Id = "1";
             Version = "1";
+            Parameters = new[] { "" };
         }
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
@@ -54,7 +55,7 @@ namespace CAPI.JobManager
             var outputPath = Path.GetDirectoryName(hdrFileFullPath);
 
             // Extract Brain Mask and output Brain Mask as well as Brain-Mask-Removed series as hdr files and add back to job
-            _imageProcessor.ExtractBrainMask(hdrFileFullPath, outputPath,
+            _imageProcessor.ExtractBrainMask(hdrFileFullPath, outputPath, Parameters[0],
                 out var brainMaskRemoved, out var brainMask);
 
             // Add hdr file path for Brain-Mask-Removed series to each JobSeriesBundle

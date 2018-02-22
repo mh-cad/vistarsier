@@ -15,6 +15,7 @@ namespace CAPI.JobManager
         private readonly IDicomServices _dicomServices;
         private readonly IJobManagerFactory _jobManagerFactory;
         private readonly IValueComparer _valueComparer;
+        //private readonly ILog _log;
 
         /// <summary>
         /// Constructor
@@ -22,12 +23,15 @@ namespace CAPI.JobManager
         /// <param name="dicomServices"></param>
         /// <param name="jobManagerFactory"></param>
         /// <param name="valueComparer"></param>
+        /// <param name="log">Log4Net logger</param>
         public JobBuilder(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
             IValueComparer valueComparer)
+        //, ILog log)
         {
             _dicomServices = dicomServices;
             _jobManagerFactory = jobManagerFactory;
             _valueComparer = valueComparer;
+            //_log = log;
         }
 
         /// <summary>
@@ -51,6 +55,26 @@ namespace CAPI.JobManager
                 throw new ArgumentOutOfRangeException($"No studies could be found in node AET: [{sourceNode.AeTitle}]");
 
             // Get Current Study (Fixed)
+            var fixedSeriesBundle = GetFixedSeriesBundle(recipe, localNode, sourceNode, allStudiesForPatient);
+
+            var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
+
+            // Get Prior Study (Floating)
+            var floatingSeriesBundle =
+                GetFloatingSeriesBundle(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
+
+            var imageRepositoryPath = Configs.GetImageRepositoryPath();
+            var job = _jobManagerFactory.CreateJob(
+                fixedSeriesBundle, floatingSeriesBundle, recipe.IntegratedProcesses, recipe.Destinations,
+                imageRepositoryPath, localNode, sourceNode
+            );
+            return job;
+        }
+
+        private IJobSeriesBundle GetFixedSeriesBundle(
+            IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode,
+            IEnumerable<IDicomStudy> allStudiesForPatient)
+        {
             var fixedSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
             fixedSeriesBundle.Original.ParentDicomStudy =
                 string.IsNullOrEmpty(recipe.NewStudyAccession)
@@ -59,30 +83,25 @@ namespace CAPI.JobManager
 
             fixedSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
                 fixedSeriesBundle.Original.ParentDicomStudy, recipe.NewStudyCriteria, localNode, sourceNode);
-            var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
 
-            // Get Prior Study (Floating)
+            return fixedSeriesBundle;
+        }
+
+        private IJobSeriesBundle GetFloatingSeriesBundle(
+            IRecipe recipe, int studyFixedIndex, IDicomNode localNode, IDicomNode sourceNode,
+            IEnumerable<IDicomStudy> allStudiesForPatient)
+        {
             var floatingSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
             floatingSeriesBundle.Original.ParentDicomStudy =
                 string.IsNullOrEmpty(recipe.PriorStudyAccession)
-                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorStudyCriteria,
-                    studyFixedIndex, localNode, sourceNode)
-                : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorStudyAccession);
+                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorStudyCriteria,
+                        studyFixedIndex, localNode, sourceNode)
+                    : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorStudyAccession);
 
             floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
                 floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
 
-            var imageRepositoryPath = Configs.GetImageRepositoryPath();
-            var job = _jobManagerFactory.CreateJob(
-                fixedSeriesBundle,
-                floatingSeriesBundle,
-                recipe.IntegratedProcesses,
-                recipe.Destinations,
-                imageRepositoryPath,
-                localNode,
-                sourceNode
-            );
-            return job;
+            return floatingSeriesBundle;
         }
 
         /// <summary>
@@ -103,8 +122,18 @@ namespace CAPI.JobManager
 
             if (string.IsNullOrEmpty(recipe.NewStudyAccession))
                 throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
+
+            //try
+            //{
             var study = _dicomServices.GetStudyForAccession(recipe.NewStudyAccession, localNode, sourceNode);
             return study.PatientId;
+            //}
+            //catch
+            //{
+            //_log.Error($"Failed to find accession {recipe.NewStudyAccession} in source {recipe.SourceAet}");
+
+            //throw;
+            //}
         }
 
         /// <summary>

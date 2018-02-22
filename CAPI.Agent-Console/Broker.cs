@@ -1,9 +1,12 @@
-﻿using CAPI.DAL.Abstraction;
+﻿using CAPI.Agent_Console.Abstractions;
+using CAPI.Common;
+using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace CAPI.Agent_Console
@@ -26,12 +29,36 @@ namespace CAPI.Agent_Console
         }
 
         // Broker Entry Point
-        public static IEnumerable<PendingCase> GetPendingCasesFromCapiDb(int numberOfRowsToCheckInDb)
+        public static IEnumerable<IPendingCase> GetPendingCasesFromCapiDbHl7Added(int numberOfRowsToCheckInDb)
         {
             CopyAllUnprocessedCasesFromVtDb(numberOfRowsToCheckInDb);
 
-            var pendingCases = new PendingCase().GetPendingCapiCases()
+            var pendingCases = new PendingCase().GetRecentPendingCapiCases(false, numberOfRowsToCheckInDb)
                 .OrderBy(c => c.Accession).ToList();
+
+            return pendingCases;
+        }
+        public static IEnumerable<IPendingCase> GetPendingCasesFromCapiDbManuallyAdded(int numberOfCasesToCheck)
+        {
+            var allCapiCases = new PendingCase().GetAllCapiCases();
+
+            var manualProcessPath = Config.GetManualProcessPath();
+            var manuallyAddedAccessions = Directory.GetFiles(manualProcessPath).Select(Path.GetFileName).ToList();
+
+            // Add manually added accession if it doesn't exist in CAPI DB
+            var accessionToAdd = manuallyAddedAccessions.Where(mc => !allCapiCases.Any(ac => mc == ac.Accession));
+            foreach (var accession in accessionToAdd)
+                new PendingCase { Accession = accession }.AddToCapiDb(true); // also sets the status to 'Pending' and AdditionMethod to 'Manual'
+
+            // If manually added accession exists in CAPI DB THEN mark it as PENDING
+            var casesToUpdate = allCapiCases.Where(c => manuallyAddedAccessions.Contains(c.Accession));
+            foreach (var pendingCase in casesToUpdate)
+            {
+                pendingCase.SetStatus("Pending");
+                pendingCase.UpdateAdditionMethodToManual(true);
+            }
+
+            var pendingCases = new PendingCase().GetRecentPendingCapiCases(true, numberOfCasesToCheck);
 
             return pendingCases;
         }
@@ -56,7 +83,7 @@ namespace CAPI.Agent_Console
             }
         }
 
-        private static IEnumerable<PendingCase> GetLatestVtCasesNotProcessedByCapi(int numberOfCasesToCheck)
+        private static IEnumerable<IPendingCase> GetLatestVtCasesNotProcessedByCapi(int numberOfCasesToCheck)
         {
             var latestVtCases = new PendingCase().GetVtCases(numberOfCasesToCheck);
             var latestCapiCases = new PendingCase().GetCapiCases(numberOfCasesToCheck);
@@ -67,7 +94,7 @@ namespace CAPI.Agent_Console
                 .Where(c => !latestCapiAccessions.Contains(c.Accession));
         }
 
-        public bool ProcessCase(PendingCase pendingCase)
+        public bool ProcessCase(IPendingCase pendingCase)
         {
             try
             {
@@ -99,7 +126,7 @@ namespace CAPI.Agent_Console
                     StringComparison.CurrentCultureIgnoreCase));
         }
 
-        // Events // TODO3: Make JobProcessCompleted event to call JobLogContentReady i.e. remove duplication
+        // Events
         private static void JobProcessCompleted(object sender, IProcessEventArgument e)
         {
             JobLogContentReady(sender, new LogEventArgument { LogContent = e.LogContent });

@@ -1,4 +1,6 @@
-﻿using CAPI.DAL;
+﻿using CAPI.Agent_Console.Abstractions;
+using CAPI.Common;
+using CAPI.DAL;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
@@ -7,29 +9,31 @@ using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager;
 using CAPI.JobManager.Abstraction;
-using Nancy.Hosting.Self;
+using log4net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Timers;
 using Unity;
+using Unity.log4net;
+
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace CAPI.Agent_Console
 {
     internal static class Program
     {
         // Fields
+        private static readonly ILog Log = LogHelper.GetLogger();
         private static int _interval;
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
         private static UnityContainer _unityContainer;
-        private static NancyHost _nancy;
-        private const string Url = "http://localhost";
-        private const string Port = "81";
 
         private static void Main(string[] args)
         {
-            Log.Write("Agent started");
+            Log.Info("Agent Started");
 
             SetEnvironmentVariables();
 
@@ -37,16 +41,12 @@ namespace CAPI.Agent_Console
 
             GetFirstParamFromArgs(args);
 
-            SetFailedCasesStatusToPending(); // These are cases which failed in the middle of being processed - Set status to "Pending" so they get processed
+            SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
             Run(); // Run for the first time
             StartTimer();
 
-            var uri = new Uri($"{Url}:{Port}/");
-            _nancy = new NancyHost(uri);
-            //_nancy.Start();
-
-            Log.Write("Enter 'q' to quit!");
+            Agent_Console.Log.Write("Enter 'q' to quit!");
             while (Console.Read() != 'q') { }
         }
 
@@ -63,7 +63,7 @@ namespace CAPI.Agent_Console
                 }
                 catch
                 {
-                    Log.WriteError($"Failed to set case status from Processing/Queued to Pending. Accession: ${processingCase.Accession}");
+                    Agent_Console.Log.WriteError($"Failed to set case status from Processing/Queued to Pending. Accession: ${processingCase.Accession}");
                     throw;
                 }
             }
@@ -76,7 +76,7 @@ namespace CAPI.Agent_Console
             var timer = new Timer { Interval = _interval * 1000, Enabled = true };
             timer.Elapsed += OnTimeEvent;
             timer.Start();
-            Log.Write("Timer started");
+            Agent_Console.Log.Write("Timer started");
         }
         private static void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
@@ -84,29 +84,59 @@ namespace CAPI.Agent_Console
         }
         private static void Run()
         {
-            var completedCases = ProcessAllPendingCases(out var failedCases);
+            var thisMachineProcessesManualCases = Config.GetProcessManuallyAddedCases() == "1";
 
-            foreach (var completedCase in completedCases)
-                Log.Write($"Job completed for accession {completedCase.Accession}");
+            var pendingCasesHl7Added = Broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
+            var completedCasesAll = ProcessAllPendingCases(pendingCasesHl7Added, out var failedCasesAll).ToList();
 
-            foreach (var failedCase in failedCases)
+            if (thisMachineProcessesManualCases)
             {
-                Log.Write($"Job failed for accession {failedCase.Accession}");
-                Log.Exception(failedCase.Exception);
+                var pendingCasesManuallyAdded =
+                    Broker.GetPendingCasesFromCapiDbManuallyAdded(_numberOfCasesToCheck).ToList();
+                var completedCasesManual =
+                    ProcessAllPendingCases(pendingCasesManuallyAdded, out var failedCasesManual).ToList();
+
+                completedCasesAll.AddRange(completedCasesManual);
+                failedCasesAll.AddRange(failedCasesManual);
+
+                DeleteManuallyAddedCompletedFiles(completedCasesManual);
             }
 
-            Log.Write($"Checking for new cases in {_interval} seconds...");
+            LogProcessedCases(completedCasesAll, failedCasesAll);
         }
-        // Main Process
-        private static IEnumerable<PendingCase> ProcessAllPendingCases(out List<PendingCase> failedCases)
+
+        private static void DeleteManuallyAddedCompletedFiles(IEnumerable<IPendingCase> completedCasesManual)
         {
-            failedCases = new List<PendingCase>();
-            var completedCases = new List<PendingCase>();
+            var manualProcessPath = Config.GetManualProcessPath();
+            var manualProcessFiles = Directory.GetFiles(manualProcessPath);
+            manualProcessFiles
+                .Where(f => completedCasesManual.Select(c => c.Accession).Contains(Path.GetFileName(f)))
+                .ToList()
+                .ForEach(File.Delete);
+        }
+
+        private static void LogProcessedCases(
+            IEnumerable<IPendingCase> completedCases, IEnumerable<IPendingCase> failedCases)
+        {
+            foreach (var completedCase in completedCases)
+                Log.Info($"Job completed for accession {completedCase.Accession}");
+
+            foreach (var failedCase in failedCases)
+                Log.Error($"Job failed for accession {failedCase.Accession}", failedCase.Exception);
+
+            Log.Info($"Checking for new cases in {_interval} seconds...");
+        }
+
+        // Main Process
+        private static IEnumerable<IPendingCase> ProcessAllPendingCases
+            (IList<IPendingCase> pendingCases, out List<IPendingCase> failedCases)
+        {
+            failedCases = new List<IPendingCase>();
+            var completedCases = new List<IPendingCase>();
             var broker = GetBroker();
 
-            // Get Pending Cases and return an empty list if nothing found
-            var pendingCases = Broker.GetPendingCasesFromCapiDb(_numberOfCasesToCheck).ToList();
-            if (pendingCases.Count < 1) return completedCases;
+            // Return an empty list if no pending case is found
+            if (!pendingCases.Any()) return completedCases;
 
             // Set status of all pending cases to Queued
             foreach (var pendingCase in pendingCases) pendingCase.SetStatus("Queued");
@@ -123,7 +153,7 @@ namespace CAPI.Agent_Console
                 }
                 else
                 {
-                    pendingCase.SetStatus("Pending");
+                    pendingCase.SetStatus("Failed");
                     failedCases.Add(pendingCase);
                 }
             }
@@ -177,9 +207,9 @@ namespace CAPI.Agent_Console
         // Unity
         private static void InitializeUnity()
         {
-            _unityContainer = new UnityContainer();
+            _unityContainer = (UnityContainer)new UnityContainer()
+                .AddNewExtension<Log4NetExtension>();
             RegisterClasses();
-
         }
         private static void RegisterClasses()
         {
@@ -196,6 +226,7 @@ namespace CAPI.Agent_Console
             _unityContainer.RegisterType<ISeriesSelectionCriteria, SeriesSelectionCriteria>();
             _unityContainer.RegisterType<IIntegratedProcess, IntegratedProcess>();
             _unityContainer.RegisterType<IDestination, Destination>();
+
             _unityContainer.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             _unityContainer.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
             _unityContainer.RegisterType<IValueComparer, ValueComparer>();
