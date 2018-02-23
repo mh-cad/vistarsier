@@ -22,41 +22,5 @@ namespace CAPI.ImageProcessing.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("dcm2nii.exe")]
-        public string Dcm2NiiExe {
-            get {
-                return ((string)(this["Dcm2NiiExe"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-n N -f Y -r N")]
-        public string Dcm2NiiHdrParams {
-            get {
-                return ((string)(this["Dcm2NiiHdrParams"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-n Y -f Y -r N -g N")]
-        public string Dcm2NiiNiiParams {
-            get {
-                return ((string)(this["Dcm2NiiNiiParams"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("miconv.exe")]
-        public string MiconvFileName {
-            get {
-                return ((string)(this["MiconvFileName"]));
-            }
-        }
     }
 }

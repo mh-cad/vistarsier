@@ -1,8 +1,8 @@
 ﻿using Microsoft.Win32;
 
-namespace CAPI.Common
+namespace CAPI.Common.Config
 {
-    public static class Config
+    public static class ImgProc
     {
         private const string RegistryKeyPath = "SOFTWARE\\CAPI\\ImageProcessing";
         private static readonly RegistryKey RegKey = Registry.LocalMachine.OpenSubKey(RegistryKeyPath);
@@ -38,9 +38,13 @@ namespace CAPI.Common
         {
             return RegKey?.GetValue("ManualProcessPath").ToString() ?? "";
         }
-        public static string GetProcessManuallyAddedCases()
+        public static string GetProcessCasesAddedManually()
         {
-            return RegKey?.GetValue("ProcessManuallyAddedCases").ToString() ?? "";
+            return RegKey?.GetValue("ProcessCasesAddedManually").ToString() ?? "";
+        }
+        public static string GetProcessCasesAddedByHl7()
+        {
+            return RegKey?.GetValue("ProcessCasesAddedByHL7").ToString() ?? "";
         }
     }
 }

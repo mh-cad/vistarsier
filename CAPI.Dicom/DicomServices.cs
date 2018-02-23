@@ -1,4 +1,4 @@
-﻿using CAPI.Common;
+﻿using CAPI.Common.Config;
 using CAPI.Common.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
@@ -21,7 +21,7 @@ namespace CAPI.Dicom
 
         public DicomServices()
         {
-            _executablesPath = Config.GetExecutablesPath();
+            _executablesPath = ImgProc.GetExecutablesPath();
         }
 
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";

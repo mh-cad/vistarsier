@@ -26,7 +26,7 @@ namespace CAPI.UI.Models
             //    FilesList = Directory.GetFiles(dicomSeries.FolderPath)
             //        .Select(f =>
             //        {
-            //            var imgRepPathLength = Config.GetImageRepositoryPath().Length + 1;
+            //            var imgRepPathLength = ImgProc.GetImageRepositoryPath().Length + 1;
             //            var filePathLength = f.Length;
             //            return f.Substring(imgRepPathLength, filePathLength - imgRepPathLength);
             //        }).ToArray() // TODO1: Modify to reflect relative path to files in the website

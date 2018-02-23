@@ -22,7 +22,6 @@ namespace CAPI.JobManager
         private readonly IDicomNode _localNode;
         private readonly IDicomNode _remoteNode;
         private readonly IImageConverter _imageConverter;
-        private readonly IImageProcessor _imageProcessor;
         private readonly IDicomNodeRepository _dicomNodeRepository;
         private readonly ILog _log;
 
@@ -50,11 +49,10 @@ namespace CAPI.JobManager
         /// <param name="localNode"></param>
         /// <param name="remoteNode"></param>
         /// <param name="imageConverter"></param>
-        /// <param name="imageProcessor"></param>
         /// <param name="dicomNodeRepository"></param>
         public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
-            IImageConverter imageConverter, IImageProcessor imageProcessor,
+            IImageConverter imageConverter,
             IDicomNodeRepository dicomNodeRepository)
         {
             _jobManagerFactory = jobManagerFactory;
@@ -62,7 +60,6 @@ namespace CAPI.JobManager
             _localNode = localNode;
             _remoteNode = remoteNode;
             _imageConverter = imageConverter;
-            _imageProcessor = imageProcessor;
             _dicomNodeRepository = dicomNodeRepository;
             _log = LogHelper.GetLogger();
 
@@ -79,82 +76,88 @@ namespace CAPI.JobManager
 
         public void Run()
         {
-            _log.Info("Started processing job");
+            var accession = DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber;
+
+            _log.Info($"Started processing job for accession [{accession}] ...");
 
             try
             {
-                _log.Info("Receiving dicom files from source");
                 FetchSeriesAndSaveToDisk();
+
+                // Process each integrated process
+                foreach (var integratedProcess in IntegratedProcesses)
+                {
+                    switch (integratedProcess.Type)
+                    {
+                        case IntegratedProcessType.ExtractBrainSurface:
+                            DicomSeriesFixed.Original =
+                                HdrFileDoesExist(DicomSeriesFixed.Original, "Fixed");
+
+                            DicomSeriesFloating.Original =
+                                HdrFileDoesExist(DicomSeriesFloating.Original, "Floating");
+
+                            RunExtractBrainSurfaceProcess(integratedProcess);
+                            break;
+                        case IntegratedProcessType.Registeration:
+                            DicomSeriesFixed.Transformed =
+                                NiiFileDoesExist(DicomSeriesFixed.Original,
+                                    DicomSeriesFixed.Transformed);
+
+                            DicomSeriesFloating.Transformed =
+                                NiiFileDoesExist(DicomSeriesFloating.Original,
+                                    DicomSeriesFloating.Transformed);
+
+                            RunRegistrationProcess(integratedProcess);
+                            break;
+                        case IntegratedProcessType.TakeDifference:
+                            // Brain Mask Nii Exists!
+                            DicomSeriesFixed.BrainMask = NiiFileDoesExist(
+                                DicomSeriesFixed.Original, DicomSeriesFixed.BrainMask);
+
+                            DicomSeriesFloating.BrainMask = NiiFileDoesExist(
+                                DicomSeriesFloating.Original, DicomSeriesFloating.BrainMask);
+
+                            RunTakeDifference(integratedProcess);
+                            break;
+                        case IntegratedProcessType.ColorMap:
+                            RunColorMap(integratedProcess);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                } // TODO2: Add logging to integrated processes
+
+                var dicomServices = _dicomFactory.CreateDicomServices();
+
+                // TODO2: Add logging to dicom services
+                NegativeOverlay.DicomFolderPath = NegativeOverlay.BmpFolderPath + "_dcm";
+                dicomServices.ConvertBmpsToDicom(
+                    NegativeOverlay.BmpFolderPath, $@"{NegativeOverlay.DicomFolderPath}",
+                    DicomSeriesFixed.Original.DicomFolderPath);
+
+                PositiveOverlay.DicomFolderPath = PositiveOverlay.BmpFolderPath + "_dcm";
+                dicomServices.ConvertBmpsToDicom(
+                    PositiveOverlay.BmpFolderPath, $@"{PositiveOverlay.DicomFolderPath}",
+                    DicomSeriesFixed.Original.DicomFolderPath);
+
+                UpdateDicomHeaders();
+
+                SendDicomFilesToDestinations();
+
+                DeleteDirectoryInImageRepo(OutputFolderPath);
+
+                _log.Info($"Finished processing job for accession [{accession}] successfully.");
             }
             catch (Exception ex)
             {
-                _log.Info("Failed to retreive images from PACS!", ex);
+                _log.Error($"Job failed for accession [{accession}] ...", ex);
                 throw;
             }
-
-            foreach (var integratedProcess in IntegratedProcesses)
-            {
-                switch (integratedProcess.Type)
-                {
-                    case IntegratedProcessType.ExtractBrainSurface:
-                        DicomSeriesFixed.Original =
-                            HdrFileDoesExist(DicomSeriesFixed.Original, "Fixed");
-
-                        DicomSeriesFloating.Original =
-                            HdrFileDoesExist(DicomSeriesFloating.Original, "Floating");
-
-                        RunExtractBrainSurfaceProcess(integratedProcess);
-                        break;
-                    case IntegratedProcessType.Registeration:
-                        DicomSeriesFixed.Transformed =
-                            NiiFileDoesExist(DicomSeriesFixed.Original,
-                                DicomSeriesFixed.Transformed);
-
-                        DicomSeriesFloating.Transformed =
-                            NiiFileDoesExist(DicomSeriesFloating.Original,
-                                DicomSeriesFloating.Transformed);
-
-                        RunRegistrationProcess(integratedProcess);
-                        break;
-                    case IntegratedProcessType.TakeDifference:
-                        // Brain Mask Nii Exists!
-                        DicomSeriesFixed.BrainMask = NiiFileDoesExist(
-                            DicomSeriesFixed.Original, DicomSeriesFixed.BrainMask);
-
-                        DicomSeriesFloating.BrainMask = NiiFileDoesExist(
-                            DicomSeriesFloating.Original, DicomSeriesFloating.BrainMask);
-
-                        RunTakeDifference(integratedProcess);
-                        break;
-                    case IntegratedProcessType.ColorMap:
-                        RunColorMap(integratedProcess);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            var dicomServices = _dicomFactory.CreateDicomServices();
-
-            NegativeOverlay.DicomFolderPath = NegativeOverlay.BmpFolderPath + "_dcm";
-            dicomServices.ConvertBmpsToDicom(
-                NegativeOverlay.BmpFolderPath, $@"{NegativeOverlay.DicomFolderPath}",
-                DicomSeriesFixed.Original.DicomFolderPath);
-
-            PositiveOverlay.DicomFolderPath = PositiveOverlay.BmpFolderPath + "_dcm";
-            dicomServices.ConvertBmpsToDicom(
-                PositiveOverlay.BmpFolderPath, $@"{PositiveOverlay.DicomFolderPath}",
-                DicomSeriesFixed.Original.DicomFolderPath);
-
-            UpdateDicomHeaders();
-
-            SendDicomFilesToDestinations();
-
-            Directory.Delete(OutputFolderPath, true);
         }
 
         private void FetchSeriesAndSaveToDisk()
         {
+            _log.Info("Receiving dicom files from source");
             var dicomServices = _dicomFactory.CreateDicomServices();
             dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);
 
@@ -170,6 +173,7 @@ namespace CAPI.JobManager
             DicomSeriesFloating.Original.DicomFolderPath =
                 SaveSeriesToDisk(OutputFolderPath, "Floating",
                     DicomSeriesFloating.Original.ParentDicomStudy, dicomServices);
+
         }
         private string SaveSeriesToDisk(string outputPath, string seriesPrefix,
             IDicomStudy study, IDicomServices dicomServices)
@@ -177,9 +181,27 @@ namespace CAPI.JobManager
             var series = study.Series.ToList().FirstOrDefault();
 
             // Retrieve Series From Pacs
-            dicomServices.SaveSeriesToLocalDisk(series, outputPath, _localNode, _remoteNode);
+            try
+            {
+                dicomServices.SaveSeriesToLocalDisk(series, outputPath, _localNode, _remoteNode);
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to retrieve images from PACS for series [{series?.SeriesDescription}]", ex);
+                throw;
+            }
 
-            var newDicomFolderPath = RenameFolders(outputPath, series, seriesPrefix, 0);
+            // Rename folders
+            string newDicomFolderPath;
+            try
+            {
+                newDicomFolderPath = RenameFolders(outputPath, series, seriesPrefix, 0);
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to rename folders for series [{series?.SeriesDescription}]", ex);
+                throw;
+            }
 
             return newDicomFolderPath;
         }
@@ -315,35 +337,60 @@ namespace CAPI.JobManager
         {
             foreach (var destination in Destinations)
             {
-                destination.DicomNode = _dicomNodeRepository.GetAll()
-                    .FirstOrDefault(n => n.AeTitle == destination.AeTitle);
-
-                if (string.IsNullOrEmpty(destination.AeTitle))
-                // AET is not defined
+                try
                 {
-                    var directoryName = Path.GetFileName(OutputFolderPath);
-                    var targetDirectory = $@"{destination.FolderPath}\{directoryName}";
-                    _log.Info($"Copying files to {targetDirectory}");
+                    destination.DicomNode = _dicomNodeRepository.GetAll()
+                        .FirstOrDefault(n => n.AeTitle == destination.AeTitle);
 
-                    FileSystem.CopyDirectory(OutputFolderPath, targetDirectory);
+                    if (string.IsNullOrEmpty(destination.AeTitle))
+                    // AET is not defined
+                    {
+                        var directoryName = Path.GetFileName(OutputFolderPath);
+                        var targetDirectory = $@"{destination.FolderPath}\{directoryName}";
+                        _log.Info($"Copying files to {targetDirectory}...");
+                        FileSystem.CopyDirectory(OutputFolderPath, targetDirectory);
+                        _log.Info($"Finished copying files to destination successfully [{targetDirectory}]");
+                    }
+                    else
+                    // AET is defined
+                    {
+                        _log.Info($"Sending files to Dicom node AET: [{destination.AeTitle}] ...");
+
+                        var dicomServices = _dicomFactory.CreateDicomServices();
+
+                        var negativeFiles = Directory.GetFiles(NegativeOverlay.DicomFolderPath);
+                        foreach (var negativeFile in negativeFiles)
+                            dicomServices.SendDicomFile(negativeFile, _localNode.AeTitle, destination.DicomNode);
+
+                        var positiveFiles = Directory.GetFiles(PositiveOverlay.DicomFolderPath);
+                        foreach (var positiveFile in positiveFiles)
+                            dicomServices.SendDicomFile(positiveFile, _localNode.AeTitle, destination.DicomNode);
+
+                        _log.Info($"Finished sending files to Dicom node AET: [{destination.AeTitle}]");
+                    }
                 }
-                else
-                // AET is defined
+                catch (Exception ex)
                 {
-                    _log.Info($"Sending files to Dicom node AET: {destination.AeTitle}");
-
-                    var dicomServices = _dicomFactory.CreateDicomServices();
-
-                    var negativeFiles = Directory.GetFiles(NegativeOverlay.DicomFolderPath);
-                    foreach (var negativeFile in negativeFiles)
-                        dicomServices.SendDicomFile(negativeFile, _localNode.AeTitle, destination.DicomNode);
-
-                    var positiveFiles = Directory.GetFiles(PositiveOverlay.DicomFolderPath);
-                    foreach (var positiveFile in positiveFiles)
-                        dicomServices.SendDicomFile(positiveFile, _localNode.AeTitle, destination.DicomNode);
-
-                    _log.Info($"Finished sending files to Dicom node AET: {destination.AeTitle}");
+                    _log.Error(
+                        !string.IsNullOrEmpty(destination.AeTitle)
+                            ? $"Failed to send images to AET [{destination.AeTitle}]"
+                            : $"Failed to copy files to folder [{destination.FolderPath}]", ex);
+                    throw;
                 }
+            }
+
+        }
+
+        private void DeleteDirectoryInImageRepo(string outputFolderPath)
+        {
+            try
+            {
+                Directory.Delete(OutputFolderPath, true);
+            }
+            catch
+            {
+                _log.Error($"Failed to delete folder: [{outputFolderPath}]");
+                throw;
             }
         }
 

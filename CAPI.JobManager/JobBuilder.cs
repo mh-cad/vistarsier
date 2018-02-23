@@ -1,11 +1,11 @@
-﻿using CAPI.Dicom.Abstraction;
+﻿using CAPI.Common.Config;
+using CAPI.Dicom.Abstraction;
 using CAPI.JobManager.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using Configs = CAPI.Common.Config;
 
 namespace CAPI.JobManager
 {
@@ -56,6 +56,8 @@ namespace CAPI.JobManager
 
             // Get Current Study (Fixed)
             var fixedSeriesBundle = GetFixedSeriesBundle(recipe, localNode, sourceNode, allStudiesForPatient);
+            if (fixedSeriesBundle.Original.ParentDicomStudy == null)
+                throw new Exception("No workable historical series were found");
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
 
@@ -63,7 +65,10 @@ namespace CAPI.JobManager
             var floatingSeriesBundle =
                 GetFloatingSeriesBundle(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
-            var imageRepositoryPath = Configs.GetImageRepositoryPath();
+            if (floatingSeriesBundle.Original.ParentDicomStudy == null)
+                throw new Exception("No workable historical series were found");
+
+            var imageRepositoryPath = ImgProc.GetImageRepositoryPath();
             var job = _jobManagerFactory.CreateJob(
                 fixedSeriesBundle, floatingSeriesBundle, recipe.IntegratedProcesses, recipe.Destinations,
                 imageRepositoryPath, localNode, sourceNode

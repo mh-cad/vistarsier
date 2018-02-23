@@ -1,4 +1,4 @@
-﻿using CAPI.Common;
+﻿using CAPI.Common.Config;
 using CAPI.Common.Services;
 using CAPI.ImageProcessing.Abstraction;
 using System;
@@ -19,19 +19,19 @@ namespace CAPI.ImageProcessing
 
         public ImageConverter()
         {
-            var dcm2NiiExe = Properties.Settings.Default.Dcm2NiiExe;
-            _dcm2NiiHdrParams = Properties.Settings.Default.Dcm2NiiHdrParams;
-            _dcm2NiiNiiParams = Properties.Settings.Default.Dcm2NiiNiiParams;
-            var miconvFileName = Properties.Settings.Default.MiconvFileName;
+            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExe();
+            _dcm2NiiHdrParams = ImgProcConfig.GetDcm2NiiHdrParams();
+            _dcm2NiiNiiParams = ImgProcConfig.GetDcm2NiiNiiParams();
+            var miconvFileName = ImgProcConfig.GetMiconvFileName();
 
-            var javaUtilsPath = Config.GetJavaUtilsPath();
+            var javaUtilsPath = ImgProc.GetJavaUtilsPath();
             _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
                              $"{javaUtilsPath}/lib/vecmath.jar;{javaUtilsPath}/lib/ij.jar";
 
-            var executablesPath = Config.GetExecutablesPath();
+            var executablesPath = ImgProc.GetExecutablesPath();
             _dicom2NiiFullPath = Path.Combine(executablesPath, dcm2NiiExe);
             _miconvFullPath = Path.Combine(executablesPath, "odin", miconvFileName); // TODO3: Hard-coded path
-            var imageRepoDir = Config.GetImageRepositoryPath();
+            var imageRepoDir = ImgProc.GetImageRepositoryPath();
             _viewableDir = $"{imageRepoDir}\\Viewable"; // TODO3: Hard-coded path
         }
 

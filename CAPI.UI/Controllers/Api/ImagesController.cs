@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Mvc;
+using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
 using Unity;
 
@@ -21,7 +22,7 @@ namespace CAPI.UI.Controllers.Api
             var response = new Response();
             try
             {
-                var imageRepDirPath = Config.GetImageRepositoryPath();
+                var imageRepDirPath = ImgProc.GetImageRepositoryPath();
                 var seriesList = (
                     from seriesDirName 
                     in seriesDirNames
@@ -44,7 +45,7 @@ namespace CAPI.UI.Controllers.Api
             var response = new Response();
             try
             {
-                var imageRepDirPath = Config.GetImageRepositoryPath();
+                var imageRepDirPath = ImgProc.GetImageRepositoryPath();
                 var dicomDir = $"{imageRepDirPath}\\Dicom";
                 if (!Directory.Exists(dicomDir)) throw new DirectoryNotFoundException(dicomDir);
                 var seriesList = (
@@ -68,7 +69,7 @@ namespace CAPI.UI.Controllers.Api
         {
             var files = (seriesDetails["files"] as JArray)?.Select(x => x.Value<string>()).ToList();
             var seriesName = seriesDetails["seriesName"].Value;
-            var imageRepoPath = Config.GetImageRepositoryPath();
+            var imageRepoPath = ImgProc.GetImageRepositoryPath();
             var response = new Response();
             try
             {
