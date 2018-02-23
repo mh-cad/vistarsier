@@ -6,8 +6,10 @@ using CAPI.JobManager.Abstraction;
 using log4net;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.Protocols;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
@@ -177,17 +179,37 @@ namespace CAPI.JobManager
             // Retrieve Series From Pacs
             dicomServices.SaveSeriesToLocalDisk(series, outputPath, _localNode, _remoteNode);
 
-            // Rename Study Folder Name to Fixed/Floating (Series Prefix)
-            var studyFolderPath = $@"{outputPath}\{series?.StudyInstanceUid}";
-            var newStudyPath = $@"{outputPath}\{seriesPrefix}";
-            if (Directory.Exists(studyFolderPath))
-                Directory.Move(studyFolderPath, newStudyPath);
+            var newDicomFolderPath = RenameFolders(outputPath, series, seriesPrefix, 0);
 
-            // Rename Dicom Series Folder Name
-            var dicomFolderPath = $@"{newStudyPath}\{series?.SeriesInstanceUid}";
-            var newDicomFolderPath = $@"{newStudyPath}\Dicom";
-            if (Directory.Exists(dicomFolderPath))
-                Directory.Move(dicomFolderPath, newDicomFolderPath);
+            return newDicomFolderPath;
+        }
+        private static string RenameFolders(string outputPath, IDicomSeries series,
+            string seriesPrefix, int tryCount)
+        {
+            if (tryCount > 2) throw new DirectoryException("Failed to rename folders");
+
+            var newDicomFolderPath = string.Empty;
+            try
+            {
+                // Rename Study Folder Name to Fixed/Floating (Series Prefix)
+                var studyFolderPath = $@"{outputPath}\{series?.StudyInstanceUid}";
+                var newStudyPath = $@"{outputPath}\{seriesPrefix}";
+                if (Directory.Exists(studyFolderPath))
+                    Directory.Move(studyFolderPath, newStudyPath);
+
+                // Rename Dicom Series Folder Name
+                var dicomFolderPath = $@"{newStudyPath}\{series?.SeriesInstanceUid}";
+                newDicomFolderPath = $@"{newStudyPath}\Dicom";
+                if (Directory.Exists(dicomFolderPath))
+                    Directory.Move(dicomFolderPath, newDicomFolderPath);
+            }
+            catch
+            {
+                tryCount++;
+                Thread.Sleep(1000);
+                RenameFolders(outputPath, series, seriesPrefix, tryCount);
+                return newDicomFolderPath;
+            }
 
             return newDicomFolderPath;
         }
@@ -265,29 +287,28 @@ namespace CAPI.JobManager
             colorMapProcess.Run(this as IJob<IRecipe>);
         }
 
-        private void UpdateDicomHeaders() //TODO3: Improve the code - remove duplicates
+        private void UpdateDicomHeaders()
         {
             _log.Info("Updating Dicom Headers");
-            var dicomServices = _dicomFactory.CreateDicomServices();
 
             // Update Negative Folder
-            var seriesDescription = DecreasedSignalSeriesName;
-            var negativeFiles =
-                Directory.GetFiles($@"{OutputFolderPath}\{NegativeDcmFolderName}");
-
-            var negDicomTags = _dicomFactory.CreateDicomTagCollection();
-            negDicomTags.SeriesDescription.Values = new[] { seriesDescription };
-            dicomServices.UpdateSeriesHeadersForAllFiles(negativeFiles, negDicomTags);
+            UpdateDicomHeaders(OutputFolderPath, NegativeDcmFolderName, DecreasedSignalSeriesName);
+            _log.Info("Finished updating decreased signal dicom headers");
 
             // Update Positive Folder
-            seriesDescription = IncreasedSignalSeriesName;
-            var positiveFiles =
-                Directory.GetFiles($@"{OutputFolderPath}\{PositiveDcmFolderName}");
+            UpdateDicomHeaders(OutputFolderPath, PositiveDcmFolderName, IncreasedSignalSeriesName);
+            _log.Info("Finished updating increased signal dicom headers");
+        }
+        private void UpdateDicomHeaders(string outputFolderPath, string dicomFolderName, string seriesName)
+        {
+            var dicomServices = _dicomFactory.CreateDicomServices();
 
-            var posDicomTags = _dicomFactory.CreateDicomTagCollection();
-            posDicomTags.SeriesDescription.Values = new[] { seriesDescription };
-            dicomServices.UpdateSeriesHeadersForAllFiles(positiveFiles, posDicomTags);
-            _log.Info("Updated Dicom Headers");
+            var dicomFiles = Directory.GetFiles($@"{outputFolderPath}\{dicomFolderName}");
+
+            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+            dicomTags.SeriesDescription.Values = new[] { seriesName };
+
+            dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
         }
 
         private void SendDicomFilesToDestinations()
@@ -298,8 +319,14 @@ namespace CAPI.JobManager
                     .FirstOrDefault(n => n.AeTitle == destination.AeTitle);
 
                 if (string.IsNullOrEmpty(destination.AeTitle))
-                    // AET is not defined
-                    FileSystem.CopyDirectory(OutputFolderPath, destination.FolderPath);
+                // AET is not defined
+                {
+                    var directoryName = Path.GetFileName(OutputFolderPath);
+                    var targetDirectory = $@"{destination.FolderPath}\{directoryName}";
+                    _log.Info($"Copying files to {targetDirectory}");
+
+                    FileSystem.CopyDirectory(OutputFolderPath, targetDirectory);
+                }
                 else
                 // AET is defined
                 {
@@ -324,20 +351,6 @@ namespace CAPI.JobManager
         {
             OnEachProcessCompleted?.Invoke(sender, e);
         }
-
-        //private void Log(string logContent, Exception exception = null)
-        //{
-        //    var accession = DicomSeriesFixed.Original.ParentDicomStudy.AccessionNumber;
-
-        //    OnLogContentReady?.Invoke(this, new LogEventArgument
-        //    {
-        //        LogContent = $"[{accession}] {logContent}",
-        //        Exception = exception
-        //    });
-
-        //    if (exception == null) _log.Info(logContent);
-        //    else _log.Error(logContent, exception);
-        //}
 
         public event EventHandler<IProcessEventArgument> OnEachProcessCompleted;
         public event EventHandler<ILogEventArgument> OnLogContentReady;

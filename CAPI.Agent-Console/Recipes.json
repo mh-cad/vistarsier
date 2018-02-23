@@ -16,7 +16,7 @@
         "Id": "1",
         "Version": "1",
         "Parameters": [
-          "-n 3 -d 25 -s 0.6 -r 1 --trim"
+          "-n 3 -d 25 -s 0.58 -r 1 --trim"
         ]
       },
       {
