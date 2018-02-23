@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
-using Configs = CAPI.Common.Config;
+using CAPI.Common.Config;
 
 namespace CAPI.IntegratedTests.Config
 {
@@ -11,7 +11,7 @@ namespace CAPI.IntegratedTests.Config
 
         public ConfigsIntegratedTests()
         {
-            _executablesPath = Configs.GetExecutablesPath();
+            _executablesPath = ImgProc.GetExecutablesPath();
         }
 
         [TestMethod]
@@ -29,7 +29,7 @@ namespace CAPI.IntegratedTests.Config
         public void JavaExeFileExists()
         {
             // Act
-            var javaBinPath = Configs.GetJavaExePath();
+            var javaBinPath = ImgProc.GetJavaExePath();
             var javaBinFileExists = File.Exists(javaBinPath);
             // Assert
             Assert.IsTrue(javaBinFileExists);
@@ -39,7 +39,7 @@ namespace CAPI.IntegratedTests.Config
         public void ProcessesLogPathExists()
         {
             // Act
-            var processesLogPath = Configs.GetProcessesLogPath();
+            var processesLogPath = ImgProc.GetProcessesLogPath();
             var procLogPathExists = Directory.Exists(processesLogPath);
             // Assert
             Assert.IsTrue(procLogPathExists);
@@ -49,7 +49,7 @@ namespace CAPI.IntegratedTests.Config
         public void ImageRepositoryFolderPathExists()
         {
             // Act
-            var imgRepositoryPath = Configs.GetProcessesLogPath();
+            var imgRepositoryPath = ImgProc.GetProcessesLogPath();
             var imgRepositoryPathExists = Directory.Exists(imgRepositoryPath);
             // Assert
             Assert.IsTrue(imgRepositoryPathExists);

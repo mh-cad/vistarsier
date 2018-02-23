@@ -44,7 +44,7 @@ namespace CAPI.Common.Services
         public static 
             void CallJava(string arguments, string methodCalled, string workingDir = "")
         {
-            var javaFullPath = Config.GetJavaExePath();
+            var javaFullPath = Config.ImgProc.GetJavaExePath();
             var javaFileNamExt = javaFullPath.Split('\\').LastOrDefault();
             var javaFolderPath = javaFullPath.Replace($"\\{javaFileNamExt}","");
 

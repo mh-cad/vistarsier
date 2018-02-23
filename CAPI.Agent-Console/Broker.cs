@@ -1,5 +1,5 @@
 ﻿using CAPI.Agent_Console.Abstractions;
-using CAPI.Common;
+using CAPI.Common.Config;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.JobManager;
@@ -45,7 +45,7 @@ namespace CAPI.Agent_Console
         {
             var allCapiCases = new PendingCase().GetAllCapiCases();
 
-            var manualProcessPath = Config.GetManualProcessPath();
+            var manualProcessPath = ImgProc.GetManualProcessPath();
             var manuallyAddedAccessions = Directory.GetFiles(manualProcessPath).Select(Path.GetFileName).ToList();
 
             // Add manually added accession if it doesn't exist in CAPI DB
@@ -90,13 +90,16 @@ namespace CAPI.Agent_Console
 
         private static IEnumerable<IPendingCase> GetLatestVtCasesNotProcessedByCapi(int numberOfCasesToCheck)
         {
-            var latestVtCases = new PendingCase().GetVtCases(numberOfCasesToCheck);
-            var latestCapiCases = new PendingCase().GetCapiCases(numberOfCasesToCheck);
-            var latestCapiAccessions = latestCapiCases.Select(c => c.Accession);
+            var latestVtCases = new PendingCase().GetVtCases(numberOfCasesToCheck).ToList();
+            var latestCapiAccessions = new PendingCase().GetCapiCases(numberOfCasesToCheck)
+                .Select(c => c.Accession);
 
-            return latestVtCases
-                .Where(c => c.Status.ToLower() == "case created")
-                .Where(c => !latestCapiAccessions.Contains(c.Accession));
+            var vtCasesNotProcessed =
+                latestVtCases
+                .Where(c => c.Status.ToLower() == "case created"
+                    && !latestCapiAccessions.Contains(c.Accession));
+
+            return vtCasesNotProcessed;
         }
 
         public bool ProcessCase(IPendingCase pendingCase)
@@ -104,7 +107,8 @@ namespace CAPI.Agent_Console
             try
             {
                 var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
-                if (recipe != null) recipe.NewStudyAccession = pendingCase.Accession;
+                if (recipe != null && string.IsNullOrEmpty(recipe.NewStudyAccession))
+                    recipe.NewStudyAccession = pendingCase.Accession;
 
                 var localDicomNode = GetLocalNode();
                 var sourceNode = _dicomNodeRepo.GetAll()
@@ -117,9 +121,9 @@ namespace CAPI.Agent_Console
                 job.Run();
                 return true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                pendingCase.Exception = e;
+                pendingCase.Exception = ex;
                 return false;
             }
         }

@@ -43,11 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
+    <Compile Include="Config\Hl7.cs" />
+    <Compile Include="Config\ImgProc.cs" />
     <Compile Include="Services\FileSystem.cs" />
     <Compile Include="Services\Logger.cs" />
     <Compile Include="Services\ProcessBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

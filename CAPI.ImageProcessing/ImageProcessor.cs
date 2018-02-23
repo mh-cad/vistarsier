@@ -1,4 +1,4 @@
-﻿using CAPI.Common;
+﻿using CAPI.Common.Config;
 using CAPI.Common.Services;
 using CAPI.ImageProcessing.Abstraction;
 using System;
@@ -15,7 +15,7 @@ namespace CAPI.ImageProcessing
 
         private readonly string _executablesPath;
         private readonly string _javaClassPath;
-        private const string Fixed = "fixed"; // TODO3: Hard-coded name
+        private const string Fixed = "fixed";
         private const string Floating = "floating";
         private readonly string _fixedDicomPath;
         private readonly string _processesRootDir;
@@ -74,16 +74,16 @@ namespace CAPI.ImageProcessing
 
         public ImageProcessor()
         {
-            _executablesPath = Config.GetExecutablesPath();
-            var javaUtilsPath = Config.GetJavaUtilsPath();
+            _executablesPath = ImgProc.GetExecutablesPath();
+            var javaUtilsPath = ImgProc.GetJavaUtilsPath();
             _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
                 $"{javaUtilsPath}/lib/vecmath.jar;{javaUtilsPath}/lib/ij.jar";
-            _processesRootDir = Config.GetProcessesRootDir();
+            _processesRootDir = ImgProc.GetProcessesRootDir();
         }
 
         public static void RunAll()
         {
-            ProcessBuilder.CallExecutableFile($@"{Config.GetProcessesRootDir()}\_runall.bat", "");
+            ProcessBuilder.CallExecutableFile($@"{ImgProc.GetProcessesRootDir()}\_runall.bat", "");
         } // TODO3: To be checked if this is stil working
 
         public string ConvertDicom2Hdr(string dicomPath, string outputPath, string hdrFileNameNoExt)

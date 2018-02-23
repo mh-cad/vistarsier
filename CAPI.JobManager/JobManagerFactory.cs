@@ -27,8 +27,7 @@ namespace CAPI.JobManager
         public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
         {
             return new Job<IRecipe>(
-                this, _dicomFactory, localNode, remoteNode, _imageConverter,
-                _imageProcessor, _dicomNodeRepo);
+                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo);
         }
 
         public IJob<IRecipe> CreateJob(

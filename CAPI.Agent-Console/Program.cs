@@ -1,5 +1,5 @@
 ﻿using CAPI.Agent_Console.Abstractions;
-using CAPI.Common;
+using CAPI.Common.Config;
 using CAPI.DAL;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
@@ -32,6 +32,7 @@ namespace CAPI.Agent_Console
         private static UnityContainer _unityContainer;
         private static bool _isBusy;
 
+        // Class Entry Point
         private static void Main(string[] args)
         {
             Log.Info("Agent Started");
@@ -73,6 +74,7 @@ namespace CAPI.Agent_Console
             }
         }
 
+        // Timer and Run Processes
         private static void StartTimer()
         {
             var timer = new Timer { Interval = Interval * 1000, Enabled = true };
@@ -100,31 +102,58 @@ namespace CAPI.Agent_Console
         private static void Run()
         {
             _isBusy = true;
-            var thisMachineProcessesManualCases = Config.GetProcessManuallyAddedCases() == "1";
+            var thisMachineProcessesManualCases = ImgProc.GetProcessCasesAddedManually() == "1";
+            var thisMachineProcessesHl7Cases = ImgProc.GetProcessCasesAddedByHl7() == "1";
 
-            var pendingCasesHl7Added = Broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
-            var completedCasesAll = ProcessAllPendingCases(pendingCasesHl7Added, out var failedCasesAll).ToList();
+            var completedCasesAll = new List<IPendingCase>();
+            var failedCasesAll = new List<IPendingCase>();
+            var failedCasesHl7 = new List<IPendingCase>();
 
             if (thisMachineProcessesManualCases)
-            {
-                var pendingCasesManuallyAdded =
-                    Broker.GetPendingCasesFromCapiDbManuallyAdded(_numberOfCasesToCheck).ToList();
-                var completedCasesManual =
-                    ProcessAllPendingCases(pendingCasesManuallyAdded, out var failedCasesManual).ToList();
+                completedCasesAll.AddRange(
+                    ProcessCasesAddedManually(out failedCasesAll)
+                );
 
-                completedCasesAll.AddRange(completedCasesManual);
-                failedCasesAll.AddRange(failedCasesManual);
+            if (thisMachineProcessesHl7Cases)
+                completedCasesAll.AddRange(
+                    ProcessCasesAddedByHl7(out failedCasesHl7)
+                );
 
-                DeleteManuallyAddedCompletedFiles(completedCasesManual);
-            }
+            failedCasesAll.AddRange(failedCasesHl7);
 
             LogProcessedCases(completedCasesAll, failedCasesAll);
             _isBusy = false;
         }
 
+        private static IEnumerable<IPendingCase> ProcessCasesAddedManually
+            (out List<IPendingCase> failedCases)
+        {
+            var pendingCasesManuallyAdded =
+                Broker.GetPendingCasesFromCapiDbManuallyAdded(_numberOfCasesToCheck).ToList();
+
+            var completedCasesManual =
+                ProcessAllPendingCases(pendingCasesManuallyAdded, out failedCases).ToList();
+
+            DeleteManuallyAddedCompletedFiles(completedCasesManual);
+
+            return completedCasesManual;
+        }
+
+        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7
+            (out List<IPendingCase> failedCases)
+        {
+            var pendingCasesHl7Added =
+                Broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
+
+            var completedCasesHl7 =
+                ProcessAllPendingCases(pendingCasesHl7Added, out failedCases).ToList();
+
+            return completedCasesHl7;
+        }
+
         private static void DeleteManuallyAddedCompletedFiles(IEnumerable<IPendingCase> completedCasesManual)
         {
-            var manualProcessPath = Config.GetManualProcessPath();
+            var manualProcessPath = ImgProc.GetManualProcessPath();
             var manualProcessFiles = Directory.GetFiles(manualProcessPath);
             manualProcessFiles
                 .Where(f => completedCasesManual.Select(c => c.Accession).Contains(Path.GetFileName(f)))

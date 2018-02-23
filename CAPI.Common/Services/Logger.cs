@@ -9,7 +9,7 @@ namespace CAPI.Common.Services
     {
         private static void Write(string logContent, LogType logType = LogType.Info, string processName = "")
         {
-            var processesLogPath = Config.GetProcessesLogPath();
+            var processesLogPath = Config.ImgProc.GetProcessesLogPath();
             if (!Directory.Exists(processesLogPath)) Directory.CreateDirectory(processesLogPath);
             var logPath = $@"{processesLogPath}\\{DateTime.Now:yyyyMMdd}";
             if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
@@ -40,7 +40,7 @@ namespace CAPI.Common.Services
             }
         }
 
-        public enum LogType
+        private enum LogType
         {
             Info,
             Error,

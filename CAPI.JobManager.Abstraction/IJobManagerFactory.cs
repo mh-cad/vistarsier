@@ -6,6 +6,7 @@ namespace CAPI.JobManager.Abstraction
     public interface IJobManagerFactory
     {
         IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode);
+
         IJob<IRecipe> CreateJob(IJobSeriesBundle dicomStudyUnderFocus, IJobSeriesBundle dicomStudyBeingComparedTo,
             IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations,
             string outputFolderPath, IDicomNode localNode, IDicomNode remoteNode);

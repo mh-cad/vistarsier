@@ -1,18 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CAPI.ImageProcessing.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
   <Profiles />
-  <Settings>
-    <Setting Name="Dcm2NiiExe" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">dcm2nii.exe</Value>
-    </Setting>
-    <Setting Name="Dcm2NiiHdrParams" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">-n N -f Y -r N</Value>
-    </Setting>
-    <Setting Name="Dcm2NiiNiiParams" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">-n Y -f Y -r N -g N</Value>
-    </Setting>
-    <Setting Name="MiconvFileName" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">miconv.exe</Value>
-    </Setting>
-  </Settings>
+  <Settings />
 </SettingsFile>
