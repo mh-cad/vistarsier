@@ -26,7 +26,7 @@ namespace CAPI.Agent_Console
     {
         // Fields
         private static readonly ILog Log = LogHelper.GetLogger();
-        private static int _interval;
+        private static readonly int Interval = Properties.Settings.Default.DbCheckInterval;
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
         private static UnityContainer _unityContainer;
@@ -63,9 +63,11 @@ namespace CAPI.Agent_Console
                 {
                     processingCase.SetStatus("Pending");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Agent_Console.Log.WriteError($"Failed to set case status from Processing/Queued to Pending. Accession: ${processingCase.Accession}");
+                    Log.Error(
+                        "Failed to set case status from Processing/Queued to Pending. " +
+                        $"Accession: ${processingCase.Accession}", ex);
                     throw;
                 }
             }
@@ -73,12 +75,10 @@ namespace CAPI.Agent_Console
 
         private static void StartTimer()
         {
-            _interval = Properties.Settings.Default.DbCheckInterval;
-
-            var timer = new Timer { Interval = _interval * 1000, Enabled = true };
+            var timer = new Timer { Interval = Interval * 1000, Enabled = true };
             timer.Elapsed += OnTimeEvent;
             timer.Start();
-            Agent_Console.Log.Write("Timer started");
+            Log.Info("Timer started");
         }
         private static void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
@@ -94,6 +94,9 @@ namespace CAPI.Agent_Console
                 throw;
             }
         }
+        /// <summary>
+        /// Main Process that runs once at start then at every interval
+        /// </summary>
         private static void Run()
         {
             _isBusy = true;
@@ -138,7 +141,7 @@ namespace CAPI.Agent_Console
             foreach (var failedCase in failedCases)
                 Log.Error($"Job failed for accession {failedCase.Accession}", failedCase.Exception);
 
-            Log.Info($"Checking for new cases in {_interval} seconds...");
+            Log.Info($"Checking for new cases in {Interval} seconds...");
         }
 
         // Main Process

@@ -30,8 +30,7 @@ namespace CAPI.Common.Services
 
         public static void CopyDirectory(string source, string target)
         {
-            var directoryName = Path.GetFileName(source);
-            target = $@"{target}\{directoryName}";
+
             if (Directory.Exists(target))
                 throw new Exception($"Directory {target} exists already. Unable to copy to destination.");
 
