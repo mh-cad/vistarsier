@@ -129,7 +129,6 @@ namespace CAPI.JobManager
 
                 var dicomServices = _dicomFactory.CreateDicomServices();
 
-                // TODO2: Add logging to dicom services
                 NegativeOverlay.DicomFolderPath = NegativeOverlay.BmpFolderPath + "_dcm";
                 dicomServices.ConvertBmpsToDicom(
                     NegativeOverlay.BmpFolderPath, $@"{NegativeOverlay.DicomFolderPath}",

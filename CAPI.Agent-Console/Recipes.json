@@ -16,7 +16,7 @@
         "Id": "1",
         "Version": "1",
         "Parameters": [
-          "-n 3 -d 25 -s 0.58 -r 1 --trim"
+          "-n 3 -d 25 -s 0.64 -r 1 --trim"
         ]
       },
       {
@@ -41,7 +41,7 @@
         "Version": "1"
       }
     ],
-    "NewStudyAccession": "",
+    "NewStudyAccession": "2018R0029246-1",
     "NewStudyCriteria": [
       {
         "StudyDescription": "",
@@ -54,7 +54,7 @@
         "SeriesDescriptionDelimiter": ";"
       }
     ],
-    "PriorStudyAccession": "",
+    "PriorStudyAccession": "2018R0029246-1",
     "PriorStudyCriteria": [
       {
         "MostRecentPriorStudy": true,
