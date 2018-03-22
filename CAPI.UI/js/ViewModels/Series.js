@@ -3,7 +3,7 @@ var VisTarsier;
 (function (VisTarsier) {
     var ViewModels;
     (function (ViewModels) {
-        var Series = (function () {
+        var Series = /** @class */ (function () {
             function Series(name, fileFormat, imagesList) {
                 var _this = this;
                 this.id = -1;
@@ -43,7 +43,7 @@ var VisTarsier;
             return Series;
         }());
         ViewModels.Series = Series;
-        var SeriesCollection = (function () {
+        var SeriesCollection = /** @class */ (function () {
             function SeriesCollection() {
                 var _this = this;
                 this.addSeries = function (series) {

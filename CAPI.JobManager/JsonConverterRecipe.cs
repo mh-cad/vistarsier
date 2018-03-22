@@ -11,15 +11,14 @@ namespace CAPI.JobManager
     {
         private readonly IImageProcessor _imageProcessor;
 
-        public JsonConverterRecipe()
-        {
+        //public JsonConverterRecipe()
+        //{
+        //}
 
-        }
-
-        public JsonConverterRecipe(IImageProcessor imageProcessor)
-        {
-            _imageProcessor = imageProcessor;
-        }
+        //public JsonConverterRecipe(IImageProcessor imageProcessor)
+        //{
+        //    _imageProcessor = imageProcessor;
+        //}
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
@@ -64,7 +63,7 @@ namespace CAPI.JobManager
 
         public override bool CanConvert(Type objectType)
         {
-            return true;
+            return objectType == typeof(Recipe);
         }
     }
 }

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace CAPI.ImageProcessing
 {
-    public class ImageProcessor : IImageProcessor
+    public class ImageProcessor1 : IImageProcessor1
     {
         private readonly IImageConverter _imageConverter;
 
@@ -20,14 +20,14 @@ namespace CAPI.ImageProcessing
         private readonly string _fixedDicomPath;
         private readonly string _processesRootDir;
 
-        private const string FlippedSuffix = "_flipped";
-        private const string Dcm2NiiExe = "dcm2nii.exe";
-        private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
-        private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
-        private const string BseExe = "bse09e.exe";
+        //private const string Dcm2NiiExe = "dcm2nii.exe";
+        //private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
+        //private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
         //private const string BseParams = "-n 3 -d 25 -s 0.64 -r 1 --trim";
-        private const string BrainSurfaceSuffix = "_brain_surface";
-        private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
+        //private const string BrainMaskSuffix = "_brain_surface";
+        private const string BseExe = "bse09e.exe";
+        private const string FlippedSuffix = "_flipped";
+        private const string BrainMaskRemovedSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";
         private const string ReformatXFileName = "reformatx.exe";
         private const string CmtkParams = "--initxlate --dofs 6 --auto-multi-levels 4 --out-matrix";
@@ -72,7 +72,7 @@ namespace CAPI.ImageProcessing
             };
         } // TODO3: Hard-coded name
 
-        public ImageProcessor()
+        public ImageProcessor1()
         {
             _executablesPath = ImgProc.GetExecutablesPath();
             var javaUtilsPath = ImgProc.GetJavaUtilsPath();
@@ -81,152 +81,163 @@ namespace CAPI.ImageProcessing
             _processesRootDir = ImgProc.GetProcessesRootDir();
         }
 
-        public static void RunAll()
+        //public static void RunAll()
+        //{
+        //ProcessBuilder.CallExecutableFile($@"{ImgProc.GetProcessesRootDir()}\_runall.bat", "");
+        //} // TODO3: To be checked if this is stil working
+
+        //public string ConvertDicom2Hdr(string dicomPath, string outputPath, string hdrFileNameNoExt)
+        //{
+        //    try
+        //    {
+        //        // Make sure temp folder exists
+        //        var tmpDir = $"{outputPath}\\tmpDir";
+        //        if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+        //        Directory.CreateDirectory(tmpDir);
+
+        //        // Call dcm2nii.exe to perform the conversion
+        //        ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{Dcm2NiiExe}", $"{Dcm2NiiHdrParams} -o {tmpDir} {dicomPath}");
+
+        //        var hdrFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".hdr"));
+        //        var imgFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".img"));
+        //        if (hdrFileFullPath != null) File.Copy(hdrFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.hdr");
+        //        if (imgFileFullPath != null) File.Copy(imgFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.img");
+
+        //        // Remove temp folder
+        //        if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+
+        //        return $"{outputPath}\\{hdrFileNameNoExt}.hdr";
+        //    }
+        //    catch (Exception ex) // TODO1 Exception Handling
+        //    {
+        //        return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+        //    }
+        //}
+
+        //public string ConvertDicomToNii(string dicomPath, string outputPath, string niiFileNameNoExt)
+        //{
+        //    try
+        //    {
+        //        // Make sure temp folder exists
+        //        var tmpDir = $"{outputPath}\\tmpDir";
+        //        if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+        //        Directory.CreateDirectory(tmpDir);
+
+        //        // Call dcm2nii.exe to perform the conversion
+        //        var convertFixedDicom2NiiProc = ProcessBuilder.Build(_executablesPath, Dcm2NiiExe, $"{Dcm2NiiNiiParams} -o {tmpDir} {dicomPath}", "");
+        //        convertFixedDicom2NiiProc.Start();
+        //        Logger.ProcessErrorLogWrite(convertFixedDicom2NiiProc, "convertFixedDicom2NiiProc");
+        //        convertFixedDicom2NiiProc.WaitForExit();
+
+        //        var niiFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".nii"));
+        //        if (niiFileFullPath != null) File.Copy(niiFileFullPath, $"{outputPath}\\{niiFileFullPath}.nii");
+
+        //        // Remove temp folder
+        //        if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+
+        //        return $"{outputPath}\\{niiFileNameNoExt}.nii";
+        //    }
+        //    catch (Exception ex) // TODO1 Exception Handling
+        //    {
+        //        return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+        //    }
+        //}
+
+        //public void ExtractBrainMask(string inputFileFullPath, string outputPath, string bseParams,
+        //    out string brainMaskRemoved, out string brainMask)
+        //{
+        //    var inputFileName = Path.GetFileNameWithoutExtension(inputFileFullPath);
+
+        //    var arguments = $"-i {inputFileFullPath} " +
+        //                    $"--mask {outputPath}\\{inputFileName}.mask.hdr " +
+        //                    $"-o {outputPath}\\{inputFileName}{BrainMaskRemovedSuffix}.hdr {bseParams}";
+
+        //    ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
+
+        //    brainMaskRemoved = Path.Combine(outputPath, inputFileName + BrainMaskRemovedSuffix + ".hdr");
+        //    brainMask = Path.Combine(outputPath, inputFileName + ".mask.hdr");
+        //}
+
+        //public string ConvertHdrToNii(string hdrFileFullPath, string originalHdr, string seriesName)
+        //{
+        //try
+        //{
+        //    const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
+        //    var javaArgument = $"-classpath {_javaClassPath} {methodName} " +
+        //                       $"\"{hdrFileFullPath.FolderPath}\\{originalHdr.Description}.hdr\" \"{hdrFileFullPath.FolderPath}\\{seriesName}.hdr\" \"{hdrFileFullPath.FolderPath}\\{seriesName}.nii\"";
+
+        //    ProcessBuilder.CallJava(javaArgument, methodName);
+
+        //    RemoveUnnecessaryFiles(
+        //        originalHdr.FolderPath,
+        //        hdrFileFullPath.Description,
+        //        new[] { $"{Fixed.ToLower()}.hdr", $"{Fixed.ToLower()}.img", $"{Floating.ToLower()}.hdr", $"{Floating.ToLower()}.img" });
+
+        //    return new SeriesNii(seriesName, hdrFileFullPath.FileFullPath.Replace("hdr", "nii"), hdrFileFullPath.NumberOfImages);
+        //}
+        //catch
+        //{
+        //    return null; // TODO3: Exception Handling
+        //}
+        //return "";
+        //}
+        //private static void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
+        //{
+        //    var unused = Directory.GetFiles(path)
+        //        .Select(Path.GetFileName)
+        //        .Where(f => f.ToLower() == $"{seriesName}.hdr" || f.ToLower() == $"{seriesName}.img")
+        //        .Where(f => !exclusions.Contains(f))
+        //        .All(f =>
+        //        {
+        //            File.Delete($"{path}\\{f}");
+        //            return true;
+        //        });
+
+        //    File.Delete($"{path}\\{Fixed}.nii");
+        //    File.Delete($"{path}\\{Floating}.nii");
+        //}
+
+        public void ExtractBrainMask(string inputFileFullPath, string outputPath, string bseParams, out string brainMaskRemoved,
+            out string brainMask)
         {
-            ProcessBuilder.CallExecutableFile($@"{ImgProc.GetProcessesRootDir()}\_runall.bat", "");
-        } // TODO3: To be checked if this is stil working
-
-        public string ConvertDicom2Hdr(string dicomPath, string outputPath, string hdrFileNameNoExt)
-        {
-            try
-            {
-                // Make sure temp folder exists
-                var tmpDir = $"{outputPath}\\tmpDir";
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-                Directory.CreateDirectory(tmpDir);
-
-                // Call dcm2nii.exe to perform the conversion
-                ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{Dcm2NiiExe}", $"{Dcm2NiiHdrParams} -o {tmpDir} {dicomPath}");
-
-                var hdrFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".hdr"));
-                var imgFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".img"));
-                if (hdrFileFullPath != null) File.Copy(hdrFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.hdr");
-                if (imgFileFullPath != null) File.Copy(imgFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.img");
-
-                // Remove temp folder
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-
-                return $"{outputPath}\\{hdrFileNameNoExt}.hdr";
-            }
-            catch (Exception ex) // TODO1 Exception Handling
-            {
-                return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
-            }
+            throw new NotImplementedException();
         }
 
-        public string ConvertDicomToNii(string dicomPath, string outputPath, string niiFileNameNoExt)
-        {
-            try
-            {
-                // Make sure temp folder exists
-                var tmpDir = $"{outputPath}\\tmpDir";
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-                Directory.CreateDirectory(tmpDir);
-
-                // Call dcm2nii.exe to perform the conversion
-                var convertFixedDicom2NiiProc = ProcessBuilder.Build(_executablesPath, Dcm2NiiExe, $"{Dcm2NiiNiiParams} -o {tmpDir} {dicomPath}", "");
-                convertFixedDicom2NiiProc.Start();
-                Logger.ProcessErrorLogWrite(convertFixedDicom2NiiProc, "convertFixedDicom2NiiProc");
-                convertFixedDicom2NiiProc.WaitForExit();
-
-                var niiFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".nii"));
-                if (niiFileFullPath != null) File.Copy(niiFileFullPath, $"{outputPath}\\{niiFileFullPath}.nii");
-
-                // Remove temp folder
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-
-                return $"{outputPath}\\{niiFileNameNoExt}.nii";
-            }
-            catch (Exception ex) // TODO1 Exception Handling
-            {
-                return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
-            }
-        }
-
-        public void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
-            out string brainMaskRemoved, out string smoothBrainMask)
-        {
-            var inputFileName = Path.GetFileNameWithoutExtension(inputHdrFullPath);
-
-            var arguments = $"-i {inputHdrFullPath} " +
-                            $"--mask {outputPath}\\{inputFileName}{BrainSurfaceSuffix}.hdr " +
-                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix}.hdr {bseParams}";
-
-            ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
-
-            brainMaskRemoved = inputFileName + BrainSurfaceExtSuffix + ".hdr";
-            smoothBrainMask = inputFileName + BrainSurfaceSuffix + ".hdr";
-        }
-
-        public void CopyNiftiImage2PatientTransform(string inputHdrOrNii, string originalHdr)
-        {
-            var destination = inputHdrOrNii.EndsWith(".hdr")
-                ? inputHdrOrNii.Replace(".hdr", ".nii")
-                : inputHdrOrNii;
-
-            try
-            {
-                const string methodName = "au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform";
-                var javaArgument = $"-classpath {_javaClassPath} {methodName} " +
-                                   $"\"{originalHdr}\" \"{inputHdrOrNii}\" \"{destination}\"";
-
-                ProcessBuilder.CallJava(javaArgument, methodName);
-            }
-            catch
-            {
-                // TODO3: Exception Handling
-            }
-        }
-        private static void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
-        {
-            var unused = Directory.GetFiles(path)
-                .Select(Path.GetFileName)
-                .Where(f => f.ToLower() == $"{seriesName}.hdr" || f.ToLower() == $"{seriesName}.img")
-                .Where(f => !exclusions.Contains(f))
-                .All(f =>
-                {
-                    File.Delete($"{path}\\{f}");
-                    return true;
-                });
-
-            File.Delete($"{path}\\{Fixed}.nii");
-            File.Delete($"{path}\\{Floating}.nii");
-        }
-
-        public void Registration(string outputPath, string fixedFullPath, string floatingFullPath,
+        public void Registration(string outputPath, string fixedBrainMaskRemovedNii, string floatingBrainMaskRemovedNii,
+            string fixedHdr, string floatingHdr,
             out string floatingReslicedFullPath, out IFrameOfReference fixedFrameOfRef)
         {
-            CreateRawXform(outputPath, fixedFullPath, floatingFullPath);
+            CreateRawXform(outputPath, fixedBrainMaskRemovedNii, floatingBrainMaskRemovedNii);
 
-            CreateResultXform(outputPath, fixedFullPath, floatingFullPath,
+            CreateResultXform(outputPath, fixedBrainMaskRemovedNii, floatingBrainMaskRemovedNii,
                 out fixedFrameOfRef);
 
-            ResliceFloatingImages(outputPath, fixedFullPath, floatingFullPath,
+            ResliceFloatingImages(outputPath, fixedHdr, floatingHdr,
                 out floatingReslicedFullPath);
         }
-        private void CreateRawXform(string outputPath, string fixedHdrFullPath, string floatingHdrFullPath)
+        private void CreateRawXform(string outputPath, string fixedBrainMaskRemovedHdr, string floatingBrainMaskRemovedHdr)
         {
             var cmtkOutputDir = $@"{outputPath}\{CmtkOutputDirName}";
             if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
             Directory.CreateDirectory($@"{outputPath}\{CmtkOutputDirName}");
 
             var arguments = $@"{CmtkParams} {outputPath}\{CmtkRawXformFileName} {CmtkOutputParam} " +
-                            $"{fixedHdrFullPath} {floatingHdrFullPath}";
+                            $"{fixedBrainMaskRemovedHdr} {floatingBrainMaskRemovedHdr}";
 
             ProcessBuilder.CallExecutableFile(
                 $@"{_executablesPath}\CMTK\bin\{RegistrationExeFileName}", arguments, cmtkOutputDir);
         }
-        private void CreateResultXform(string workingDir, string fixedFullPath, string floatingFullPath,
+        private void CreateResultXform(string workingDir, string fixedBrainMaskRemovedHdr, string floatingBrainMaskRemovedHdr,
             out IFrameOfReference fixedFrameOfRef) // Outputs to the same folder as fixed series
         {
-            var fixedNoExtension = fixedFullPath.Replace(".hdr", "");
-            var floatingNoExtension = floatingFullPath.Replace(".hdr", "");
+            var fixedNoExtension = fixedBrainMaskRemovedHdr.Replace(".hdr", "");
+            var floatingNoExtension = floatingBrainMaskRemovedHdr.Replace(".hdr", "");
 
             try
             {
                 const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
                 var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   //$@"{srcDir}\{fixedFullPath.Description}.nii {srcDir}\{seriesFloating.Description}.nii "+
+                                   //$@"{srcDir}\{fixedBrainMaskRemovedNii.Description}.nii {srcDir}\{seriesFloating.Description}.nii "+
                                    $@"{fixedNoExtension}.nii {floatingNoExtension}.nii " +
                                    $@"{workingDir}\{CmtkRawXformFileName} {workingDir}\{CmtkResultXformFileName}";
 
@@ -423,36 +434,43 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        public void Resize(string inHdr, string outNii, int destinationWidth)
+        public string Resize(string hdrFileFullPath, int destinationWidth)
         {
+            var resizedNii = hdrFileFullPath.Replace(".hdr", "_resized.nii");
+
             try
             {
-                const string methodname = "au.com.nicta.preprocess.main.ResizeNii";
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   $@"{inHdr} {outNii} {destinationWidth}";
+                const string methodName = "au.com.nicta.preprocess.main.ResizeNii"; // TODO3: Hard-coded method name
+                var arguments = $"-classpath \"{_javaClassPath}\" {methodName} " +
+                                $"{hdrFileFullPath} {resizedNii} {destinationWidth}";
 
-                ProcessBuilder.CallJava(javaArgument, methodname);
+                ProcessBuilder.CallJava(arguments, methodName);
             }
             catch
             {
-                // TODO3: Exception Handling
+                throw; // TODO3: Exception Handling
             }
+
+            return resizedNii;
         }
 
-        public void ResizeBacktToOriginalSize(string resizedHdr, string outNii, string seriesHdr)
+        public string ResizeNiiToSameSize(string resizedTargetHdr, string originalHdrFileFullPath)
         {
+            var resizedBackTargetNii = resizedTargetHdr.Replace("_resized.hdr", ".nii");
             try
             {
-                const string methodname = "au.com.nicta.preprocess.main.ResizeNiiToSameSize";
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   $@"{resizedHdr} {outNii} {seriesHdr}";
+                const string methodName = "au.com.nicta.preprocess.main.ResizeNiiToSameSize"; // TODO3: Hard-coded method name
+                var arguments = $"-classpath \"{_javaClassPath}\" {methodName} " +
+                                $"{resizedTargetHdr} {resizedBackTargetNii} {originalHdrFileFullPath}";
 
-                ProcessBuilder.CallJava(javaArgument, methodname);
+                ProcessBuilder.CallJava(arguments, methodName);
             }
             catch
             {
-                // TODO3: Exception Handling
+                throw; // TODO3: Exception Handling
             }
+
+            return resizedBackTargetNii;
         }
     }
 }
