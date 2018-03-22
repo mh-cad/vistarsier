@@ -42,7 +42,7 @@ namespace CAPI.Agent_Console
 
             InitializeUnity();
 
-            GetFirstParamFromArgs(args);
+            GetFirstParamFromArgs(args); //
 
             SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
