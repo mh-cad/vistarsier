@@ -25,6 +25,7 @@ namespace CAPI.Agent_Console
             IRecipeRepositoryInMemory<IRecipe> recipeRepositoryInMemory,
             IJobBuilder jobBuilder)
         {
+
             //Log = LogHelper.GetLogger();
             _dicomNodeRepo = dicomNodeRepo;
             _recipeRepositoryInMemory = recipeRepositoryInMemory;

@@ -3,7 +3,7 @@ var VisTarsier;
 (function (VisTarsier) {
     var ViewModels;
     (function (ViewModels) {
-        var Viewport = (function () {
+        var Viewport = /** @class */ (function () {
             function Viewport() {
                 var _this = this;
                 this.id = -1;
@@ -68,7 +68,7 @@ var VisTarsier;
             return Viewport;
         }());
         ViewModels.Viewport = Viewport;
-        var ViewportCollection = (function () {
+        var ViewportCollection = /** @class */ (function () {
             function ViewportCollection() {
                 var _this = this;
                 this.areLinked = true;

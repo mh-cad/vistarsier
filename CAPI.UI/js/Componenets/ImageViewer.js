@@ -2,7 +2,7 @@ var VisTarsier;
 (function (VisTarsier) {
     var Components1;
     (function (Components1) {
-        var ImageViewer = (function () {
+        var ImageViewer = /** @class */ (function () {
             function ImageViewer(elems) {
                 var _this = this;
                 this.totalNoOfImages = 160;

@@ -44,14 +44,14 @@ namespace CAPI.JobManager
                 // If brain mask has been removed or not
                 job.DicomSeriesFixed.Transformed.CompletedProcesses
                 .Contains(IntegratedProcessType.ExtractBrainSurface)
-                    ? job.DicomSeriesFixed.Transformed.HdrFileFullPath
+                    ? job.DicomSeriesFixed.Transformed.NiiFileFullPath // ? job.DicomSeriesFixed.Transformed.HdrFileFullPath
                     : job.DicomSeriesFixed.Original.HdrFileFullPath;
 
             var floatingHdr =
                 // If brain mask has been removed or not
                 job.DicomSeriesFloating.Transformed.CompletedProcesses
                 .Contains(IntegratedProcessType.ExtractBrainSurface)
-                    ? job.DicomSeriesFloating.Transformed.HdrFileFullPath
+                    ? job.DicomSeriesFloating.Transformed.NiiFileFullPath // ? job.DicomSeriesFloating.Transformed.HdrFileFullPath
                     : job.DicomSeriesFloating.Original.HdrFileFullPath;
 
             _imageProcessor.Registration(job.OutputFolderPath, fixedHdr, floatingHdr,

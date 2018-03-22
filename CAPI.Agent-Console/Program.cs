@@ -206,6 +206,7 @@ namespace CAPI.Agent_Console
 
             return completedCases;
         }
+
         private static Broker GetBroker()
         {
             var dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();

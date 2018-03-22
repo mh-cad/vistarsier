@@ -1,14 +1,12 @@
 ﻿namespace CAPI.ImageProcessing.Abstraction
 {
-    public interface IImageProcessor
+    public interface IImageProcessor1
     {
-        void CopyNiftiImage2PatientTransform(string inputHdrOrNii, string originalHdr);
+        void ExtractBrainMask(string inputFileFullPath, string outputPath, string bseParams,
+            out string brainMaskRemoved, out string brainMask);
 
-        void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
-            out string brainMaskRemoved, out string smoothBrainMask);
-
-        void Registration(string fixedFullPath, string seriesFloating, string outputPath,
-            out string floatingReslicedFullPath, out IFrameOfReference fixedFrameOfRef);
+        void Registration(string outputPath, string fixedBrainMaskRemovedNii, string floatingBrainMaskRemovedNii,
+            string fixedHdr, string floatingHdr, out string floatingReslicedFullPath, out IFrameOfReference fixedFrameOfRef);
 
         void TakeDifference(string fixedHdrFullPath, string floatingReslicedNiiFullPath,
             string brainSurfaceNiiFullPath, string outputDir,
@@ -28,8 +26,7 @@
         void CopyDicomHeaders(string fixedDicomFolderPath, string outputDir
             , out string dicomFolderNewHeaders);
 
-        void Resize(string inHdr, string outNii, int destinationWidth);
-
-        void ResizeBacktToOriginalSize(string resizedHdr, string outNii, string seriesHdr);
+        string Resize(string hdrFileFullPath, int destinationWidth);
+        string ResizeNiiToSameSize(string resizedBrainMaskHdr, string hdrFileFullPath);
     }
 }
