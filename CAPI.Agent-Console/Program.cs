@@ -35,6 +35,7 @@ namespace CAPI.Agent_Console
         // Class Entry Point
         private static void Main(string[] args)
         {
+            // New triggering process
             Log.Info("Agent Started");
             Console.WriteLine("Enter 'q' to quit!");
 
