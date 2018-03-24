@@ -43,6 +43,7 @@
     <Compile Include="IPendingCaseRepository.cs" />
     <Compile Include="IPendingCaseRepositoryReadOnly.cs" />
     <Compile Include="IPendingCase.cs" />
+    <Compile Include="IVerifiedMri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

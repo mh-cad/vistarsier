@@ -35,7 +35,6 @@ namespace CAPI.Agent_Console
         // Class Entry Point
         private static void Main(string[] args)
         {
-            // New triggering process
             Log.Info("Agent Started");
             Console.WriteLine("Enter 'q' to quit!");
 
@@ -117,6 +116,7 @@ namespace CAPI.Agent_Console
 
             if (thisMachineProcessesHl7Cases)
                 completedCasesAll.AddRange(
+                    //ProcessCasesAddedByHl7FromVT(out failedCasesHl7)
                     ProcessCasesAddedByHl7(out failedCasesHl7)
                 );
 
@@ -124,6 +124,12 @@ namespace CAPI.Agent_Console
 
             LogProcessedCases(completedCasesAll, failedCasesAll);
             _isBusy = false;
+        }
+
+        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7(out List<IPendingCase> failedCasesHl7)
+        {
+            failedCasesHl7 = new List<IPendingCase>();
+            return null;
         }
 
         private static IEnumerable<IPendingCase> ProcessCasesAddedManually
@@ -140,7 +146,7 @@ namespace CAPI.Agent_Console
             return completedCasesManual;
         }
 
-        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7
+        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7FromVT
             (out List<IPendingCase> failedCases)
         {
             var pendingCasesHl7Added =

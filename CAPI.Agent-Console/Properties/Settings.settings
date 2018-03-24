@@ -39,5 +39,8 @@
     <Setting Name="DcmNodePort_Remote" Type="System.String" Scope="Application">
       <Value Profile="(Default)">104</Value>
     </Setting>
+    <Setting Name="Process" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
