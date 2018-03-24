@@ -20,7 +20,7 @@ namespace CAPI.Agent_Console
 
         public VerifiedMri()
         {
-            _capiConnectionString = Properties.Settings.Default.CapiConnectionString; ;
+            _capiConnectionString = Properties.Settings.Default.CapiConnectionString;
         }
 
         public IEnumerable<IVerifiedMri> GetRecentVerifiedMris(int numbersToCheck)
@@ -76,6 +76,42 @@ namespace CAPI.Agent_Console
             }
 
             return verifiedMris.Any();
+        }
+
+        public bool DbIsAvailable()
+        {
+            try
+            {
+                using (IDbConnection db = new SqlConnection(_capiConnectionString))
+                {
+                    db.Open();
+                    db.Close();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool DbTableVerifiedMriExists()
+        {
+            try
+            {
+                using (IDbConnection db = new SqlConnection(_capiConnectionString))
+                {
+                    const string sqlCommand = "SELECT * FROM INFORMATION_SCHEMA.TABLES ";// +
+                                                                                         //"WHERE TABLE_NAME = N'VerifiedMris1'";
+                    var tables = db.Query(sqlCommand);
+                    if (tables.All(t => t.TABLE_NAME != "VerifiedMris")) return false;
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

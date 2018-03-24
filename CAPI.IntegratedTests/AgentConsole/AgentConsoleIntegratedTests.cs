@@ -3,7 +3,6 @@ using CAPI.Agent_Console.Abstractions;
 using CAPI.Common.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Unity;
@@ -19,7 +18,7 @@ namespace CAPI.IntegratedTests.AgentConsole
         [TestInitialize]
         public void TestInit()
         {
-            Debugger.Launch();
+            // Debugger.Launch();
             var container = CreateContainerCore();
             _verifiedMri = container.Resolve<IVerifiedMri>();
         }
@@ -54,7 +53,7 @@ namespace CAPI.IntegratedTests.AgentConsole
             var accessionAlreadyInDb = accessionsInDb.Select(a => a.Accession).Contains(accession);
             if (accessionAlreadyInDb) Assert.Fail($"Accession [{accession}] already exists in DB. Please remove it and try agian.");
 
-            var verifiedMri = new VerifiedMri
+            var verifiedMri = new VerifiedMri // TODO1: Use IVerifiedMri
             {
                 Accession = accession,
                 AdditionMethod = "Unit Testing",

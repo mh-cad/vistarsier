@@ -15,5 +15,7 @@ namespace CAPI.Agent_Console.Abstractions
         void InsertIntoDb();
         void DeleteInDb();
         bool AccessionExistsInDb();
+        bool DbIsAvailable();
+        bool DbTableVerifiedMriExists();
     }
 }
