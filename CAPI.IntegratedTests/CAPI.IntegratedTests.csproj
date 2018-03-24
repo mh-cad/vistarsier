@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AgentConsole\AgentConsoleIntegratedTests.cs" />
+    <Compile Include="Db\DatabaseIntegratedTests.cs" />
     <Compile Include="FileSystem\FileSystemIntegratedTests.cs" />
     <Compile Include="Config\ConfigsIntegratedTests.cs" />
     <Compile Include="Dicom\DicomServicesIntegratedTests.cs" />
