@@ -37,20 +37,7 @@ namespace CAPI.Agent_Console
         {
             return GetCases(count, _capiConnectionString);
         }
-        private static IEnumerable<IPendingCase> GetCases(int count, string connectionString)
-        {
-            IEnumerable<PendingCase> latestVtCases;
 
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                const string sqlCommand =
-                    "Select TOP {=count} * FROM PendingAccessions ORDER BY Id DESC";
-
-                latestVtCases = db.Query<PendingCase>(sqlCommand, new { count });
-            }
-
-            return latestVtCases;
-        }
         public IEnumerable<IPendingCase> GetRecentPendingCapiCases(bool manual, int numOfcasesToCheckInDb = 1000)
         {
             IEnumerable<PendingCase> capiPendingCases;
@@ -151,6 +138,22 @@ namespace CAPI.Agent_Console
             }
 
             return allCapiCases.AsQueryable();
+        }
+
+        // Private Methods
+        private static IEnumerable<IPendingCase> GetCases(int count, string connectionString)
+        {
+            IEnumerable<PendingCase> latestVtCases;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                const string sqlCommand =
+                    "Select TOP {=count} * FROM PendingAccessions ORDER BY Id DESC";
+
+                latestVtCases = db.Query<PendingCase>(sqlCommand, new { count });
+            }
+
+            return latestVtCases;
         }
     }
 }

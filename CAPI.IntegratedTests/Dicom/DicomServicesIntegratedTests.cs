@@ -98,13 +98,14 @@ namespace CAPI.IntegratedTests.Dicom
         [TestMethod]
         public void RemoteDicomNodeConnection()
         {
+            System.Diagnostics.Debugger.Launch();
             try
             {
                 _dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);
             }
             catch (Exception ex)
             {
-                Assert.Fail("Dicom ping failed to SYNAPSE: " + ex.Message);
+                Assert.Fail($"Dicom ping failed to {_remoteNode.LogicalName}: " + ex.Message);
             }
         }
 
