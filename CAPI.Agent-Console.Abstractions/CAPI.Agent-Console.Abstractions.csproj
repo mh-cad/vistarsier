@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IAgentConsoleFactory.cs" />
+    <Compile Include="IAgentConsoleRepository.cs" />
     <Compile Include="IPendingCaseRepository.cs" />
     <Compile Include="IPendingCaseRepositoryReadOnly.cs" />
     <Compile Include="IPendingCase.cs" />

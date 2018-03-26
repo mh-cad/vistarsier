@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent_Console;
 using CAPI.Agent_Console.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Diagnostics;
 using Unity;
 using Unity.Lifetime;
 
@@ -10,26 +9,26 @@ namespace CAPI.IntegratedTests.Db
     [TestClass]
     public class DatabaseIntegratedTests
     {
-        private IVerifiedMri _verifiedMri;
+        private IAgentConsoleRepository _agentConsoleRepository;
 
         [TestInitialize]
         public void TestInit()
         {
-            Debugger.Launch();
+            //Debugger.Launch();
             var container = CreateContainerCore();
-            _verifiedMri = container.Resolve<IVerifiedMri>();
+            _agentConsoleRepository = container.Resolve<IAgentConsoleRepository>();
         }
 
         [TestMethod]
         public void CheckDbConnection()
         {
-            if (!_verifiedMri.DbIsAvailable()) Assert.Fail("No access to CAPI database.");
+            if (!_agentConsoleRepository.DbIsAvailable()) Assert.Fail("No access to CAPI database.");
         }
 
         [TestMethod]
         public void CheckDbVerifiedMriTable()
         {
-            if (!_verifiedMri.DbTableVerifiedMriExists()) Assert.Fail("Table [VerifiedMri] is missing in CAPI database.");
+            if (!_agentConsoleRepository.DbTableVerifiedMriExists()) Assert.Fail("Table [VerifiedMri] is missing in CAPI database.");
         }
 
         [TestCleanup]
@@ -41,7 +40,7 @@ namespace CAPI.IntegratedTests.Db
         private static IUnityContainer CreateContainerCore()
         {
             var container = new UnityContainer();
-            container.RegisterType<IVerifiedMri, VerifiedMri>(new TransientLifetimeManager());
+            container.RegisterType<IAgentConsoleRepository, AgentConsoleRepository>(new TransientLifetimeManager());
             return container;
         }
     }

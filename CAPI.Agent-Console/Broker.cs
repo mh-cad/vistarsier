@@ -17,19 +17,21 @@ namespace CAPI.Agent_Console
         private readonly IDicomNodeRepository _dicomNodeRepo;
         private readonly IRecipeRepositoryInMemory<IRecipe> _recipeRepositoryInMemory;
         private readonly IJobBuilder _jobBuilder;
+        private readonly IAgentConsoleFactory _agentConsoleFactory;
         private static readonly ILog Log = LogHelper.GetLogger();
 
         // Constructor
         public Broker(
             IDicomNodeRepository dicomNodeRepo,
             IRecipeRepositoryInMemory<IRecipe> recipeRepositoryInMemory,
-            IJobBuilder jobBuilder)
+            IJobBuilder jobBuilder, IAgentConsoleFactory agentConsoleFactory)
         {
 
             //Log = LogHelper.GetLogger();
             _dicomNodeRepo = dicomNodeRepo;
             _recipeRepositoryInMemory = recipeRepositoryInMemory;
             _jobBuilder = jobBuilder;
+            _agentConsoleFactory = agentConsoleFactory;
         }
 
         // Broker Entry Point
@@ -134,6 +136,12 @@ namespace CAPI.Agent_Console
                 .FirstOrDefault(n => string.Equals(n.AeTitle,
                     Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User),
                     StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        // New methods using VerifiedMri
+        public IEnumerable<IVerifiedMri> GetPendingCases()
+        {
+            return _agentConsoleFactory.CreateAgentConsoleRepository().GetPendingCases();
         }
 
         // Events

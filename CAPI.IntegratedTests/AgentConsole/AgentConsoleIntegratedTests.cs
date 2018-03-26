@@ -13,21 +13,23 @@ namespace CAPI.IntegratedTests.AgentConsole
     [TestClass]
     public class AgentConsoleIntegratedTests
     {
-        private IVerifiedMri _verifiedMri;
+        private IAgentConsoleRepository _agentConsoleRepository;
+        private IAgentConsoleFactory _agentConsoleFactory;
 
         [TestInitialize]
         public void TestInit()
         {
-            // Debugger.Launch();
+            //Debugger.Launch();
             var container = CreateContainerCore();
-            _verifiedMri = container.Resolve<IVerifiedMri>();
+            _agentConsoleRepository = container.Resolve<IAgentConsoleRepository>();
+            _agentConsoleFactory = container.Resolve<IAgentConsoleFactory>();
         }
 
+        // TODO3: To be implemented
         [TestMethod]
         public void ManualProcessTest()
         {
-            var pendingCases = Broker.GetPendingCasesFromCapiDbManuallyAdded(1000);
-            // TODO1: To be implemented
+            //var pendingCases = Broker.GetPendingCasesFromCapiDbManuallyAdded(1000);
         }
 
         [TestMethod]
@@ -48,25 +50,115 @@ namespace CAPI.IntegratedTests.AgentConsole
 
             const int topEntriesCount = 1000;
 
-            var accessionsInDb = _verifiedMri.GetRecentVerifiedMris(topEntriesCount);
+            var accessionsInDb = _agentConsoleRepository.GetRecentVerifiedMris(topEntriesCount);
 
             var accessionAlreadyInDb = accessionsInDb.Select(a => a.Accession).Contains(accession);
             if (accessionAlreadyInDb) Assert.Fail($"Accession [{accession}] already exists in DB. Please remove it and try agian.");
 
-            var verifiedMri = new VerifiedMri // TODO1: Use IVerifiedMri
-            {
-                Accession = accession,
-                AdditionMethod = "Unit Testing",
-                Status = "Testing",
-                AdditionTime = DateTime.Now
-            };
-            verifiedMri.InsertIntoDb();
+            var verifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            verifiedMri.Accession = accession;
+            verifiedMri.AdditionMethod = "Unit Testing";
+            verifiedMri.Status = "Testing";
+            verifiedMri.AdditionTime = DateTime.Now;
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri);
 
-            accessionsInDb = verifiedMri.GetRecentVerifiedMris(topEntriesCount);
+            accessionsInDb = _agentConsoleRepository.GetRecentVerifiedMris(topEntriesCount);
             var accessionExistsInDb = accessionsInDb.Select(a => a.Accession).Contains(accession);
             if (!accessionExistsInDb) Assert.Fail($"Accession [{accession}] does not exist in DB.");
+        }
 
-            verifiedMri.DeleteInDb();
+        [TestMethod]
+        public void GetPendingCases()
+        {
+            // Arrange
+            // Make sure there is no pending cases in DB
+            Assert.IsTrue(!_agentConsoleRepository.GetPendingCases().Any());
+
+            // Add a test Pending Case to DB
+            var testVerifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            testVerifiedMri.Accession = "TestAccession";
+            testVerifiedMri.Status = "Pending";
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(testVerifiedMri);
+
+            // Act
+            // Get pending cases from DB
+            var pendingCases = _agentConsoleRepository.GetPendingCases().ToArray();
+
+            // Assert
+            // Check if added test case exists
+            Assert.IsTrue(pendingCases.Length == 1, "A pending case was added in the middle of testing! Try running the test again.");
+            var addedCaseFoundInDb = pendingCases[0].Accession == testVerifiedMri.Accession;
+
+            Assert.IsTrue(addedCaseFoundInDb);
+        }
+
+        [TestMethod]
+        public void GetProcessingCases()
+        {
+            // Arrange
+            // Make sure there is no processing cases in DB
+            Assert.IsTrue(!_agentConsoleRepository.GetProcessingCases().Any());
+
+            // Add a test Processing Case to DB
+            var testVerifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            testVerifiedMri.Accession = "TestAccession";
+            testVerifiedMri.Status = "Pending";
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(testVerifiedMri);
+
+            // Act
+            // Get processing cases from DB
+            var processingCases = _agentConsoleRepository.GetPendingCases().ToArray();
+
+            // Assert
+            // Check if added test case exists
+            Assert.IsTrue(processingCases.Length == 1, "A processing case was added in the middle of testing! Try running the test again.");
+            var addedCaseFoundInDb = processingCases[0].Accession == testVerifiedMri.Accession;
+
+            Assert.IsTrue(addedCaseFoundInDb);
+        }
+
+        [TestMethod]
+        public void GetQueuedCases()
+        {
+            // Arrange
+            // Make sure there is no queued cases in DB
+            Assert.IsTrue(!_agentConsoleRepository.GetQueuedCases().Any());
+
+            // Add a test Queued Case to DB
+            var testVerifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            testVerifiedMri.Accession = "TestAccession";
+            testVerifiedMri.Status = "Queued";
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(testVerifiedMri);
+
+            // Act
+            // Get queued cases from DB
+            var queuedCases = _agentConsoleRepository.GetQueuedCases().ToArray();
+
+            // Assert
+            // Check if added test case exists
+            Assert.IsTrue(queuedCases.Length == 1, "A queued case was added in the middle of testing! Try running the test again.");
+            var addedCaseFoundInDb = queuedCases[0].Accession == testVerifiedMri.Accession;
+
+            Assert.IsTrue(addedCaseFoundInDb);
+        }
+
+        [TestMethod]
+        public void SetStatusOfCase()
+        {
+            // Arrange
+            // Add a test Pending Case to DB
+            var testVerifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            testVerifiedMri.Accession = "TestAccession";
+            testVerifiedMri.Status = "Pending";
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(testVerifiedMri);
+
+            // Act
+            _agentConsoleRepository.SetVerifiedMriStatus(testVerifiedMri.Accession, "Testing");
+
+            // Assert
+            var testVerifiedMriFromDb = _agentConsoleRepository.GetVerifiedMriByAccession("TestAccession");
+            var testStatusIsCorrect = testVerifiedMriFromDb.Status == "Testing";
+            Assert.IsTrue(testStatusIsCorrect);
         }
 
         [TestCleanup]
@@ -75,12 +167,19 @@ namespace CAPI.IntegratedTests.AgentConsole
             var manualProcPath = ImgProc.GetManualProcessPath();
             var testAccessionFilePath = Path.Combine(manualProcPath, "TestAccession");
             if (File.Exists(testAccessionFilePath)) File.Delete(testAccessionFilePath);
+
+            // Delete any case in DB with accession 'TestAccession'
+            var testAccessionCase = _agentConsoleFactory.CreateVerifiedMri();
+            testAccessionCase.Accession = "TestAccession";
+            if (_agentConsoleRepository.VerifiedMriExistsInDb(testAccessionCase.Accession))
+                _agentConsoleRepository.DeleteInDbByAccession(testAccessionCase.Accession);
         }
 
         private static IUnityContainer CreateContainerCore()
         {
             var container = new UnityContainer();
-            container.RegisterType<IVerifiedMri, VerifiedMri>(new TransientLifetimeManager());
+            container.RegisterType<IAgentConsoleRepository, AgentConsoleRepository>(new TransientLifetimeManager());
+            container.RegisterType<IAgentConsoleFactory, AgentConsoleFactory>(new TransientLifetimeManager());
             return container;
         }
     }
