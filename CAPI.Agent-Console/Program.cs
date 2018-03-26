@@ -42,7 +42,7 @@ namespace CAPI.Agent_Console
 
             InitializeUnity();
 
-            GetFirstParamFromArgs(args); //
+            GetFirstParamFromArgs(args);
 
             SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
@@ -219,7 +219,8 @@ namespace CAPI.Agent_Console
             var dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
             var recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
             var jobBuilder = _unityContainer.Resolve<IJobBuilder>();
-            return new Broker(dicomNodeRepo, recipeRepositoryInMemory, jobBuilder);
+            var agentConsoleFactory = _unityContainer.Resolve<IAgentConsoleFactory>();
+            return new Broker(dicomNodeRepo, recipeRepositoryInMemory, jobBuilder, agentConsoleFactory);
         }
 
         // Set up
@@ -283,6 +284,7 @@ namespace CAPI.Agent_Console
             _unityContainer.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             _unityContainer.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
             _unityContainer.RegisterType<IValueComparer, ValueComparer>();
+            _unityContainer.RegisterType<IAgentConsoleFactory, AgentConsoleFactory>();
         }
     }
 }

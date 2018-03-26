@@ -105,6 +105,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgentConsoleFactory.cs" />
+    <Compile Include="AgentConsoleRepository.cs" />
     <Compile Include="Broker.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="LogHelper.cs" />

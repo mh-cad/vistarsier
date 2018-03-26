@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace CAPI.Agent_Console.Abstractions
 {
@@ -10,12 +9,5 @@ namespace CAPI.Agent_Console.Abstractions
         string Status { get; set; }
         string AdditionMethod { get; set; }
         DateTime AdditionTime { get; set; }
-        IEnumerable<IVerifiedMri> GetRecentVerifiedMris(int numbersToCheck);
-
-        void InsertIntoDb();
-        void DeleteInDb();
-        bool AccessionExistsInDb();
-        bool DbIsAvailable();
-        bool DbTableVerifiedMriExists();
     }
 }
