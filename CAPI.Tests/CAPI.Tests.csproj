@@ -72,6 +72,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Config.cs" />
     <Compile Include="Database\Database.cs" />
     <Compile Include="Dicom\DicomServices.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
