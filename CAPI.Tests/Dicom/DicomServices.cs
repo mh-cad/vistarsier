@@ -8,10 +8,10 @@ using System.Linq;
 using Unity;
 using Unity.Lifetime;
 
-namespace TestProjectUnitTesting
+namespace CAPI.Tests.Dicom
 {
     [TestClass]
-    public class DicomServicesIntegratedTests
+    public class DicomServices
     {
         private IDicomServices _dicomServices;
         private IDicomFactory _dicomFactory;
@@ -38,6 +38,38 @@ namespace TestProjectUnitTesting
             var projectsParentPath = Directory.GetParent(projectPath).FullName;
             return Path.Combine(projectsParentPath, "TestObjects");
         }
+
+        [TestCleanup]
+        public void TestCleanUp()
+        {
+            // Delete Updated Tag File
+            var updatedTagFile = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
+            if (File.Exists(updatedTagFile)) File.Delete(updatedTagFile);
+        }
+
+        [TestMethod]
+        public void DicomNodesEnvironmentVariables()
+        {
+            // Act
+            var localNodeAet = Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User);
+            var localNodeIp = Environment.GetEnvironmentVariable("DcmNodeIP_Local", EnvironmentVariableTarget.User);
+            var localNodePort = Environment.GetEnvironmentVariable("DcmNodePort_Local", EnvironmentVariableTarget.User);
+
+            var remoteNodeAet = Environment.GetEnvironmentVariable("DcmNodeAET_Remote", EnvironmentVariableTarget.User);
+            var remoteNodeIp = Environment.GetEnvironmentVariable("DcmNodeIP_Remote", EnvironmentVariableTarget.User);
+            var remoteNodePort = Environment.GetEnvironmentVariable("DcmNodePort_Remote", EnvironmentVariableTarget.User);
+
+            // Assert
+            Assert.IsFalse(string.IsNullOrEmpty(localNodeAet));
+            Assert.IsFalse(string.IsNullOrEmpty(localNodeIp));
+            Assert.IsTrue(int.TryParse(localNodePort, out var testInt));
+            if (localNodePort == null) Assert.Fail();
+
+            Assert.IsFalse(string.IsNullOrEmpty(remoteNodeAet));
+            Assert.IsFalse(string.IsNullOrEmpty(remoteNodeIp));
+            Assert.IsTrue(int.TryParse(remoteNodePort, out testInt));
+            if (remoteNodePort == null) Assert.Fail();
+        }
         private IDicomNode GetLocalDicomNode()
         {
             var localNodeAet = Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User);
@@ -63,14 +95,6 @@ namespace TestProjectUnitTesting
                 _dicomFactory.CreateDicomNode("", remoteNodeAet, remoteNodeIp, int.Parse(remoteNodePort));
         }
 
-        [TestCleanup]
-        public void TestCleanUp()
-        {
-            // Delete Updated Tag File
-            var updatedTagFile = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
-            if (File.Exists(updatedTagFile)) File.Delete(updatedTagFile);
-        }
-
         [TestMethod]
         public void RemoteDicomNodeConnection()
         {
@@ -82,6 +106,24 @@ namespace TestProjectUnitTesting
             {
                 Assert.Fail($"Dicom ping failed to {_remoteNode.LogicalName}: " + ex.Message);
             }
+        }
+
+        [TestMethod]
+        public void DicomNodeEnvironmentVariablesAreDefined()
+        {
+            var localNodeAet = Environment.GetEnvironmentVariable("DcmNodeAET_Local", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(localNodeAet);
+            var localNodeIp = Environment.GetEnvironmentVariable("DcmNodeIP_Local", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(localNodeIp);
+            var localNodePort = Environment.GetEnvironmentVariable("DcmNodePort_Local", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(localNodePort);
+
+            var remoteNodeAet = Environment.GetEnvironmentVariable("DcmNodeAET_Remote", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(remoteNodeAet);
+            var remoteNodeIp = Environment.GetEnvironmentVariable("DcmNodeIP_Remote", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(remoteNodeIp);
+            var remoteNodePort = Environment.GetEnvironmentVariable("DcmNodePort_Remote", EnvironmentVariableTarget.User);
+            Assert.IsNotNull(remoteNodePort);
         }
 
         [TestMethod]
@@ -123,14 +165,13 @@ namespace TestProjectUnitTesting
             var studies = _dicomServices.GetStudiesForPatientId(testPatientId, _localNode, _remoteNode);
             var dicomStudies = studies as IDicomStudy[] ?? studies.ToArray();
             Assert.IsTrue(dicomStudies.Length > 9, $"Less than 9 studies found for patient id: {testPatientId}{Environment.NewLine}" +
-                                                   $"Count:{dicomStudies.Length }");
+                                               $"Count:{dicomStudies.Length }");
         }
 
         private static IUnityContainer CreateContainerCore()
         {
-            var container = new UnityContainer();//(UnityContainer)new UnityContainer()
-                                                 //.AddNewExtension<Log4NetExtension>();
-            container.RegisterType<IDicomServices, DicomServices>(new TransientLifetimeManager());
+            var container = new UnityContainer();
+            container.RegisterType<IDicomServices, CAPI.Dicom.DicomServices>(new TransientLifetimeManager());
             container.RegisterType<IDicomFactory, DicomFactory>(new TransientLifetimeManager());
             container.RegisterType<IDicomNode, DicomNode>(new TransientLifetimeManager());
             return container;
