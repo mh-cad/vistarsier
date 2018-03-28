@@ -72,14 +72,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Database\Database.cs" />
     <Compile Include="Dicom\DicomServices.cs" />
-    <Compile Include="FileSystem\FileSystemIntegratedTests.cs" />
+    <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CAPI.Agent-Console.Abstractions\CAPI.Agent-Console.Abstractions.csproj">
+      <Project>{2dfede24-a314-4cea-8b9c-414b99dc4602}</Project>
+      <Name>CAPI.Agent-Console.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Agent-Console\CAPI.Agent-Console.csproj">
+      <Project>{b3050ad2-688b-46f8-b594-cc6b8d4cc02d}</Project>
+      <Name>CAPI.Agent-Console</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
