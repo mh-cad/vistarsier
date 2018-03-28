@@ -11,10 +11,13 @@ namespace CAPI.Agent_Console
         public string Status { get; set; }
         public string AdditionMethod { get; set; }
         public DateTime AdditionTime { get; set; }
+        public DateTime LastModified { get; set; }
+        public Exception Exception { get; set; }
 
         public VerifiedMri()
         {
             AdditionTime = DateTime.Now;
+            LastModified = DateTime.Now;
         }
     }
 }

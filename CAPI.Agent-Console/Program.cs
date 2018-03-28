@@ -30,7 +30,7 @@ namespace CAPI.Agent_Console
         private const int DefaultNoOfCasesToCheck = 1000;
         private static int _numberOfCasesToCheck;
         private static UnityContainer _unityContainer;
-        private static bool _isBusy;
+        private static Broker _broker;
 
         // Class Entry Point
         private static void Main(string[] args)
@@ -42,11 +42,13 @@ namespace CAPI.Agent_Console
 
             InitializeUnity();
 
+            _broker = GetBroker();
+
             GetFirstParamFromArgs(args);
 
             SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
-            Run(); // Run for the first time
+            _broker.Run(); // Run for the first time
 
             StartTimer();
 
@@ -84,24 +86,23 @@ namespace CAPI.Agent_Console
         }
         private static void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
-            if (_isBusy) return;
+            if (_broker.IsBusy) return;
 
             try
             {
-                Run();
+                _broker.Run();
             }
             catch
             {
-                _isBusy = false;
+                _broker.IsBusy = false;
                 throw;
             }
         }
-        /// <summary>
-        /// Main Process that runs once at start then at every interval
-        /// </summary>
-        private static void Run()
+
+        #region "Old Methods"
+        private static void RunOld()
         {
-            _isBusy = true;
+            _broker.IsBusy = true;
             var thisMachineProcessesManualCases = ImgProc.GetProcessCasesAddedManually() == "1";
             var thisMachineProcessesHl7Cases = ImgProc.GetProcessCasesAddedByHl7() == "1";
 
@@ -111,54 +112,47 @@ namespace CAPI.Agent_Console
 
             if (thisMachineProcessesManualCases)
                 completedCasesAll.AddRange(
-                    ProcessCasesAddedManually(out failedCasesAll)
+                    ProcessCasesAddedManuallyOld(out failedCasesAll)
                 );
 
             if (thisMachineProcessesHl7Cases)
                 completedCasesAll.AddRange(
-                    //ProcessCasesAddedByHl7FromVT(out failedCasesHl7)
-                    ProcessCasesAddedByHl7(out failedCasesHl7)
+                    ProcessCasesAddedByHl7Old(out failedCasesHl7)
                 );
 
             failedCasesAll.AddRange(failedCasesHl7);
 
-            LogProcessedCases(completedCasesAll, failedCasesAll);
-            _isBusy = false;
+            LogProcessedCasesOld(completedCasesAll, failedCasesAll);
+            _broker.IsBusy = false;
         }
 
-        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7(out List<IPendingCase> failedCasesHl7)
-        {
-            failedCasesHl7 = new List<IPendingCase>();
-            return null;
-        }
-
-        private static IEnumerable<IPendingCase> ProcessCasesAddedManually
+        private static IEnumerable<IPendingCase> ProcessCasesAddedManuallyOld
             (out List<IPendingCase> failedCases)
         {
             var pendingCasesManuallyAdded =
                 Broker.GetPendingCasesFromCapiDbManuallyAdded(_numberOfCasesToCheck).ToList();
 
             var completedCasesManual =
-                ProcessAllPendingCases(pendingCasesManuallyAdded, out failedCases).ToList();
+                ProcessAllPendingCasesOld(pendingCasesManuallyAdded, out failedCases).ToList();
 
-            DeleteManuallyAddedCompletedFiles(completedCasesManual);
+            DeleteManuallyAddedCompletedFilesOld(completedCasesManual);
 
             return completedCasesManual;
         }
 
-        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7FromVT
+        private static IEnumerable<IPendingCase> ProcessCasesAddedByHl7Old
             (out List<IPendingCase> failedCases)
         {
             var pendingCasesHl7Added =
-                Broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
+                _broker.GetPendingCasesFromCapiDbHl7Added(_numberOfCasesToCheck).ToList();
 
             var completedCasesHl7 =
-                ProcessAllPendingCases(pendingCasesHl7Added, out failedCases).ToList();
+                ProcessAllPendingCasesOld(pendingCasesHl7Added, out failedCases).ToList();
 
             return completedCasesHl7;
         }
 
-        private static void DeleteManuallyAddedCompletedFiles(IEnumerable<IPendingCase> completedCasesManual)
+        private static void DeleteManuallyAddedCompletedFilesOld(IEnumerable<IPendingCase> completedCasesManual)
         {
             var manualProcessPath = ImgProc.GetManualProcessPath();
             var manualProcessFiles = Directory.GetFiles(manualProcessPath);
@@ -168,7 +162,7 @@ namespace CAPI.Agent_Console
                 .ForEach(File.Delete);
         }
 
-        private static void LogProcessedCases(
+        private static void LogProcessedCasesOld(
             IEnumerable<IPendingCase> completedCases, IEnumerable<IPendingCase> failedCases)
         {
             foreach (var completedCase in completedCases)
@@ -181,12 +175,12 @@ namespace CAPI.Agent_Console
         }
 
         // Main Process
-        private static IEnumerable<IPendingCase> ProcessAllPendingCases
+        private static IEnumerable<IPendingCase> ProcessAllPendingCasesOld
             (IList<IPendingCase> pendingCases, out List<IPendingCase> failedCases)
         {
             failedCases = new List<IPendingCase>();
             var completedCases = new List<IPendingCase>();
-            var broker = GetBroker();
+            //var broker = GetBroker();
 
             // Return an empty list if no pending case is found
             if (!pendingCases.Any()) return completedCases;
@@ -197,7 +191,7 @@ namespace CAPI.Agent_Console
             foreach (var pendingCase in pendingCases)
             {
                 pendingCase.SetStatus("Processing");
-                var success = broker.ProcessCase(pendingCase);
+                var success = _broker.ProcessCaseOld(pendingCase);
 
                 if (success)
                 {
@@ -213,17 +207,8 @@ namespace CAPI.Agent_Console
 
             return completedCases;
         }
+        #endregion
 
-        private static Broker GetBroker()
-        {
-            var dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
-            var recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
-            var jobBuilder = _unityContainer.Resolve<IJobBuilder>();
-            var agentConsoleFactory = _unityContainer.Resolve<IAgentConsoleFactory>();
-            return new Broker(dicomNodeRepo, recipeRepositoryInMemory, jobBuilder, agentConsoleFactory);
-        }
-
-        // Set up
         private static void GetFirstParamFromArgs(IReadOnlyList<string> args)
         {
             if (args != null && args.Count > 0 && int.TryParse(args[1], out var arg1))
@@ -258,6 +243,14 @@ namespace CAPI.Agent_Console
             if (dcmNodePortRemote == null)
                 Environment.SetEnvironmentVariable("DcmNodePort_Remote", settings.DcmNodePort_Remote, EnvironmentVariableTarget.User);
         }
+        private static Broker GetBroker()
+        {
+            var dicomNodeRepo = _unityContainer.Resolve<IDicomNodeRepository>();
+            var recipeRepositoryInMemory = _unityContainer.Resolve<IRecipeRepositoryInMemory<IRecipe>>();
+            var jobBuilder = _unityContainer.Resolve<IJobBuilder>();
+            var agentConsoleFactory = _unityContainer.Resolve<IAgentConsoleFactory>();
+            return new Broker(dicomNodeRepo, recipeRepositoryInMemory, jobBuilder, agentConsoleFactory);
+        }
 
         // Unity
         private static void InitializeUnity()
@@ -265,13 +258,13 @@ namespace CAPI.Agent_Console
             _unityContainer = (UnityContainer)new UnityContainer()
                 .AddNewExtension<Log4NetExtension>();
             RegisterClasses();
+
         }
         private static void RegisterClasses()
         {
             _unityContainer.RegisterType<IDicomNode, DicomNode>();
             _unityContainer.RegisterType<IDicomFactory, DicomFactory>();
             _unityContainer.RegisterType<IDicomServices, DicomServices>();
-            _unityContainer.RegisterType<IDicomFactory, DicomFactory>();
             _unityContainer.RegisterType<IImageConverter, ImageConverter>();
             _unityContainer.RegisterType<IImageProcessor, ImageProcessor>();
             _unityContainer.RegisterType<IJobManagerFactory, JobManagerFactory>();

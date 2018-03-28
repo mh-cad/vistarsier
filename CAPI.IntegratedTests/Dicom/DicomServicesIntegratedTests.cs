@@ -98,7 +98,6 @@ namespace CAPI.IntegratedTests.Dicom
         [TestMethod]
         public void RemoteDicomNodeConnection()
         {
-            System.Diagnostics.Debugger.Launch();
             try
             {
                 _dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);

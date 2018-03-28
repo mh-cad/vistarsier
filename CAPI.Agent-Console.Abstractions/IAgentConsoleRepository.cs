@@ -13,12 +13,20 @@ namespace CAPI.Agent_Console.Abstractions
         IEnumerable<IVerifiedMri> GetPendingCases();
         IEnumerable<IVerifiedMri> GetProcessingCases();
         IEnumerable<IVerifiedMri> GetQueuedCases();
+        IEnumerable<IVerifiedMri> GetAllManualCases();
+        IEnumerable<IVerifiedMri> GetAllHl7Cases();
         IVerifiedMri GetVerifiedMriByAccession(string accession);
         IVerifiedMri GetVerifiedMriById(string id);
+        bool AccessionExistsInDb(string accession);
+
+        void UpdateVerifiedMri(IVerifiedMri verifiedMri);
         void SetVerifiedMriStatus(string accession, string statusText);
+
         void InsertVerifiedMriIntoDb(IVerifiedMri verifiedMri);
         void DeleteInDbByAccession(string accession);
+
         void DeleteInDbById(string id);
-        bool VerifiedMriExistsInDb(string accession);
+
+        
     }
 }
