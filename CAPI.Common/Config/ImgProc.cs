@@ -38,6 +38,10 @@ namespace CAPI.Common.Config
         {
             return RegKey?.GetValue("ManualProcessPath").ToString() ?? "";
         }
+        public static string GetHl7ProcessPath()
+        {
+            return RegKey?.GetValue("Hl7ProcessPath").ToString() ?? "";
+        }
         public static string GetProcessCasesAddedManually()
         {
             return RegKey?.GetValue("ProcessCasesAddedManually").ToString() ?? "";

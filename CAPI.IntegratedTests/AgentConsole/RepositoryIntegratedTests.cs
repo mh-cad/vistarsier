@@ -5,31 +5,25 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Unity;
 using Unity.Lifetime;
 
 namespace CAPI.IntegratedTests.AgentConsole
 {
     [TestClass]
-    public class AgentConsoleIntegratedTests
+    public class RepositoryIntegratedTests
     {
+        //private static readonly ILog Log = LogHelper.GetLogger();
         private IAgentConsoleRepository _agentConsoleRepository;
         private IAgentConsoleFactory _agentConsoleFactory;
 
         [TestInitialize]
         public void TestInit()
         {
-            //Debugger.Launch();
             var container = CreateContainerCore();
             _agentConsoleRepository = container.Resolve<IAgentConsoleRepository>();
             _agentConsoleFactory = container.Resolve<IAgentConsoleFactory>();
-        }
-
-        // TODO3: To be implemented
-        [TestMethod]
-        public void ManualProcessTest()
-        {
-            //var pendingCases = Broker.GetPendingCasesFromCapiDbManuallyAdded(1000);
         }
 
         [TestMethod]
@@ -161,6 +155,35 @@ namespace CAPI.IntegratedTests.AgentConsole
             Assert.IsTrue(testStatusIsCorrect);
         }
 
+        [TestMethod]
+        public void UpdateCase()
+        {
+            // Arrange
+            // Add a test Pending Case to DB
+            var testVerifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+            testVerifiedMri.Accession = "TestAccession";
+            testVerifiedMri.Status = "Pending";
+            testVerifiedMri.AdditionMethod = "Manual";
+            _agentConsoleRepository.InsertVerifiedMriIntoDb(testVerifiedMri);
+
+            // Act
+            Thread.Sleep(1000);
+            var testLastModified = DateTime.Now;
+            testVerifiedMri.LastModified = testLastModified;
+            testVerifiedMri.Status = "Testing";
+            testVerifiedMri.AdditionMethod = "HL7";
+
+            _agentConsoleRepository.UpdateVerifiedMri(testVerifiedMri);
+
+            // Assert
+            var testVerifiedMriFromDb = _agentConsoleRepository.GetVerifiedMriByAccession("TestAccession");
+
+            Assert.IsTrue(testVerifiedMriFromDb.Status == "Testing");
+            Assert.IsTrue(testVerifiedMriFromDb.AdditionMethod == "HL7");
+            var diff = testVerifiedMriFromDb.LastModified.Subtract(testLastModified).TotalMilliseconds;
+            Assert.IsTrue(Math.Abs(diff) < 10);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
@@ -171,7 +194,7 @@ namespace CAPI.IntegratedTests.AgentConsole
             // Delete any case in DB with accession 'TestAccession'
             var testAccessionCase = _agentConsoleFactory.CreateVerifiedMri();
             testAccessionCase.Accession = "TestAccession";
-            if (_agentConsoleRepository.VerifiedMriExistsInDb(testAccessionCase.Accession))
+            if (_agentConsoleRepository.AccessionExistsInDb(testAccessionCase.Accession))
                 _agentConsoleRepository.DeleteInDbByAccession(testAccessionCase.Accession);
         }
 

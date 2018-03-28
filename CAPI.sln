@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Agent-Console", "CAPI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Agent-Console.Abstractions", "CAPI.Agent-Console.Abstractions\CAPI.Agent-Console.Abstractions.csproj", "{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProjectUnitTesting", "TestProjectUnitTesting\TestProjectUnitTesting.csproj", "{A464BA80-252F-45CA-8FE1-B64A30D83700}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +140,12 @@ Global
 		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{2DFEDE24-A314-4CEA-8B9C-414B99DC4602}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{A464BA80-252F-45CA-8FE1-B64A30D83700}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

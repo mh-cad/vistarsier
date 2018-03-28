@@ -113,6 +113,36 @@ namespace CAPI.Agent_Console
             return pendingCases;
         }
 
+        public IEnumerable<IVerifiedMri> GetAllManualCases()
+        {
+            IEnumerable<IVerifiedMri> allManualCases;
+
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "Select * FROM [VerifiedMris] WHERE [AdditionMethod]='Manual'";
+
+                allManualCases = db.Query<VerifiedMri>(sqlCommand);
+            }
+
+            return allManualCases;
+        }
+
+        public IEnumerable<IVerifiedMri> GetAllHl7Cases()
+        {
+            IEnumerable<IVerifiedMri> allHl7Cases;
+
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "Select * FROM [VerifiedMris] WHERE [AdditionMethod]='HL7'";
+
+                allHl7Cases = db.Query<VerifiedMri>(sqlCommand);
+            }
+
+            return allHl7Cases;
+        }
+
         public IVerifiedMri GetVerifiedMriByAccession(string accession)
         {
             IVerifiedMri verifiedMri;
@@ -143,6 +173,26 @@ namespace CAPI.Agent_Console
             return verifiedMri;
         }
 
+        public void UpdateVerifiedMri(IVerifiedMri verifiedMri)
+        {
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "UPDATE [VerifiedMris] " +
+                    "SET Status=@status, AdditionMethod=@method, LastModified=@time " +
+                    "WHERE [Accession]=@accession";
+
+                db.Execute(sqlCommand,
+                    new
+                    {
+                        accession = verifiedMri.Accession,
+                        status = verifiedMri.Status,
+                        method = verifiedMri.AdditionMethod,
+                        time = verifiedMri.LastModified
+                    });
+            }
+        }
+
         public void SetVerifiedMriStatus(string accession, string statusText)
         {
             using (IDbConnection db = new SqlConnection(_capiConnectionString))
@@ -156,7 +206,7 @@ namespace CAPI.Agent_Console
 
         public void InsertVerifiedMriIntoDb(IVerifiedMri verifiedMri)
         {
-            if (VerifiedMriExistsInDb(verifiedMri.Accession))
+            if (AccessionExistsInDb(verifiedMri.Accession))
                 throw new Exception($"Unable to insert accession [{verifiedMri.Accession}] into DB as it already exists there.");
 
             using (IDbConnection db = new SqlConnection(_capiConnectionString))
@@ -195,7 +245,7 @@ namespace CAPI.Agent_Console
             }
         }
 
-        public bool VerifiedMriExistsInDb(string accession)
+        public bool AccessionExistsInDb(string accession)
         {
             IEnumerable<IVerifiedMri> verifiedMris;
 
