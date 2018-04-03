@@ -69,8 +69,10 @@ namespace CAPI.Agent_Console
         private IEnumerable<IVerifiedMri> GetPendingCasesAndProcessThem
             (string additionMethod, out List<IVerifiedMri> failedCases)
         {
-            if (additionMethod == "Manual") AddNewCasesFromManualProcessFolderToDb();
-            else if (additionMethod == "HL7") AddNewCasesFromHl7ProcessFolderToDb();
+            if (additionMethod == "Manual")
+                AddNewCasesFromManualProcessFolderToDb();
+            else if (additionMethod == "HL7")
+                AddNewCasesFromHl7ProcessFolderToDb();
 
             var pendingCases =
                 _agentConsoleRepository.GetPendingCases()
@@ -82,6 +84,21 @@ namespace CAPI.Agent_Console
             DeleteManuallyAddedCompletedFiles(completedCasesManual);
 
             return completedCasesManual;
+        }
+
+        public IEnumerable<IVerifiedMri> GetProcessingCasesFromCapiDb()
+        {
+            return _agentConsoleRepository.GetProcessingCases();
+        }
+
+        public IEnumerable<IVerifiedMri> GetQueuedCasesFromCapiDb()
+        {
+            return _agentConsoleRepository.GetQueuedCases();
+        }
+
+        public void SetCaseStatus(string accession, string statusText)
+        {
+            _agentConsoleRepository.SetVerifiedMriStatus(accession, statusText);
         }
 
         public void AddNewCasesFromManualProcessFolderToDb()
@@ -109,7 +126,7 @@ namespace CAPI.Agent_Console
         {
             var newlyAddedHl7Files = Directory.GetFiles(_hl7ProcessFolder).ToList();
 
-            var allManualCases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
+            var allHl7Cases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
 
             newlyAddedHl7Files.ForEach(filePath =>
             {
@@ -119,7 +136,7 @@ namespace CAPI.Agent_Console
                 verifiedMri.AdditionMethod = "HL7";
                 verifiedMri.Status = "Pending";
 
-                if (allManualCases.Contains(filename))
+                if (allHl7Cases.Contains(filename))
                     _agentConsoleRepository.UpdateVerifiedMri(verifiedMri); // If accession already exists in DB, update status to Pending
                 else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri); // If not, add it to DB
 
@@ -166,13 +183,13 @@ namespace CAPI.Agent_Console
             return completedCases;
         }
 
-        private bool ProcessCase(IVerifiedMri pendingCase)
+        private bool ProcessCase(IVerifiedMri verifiedMri)
         {
             try
             {
                 var recipe = _recipeRepositoryInMemory.GetAll().FirstOrDefault();
                 if (recipe != null && string.IsNullOrEmpty(recipe.NewStudyAccession))
-                    recipe.NewStudyAccession = pendingCase.Accession;
+                    recipe.NewStudyAccession = verifiedMri.Accession;
 
                 var localDicomNode = GetLocalNode();
                 var sourceNode = _dicomNodeRepo.GetAll()
@@ -185,9 +202,15 @@ namespace CAPI.Agent_Console
                 job.Run();
                 return true;
             }
+            catch (DicomStudyNotFoundException ex)
+            {
+                verifiedMri.Note = ex.Message;
+                _agentConsoleRepository.UpdateVerifiedMri(verifiedMri);
+                return false;
+            }
             catch (Exception ex)
             {
-                pendingCase.Exception = ex;
+                verifiedMri.Exception = ex;
                 return false;
             }
         }
@@ -320,7 +343,7 @@ namespace CAPI.Agent_Console
 
             _log.Info($"Checking for new cases in {_interval} seconds...");
         }
-        private void DeleteManuallyAddedCompletedFiles(IEnumerable<IVerifiedMri> completedCasesManual)
+        private static void DeleteManuallyAddedCompletedFiles(IEnumerable<IVerifiedMri> completedCasesManual)
         {
             var manualProcessPath = ImgProc.GetManualProcessPath();
             var manualProcessFiles = Directory.GetFiles(manualProcessPath);
@@ -329,5 +352,7 @@ namespace CAPI.Agent_Console
                 .ToList()
                 .ForEach(File.Delete);
         }
+
+
     }
 }

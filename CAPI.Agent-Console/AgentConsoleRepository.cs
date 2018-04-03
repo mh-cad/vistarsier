@@ -179,7 +179,7 @@ namespace CAPI.Agent_Console
             {
                 const string sqlCommand =
                     "UPDATE [VerifiedMris] " +
-                    "SET Status=@status, AdditionMethod=@method, LastModified=@time " +
+                    "SET Status=@status, AdditionMethod=@method, LastModified=@time, Note=@note " +
                     "WHERE [Accession]=@accession";
 
                 db.Execute(sqlCommand,
@@ -188,7 +188,8 @@ namespace CAPI.Agent_Console
                         accession = verifiedMri.Accession,
                         status = verifiedMri.Status,
                         method = verifiedMri.AdditionMethod,
-                        time = verifiedMri.LastModified
+                        time = DateTime.Now,
+                        note = verifiedMri.Note
                     });
             }
         }

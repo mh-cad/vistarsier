@@ -4,7 +4,7 @@ namespace CAPI.Agent_Console
 {
     internal static class Log
     {
-        public static void Write(string logContent)
+        private static void Write(string logContent)
         {
             Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logContent}");
         }

@@ -7,7 +7,7 @@ using Unity.Lifetime;
 namespace CAPI.Tests.Database
 {
     [TestClass]
-    public class DatabaseIntegratedTests
+    public class Database
     {
         private IAgentConsoleRepository _agentConsoleRepository;
 

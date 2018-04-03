@@ -11,8 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-[assembly: log4net.Config.XmlConfigurator(Watch = true)]
-
 namespace CAPI.JobManager
 {
     public class Job<T> : IJob<T>
