@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace CAPI.JobManager
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ValueComparer : IValueComparer
     {
         public bool CompareStrings(string val1, string val2, StringOperand operand, string delimiter = " ")

@@ -9,6 +9,7 @@ namespace CAPI.Agent_Console
         public string Id { get; set; }
         public string Accession { get; set; }
         public string Status { get; set; }
+        public string Note { get; set; }
         public string AdditionMethod { get; set; }
         public DateTime AdditionTime { get; set; }
         public DateTime LastModified { get; set; }

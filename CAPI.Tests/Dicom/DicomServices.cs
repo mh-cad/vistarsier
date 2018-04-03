@@ -7,6 +7,9 @@ using System.IO;
 using System.Linq;
 using Unity;
 using Unity.Lifetime;
+using Unity.log4net;
+
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace CAPI.Tests.Dicom
 {
@@ -170,10 +173,13 @@ namespace CAPI.Tests.Dicom
 
         private static IUnityContainer CreateContainerCore()
         {
-            var container = new UnityContainer();
+            var container = (UnityContainer)new UnityContainer()
+                .AddNewExtension<Log4NetExtension>();
+
             container.RegisterType<IDicomServices, CAPI.Dicom.DicomServices>(new TransientLifetimeManager());
             container.RegisterType<IDicomFactory, DicomFactory>(new TransientLifetimeManager());
             container.RegisterType<IDicomNode, DicomNode>(new TransientLifetimeManager());
+
             return container;
         }
     }

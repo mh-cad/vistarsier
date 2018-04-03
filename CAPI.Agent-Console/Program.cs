@@ -42,9 +42,9 @@ namespace CAPI.Agent_Console
 
             InitializeUnity();
 
-            _broker = GetBroker();
-
             GetFirstParamFromArgs(args);
+
+            _broker = GetBroker();
 
             SetFailedCasesStatusToPending(); // These are interrupted cases - Set status to "Pending" so they get processed
 
@@ -56,6 +56,27 @@ namespace CAPI.Agent_Console
         }
 
         private static void SetFailedCasesStatusToPending()
+        {
+            var incompleteCases = _broker.GetProcessingCasesFromCapiDb().ToList();
+            incompleteCases.AddRange(_broker.GetQueuedCasesFromCapiDb());
+
+            foreach (var processingCase in incompleteCases)
+            {
+                try
+                {
+                    _broker.SetCaseStatus(processingCase.Accession, "Pending");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(
+                        "Failed to set case status from Processing/Queued to Pending. " +
+                        $"Accession: ${processingCase.Accession}", ex);
+                    throw;
+                }
+            }
+        }
+
+        private static void SetFailedCasesStatusToPendingOld()
         {
             var incompleteCases = new PendingCase().GetProcessingCapiCases(_numberOfCasesToCheck).ToList();
             incompleteCases.AddRange(new PendingCase().GetQueuedCapiCases(_numberOfCasesToCheck));
@@ -258,7 +279,6 @@ namespace CAPI.Agent_Console
             _unityContainer = (UnityContainer)new UnityContainer()
                 .AddNewExtension<Log4NetExtension>();
             RegisterClasses();
-
         }
         private static void RegisterClasses()
         {

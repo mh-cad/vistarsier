@@ -5,7 +5,7 @@ using System.IO;
 namespace CAPI.Tests.Config
 {
     [TestClass]
-    public class ConfigsIntegratedTests
+    public class Config
     {
         private string _executablesPath;
 

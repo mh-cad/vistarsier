@@ -7,6 +7,7 @@ namespace CAPI.Agent_Console.Abstractions
         string Id { get; set; }
         string Accession { get; set; }
         string Status { get; set; }
+        string Note { get; set; }
         string AdditionMethod { get; set; }
         DateTime AdditionTime { get; set; }
         DateTime LastModified { get; set; }

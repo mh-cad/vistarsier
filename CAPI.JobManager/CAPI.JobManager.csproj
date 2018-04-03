@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="ColorMap.cs" />
     <Compile Include="Destination.cs" />
+    <Compile Include="DicomStudyNotFoundException.cs" />
     <Compile Include="ExtractBrainSurface.cs" />
     <Compile Include="LogEventArgument.cs" />
     <Compile Include="IntegratedProcess.cs" />

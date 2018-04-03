@@ -52,12 +52,14 @@ namespace CAPI.JobManager
                     .OrderByDescending(s => s.StudyDate).ToList();
 
             if (allStudiesForPatient.Count < 1)
-                throw new ArgumentOutOfRangeException($"No studies could be found in node AET: [{sourceNode.AeTitle}]");
+                throw new DicomStudyNotFoundException(
+                    $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{sourceNode.AeTitle}]");
 
             // Get Current Study (Fixed)
             var fixedSeriesBundle = GetFixedSeriesBundle(recipe, localNode, sourceNode, allStudiesForPatient);
-            if (fixedSeriesBundle.Original.ParentDicomStudy == null)
-                throw new Exception("No workable historical series were found");
+            if (fixedSeriesBundle.Original.ParentDicomStudy == null ||
+                fixedSeriesBundle.Original.ParentDicomStudy.Series.Count == 0)
+                throw new DicomStudyNotFoundException("No workable series were found for accession");
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
 
@@ -66,7 +68,7 @@ namespace CAPI.JobManager
                 GetFloatingSeriesBundle(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
             if (floatingSeriesBundle.Original.ParentDicomStudy == null)
-                throw new Exception("No workable historical series were found");
+                throw new DicomStudyNotFoundException("No prior workable series were found");
 
             var imageRepositoryPath = ImgProc.GetImageRepositoryPath();
             var job = _jobManagerFactory.CreateJob(
@@ -103,8 +105,9 @@ namespace CAPI.JobManager
                         studyFixedIndex, localNode, sourceNode)
                     : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorStudyAccession);
 
-            floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
-                floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
+            if (floatingSeriesBundle.Original.ParentDicomStudy != null)
+                floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
+                    floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
 
             return floatingSeriesBundle;
         }
@@ -190,11 +193,6 @@ namespace CAPI.JobManager
                 localNode, sourceNode).ToList();
 
             var matchedStudies = GetStudiesMatchingOtherCriteria(studiesContainingMatchingSeries, seriesSelectionCriteria).ToList();
-
-            if (matchedStudies == null || matchedStudies.Count != 1)
-                throw new ArgumentOutOfRangeException(
-                    "Study selection criteria should match one and only one study" +
-                    $" -> Number of matched studies: {matchedStudies.Count}");
 
             return matchedStudies.FirstOrDefault();
         }
