@@ -18,6 +18,7 @@ namespace CAPI.JobManager.Abstraction
 
         void Run();
 
+        event EventHandler<IProcessEventArgument> OnEachProcessStarted;
         event EventHandler<IProcessEventArgument> OnEachProcessCompleted;
         event EventHandler<ILogEventArgument> OnLogContentReady;
     }

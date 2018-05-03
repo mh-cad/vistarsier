@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace CAPI.DAL
 {
@@ -49,7 +50,10 @@ namespace CAPI.DAL
 
         public IQueryable<IRecipe> GetAll()
         {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Recipes.json");
+            var path = Path.Combine(
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                    ?? throw new InvalidOperationException()
+                , "Recipes.json");
             var recipesJsonString = File.ReadAllText(path);
 
             var recipe = JsonConvert.DeserializeObject<IList<TRecipe>>(recipesJsonString);

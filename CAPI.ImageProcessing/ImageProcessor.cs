@@ -24,8 +24,8 @@ namespace CAPI.ImageProcessing
         private const string Dcm2NiiExe = "dcm2nii.exe";
         private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
         private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
-        private const string BseExe = "bse09e.exe";
-        //private const string BseParams = "-n 3 -d 25 -s 0.64 -r 1 --trim";
+        //private const string BseExe = "bse09e.exe";
+        private const string BseExe = "bse.exe";
         private const string BrainSurfaceSuffix = "_brain_surface";
         private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";
@@ -219,8 +219,8 @@ namespace CAPI.ImageProcessing
         private void CreateResultXform(string workingDir, string fixedFullPath, string floatingFullPath,
             out IFrameOfReference fixedFrameOfRef) // Outputs to the same folder as fixed series
         {
-            var fixedNoExtension = fixedFullPath.Replace(".hdr", "");
-            var floatingNoExtension = floatingFullPath.Replace(".hdr", "");
+            var fixedNoExtension = fixedFullPath.Replace(".nii", "");
+            var floatingNoExtension = floatingFullPath.Replace(".nii", "");
 
             try
             {

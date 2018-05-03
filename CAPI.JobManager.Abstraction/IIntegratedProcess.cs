@@ -11,6 +11,7 @@ namespace CAPI.JobManager.Abstraction
 
         IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed);
 
+        event EventHandler<IProcessEventArgument> OnStart;
         event EventHandler<IProcessEventArgument> OnComplete;
     }
 }

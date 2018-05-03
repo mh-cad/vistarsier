@@ -69,10 +69,7 @@ namespace CAPI.Agent_Console
         private IEnumerable<IVerifiedMri> GetPendingCasesAndProcessThem
             (string additionMethod, out List<IVerifiedMri> failedCases)
         {
-            if (additionMethod == "Manual")
-                AddNewCasesFromManualProcessFolderToDb();
-            else if (additionMethod == "HL7")
-                AddNewCasesFromHl7ProcessFolderToDb();
+            AddNewCasesFromProcessFolderToDb(additionMethod);
 
             var pendingCases =
                 _agentConsoleRepository.GetPendingCases()
@@ -101,48 +98,76 @@ namespace CAPI.Agent_Console
             _agentConsoleRepository.SetVerifiedMriStatus(accession, statusText);
         }
 
-        public void AddNewCasesFromManualProcessFolderToDb()
+        public void AddNewCasesFromProcessFolderToDb(string additionMethod)
         {
-            var newlyAddedManualFiles = Directory.GetFiles(_manualProcessFolder).ToList();
+            var folderPath = additionMethod == "HL7" ? _hl7ProcessFolder : _manualProcessFolder;
+            var newlyAddedManualFiles = Directory.GetFiles(folderPath).ToList();
 
-            var allManualCases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
+            var allManualCasesInDb = _agentConsoleRepository.GetAllCases().Select(c => c.Accession);
+            var manualAccessionsInDb = allManualCasesInDb;
 
             newlyAddedManualFiles.ForEach(filePath =>
             {
-                var filename = Path.GetFileName(filePath);
+                var filename = Path.GetFileNameWithoutExtension(filePath);
                 var verifiedMri = _agentConsoleFactory.CreateVerifiedMri();
                 verifiedMri.Accession = filename;
-                verifiedMri.AdditionMethod = "Manual";
+                verifiedMri.AdditionMethod = additionMethod;
                 verifiedMri.Status = "Pending";
 
-                if (allManualCases.Contains(filename))
-                    _agentConsoleRepository.SetVerifiedMriStatus(filename, "Pending"); // If accession already exists in DB, update status to Pending
-                else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri); // If not, add it to DB
+                //Debugger.Launch();
+                if (manualAccessionsInDb.Select(a => a.ToLower()).Contains(verifiedMri.Accession?.ToLower()))
+                    // If accession already exists in DB, update status to Pending
+                    _agentConsoleRepository.SetVerifiedMriStatus(verifiedMri.Accession, "Pending");
+                // If not, add it to DB
+                else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri);
 
                 DeleteFileIfAlreadyInDb(filePath);
             });
         }
-        public void AddNewCasesFromHl7ProcessFolderToDb()
-        {
-            var newlyAddedHl7Files = Directory.GetFiles(_hl7ProcessFolder).ToList();
+        //public void AddNewCasesFromManualProcessFolderToDb()
+        //{
+        //    var newlyAddedManualFiles = Directory.GetFiles(_manualProcessFolder).ToList();
 
-            var allHl7Cases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
+        //    var allManualCases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
 
-            newlyAddedHl7Files.ForEach(filePath =>
-            {
-                var filename = Path.GetFileName(filePath);
-                var verifiedMri = _agentConsoleFactory.CreateVerifiedMri();
-                verifiedMri.Accession = filename;
-                verifiedMri.AdditionMethod = "HL7";
-                verifiedMri.Status = "Pending";
+        //    newlyAddedManualFiles.ForEach(filePath =>
+        //    {
+        //        var filename = Path.GetFileNameWithoutExtension(filePath);
+        //        var verifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+        //        verifiedMri.Accession = filename;
+        //        verifiedMri.AdditionMethod = "Manual";
+        //        verifiedMri.Status = "Pending";
 
-                if (allHl7Cases.Contains(filename))
-                    _agentConsoleRepository.UpdateVerifiedMri(verifiedMri); // If accession already exists in DB, update status to Pending
-                else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri); // If not, add it to DB
+        //        if (allManualCases.Select(a => a.ToLower()).Contains(verifiedMri.Accession?.ToLower()))
+        //            // If accession already exists in DB, update status to Pending
+        //            _agentConsoleRepository.SetVerifiedMriStatus(verifiedMri.Accession, "Pending");
+        //        // If not, add it to DB
+        //        else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri);
 
-                DeleteFileIfAlreadyInDb(filePath);
-            });
-        }
+        //        DeleteFileIfAlreadyInDb(filePath);
+        //    });
+        //}
+        //public void AddNewCasesFromHl7ProcessFolderToDb()
+        //{
+        //    var newlyAddedHl7Files = Directory.GetFiles(_hl7ProcessFolder).ToList();
+
+        //    var allHl7Cases = _agentConsoleRepository.GetAllManualCases().Select(c => c.Accession);
+
+        //    newlyAddedHl7Files.ForEach(filePath =>
+        //    {
+        //        var filename = Path.GetFileNameWithoutExtension(filePath);
+        //        var verifiedMri = _agentConsoleFactory.CreateVerifiedMri();
+        //        verifiedMri.Accession = filename;
+        //        verifiedMri.AdditionMethod = "HL7";
+        //        verifiedMri.Status = "Pending";
+
+        //        if (allHl7Cases.Contains(filename))
+        //            _agentConsoleRepository.UpdateVerifiedMri(verifiedMri); // If accession already exists in DB, update status to Pending
+        //        else _agentConsoleRepository.InsertVerifiedMriIntoDb(verifiedMri); // If not, add it to DB
+
+        //        DeleteFileIfAlreadyInDb(filePath);
+        //    });
+        //}
 
         private void DeleteFileIfAlreadyInDb(string filePath)
         {
@@ -196,13 +221,14 @@ namespace CAPI.Agent_Console
                     .FirstOrDefault(n => n.AeTitle == recipe.SourceAet);
 
                 var job = _jobBuilder.Build(recipe, localDicomNode, sourceNode);
+                job.OnEachProcessStarted += JobProcessStarted;
                 job.OnLogContentReady += JobLogContentReady;
                 job.OnEachProcessCompleted += JobProcessCompleted;
 
                 job.Run();
                 return true;
             }
-            catch (DicomStudyNotFoundException ex)
+            catch (DicomStudyNotFoundException ex) // TODO1: Redundant
             {
                 verifiedMri.Note = ex.Message;
                 _agentConsoleRepository.UpdateVerifiedMri(verifiedMri);
@@ -210,6 +236,8 @@ namespace CAPI.Agent_Console
             }
             catch (Exception ex)
             {
+                verifiedMri.Note = ex.Message;
+                _agentConsoleRepository.UpdateVerifiedMri(verifiedMri);
                 verifiedMri.Exception = ex;
                 return false;
             }
@@ -322,10 +350,13 @@ namespace CAPI.Agent_Console
         }
 
         // Events
+        private void JobProcessStarted(object sender, IProcessEventArgument e)
+        {
+            JobLogContentReady(sender, new LogEventArgument { LogContent = e.LogContent });
+        }
         private void JobProcessCompleted(object sender, IProcessEventArgument e)
         {
             JobLogContentReady(sender, new LogEventArgument { LogContent = e.LogContent });
-            //Log.Write(e.LogContent);
         }
         private void JobLogContentReady(object sender, ILogEventArgument e)
         {

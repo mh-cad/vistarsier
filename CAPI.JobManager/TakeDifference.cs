@@ -17,7 +17,7 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
-
+        public event EventHandler<IProcessEventArgument> OnStart;
         public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
@@ -30,11 +30,13 @@ namespace CAPI.JobManager
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
+            OnStart?.Invoke(this, new ProcessEventArgument(
+                $"Taking Difference between two studies [Version: {Version}] " +
+                $"[Parameters: {string.Join(" ", Parameters)}]"));
+
             jobToBeProcessed = DoTakeDifference(jobToBeProcessed);
 
-            OnComplete?.Invoke(this, new ProcessEventArgument(
-                $"Take Difference process is completed [Version: {Version}] " +
-                $"[Parameters: {string.Join(" ", Parameters)}]"));
+            OnComplete?.Invoke(this, new ProcessEventArgument("Take Difference process is completed!"));
 
             return jobToBeProcessed;
         }
