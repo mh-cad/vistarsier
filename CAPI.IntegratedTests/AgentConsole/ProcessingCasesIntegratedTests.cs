@@ -51,7 +51,7 @@ namespace CAPI.IntegratedTests.AgentConsole
             File.Create(testManualAccessionFilePath).Close();
 
             // Act
-            _broker.AddNewCasesFromManualProcessFolderToDb();
+            _broker.AddNewCasesFromProcessFolderToDb("Manual");
 
             // Assert
             pendingCases = _agentConsoleRepository.GetPendingCases();
@@ -74,7 +74,7 @@ namespace CAPI.IntegratedTests.AgentConsole
             File.Create(testManualAccessionFilePath).Close();
 
             // Act
-            _broker.AddNewCasesFromHl7ProcessFolderToDb();
+            _broker.AddNewCasesFromProcessFolderToDb("HL7");
 
             // Assert
             pendingCases = _agentConsoleRepository.GetPendingCases();

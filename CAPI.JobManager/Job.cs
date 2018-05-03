@@ -271,6 +271,7 @@ namespace CAPI.JobManager
                 .CreateExtractBrinSurfaceIntegratedProcess(
                 integratedProcess.Version, integratedProcess.Parameters);
 
+            extractBrainSurfaceProcess.OnStart += Process_OnStart;
             extractBrainSurfaceProcess.OnComplete += Process_OnComplete;
 
             extractBrainSurfaceProcess.Run(this as IJob<IRecipe>);
@@ -281,6 +282,7 @@ namespace CAPI.JobManager
                 .CreateRegistrationIntegratedProcess(
                     integratedProcess.Version, integratedProcess.Parameters);
 
+            registrationProcess.OnStart += Process_OnStart;
             registrationProcess.OnComplete += Process_OnComplete;
 
             registrationProcess.Run(this as IJob<IRecipe>);
@@ -291,6 +293,7 @@ namespace CAPI.JobManager
                 .CreateTakeDifferenceIntegratedProcess(
                     integratedProcess.Version, integratedProcess.Parameters);
 
+            takeDifferenceProcess.OnStart += Process_OnStart;
             takeDifferenceProcess.OnComplete += Process_OnComplete;
 
             takeDifferenceProcess.Run(this as IJob<IRecipe>);
@@ -301,6 +304,7 @@ namespace CAPI.JobManager
                 .CreateColorMapIntegratedProcess(
                     integratedProcess.Version, integratedProcess.Parameters);
 
+            colorMapProcess.OnStart += Process_OnStart;
             colorMapProcess.OnComplete += Process_OnComplete;
 
             colorMapProcess.Run(this as IJob<IRecipe>);
@@ -391,11 +395,16 @@ namespace CAPI.JobManager
             }
         }
 
+        private void Process_OnStart(object sender, IProcessEventArgument e)
+        {
+            OnEachProcessStarted?.Invoke(sender, e);
+        }
         private void Process_OnComplete(object sender, IProcessEventArgument e)
         {
             OnEachProcessCompleted?.Invoke(sender, e);
         }
 
+        public event EventHandler<IProcessEventArgument> OnEachProcessStarted;
         public event EventHandler<IProcessEventArgument> OnEachProcessCompleted;
         public event EventHandler<ILogEventArgument> OnLogContentReady;
     }

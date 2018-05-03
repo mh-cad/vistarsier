@@ -68,6 +68,21 @@ namespace CAPI.Agent_Console
             return recentCapiCases;
         }
 
+        public IQueryable<IVerifiedMri> GetAllCases()
+        {
+            IQueryable<IVerifiedMri> allCases;
+
+            using (IDbConnection db = new SqlConnection(_capiConnectionString))
+            {
+                const string sqlCommand =
+                    "Select * FROM [VerifiedMris]";
+
+                allCases = db.Query<VerifiedMri>(sqlCommand).AsQueryable<IVerifiedMri>();
+            }
+
+            return allCases;
+        }
+
         public IEnumerable<IVerifiedMri> GetPendingCases()
         {
             IEnumerable<IVerifiedMri> pendingCases;
@@ -260,5 +275,7 @@ namespace CAPI.Agent_Console
 
             return verifiedMris.Any();
         }
+
+       
     }
 }

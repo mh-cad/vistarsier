@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace CAPI.Agent_Console.Abstractions
 {
@@ -10,6 +11,7 @@ namespace CAPI.Agent_Console.Abstractions
 
         // Verified Mri Methods
         IEnumerable<IVerifiedMri> GetRecentVerifiedMris(int numbersToCheck);
+        IQueryable<IVerifiedMri> GetAllCases();
         IEnumerable<IVerifiedMri> GetPendingCases();
         IEnumerable<IVerifiedMri> GetProcessingCases();
         IEnumerable<IVerifiedMri> GetQueuedCases();

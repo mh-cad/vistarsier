@@ -18,6 +18,7 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
+        public event EventHandler<IProcessEventArgument> OnStart;
         public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
@@ -31,15 +32,17 @@ namespace CAPI.JobManager
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
+            OnStart?.Invoke(this, new ProcessEventArgument(
+                "Extracting brain mask... " +
+                $"[Version: {Version}] [Parameters: {string.Join(" | ", Parameters)}]"));
+
             jobToBeProcessed.DicomSeriesFixed =
-                ExtractBrainMaskUsingResize(jobToBeProcessed.DicomSeriesFixed);
+                ExtractBrainMask(jobToBeProcessed.DicomSeriesFixed);
 
             jobToBeProcessed.DicomSeriesFloating =
-                ExtractBrainMaskUsingResize(jobToBeProcessed.DicomSeriesFloating);
+                ExtractBrainMask(jobToBeProcessed.DicomSeriesFloating);
 
-            OnComplete?.Invoke(this, new ProcessEventArgument(
-                "Brain Mask Extraction is completed " +
-                $"[Version: {Version}] [Parameters: {string.Join(" | ", Parameters)}]"));
+            OnComplete?.Invoke(this, new ProcessEventArgument("Brain Mask Extraction completed."));
 
             return jobToBeProcessed;
         }
@@ -88,10 +91,10 @@ namespace CAPI.JobManager
 
             // Resize Back to original size
             var brainMaskNii = $@"{outputPath}\{brainMask.Replace("_resized", "").Replace(".hdr", ".nii")}";
-            _imageProcessor.ResizeBacktToOriginalSize($@"{outputPath}\{brainMask}", brainMaskNii, hdrFileFullPath);
+            //_imageProcessor.ResizeBacktToOriginalSize($@"{outputPath}\{brainMask}", brainMaskNii, hdrFileFullPath);
 
             var brainMaskRemovedNii = $@"{outputPath}\{brainMaskRemoved.Replace("_resized", "").Replace(".hdr", ".nii")}";
-            _imageProcessor.ResizeBacktToOriginalSize($@"{outputPath}\{brainMaskRemoved}", brainMaskRemovedNii, hdrFileFullPath);
+            //_imageProcessor.ResizeBacktToOriginalSize($@"{outputPath}\{brainMaskRemoved}", brainMaskRemovedNii, hdrFileFullPath);
 
             _imageProcessor.CopyNiftiImage2PatientTransform(brainMaskNii, hdrFileFullPath);
             _imageProcessor.CopyNiftiImage2PatientTransform(brainMaskRemovedNii, hdrFileFullPath);

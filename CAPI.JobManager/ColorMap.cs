@@ -17,6 +17,7 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
+        public event EventHandler<IProcessEventArgument> OnStart;
         public event EventHandler<IProcessEventArgument> OnComplete;
 
         // Constructor
@@ -29,11 +30,13 @@ namespace CAPI.JobManager
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
         {
+            OnStart?.Invoke(this, new ProcessEventArgument(
+                $"ColorMap is being added to images [Version: {Version}] " +
+                $"[Parameters: {string.Join(" ", Parameters)}]"));
+
             jobToBeProcessed = DoColorMap(jobToBeProcessed);
 
-            OnComplete?.Invoke(this, new ProcessEventArgument(
-                $"ColorMap process is completed [Version: {Version}] " +
-                $"[Parameters: {string.Join(" ", Parameters)}]"));
+            OnComplete?.Invoke(this, new ProcessEventArgument("ColorMap process is completed!"));
 
             return jobToBeProcessed;
         }
