@@ -47,9 +47,12 @@
     <Compile Include="IColorMap.cs" />
     <Compile Include="IDestination.cs" />
     <Compile Include="IIntegratedProcess.cs" />
+    <Compile Include="IJobBuilderNew.cs" />
+    <Compile Include="IJobNew.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="IJobManagerFactory.cs" />
     <Compile Include="IJobSeries.cs" />
+    <Compile Include="IJobSeriesBundleNew.cs" />
     <Compile Include="IJobSeriesBundle.cs" />
     <Compile Include="ILogEventArgument.cs" />
     <Compile Include="IntegratedProcessType.cs" />

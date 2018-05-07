@@ -290,6 +290,7 @@ namespace CAPI.Agent_Console
             _unityContainer.RegisterType<IJobManagerFactory, JobManagerFactory>();
             _unityContainer.RegisterType<IRecipe, Recipe>();
             _unityContainer.RegisterType<IJob<IRecipe>, Job<IRecipe>>();
+            _unityContainer.RegisterType<IJobNew<IRecipe>, JobNew<IRecipe>>();
             _unityContainer.RegisterType<IJobBuilder, JobBuilder>();
             _unityContainer.RegisterType<ISeriesSelectionCriteria, SeriesSelectionCriteria>();
             _unityContainer.RegisterType<IIntegratedProcess, IntegratedProcess>();
