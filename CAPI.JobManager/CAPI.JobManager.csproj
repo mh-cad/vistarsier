@@ -52,6 +52,9 @@
     <Compile Include="Destination.cs" />
     <Compile Include="DicomStudyNotFoundException.cs" />
     <Compile Include="ExtractBrainSurface.cs" />
+    <Compile Include="JobBuilderNew.cs" />
+    <Compile Include="JobNew.cs" />
+    <Compile Include="JobSeriesBundleNew.cs" />
     <Compile Include="LogEventArgument.cs" />
     <Compile Include="IntegratedProcess.cs" />
     <Compile Include="IntegratedProcesses.cs" />

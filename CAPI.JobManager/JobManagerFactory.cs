@@ -29,6 +29,11 @@ namespace CAPI.JobManager
             return new Job<IRecipe>(
                 this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo);
         }
+        public IJobNew<IRecipe> CreateJobNew(IDicomNode localNode, IDicomNode remoteNode)
+        {
+            return new JobNew<IRecipe>(
+                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo);
+        }
 
         public IJob<IRecipe> CreateJob(
             IJobSeriesBundle dicomStudyUnderFocus, IJobSeriesBundle dicomStudyBeingComparedTo,
@@ -39,6 +44,22 @@ namespace CAPI.JobManager
 
             job.DicomSeriesFixed = dicomStudyUnderFocus;
             job.DicomSeriesFloating = dicomStudyBeingComparedTo;
+            job.IntegratedProcesses = integratedProcesses;
+            job.Destinations = destinations;
+            job.OutputFolderPath = outputFolderPath;
+
+            return job;
+        }
+
+        public IJobNew<IRecipe> CreateJobNew(
+            string fixedDicomFolder, string floatingDicomFolder,
+            IList<IIntegratedProcess> integratedProcesses, IList<IDestination> destinations,
+            string outputFolderPath, IDicomNode localNode, IDicomNode remoteNode)
+        {
+            var job = CreateJobNew(localNode, remoteNode);
+
+            job.Fixed.DicomFolderPath = fixedDicomFolder;
+            job.Floating.DicomFolderPath = floatingDicomFolder;
             job.IntegratedProcesses = integratedProcesses;
             job.Destinations = destinations;
             job.OutputFolderPath = outputFolderPath;
@@ -101,5 +122,6 @@ namespace CAPI.JobManager
         {
             return new JobSeriesBundle();
         }
+
     }
 }
