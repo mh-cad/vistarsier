@@ -79,8 +79,6 @@ namespace CAPI.Tests.Job
             recipe.Destinations.Clear();
             recipe.Destinations.Add(destination);
 
-            Log.Info("test");
-
             return _jobBuilder.Build(recipe, localDicomNode, sourceNode);
         }
 
@@ -121,7 +119,7 @@ namespace CAPI.Tests.Job
         [TestCleanup]
         public void TestCleanup()
         {
-            if (string.IsNullOrEmpty(OutputPath) && Directory.Exists(OutputPath))
+            if (!string.IsNullOrEmpty(OutputPath) && Directory.Exists(OutputPath))
                 Directory.Delete(OutputPath, true);
         }
 
