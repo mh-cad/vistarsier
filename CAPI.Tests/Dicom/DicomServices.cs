@@ -9,8 +9,6 @@ using Unity;
 using Unity.Lifetime;
 using Unity.log4net;
 
-//[assembly: log4net.Config.XmlConfigurator(Watch = true)]
-
 namespace CAPI.Tests.Dicom
 {
     [TestClass]
