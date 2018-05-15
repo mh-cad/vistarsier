@@ -16,6 +16,11 @@ namespace CAPI.JobManager
             throw new NotImplementedException();
         }
 
+        public IJobNew<IRecipe> Run(IJobNew<IRecipe> jobToBeProcessed)
+        {
+            throw new NotImplementedException();
+        }
+
         public event EventHandler<IProcessEventArgument> OnStart;
         public event EventHandler<IProcessEventArgument> OnComplete;
     }

@@ -10,6 +10,7 @@ namespace CAPI.JobManager.Abstraction
         string[] Parameters { get; set; }
 
         IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed);
+        IJobNew<IRecipe> Run(IJobNew<IRecipe> jobToBeProcessed);
 
         event EventHandler<IProcessEventArgument> OnStart;
         event EventHandler<IProcessEventArgument> OnComplete;

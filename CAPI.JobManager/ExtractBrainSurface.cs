@@ -18,9 +18,6 @@ namespace CAPI.JobManager
         public string Version { get; set; }
         public string[] Parameters { get; set; }
 
-        public event EventHandler<IProcessEventArgument> OnStart;
-        public event EventHandler<IProcessEventArgument> OnComplete;
-
         // Constructor
         public ExtractBrainSurface(IImageProcessor imageProcessor)
         {
@@ -28,6 +25,42 @@ namespace CAPI.JobManager
             Id = "1";
             Version = "1";
             Parameters = new[] { "" };
+        }
+
+        public IJobNew<IRecipe> Run(IJobNew<IRecipe> job)
+        {
+            OnStart?.Invoke(this, new ProcessEventArgument(
+                "Extracting brain surface... " +
+                $"[Version: {Version}] [Parameters: {string.Join(" | ", Parameters)}]"));
+
+            job = ExtractBrainMasks(job);
+
+            OnComplete?.Invoke(this, new ProcessEventArgument("Brain Surface Extraction completed."));
+
+            return job;
+        }
+
+        private IJobNew<IRecipe> ExtractBrainMasks(IJobNew<IRecipe> job)
+        {
+            var outputPath = job.OutputFolderPath;
+
+            var @fixed = job.Fixed.NiiFilePath;
+            _imageProcessor.ExtractBrainMask(@fixed, outputPath, Parameters[0],
+                out var fixedBrainSurfaceRemoved, out var fixedBrainMask);
+            _imageProcessor.CopyNiftiImage2PatientTransform($@"{outputPath}\{fixedBrainMask}", @fixed);
+            _imageProcessor.CopyNiftiImage2PatientTransform($@"{outputPath}\{fixedBrainSurfaceRemoved}", @fixed);
+            job.Fixed.Brain = $@"{outputPath}\{fixedBrainSurfaceRemoved}";
+            job.Fixed.BrainMask = $@"{outputPath}\{fixedBrainMask}";
+
+            var floating = job.Floating.NiiFilePath;
+            _imageProcessor.ExtractBrainMask(floating, outputPath, Parameters[0],
+                out var floatingBrainSurfaceRemoved, out var floatingBrainMask);
+            _imageProcessor.CopyNiftiImage2PatientTransform($@"{outputPath}\{floatingBrainMask}", floating);
+            _imageProcessor.CopyNiftiImage2PatientTransform($@"{outputPath}\{floatingBrainSurfaceRemoved}", floating);
+            job.Floating.Brain = $@"{outputPath}\{floatingBrainSurfaceRemoved}";
+            job.Floating.BrainMask = $@"{outputPath}\{floatingBrainMask}";
+
+            return job;
         }
 
         public IJob<IRecipe> Run(IJob<IRecipe> jobToBeProcessed)
@@ -110,19 +143,8 @@ namespace CAPI.JobManager
             return jobSeriesBundle;
         }
 
-        private void Resize(string hdrFileFullPath, int destinationWidth)
-        {
+        public event EventHandler<IProcessEventArgument> OnStart;
+        public event EventHandler<IProcessEventArgument> OnComplete;
 
-        }
-
-        private void ResizeBacktToOriginalSize()
-        {
-
-        }
-
-        private void CopyNiftiImage2PatientTransform()
-        {
-
-        }
     }
 }

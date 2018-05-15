@@ -81,6 +81,9 @@
     <Compile Include="Config\Config.cs" />
     <Compile Include="Dicom\DicomServices.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
+    <Compile Include="Helpers\JobBuilder.cs" />
+    <Compile Include="Helpers\Unity.cs" />
+    <Compile Include="Job\ExtractBrainMask.cs" />
     <Compile Include="Job\Job.cs" />
     <Compile Include="LogHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

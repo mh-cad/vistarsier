@@ -22,10 +22,10 @@ namespace CAPI.ImageProcessing
 
         private const string FlippedSuffix = "_flipped";
         private const string Dcm2NiiExe = "dcm2nii.exe";
-        private const string Dcm2NiiHdrParams = "-n N -f Y -r N";
-        private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r N";
-        //private const string BseExe = "bse09e.exe";
-        private const string BseExe = "bse.exe";
+        //private const string Dcm2NiiHdrParams = "-n N -f Y -r Y";
+        //private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r Y";
+        private const string BseExe = "bse09e.exe";
+        //private const string BseExe = "bse.exe";
         private const string BrainSurfaceSuffix = "_brain_surface";
         private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";
@@ -86,63 +86,6 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile($@"{ImgProc.GetProcessesRootDir()}\_runall.bat", "");
         } // TODO3: To be checked if this is stil working
 
-        public string ConvertDicom2Hdr(string dicomPath, string outputPath, string hdrFileNameNoExt)
-        {
-            try
-            {
-                // Make sure temp folder exists
-                var tmpDir = $"{outputPath}\\tmpDir";
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-                Directory.CreateDirectory(tmpDir);
-
-                // Call dcm2nii.exe to perform the conversion
-                ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{Dcm2NiiExe}", $"{Dcm2NiiHdrParams} -o {tmpDir} {dicomPath}");
-
-                var hdrFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".hdr"));
-                var imgFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".img"));
-                if (hdrFileFullPath != null) File.Copy(hdrFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.hdr");
-                if (imgFileFullPath != null) File.Copy(imgFileFullPath, $"{outputPath}\\{hdrFileNameNoExt}.img");
-
-                // Remove temp folder
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-
-                return $"{outputPath}\\{hdrFileNameNoExt}.hdr";
-            }
-            catch (Exception ex) // TODO1 Exception Handling
-            {
-                return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
-            }
-        }
-
-        public string ConvertDicomToNii(string dicomPath, string outputPath, string niiFileNameNoExt)
-        {
-            try
-            {
-                // Make sure temp folder exists
-                var tmpDir = $"{outputPath}\\tmpDir";
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-                Directory.CreateDirectory(tmpDir);
-
-                // Call dcm2nii.exe to perform the conversion
-                var convertFixedDicom2NiiProc = ProcessBuilder.Build(_executablesPath, Dcm2NiiExe, $"{Dcm2NiiNiiParams} -o {tmpDir} {dicomPath}", "");
-                convertFixedDicom2NiiProc.Start();
-                Logger.ProcessErrorLogWrite(convertFixedDicom2NiiProc, "convertFixedDicom2NiiProc");
-                convertFixedDicom2NiiProc.WaitForExit();
-
-                var niiFileFullPath = Directory.GetFiles($"{tmpDir}").FirstOrDefault(f => f.EndsWith(".nii"));
-                if (niiFileFullPath != null) File.Copy(niiFileFullPath, $"{outputPath}\\{niiFileFullPath}.nii");
-
-                // Remove temp folder
-                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-
-                return $"{outputPath}\\{niiFileNameNoExt}.nii";
-            }
-            catch (Exception ex) // TODO1 Exception Handling
-            {
-                return $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
-            }
-        }
-
         public void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
@@ -150,7 +93,7 @@ namespace CAPI.ImageProcessing
 
             var arguments = $"-i {inputHdrFullPath} " +
                             $"--mask {outputPath}\\{inputFileName}{BrainSurfaceSuffix}.hdr " +
-                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix}.hdr {bseParams}";
+                            $"-o {outputPath}\\{inputFileName}{BrainSurfaceExtSuffix} {bseParams}";
 
             ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{BseExe}", arguments);
 
@@ -219,15 +162,17 @@ namespace CAPI.ImageProcessing
         private void CreateResultXform(string workingDir, string fixedFullPath, string floatingFullPath,
             out IFrameOfReference fixedFrameOfRef) // Outputs to the same folder as fixed series
         {
-            var fixedNoExtension = fixedFullPath.Replace(".nii", "");
-            var floatingNoExtension = floatingFullPath.Replace(".nii", "");
+            var extension = fixedFullPath.EndsWith(".nii.gz") ? ".nii.gz" : ".nii";
+
+            var fixedNoExtension = fixedFullPath.Replace(extension, "");
+            var floatingNoExtension = floatingFullPath.Replace(extension, "");
 
             try
             {
                 const string methodname = "au.com.nicta.preprocess.main.ConvertCmtkXform"; // TODO3: Hard-coded file name | Hard-coded Java Method Description
                 var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
                                    //$@"{srcDir}\{fixedFullPath.Description}.nii {srcDir}\{seriesFloating.Description}.nii "+
-                                   $@"{fixedNoExtension}.nii {floatingNoExtension}.nii " +
+                                   $@"{fixedNoExtension}{extension} {floatingNoExtension}{extension} " +
                                    $@"{workingDir}\{CmtkRawXformFileName} {workingDir}\{CmtkResultXformFileName}";
 
                 ProcessBuilder.CallJava(javaArgument, methodname);
@@ -244,10 +189,17 @@ namespace CAPI.ImageProcessing
         private void ResliceFloatingImages(string outputPath, string fixedHdrFullPath, string floatingHdrFullPath,
             out string floatingReslicedFullPath)
         {
+            var floatingHdrFileNameWithExt = Path.GetFileName(floatingHdrFullPath);
             var floatingHdrFileNameNoExt = Path.GetFileNameWithoutExtension(floatingHdrFullPath);
             var floatingFolderPath = Path.GetDirectoryName(floatingHdrFullPath);
 
             floatingReslicedFullPath = $@"{floatingFolderPath}\{floatingHdrFileNameNoExt}_resliced.nii";
+
+            if (floatingHdrFileNameWithExt.EndsWith(".nii.gz"))
+            {
+                floatingHdrFileNameNoExt = floatingHdrFileNameWithExt.Replace(".nii.gz", "");
+                floatingReslicedFullPath = $@"{floatingFolderPath}\{floatingHdrFileNameNoExt}_resliced.nii.gz";
+            }
 
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
             var arguments = $@"-o {floatingReslicedFullPath} " +
