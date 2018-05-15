@@ -61,11 +61,19 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile(
                 $@"{_dicom2NiiFullPath}", $"{parameters} -o {tmpDir} {dicomDir}");
 
+            // if dcm2nii reorients files, it first builds output file(s) then reorients into file(s) starting with 'o'
+            // This will check if dcm2nii has tried reorienting the file and then skips file(s) not starting with 'o'
+            var reorient = parameters.ToLower().Contains("-r y");
+
             // Copy files into output folder with desirable filenames
             var outputFiles = Directory.GetFiles(tmpDir).ToList();
             outputFiles.ForEach(f =>
             {
+                if (f == null) return;
+                // Refer to comment above reorient declaration
+                if (reorient && !Path.GetFileName(f).ToLower().StartsWith("o")) return;
                 var extension = Path.GetExtension(f);
+
                 File.Copy(f, $@"{outputDir}\\{outputFileNameNoExt}{extension}");
             });
 

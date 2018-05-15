@@ -17,9 +17,9 @@
         "Id": "1",
         "Version": "1",
         "Parameters": [
-          //"-n 3 -d 26.875 -s 0.576 -r 2 --trim"
-          //"-n 3 -d 25 -s 0.64 -r 1 -p --trim"
-          "--auto --trim"
+          //"-n 3 -d 27.1875 -s 0.592 -r 1 --trim"
+          "-n 3 -d 25 -s 0.64 -r 1 --trim"
+          //"--auto --mt --trim"
         ]
       },
       {

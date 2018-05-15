@@ -23,6 +23,12 @@ namespace CAPI.JobManager.Abstraction
         void Run();
         void ConvertDicomToNii();
 
+        void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess);
+        void RunBiasFieldCorrectionProcess(IIntegratedProcess integratedProcess);
+        void RunRegistrationProcess(IIntegratedProcess integratedProcess);
+        void RunTakeDifference(IIntegratedProcess integratedProcess);
+        void RunColorMap(IIntegratedProcess integratedProcess);
+
         event EventHandler<IProcessEventArgument> OnEachProcessStarted;
         event EventHandler<IProcessEventArgument> OnEachProcessCompleted;
         event EventHandler<ILogEventArgument> OnLogContentReady;

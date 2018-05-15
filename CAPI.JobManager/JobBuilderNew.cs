@@ -1,6 +1,7 @@
 ﻿using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
 using CAPI.JobManager.Abstraction;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,7 +16,7 @@ namespace CAPI.JobManager
         private readonly IDicomServices _dicomServices;
         private readonly IJobManagerFactory _jobManagerFactory;
         private readonly IValueComparer _valueComparer;
-        //private readonly ILog _log;
+        private readonly ILog _log;
 
         /// <summary>
         /// Constructor
@@ -25,13 +26,12 @@ namespace CAPI.JobManager
         /// <param name="valueComparer"></param>
         /// <param name="log">Log4Net logger</param>
         public JobBuilderNew(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
-            IValueComparer valueComparer)
-        //, ILog log)
+            IValueComparer valueComparer, ILog log)
         {
             _dicomServices = dicomServices;
             _jobManagerFactory = jobManagerFactory;
             _valueComparer = valueComparer;
-            //_log = log;
+            _log = log;
         }
 
         /// <summary>
@@ -133,17 +133,17 @@ namespace CAPI.JobManager
             if (string.IsNullOrEmpty(recipe.NewStudyAccession))
                 throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
 
-            //try
-            //{
-            var study = _dicomServices.GetStudyForAccession(recipe.NewStudyAccession, localNode, sourceNode);
-            return study.PatientId;
-            //}
-            //catch
-            //{
-            //_log.Error($"Failed to find accession {recipe.NewStudyAccession} in source {recipe.SourceAet}");
+            try
+            {
+                var study = _dicomServices.GetStudyForAccession(recipe.NewStudyAccession, localNode, sourceNode);
+                return study.PatientId;
+            }
+            catch
+            {
+                _log.Error($"Failed to find accession {recipe.NewStudyAccession} in source {recipe.SourceAet}");
 
-            //throw;
-            //}
+                throw;
+            }
         }
 
         /// <summary>
