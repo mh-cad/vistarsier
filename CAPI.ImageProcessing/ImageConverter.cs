@@ -19,10 +19,10 @@ namespace CAPI.ImageProcessing
 
         public ImageConverter()
         {
-            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExe();
-            _dcm2NiiHdrParams = ImgProcConfig.GetDcm2NiiHdrParams();
-            _dcm2NiiNiiParams = ImgProcConfig.GetDcm2NiiNiiParams();
-            var miconvFileName = ImgProcConfig.GetMiconvFileName();
+            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExeFilePath();
+            _dcm2NiiHdrParams = "";//ImgProcConfig.GetDcm2NiiHdrParams();
+            _dcm2NiiNiiParams = "";//ImgProcConfig.GetDcm2NiiNiiParams();
+            var miconvFileName = "";//ImgProcConfig.GetMiconvFileName();
 
             var javaUtilsPath = ImgProc.GetJavaUtilsPath();
             _javaClassPath = $".;{javaUtilsPath}/PreprocessJavaUtils.jar;{javaUtilsPath}/lib/NICTA.jar;" +
@@ -43,6 +43,24 @@ namespace CAPI.ImageProcessing
         public void DicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt)
         {
             CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiNiiParams);
+        }
+
+        public static void DicomToNiix(string dicomDir, string outfile, string @params = "")
+        {
+            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExeFilePath();
+
+            var tmpDir = $@"{Path.GetDirectoryName(outfile)}\tmp";
+            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+            FileSystem.DirectoryExists(tmpDir);
+
+            ProcessBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
+
+            if (!Directory.Exists(tmpDir)) throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
+            var outfiles = Directory.GetFiles(tmpDir);
+            var nim = outfiles.Single(f => Path.GetExtension(f) == ".nii");
+            File.Move(nim, outfile);
+
+            Directory.Delete(tmpDir, true);
         }
 
         private void CallDicomToNii(

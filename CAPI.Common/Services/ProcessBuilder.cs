@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using CAPI.Common.Config;
+using System.Diagnostics;
 using System.Linq;
 
 namespace CAPI.Common.Services
@@ -41,12 +42,11 @@ namespace CAPI.Common.Services
             return stdout;
         }
 
-        public static 
-            void CallJava(string arguments, string methodCalled, string workingDir = "")
+        public static void CallJava(string arguments, string methodCalled, string workingDir = "")
         {
-            var javaFullPath = Config.ImgProc.GetJavaExePath();
+            var javaFullPath = Helper.GetJavaExePath();
             var javaFileNamExt = javaFullPath.Split('\\').LastOrDefault();
-            var javaFolderPath = javaFullPath.Replace($"\\{javaFileNamExt}","");
+            var javaFolderPath = javaFullPath.Replace($"\\{javaFileNamExt}", "");
 
             var process = Build(javaFolderPath, javaFileNamExt, arguments, workingDir);
 

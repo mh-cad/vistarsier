@@ -1,4 +1,5 @@
 ﻿using CAPI.Common.Config;
+using CAPI.ImageProcessing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
@@ -7,34 +8,39 @@ namespace CAPI.Tests.Config
     [TestClass]
     public class Config
     {
-        private string _executablesPath;
-
         [TestInitialize]
         public void TestInit()
         {
-            _executablesPath = ImgProc.GetExecutablesPath();
         }
 
         [TestMethod]
         public void ExecutablesFolderExists()
         {
             // Act
-            Assert.IsFalse(string.IsNullOrEmpty(_executablesPath));
-            Assert.IsTrue(_executablesPath.Contains(":"));
-            var executablesFolderExists = Directory.Exists(_executablesPath);
+            var executablesPath = ImgProcConfig.GetImgProcBinPath();
+            var executablesFolderExists = Directory.Exists(executablesPath);
 
             // Assert
-            Assert.IsTrue(executablesFolderExists, $"Executables path does not exist: {_executablesPath}");
+            Assert.IsTrue(executablesFolderExists, $"Executables path does not exist: {executablesPath}");
         }
 
         [TestMethod]
         public void JavaExeFileExists()
         {
             // Act
-            var javaBinPath = ImgProc.GetJavaExePath();
+            var javaBinPath = ImgProcConfig.GetJavaExeBin();
             var javaBinFileExists = File.Exists(javaBinPath);
             // Assert
             Assert.IsTrue(javaBinFileExists, $"Java exe file does not exist: {javaBinPath}");
+        }
+
+        [TestMethod]
+        public void JavaClasspathContainsValue()
+        {
+            // Act
+            var javaclasspath = ImgProcConfig.GetJavaClassPath();
+            // Assert
+            Assert.IsTrue(!string.IsNullOrEmpty(javaclasspath), "Java classpath has no values.");
         }
 
         [TestMethod]
@@ -59,14 +65,24 @@ namespace CAPI.Tests.Config
         }
 
         [TestMethod]
+        public void Dcm2NiiExeExists()
+        {
+            var filepath = ImgProcConfig.GetDcm2NiiExeFilePath();
+
+            //Assert
+            Assert.IsTrue(File.Exists(filepath));
+        }
+
+        [TestMethod]
         public void BseExists()
         {
-            // Arrange
-            var bseFilepath = Path.Combine(_executablesPath, "bse09e.exe");
-            var bseExeExists = File.Exists(bseFilepath);
+            ImgProcConfig.GetBseExeFilePath();
+        }
 
-            // Assert
-            Assert.IsTrue(bseExeExists, $"BSE exe file does not exist: {bseFilepath}");
+        [TestMethod]
+        public void BfcExists()
+        {
+            ImgProcConfig.GetBfcExeFilePath();
         }
     }
 }

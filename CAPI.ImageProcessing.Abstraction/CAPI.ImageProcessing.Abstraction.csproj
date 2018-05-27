@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IFrameOfReference.cs" />
+    <Compile Include="IImageProcessorNew.cs" />
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="IImageConverter.cs" />
     <Compile Include="ISeries.cs" />
