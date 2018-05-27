@@ -8,18 +8,220 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CAPI.ImageProcessing.Properties {
-    
-    
+namespace CAPI.ImageProcessing.Properties
+{
+
+
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.6.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
-            get {
+
+        public static Settings Default
+        {
+            get
+            {
                 return defaultInstance;
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("dcm2niix.exe")]
+        public string dcm2niiFilename
+        {
+            get
+            {
+                return ((string)(this["dcm2niiFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string dcm2niiParams
+        {
+            get
+            {
+                return ((string)(this["dcm2niiParams"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bse.exe")]
+        public string bseFilename
+        {
+            get
+            {
+                return ((string)(this["bseFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("--auto --trim")]
+        public string bseParams
+        {
+            get
+            {
+                return ((string)(this["bseParams"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("au.com.nicta.preprocess.main.CopyNiftiImage2PatientTransform")]
+        public string javaClassCopyNiftiImg2Pt
+        {
+            get
+            {
+                return ((string)(this["javaClassCopyNiftiImg2Pt"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CMTK\\bin\\registration.exe")]
+        public string registrationFilename
+        {
+            get
+            {
+                return ((string)(this["registrationFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("--initxlate --dofs 6 --auto-multi-levels 4")]
+        public string registrationParams
+        {
+            get
+            {
+                return ((string)(this["registrationParams"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("au.com.nicta.preprocess.main.ConvertCmtkXform")]
+        public string javaClassConvertCmtkXform
+        {
+            get
+            {
+                return ((string)(this["javaClassConvertCmtkXform"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("cmtk_xform_mat.txt")]
+        public string cmtkRawXformFilename
+        {
+            get
+            {
+                return ((string)(this["cmtkRawXformFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("fixed_to_floating_rap_xform.txt")]
+        public string reformatResultsFilename
+        {
+            get
+            {
+                return ((string)(this["reformatResultsFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("cmtk_xform")]
+        public string reformatResultsFolderName
+        {
+            get
+            {
+                return ((string)(this["reformatResultsFolderName"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CMTK\\bin\\reformatx.exe")]
+        public string reformatxFilename
+        {
+            get
+            {
+                return ((string)(this["reformatxFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("bfc.exe")]
+        public string bfcFilename
+        {
+            get
+            {
+                return ((string)(this["bfcFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("--iterate")]
+        public string bfcParams
+        {
+            get
+            {
+                return ((string)(this["bfcParams"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("au.com.nicta.preprocess.main.MsProgression")]
+        public string javaClassMsProgression
+        {
+            get
+            {
+                return ((string)(this["javaClassMsProgression"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("au.com.nicta.preprocess.main.ColorMap")]
+        public string javaClassColorMap
+        {
+            get
+            {
+                return ((string)(this["javaClassColorMap"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("colormap.config")]
+        public string colomapConfigFilename
+        {
+            get
+            {
+                return ((string)(this["colomapConfigFilename"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("dcmtk-3.6.0-win32-i386\\img2dcm.exe")]
+        public string img2dcmFilename
+        {
+            get
+            {
+                return ((string)(this["img2dcmFilename"]));
             }
         }
     }

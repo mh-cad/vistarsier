@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CAPI.Common.Config;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -9,11 +10,11 @@ namespace CAPI.Common.Services
     {
         private static void Write(string logContent, LogType logType = LogType.Info, string processName = "")
         {
-            var processesLogPath = Config.ImgProc.GetProcessesLogPath();
+            var processesLogPath = Helper.GetProcessLogPath();
             if (!Directory.Exists(processesLogPath)) Directory.CreateDirectory(processesLogPath);
             var logPath = $@"{processesLogPath}\\{DateTime.Now:yyyyMMdd}";
             if (!Directory.Exists(logPath)) Directory.CreateDirectory(logPath);
-            
+
             var sb = new StringBuilder();
             var newLine = logType == LogType.StdOut ? Environment.NewLine : " ";
             if (logType == LogType.StdOut) sb.AppendLine("----------------------------");
@@ -26,7 +27,7 @@ namespace CAPI.Common.Services
             while (!proc.StandardError.EndOfStream)
             {
                 var stderr = proc.StandardError.ReadToEnd();
-                if (!string.IsNullOrEmpty(stderr)) Write (processName + " ERROR: " + stderr, LogType.Error);
+                if (!string.IsNullOrEmpty(stderr)) Write(processName + " ERROR: " + stderr, LogType.Error);
             }
         }
 

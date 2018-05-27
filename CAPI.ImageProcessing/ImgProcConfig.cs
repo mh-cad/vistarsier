@@ -1,27 +1,102 @@
-﻿using Microsoft.Win32;
+﻿using System;
+using System.Configuration;
+using System.IO;
 
 namespace CAPI.ImageProcessing
 {
     public static class ImgProcConfig
     {
-        private const string RegistryKeyPath = "SOFTWARE\\CAPI\\ImageProcessing\\FilesAndParameters";
-        private static readonly RegistryKey RegKey = Registry.LocalMachine.OpenSubKey(RegistryKeyPath);
+        private static readonly KeyValueConfigurationCollection ExeAppConfig = Common.Config.Helper.GetExeAppConfig();
 
-        public static string GetDcm2NiiExe()
+        public static string GetImgProcBinPath()
         {
-            return RegKey?.GetValue("Dcm2NiiExe").ToString() ?? "";
+            var imgProcBinFolderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            if (Directory.Exists(imgProcBinFolderPath)) return imgProcBinFolderPath;
+            throw new DirectoryNotFoundException($"Image Processing bin folder does not exist in following path [{imgProcBinFolderPath}]");
         }
-        public static string GetDcm2NiiHdrParams()
+
+        public static string GetJavaExeBin()
         {
-            return RegKey?.GetValue("Dcm2NiiHdrParams").ToString() ?? "";
+            var javaExePath = ExeAppConfig["JavaExeFilePath"].Value;
+            if (File.Exists(javaExePath)) return javaExePath;
+            throw new FileNotFoundException("java.exe file does not exist in specified path", javaExePath);
         }
-        public static string GetDcm2NiiNiiParams()
+
+        public static string GetJavaClassPath()
         {
-            return RegKey?.GetValue("Dcm2NiiNiiParams").ToString() ?? "";
+            var javaClasspath = ExeAppConfig["JavaClasspath"].Value;
+            if (!string.IsNullOrEmpty(javaClasspath)) return javaClasspath;
+            throw new ArgumentNullException(nameof(javaClasspath), "Java Classpath has no value in executing app config file.");
         }
-        public static string GetMiconvFileName()
+
+        public static string GetDcm2NiiExeFilePath()
         {
-            return RegKey?.GetValue("MiconvFileName").ToString() ?? "";
+            var folderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.dcm2niiFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("Dcm2Nii file does not exist!", filepath);
+        }
+        public static string GetDcm2NiiParams()
+        {
+            return Properties.Settings.Default.dcm2niiParams;
+        }
+
+        public static string GetBseExeFilePath()
+        {
+            var folderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.bseFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("BSE file does not exist!", filepath);
+        }
+        public static string GetBseParams()
+        {
+            return Properties.Settings.Default.bseParams;
+        }
+
+        public static string GetRegistrationFilePath()
+        {
+            var folderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.registrationFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("Registration file does not exist!", filepath);
+        }
+        public static string GetRegistrationParams()
+        {
+            return Properties.Settings.Default.registrationParams;
+        }
+
+        public static string GetReformatXFilePath()
+        {
+            var folderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.reformatxFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("ReformatX file does not exist!", filepath);
+        }
+
+        public static string GetCmtkRawxformFile()
+        {
+            return Properties.Settings.Default.cmtkRawXformFilename;
+        }
+        public static string GetCmtkResultxformFile()
+        {
+            return Properties.Settings.Default.reformatResultsFilename;
+        }
+
+        public static string GetCmtkFolderName()
+        {
+            return Properties.Settings.Default.reformatResultsFolderName;
+        }
+
+        public static string GetBfcExeFilePath()
+        {
+            var folderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.bfcFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("BFC file does not exist!", filepath);
+        }
+        public static string GetBfcParams()
+        {
+            return Properties.Settings.Default.bfcParams;
         }
     }
 }

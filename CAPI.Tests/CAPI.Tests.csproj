@@ -28,6 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -78,6 +79,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ImageProcessing\ImageConverter.cs" />
+    <Compile Include="ImageProcessing\ImageProcessor.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Dicom\DicomServices.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
