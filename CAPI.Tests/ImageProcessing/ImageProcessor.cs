@@ -16,9 +16,10 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _testResourcesPath = Common.Config.Helper.GetTestResourcesPath();
+
             _outputFolder = $@"{_testResourcesPath}\Output";
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
-            _fixedNiiFile = $@"{_testResourcesPath}\Fixed\fixed.nii";
+            _fixedNiiFile = $@"{_testResourcesPath}\Fixed\fixed.ro.nii";
             _floatingNiiFile = $@"{_testResourcesPath}\Floating\floating.nii";
 
             ClearFilesAndFolders();
@@ -84,8 +85,8 @@ namespace CAPI.Tests.ImageProcessing
         public void BiasFieldCorrection()
         {
             // Arrange
-            var inNii = $@"{_testResourcesPath}\Fixed\fixed.brain.nii";
-            var outNii = $@"{_outputFolder}\fixed.brain.bfc.nii";
+            var inNii = $@"{_testResourcesPath}\Floating\floating.resliced.nii";
+            var outNii = $@"{_outputFolder}\floating.resliced.bfc.nii";
             var bseParams = ImgProcConfig.GetBfcParams();
             Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
@@ -94,6 +95,56 @@ namespace CAPI.Tests.ImageProcessing
 
             // Assert
             Assert.IsTrue(File.Exists(outNii), $"Bias Field Correction output file does not exist [{outNii}]");
+        }
+
+        [TestMethod]
+        public void TakeDifference()
+        {
+            // Arrange
+            var fixedBrainNii = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
+            var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
+            var floatingReslicedNii = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
+
+            var subtractPositive = $@"{_outputFolder}\sub.pos.nii";
+            var subtractNegative = $@"{_outputFolder}\sub.neg.nii";
+            var subtractMask = $@"{_outputFolder}\sub.mask.nii";
+
+            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+
+            // Act
+            ImageProcessorNew.TakeDifference(fixedBrainNii, floatingReslicedNii, fixedMaskNii,
+                subtractPositive, subtractNegative, subtractMask);
+
+            // Assert
+            Assert.IsTrue(File.Exists(subtractPositive), $"Positive structural changes file does not exist [{subtractPositive}]");
+            Assert.IsTrue(File.Exists(subtractPositive), $"Negative structural changes file does not exist [{subtractNegative}]");
+            Assert.IsTrue(File.Exists(subtractPositive), $"Structural changes mask file does not exist [{subtractMask}]");
+        }
+
+        [TestMethod]
+        public void Colormap()
+        {
+            // Arrange
+            var fixedDicomFolder = $@"{_testResourcesPath}\Fixed\Dicom";
+            var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
+
+            var subtractPositive = $@"{_testResourcesPath}\sub.pos.nii";
+            var subtractNegative = $@"{_testResourcesPath}\sub.neg.nii";
+
+            var positiveImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractPositiveImgFolder()}";
+            var negativeImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractNegativeImgFolder()}";
+
+            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+
+            // Act
+            ImageProcessorNew.ColorMap(_fixedNiiFile, fixedDicomFolder, fixedMaskNii,
+                subtractPositive, subtractNegative, positiveImagesFolder, negativeImagesFolder);
+
+            // Assert
+            Assert.IsTrue(File.Exists(positiveImagesFolder) && Directory.GetFiles(positiveImagesFolder).Length > 0,
+                $"Positive changes images folder does not exist/contains no files in following path: [{positiveImagesFolder}]");
+            Assert.IsTrue(File.Exists(negativeImagesFolder) && Directory.GetFiles(negativeImagesFolder).Length > 0,
+                $"Negative changes images folder does not exist/contains no files in following path: [{negativeImagesFolder}]");
         }
 
         [TestCleanup]

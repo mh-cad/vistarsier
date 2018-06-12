@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/JavaLib/au.org.mh.radiology.capi/nbproject/private/
+/JavaLib/Capi/nbproject/private/
+/JavaLib/Capi/build/
+/JavaLib/Capi/dist/

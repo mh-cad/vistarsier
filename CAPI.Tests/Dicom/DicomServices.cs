@@ -19,6 +19,9 @@ namespace CAPI.Tests.Dicom
         private IDicomNode _localNode;
         private IDicomNode _remoteNode;
         private string _testObjectsPath;
+        private static string _testResources;
+        private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
+        private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
         private const string TestDicomRelativePath = "Dicom\\DicomFile1";
         private const string TestDicomUpdatedTagsRelativePath = "Dicom\\DicomFile1_UpdatedTags";
 
@@ -34,6 +37,8 @@ namespace CAPI.Tests.Dicom
         }
         private static string GetTestObjectsPath()
         {
+            _testResources = Common.Config.Helper.GetTestResourcesPath();
+
             var binPath = Directory.GetParent(Environment.CurrentDirectory).FullName;
             var projectPath = Directory.GetParent(binPath).FullName;
             var projectsParentPath = Directory.GetParent(projectPath).FullName;
@@ -63,12 +68,12 @@ namespace CAPI.Tests.Dicom
             // Assert
             Assert.IsFalse(string.IsNullOrEmpty(localNodeAet));
             Assert.IsFalse(string.IsNullOrEmpty(localNodeIp));
-            Assert.IsTrue(int.TryParse(localNodePort, out var testInt));
+            Assert.IsTrue(int.TryParse(localNodePort, out _));
             if (localNodePort == null) Assert.Fail();
 
             Assert.IsFalse(string.IsNullOrEmpty(remoteNodeAet));
             Assert.IsFalse(string.IsNullOrEmpty(remoteNodeIp));
-            Assert.IsTrue(int.TryParse(remoteNodePort, out testInt));
+            Assert.IsTrue(int.TryParse(remoteNodePort, out _));
             if (remoteNodePort == null) Assert.Fail();
         }
         private IDicomNode GetLocalDicomNode()
@@ -156,6 +161,33 @@ namespace CAPI.Tests.Dicom
                 $"Dicom tags have not been updated. StudyInstanceUid has not changed.{Environment.NewLine}" +
                 $"Original Study Instance Uid: { dicomTags.StudyInstanceUid.Values[0] }{Environment.NewLine}" +
                 $"Updated Study Instance Uid:  { updatedDicomTags.StudyInstanceUid.Values[0] }");
+        }
+
+        [TestMethod]
+        public void UpdateDicomTagsOnSeries()
+        {
+            var colorMapPosFullPath = Path.Combine(_testResources, ColorMapNegFolderRelPath);
+            var dicomFiles = Directory.GetFiles(colorMapPosFullPath);
+            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+            dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
+
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
+
+            Assert.Fail();
+        }
+
+        [TestMethod]
+        public void ConvertBmpToDicom()
+        {
+            var bmpFolderPath = Path.Combine(_testResources, @"MF-PC\ColorMapNeg");
+            var dicomFolderPath = Path.Combine(_testResources, ColorMapNegFolderRelPath);
+            var headersFolder = Path.Combine(_testResources, @"MF-PC\Fixed\Dicom");
+
+            var dicomServices = _dicomFactory.CreateDicomServices();
+            dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, headersFolder);
+
+            Assert.Fail();
         }
 
         [TestMethod]

@@ -37,6 +37,7 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             container.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
             container.RegisterType<IValueComparer, ValueComparer>();
+            container.RegisterType<INifti, Nifti>();
 
             return container;
         }

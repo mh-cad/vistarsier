@@ -98,5 +98,53 @@ namespace CAPI.ImageProcessing
         {
             return Properties.Settings.Default.bfcParams;
         }
+
+        public static string GetMsProgressionJavaClassName()
+        {
+            return Properties.Settings.Default.javaClassMsProgression;
+        }
+
+        public static string GetSubtractPositiveNii()
+        {
+            return Properties.Settings.Default.subPosOutFile;
+        }
+        public static string GetSubtractNegativeNii()
+        {
+            return Properties.Settings.Default.subNegOutFile;
+        }
+        public static string GetSubtractMaskNii()
+        {
+            return Properties.Settings.Default.subMaskOutFile;
+        }
+
+        public static string GetSubtractPositiveImgFolder()
+        {
+            return Properties.Settings.Default.colormapPositiveImages;
+        }
+        public static string GetSubtractNegativeImgFolder()
+        {
+            return Properties.Settings.Default.colormapNegativeImages;
+        }
+
+        public static string GetSubtractPositiveDcmFolder()
+        {
+            return Properties.Settings.Default.colormapPositiveDcm;
+        }
+        public static string GetSubtractNegativeDcmFolder()
+        {
+            return Properties.Settings.Default.colormapNegativeDcm;
+        }
+
+        public static string GetColorMapJavaClassName()
+        {
+            return Properties.Settings.Default.javaClassColorMap;
+        }
+        public static string GetColorMapConfigFile()
+        {
+            var folderPath = ExeAppConfig["ImgProcConfigFolderPath"].Value;
+            var filepath = Path.Combine(folderPath, Properties.Settings.Default.colomapConfigFilename);
+            if (File.Exists(filepath)) return filepath;
+            throw new FileNotFoundException("BFC file does not exist!", filepath);
+        }
     }
 }

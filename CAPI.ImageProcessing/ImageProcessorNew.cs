@@ -1,44 +1,26 @@
 ﻿using CAPI.Common.Services;
-using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace CAPI.ImageProcessing
 {
     public class ImageProcessorNew //: IImageProcessorNew
     {
-        private readonly IImageConverter _imageConverter;
-
         private readonly string _executablesPath;
-        private readonly string _javaClassPath;
-        private const string Fixed = "fixed";
-        private const string Floating = "floating";
+        //private const string Fixed = "fixed";
+        //private const string Floating = "floating";
         private readonly string _fixedDicomPath;
         private readonly string _processesRootDir;
 
         private const string FlippedSuffix = "_flipped";
-        //private const string Dcm2NiiExe = "dcm2nii.exe";
-        //private const string Dcm2NiiHdrParams = "-n N -f Y -r Y";
-        //private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r Y";
-        //private const string BseExe = "bse09e.exe";
-        //private const string BseExe = "bse.exe";
-        //private const string BrainSurfaceSuffix = "_brain_surface";
-        //private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
-        //private const string RegistrationExeFileName = "registration.exe";
-        //private const string ReformatXFileName = "reformatx.exe";
-        //private const string CmtkParams = "--initxlate --dofs 6 --auto-multi-levels 4 --out-matrix";
-        //private const string CmtkRawXformFileName = "cmtk_xform_mat.txt";
-        //private const string CmtkResultXformFileName = "fixed_to_floating_rap_xform.txt";
-        //private const string CmtkOutputDirName = "cmtk_xform";
         //private const string MiconvFileName = "miconv.exe";
-        private const string DstPrefixPositive = "flair_new_with_changes_overlay_positive";
-        private const string DstPrefixNegative = "flair_new_with_changes_overlay_negative";
-        private const string StructChangesDarkFloat2BrightFixed = "structural_changes_dark_in_floating_to_bright_in_fixed";
-        private const string StructChangesBrightFloat2DarkFixed = "structural_changes_bright_in_floating_to_dark_in_fixed";
-        private const string StructChangesBrainMask = "structural_changes_brain_surface_mask";
+        //private const string DstPrefixPositive = "flair_new_with_changes_overlay_positive";
+        //private const string DstPrefixNegative = "flair_new_with_changes_overlay_negative";
+        //private const string StructChangesDarkFloat2BrightFixed = "structural_changes_dark_in_floating_to_bright_in_fixed";
+        //private const string StructChangesBrightFloat2DarkFixed = "structural_changes_bright_in_floating_to_dark_in_fixed";
+        //private const string StructChangesBrainMask = "structural_changes_brain_surface_mask";
+
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
         private const string Img2DcmFileName = "img2dcm.exe";
         private const string FlairOldReslicesFolderName = "flair_old_resliced";
@@ -70,11 +52,6 @@ namespace CAPI.ImageProcessing
             };
         } // TODO3: Hard-coded name
 
-        public ImageProcessorNew()
-        {
-            _javaClassPath = ImgProcConfig.GetJavaClassPath();
-        }
-
         public static void ExtractBrainMask(string infile, string @params, string brain, string mask)
         {
             var bseExe = ImgProcConfig.GetBseExeFilePath();
@@ -99,16 +76,6 @@ namespace CAPI.ImageProcessing
 
             ResliceFloatingImages(outputPath, fixedNii, floatingNii, floatingResliced);
         }
-
-        //public static void Registration(string outputPath, string fixedFullPath, string floatingFullPath,
-        //    string floatingReslicedFullPath)
-        //{
-        //    CreateRawXform(outputPath, fixedFullPath, floatingFullPath);
-
-        //    CreateResultXform(outputPath, fixedFullPath, floatingFullPath);
-
-        //    ResliceFloatingImages(outputPath, fixedFullPath, floatingFullPath, floatingReslicedFullPath);
-        //}
 
         private static void CreateRawXform(string outputPath, string fixedNii, string floatingNii)
         {
@@ -152,12 +119,6 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile(reformatxFilePath, arguments);
         }
 
-        //private IFrameOfReference GetFrameOfReference(string workingDir, string fixedToFloatingRapXformTxt)
-        //// TODO3: out IFrameOfReference not implemented
-        //{
-        //    return new FrameOfReference();
-        //}
-
         public static void BiasFieldCorrection(string inNii, string @params, string outNii)
         {
             var bfcExe = ImgProcConfig.GetBfcExeFilePath();
@@ -166,51 +127,40 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile(bfcExe, arguments);
         }
 
-        public void TakeDifference(string fixedHdrFullPath, string floatingReslicedNiiFullPath,
-            string brainSurfaceNiiFullPath, string outputDir,
-            out string darkInFloating2BrightInFixed, out string brightInFloating2DarkInFixed, out string brainMask,
-            string sliceInset = "0")
-        // Outputs to the same folder as fixed series
+        public static void TakeDifference(string fixedBrainNii, string floatingBrainNii, string fixedMaskNii,
+            string changesPositive, string changesNegative, string changesMask, string sliceInset = "0")
         {
-            darkInFloating2BrightInFixed = $@"{outputDir}\{StructChangesDarkFloat2BrightFixed}.nii";
-            brightInFloating2DarkInFixed = $@"{outputDir}\{StructChangesBrightFloat2DarkFixed}.nii";
-            brainMask = $@"{outputDir}\{StructChangesBrainMask}.nii";
+            var outputDir = Path.GetDirectoryName(changesPositive);
+            var javaClassPath = ImgProcConfig.GetJavaClassPath();
 
-            try
-            {
-                const string methodName = "au.com.nicta.preprocess.main.MsProgression"; // TODO3: Hard-coded method name
-                var arguments = $"-classpath \"{_javaClassPath}\" {methodName} " +
-                                $"\"{outputDir}\" " +
-                                $"\"{fixedHdrFullPath}\" \"{floatingReslicedNiiFullPath}\" " +
-                                $"\"{brainSurfaceNiiFullPath}\" {sliceInset}";
+            var methodName = ImgProcConfig.GetMsProgressionJavaClassName();
+            var arguments = $"-classpath \"{javaClassPath}\" {methodName} \"{outputDir}\" " +
+                            $"\"{fixedBrainNii}\" \"{floatingBrainNii}\" \"{fixedMaskNii}\" {sliceInset}";
 
-                ProcessBuilder.CallJava(arguments, methodName);
+            ProcessBuilder.CallJava(arguments, methodName);
 
-                CreatePropertiesFiles(outputDir);
-                RenameDiffNiiFiles(outputDir);
-            }
-            catch (Exception ex)
-            {
-                throw ex; // TODO3: Exception Handling
-            }
+            //CreatePropertiesFiles(outputDir);
+            RenameDiffNiiFiles(changesPositive, changesNegative, changesMask, outputDir);
         }
         private static void CreatePropertiesFiles(string outputDir)
         {
             foreach (var filenameAndContent in GetFileNamesAndContentsToCreate())
                 File.WriteAllText($"{outputDir}\\{filenameAndContent.Key}", filenameAndContent.Value);
         }
-        private static void RenameDiffNiiFiles(string outputDir)
+
+        private static void RenameDiffNiiFiles(string subPos, string subNeg, string subMask, string outputDir)
         {
-            foreach (var fileToBeRenamed in GetFilesToBeRenamed())
-            {
-                var sourceFileName = $@"{outputDir}\{fileToBeRenamed.Key}";
-                var targetFileName = $@"{outputDir}\{fileToBeRenamed.Value}";
+            var outPositive = $@"{outputDir}\{ImgProcConfig.GetSubtractPositiveNii()}";
+            var outNegative = $@"{outputDir}\{ImgProcConfig.GetSubtractNegativeNii()}";
+            var outMask = $@"{outputDir}\{ImgProcConfig.GetSubtractMaskNii()}";
 
-                if (!File.Exists(sourceFileName))
-                    throw new FileNotFoundException($"File was not found to be removed: {sourceFileName}");
+            if (!File.Exists(outPositive)) throw new FileNotFoundException($"File was not found to be renamed: {outPositive}");
+            if (!File.Exists(outNegative)) throw new FileNotFoundException($"File was not found to be renamed: {outNegative}");
+            if (!File.Exists(outMask)) throw new FileNotFoundException($"File was not found to be renamed: {outMask}");
 
-                File.Move(sourceFileName, targetFileName);
-            }
+            File.Move(outPositive, subPos);
+            File.Move(outNegative, subNeg);
+            File.Move(outMask, subMask);
         }
 
         public void FlipAndConvertFloatingToDicom(string seriesNii)
@@ -224,9 +174,10 @@ namespace CAPI.ImageProcessing
         }
         private void FlipFloatingReslicedImages(string reslicedFloatingName, string outputDir)
         {
+            var javaClassPath = ImgProcConfig.GetJavaClassPath();
             const string methodName = "au.com.nicta.preprocess.main.FlipNii"; // TODO3: Hard-coded method name
             var arguments =
-                $"-classpath {_javaClassPath} {methodName} {outputDir}\\{reslicedFloatingName}.nii " +
+                $"-classpath {javaClassPath} {methodName} {outputDir}\\{reslicedFloatingName}.nii " +
                 $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii";
             ProcessBuilder.CallJava(arguments, methodName);
         }
@@ -237,47 +188,56 @@ namespace CAPI.ImageProcessing
         }
         private void MatchDicom2Nii(string reslicedFloatingName, string outputDir)
         {
+            var javaClassPath = ImgProcConfig.GetJavaClassPath();
             const string methodName = "au.com.nicta.preprocess.main.MatchDicom2Nii2Dicom"; // TODO3: Hard-coded method name
             var arguments =
-                $"-classpath {_javaClassPath} {methodName} {outputDir}/{Fixed}.img " +
+                $"-classpath {javaClassPath} {methodName} {outputDir}/Fixed.img " +
                 $"{_fixedDicomPath} {outputDir}/{reslicedFloatingName}{FlippedSuffix}_dcm {outputDir}/{FlairOldReslicesFolderName}";
             ProcessBuilder.CallJava(arguments, methodName);
         }
 
-        public void ColorMap(
-            string fixedHdrFullPath, string fixedDicomFolderPath,
-            string brainSurfaceNiiFullPath,
-            string darkFloatToBrightFixedNiiFullPath,
-            string brightFloatToDarkFixedNiiFullPath,
-            string outputDir, out string positive, out string negative)
+        public static void ColorMap(
+            string fixedNii, string fixedDicomFolder, string fixedMaskNii,
+            string subtractPositive, string subtractNegative,
+            string positiveFolder, string negativeFolder)
         {
-            var colorMapConfigFullPath = $"{_processesRootDir}/colormap.config";
+            var settings = Properties.Settings.Default;
+            var colorMapConfigFile = ImgProcConfig.GetColorMapConfigFile();
+            var javaClassPath = ImgProcConfig.GetJavaClassPath();
+            var outputDir = Path.GetDirectoryName(positiveFolder);
 
-            const string methodName = "au.com.nicta.preprocess.main.ColorMap";
+            var methodName = ImgProcConfig.GetColorMapJavaClassName();
             var arguments =
-                $"-classpath {_javaClassPath} {methodName} {colorMapConfigFullPath} " +
-                $@"{outputDir}\{DstPrefixPositive} " +
-                $"{fixedHdrFullPath} {fixedDicomFolderPath} {brainSurfaceNiiFullPath} " +
-                $"{darkFloatToBrightFixedNiiFullPath} {brightFloatToDarkFixedNiiFullPath} positive";
+                $"-classpath \"{javaClassPath}\" {methodName} \"{colorMapConfigFile}\" " +
+                $"\"{outputDir}\\{settings.colormapPositiveImages}\" " +
+                $"\"{fixedNii}\" \"{fixedDicomFolder}\" \"{fixedMaskNii}\" " +
+                $"\"{subtractPositive}\" \"{subtractNegative}\" positive";
 
             ProcessBuilder.CallJava(arguments, methodName);
 
-            positive = $@"{outputDir}\{DstPrefixPositive}";
+            if (!string.Equals($@"{outputDir}\{settings.colormapPositiveImages}",
+                positiveFolder, StringComparison.CurrentCultureIgnoreCase))
+                Directory.Move($@"{outputDir}\{settings.colormapPositiveImages}", positiveFolder);
+            //positiveFolder = $@"{outputDir}\{DstPrefixPositive}";
 
             arguments =
-                $"-classpath {_javaClassPath} {methodName} {colorMapConfigFullPath} " +
-                $@"{outputDir}\{DstPrefixNegative} " +
-                $"{fixedHdrFullPath} {fixedDicomFolderPath} {brainSurfaceNiiFullPath} " +
-                $"{darkFloatToBrightFixedNiiFullPath} {brightFloatToDarkFixedNiiFullPath} negative";
+                $"-classpath {javaClassPath} {methodName} {colorMapConfigFile} " +
+                $@"{outputDir}\{settings.colormapNegativeImages} " +
+                $"{fixedNii} {fixedDicomFolder} {fixedMaskNii} " +
+                $"{subtractPositive} {subtractNegative} negative";
 
             ProcessBuilder.CallJava(arguments, methodName);
 
-            negative = $@"{outputDir}\{DstPrefixNegative}";
+            if (!string.Equals($@"{outputDir}\{settings.colormapNegativeImages}",
+                negativeFolder, StringComparison.CurrentCultureIgnoreCase))
+                Directory.Move($@"{outputDir}\{settings.colormapNegativeImages}", negativeFolder);
+            //negativeFolder = $@"{outputDir}\{DstPrefixNegative}";
         }
 
         public void ConvertBmpsToDicom(string outputDir)
         {
-            var folders = new[] { $"{outputDir}\\{DstPrefixNegative}", $"{outputDir}\\{DstPrefixPositive}" };
+            var settings = Properties.Settings.Default;
+            var folders = new[] { $"{outputDir}\\{settings.colormapNegativeImages}", $"{outputDir}\\{settings.colormapPositiveImages}" };
             foreach (var folder in folders)
             {
                 if (!Directory.Exists($"{folder}_dcm")) Directory.CreateDirectory($"{folder}_dcm");
@@ -285,76 +245,11 @@ namespace CAPI.ImageProcessing
                 foreach (var file in files)
                 {
                     var filenameNoExt = Path.GetFileNameWithoutExtension(file);
-                    var arguments = $"-df {outputDir}\\{Fixed}\\Dicom\\{filenameNoExt} " + // Copy dicom headers from dicom file: -df =  dataset file
+                    var arguments = $"-df {outputDir}\\Fixed\\Dicom\\{filenameNoExt} " + // Copy dicom headers from dicom file: -df =  dataset file
                                     $"-i BMP {filenameNoExt}.bmp {folder}_dcm\\{filenameNoExt}"; // TODO3: Hard-coded method name
                     ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
                         arguments, folder);
                 }
-            }
-        }
-
-        public void CopyDicomHeaders(string fixedDicomFolderPath, string outputDir,
-            out string dicomFolderNewHeaders)
-        {
-            var fixedFiles = Directory.GetFiles(fixedDicomFolderPath);
-            if (!fixedFiles.Any())
-                throw new FileNotFoundException($"No files found in folder: {fixedDicomFolderPath}");
-
-            dicomFolderNewHeaders = $"{outputDir}\\{DicomFilesWithNewHeadersFolder}";
-            if (!Directory.Exists(dicomFolderNewHeaders)) Directory.CreateDirectory(dicomFolderNewHeaders);
-            var keys = new[] { "(0020,0032)", "(0020,0037)" }; // TODO3: Hard-coded data
-
-            foreach (var fixedFileFullPath in fixedFiles)
-            {
-                var filenameWithExt = Path.GetFileName(fixedFileFullPath);
-                var copiedFileFullPath = $"{dicomFolderNewHeaders}\\{filenameWithExt}";
-                File.Copy(fixedFileFullPath, copiedFileFullPath, true);
-
-                foreach (var key in keys)
-                {
-                    var arguments = $"+L -M {fixedFileFullPath}";
-                    var stdout = ProcessBuilder.CallExecutableFile(
-                        $"{_executablesPath}\\{DcmtkFolderName}\\{DcmdumpFileName}", arguments);
-
-                    var match = Regex.Match(stdout, $"{key}.*").Value;
-                    var value = Regex.Match(match, @"\[(.*)\]").Value.Replace("[", "").Replace("]", "");
-
-                    arguments = $"--no-backup -m {key}={value} {copiedFileFullPath}";
-                    ProcessBuilder.CallExecutableFile(
-                        $"{_executablesPath}\\{DcmtkFolderName}\\{DcmodifyFileName}", arguments);
-                }
-            }
-        }
-
-        public void Resize(string inHdr, string outNii, int destinationWidth)
-        {
-            try
-            {
-                const string methodname = "au.com.nicta.preprocess.main.ResizeNii";
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   $@"{inHdr} {outNii} {destinationWidth}";
-
-                ProcessBuilder.CallJava(javaArgument, methodname);
-            }
-            catch
-            {
-                // TODO3: Exception Handling
-            }
-        }
-
-        public void ResizeBacktToOriginalSize(string resizedHdr, string outNii, string seriesHdr)
-        {
-            try
-            {
-                const string methodname = "au.com.nicta.preprocess.main.ResizeNiiToSameSize";
-                var javaArgument = $"-classpath {_javaClassPath} {methodname} " +
-                                   $@"{resizedHdr} {outNii} {seriesHdr}";
-
-                ProcessBuilder.CallJava(javaArgument, methodname);
-            }
-            catch
-            {
-                // TODO3: Exception Handling
             }
         }
     }
