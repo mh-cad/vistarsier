@@ -84,5 +84,11 @@ namespace CAPI.Tests.Config
         {
             ImgProcConfig.GetBfcExeFilePath();
         }
+
+        [TestMethod]
+        public void ColorMapConfigExists()
+        {
+            ImgProcConfig.GetColorMapConfigFile();
+        }
     }
 }
