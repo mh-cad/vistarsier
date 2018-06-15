@@ -86,6 +86,7 @@
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Helpers\JobBuilder.cs" />
     <Compile Include="Helpers\Unity.cs" />
+    <Compile Include="ImageProcessing\SubtractLookUpTable.cs" />
     <Compile Include="ImageProcessing\Nifti.cs" />
     <Compile Include="Job\ExtractBrainMask.cs" />
     <Compile Include="Job\Job.cs" />
