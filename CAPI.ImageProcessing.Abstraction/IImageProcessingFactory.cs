@@ -1,10 +1,7 @@
-﻿using CAPI.ImageProcessing.Abstraction.ImageProcessor;
-
-namespace CAPI.ImageProcessing.Abstraction
+﻿namespace CAPI.ImageProcessing.Abstraction
 {
     public interface IImageProcessingFactory
     {
-        IBrainMaskExtractor CreateBrainMaskExtractor();
-        IResizer CreateResizer();
+        //ISubtractionLookUpTable CreateSubtractionLookUpTable(int xmin, int xmax, int ymin, int ymax);
     }
 }

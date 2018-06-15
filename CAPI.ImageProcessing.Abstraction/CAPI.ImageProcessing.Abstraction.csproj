@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,12 +42,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IFrameOfReference.cs" />
+    <Compile Include="IImageProcessingFactory.cs" />
     <Compile Include="IImageProcessorNew.cs" />
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="IImageConverter.cs" />
+    <Compile Include="INiftiHeader.cs" />
     <Compile Include="INifti.cs" />
     <Compile Include="ISeries.cs" />
+    <Compile Include="ISubtractionLookUpTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SliceType.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
