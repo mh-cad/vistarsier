@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Config\Helper.cs" />
     <Compile Include="Config\ImgProc.cs" />
+    <Compile Include="Extensions\Statistics.cs" />
     <Compile Include="Services\FileSystem.cs" />
     <Compile Include="Services\Logger.cs" />
     <Compile Include="Services\ProcessBuilder.cs" />
