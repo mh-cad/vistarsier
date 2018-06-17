@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace CAPI.ImageProcessing.Abstraction
 {
@@ -18,6 +19,9 @@ namespace CAPI.ImageProcessing.Abstraction
         int GetPixelColor(int x, int y, int z, SliceType sliceType);
         INiftiHeader ReadHeaderFromFile(string filepath);
         Bitmap GetSlice(int sliceIndex, SliceType sliceType);
+        IEnumerable<float[]> GetSlices(SliceType sliceType);
+        float[] SlicesToArray(float[][] slices, SliceType sliceType);
         void ExportSlicesToBmps(string folderpath, SliceType sliceType);
+        INifti Compare(INifti floatingResliced, SliceType sliceType, ISubtractionLookUpTable lookUpTable);
     }
 }

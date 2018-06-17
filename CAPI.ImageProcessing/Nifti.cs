@@ -1,5 +1,7 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Common.Extensions;
+using CAPI.ImageProcessing.Abstraction;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -183,6 +185,93 @@ namespace CAPI.ImageProcessing
                 GetSlice(i, sliceType).Save($@"{folderpath}\{i}.bmp");
         }
 
+        public INifti Compare(INifti floating, SliceType sliceType, ISubtractionLookUpTable lookUpTable)
+        {
+            // get FIXED and normalize each slice
+            var fixedSlices = GetSlices(sliceType).ToArray();
+            if (fixedSlices == null) throw new Exception("No slices found in file being compared");
+
+            for (var i = 0; i < fixedSlices.Length; i++) // Normalize each slice
+                fixedSlices[i] = fixedSlices[i].Normalize(byte.MaxValue / 2, byte.MaxValue / 8);
+
+            var fixedVoxels = SlicesToArray(fixedSlices, sliceType); // Return back from slices to a single array
+            fixedVoxels.Trim(0, lookUpTable.Width - 1);
+
+            // get FLOATING and normalize each slice
+            var floatingSlices = floating.GetSlices(sliceType).ToArray();
+            if (floatingSlices == null) throw new Exception("No slices found in file being compared");
+
+            for (var i = 0; i < floatingSlices.Length; i++) // Normalize each slice
+                floatingSlices[i] = floatingSlices[i].Normalize(byte.MaxValue / 2, byte.MaxValue / 8);
+
+            var floatingVoxels = SlicesToArray(floatingSlices, sliceType); // Return back from slices to a single array
+            floatingVoxels.Trim(0, lookUpTable.Width - 1);
+
+            // COMPARE
+            for (var i = 0; i < voxels.Length; i++)
+                voxels[i] = lookUpTable.Pixels[(int)fixedVoxels[i], (int)floatingVoxels[i]].ToArgb();
+
+            ConvertHeaderToRgb();
+
+            return this;
+        }
+
+        public IEnumerable<float[]> GetSlices(SliceType sliceType)
+        {
+            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
+            var slices = new float[nSlices][];
+            for (var z = 0; z < nSlices; z++)
+            {
+                slices[z] = new float[width * height];
+                for (var y = 0; y < height; y++)
+                    for (var x = 0; x < width; x++)
+                    {
+                        var pixelIndex = GetVoxelIndex(x, y, z, sliceType);
+                        slices[z][x + y * width] = voxels[pixelIndex];
+                    }
+            }
+
+            return slices;
+        }
+        public float[] SlicesToArray(float[][] slices, SliceType sliceType)
+        {
+            var allVoxels = new float[slices.Length * slices[0].Length];
+
+            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
+
+            for (var z = 0; z < slices.Length; z++)
+            {
+
+                for (var y = 0; y < height; y++)
+                    for (var x = 0; x < width; x++)
+                        allVoxels[GetVoxelIndex(x, y, z, sliceType)]
+                            = slices[z][x + y * width];
+            }
+
+            return allVoxels;
+        }
+
+        private static float[] Scale(IEnumerable<float> voxelsArr, int min, int max)
+        {
+            var vs = voxelsArr as float[] ?? voxelsArr.ToArray();
+            var voxelsMax = vs.Max();
+            var voxelsMin = vs.Min();
+            return vs.ToList()
+                .Select(v => (v - voxelsMin) * (max - min) / (voxelsMax - voxelsMin))
+                .ToArray();
+        }
+
+        //public float[] Normalize(int mean, int stdDev)
+        //{
+        //    var currMean = voxels.Mean();
+        //    var currStdDev = voxels.StandardDeviation();
+
+        //    for (var i = 0; i < voxels.Length; ++i)
+        //        voxels[i] = (float)((voxels[i] - currMean) / (currStdDev)) * stdDev + mean;
+
+        //    return voxels; // TODO1: Not Implemented
+        //}
+
         public Bitmap GetSlice(int sliceIndex, SliceType sliceType)
         {
             if (Header.dim == null) throw new NullReferenceException("Nifti file header dim is null");
@@ -191,7 +280,7 @@ namespace CAPI.ImageProcessing
                 Header.dim[1] < 1 || Header.dim[2] < 1 || Header.dim[3] < 1)
                 throw new NullReferenceException("Nifti file header dim 0,1,2,3 are not valid");
 
-            GetDimensions(sliceType, out var width, out var height, out var nSlices);
+            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
             if (sliceIndex >= nSlices) throw new ArgumentOutOfRangeException($"Slice index out of range. No of slices = {nSlices}");
 
             var slice = new Bitmap(width, height);
@@ -230,7 +319,7 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        private void GetDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
+        private void GetSagittalDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
         {
             switch (sliceType)
             {

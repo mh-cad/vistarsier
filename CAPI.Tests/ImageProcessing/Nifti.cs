@@ -1,6 +1,7 @@
 ﻿using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Linq;
 using Unity;
 
 namespace CAPI.Tests.ImageProcessing
@@ -15,7 +16,9 @@ namespace CAPI.Tests.ImageProcessing
         private string _rgbafile;
         private string _rgbfile;
         private string _fixedBrain;
+        private string _floatingResliced;
         private string _rgbBmpsFolder;
+        private ISubtractionLookUpTable _lookUpTable;
 
         [TestInitialize]
         public void TestInit()
@@ -24,10 +27,13 @@ namespace CAPI.Tests.ImageProcessing
             _testResourcesPath = Common.Config.Helper.GetTestResourcesPath();
             _fixed = $@"{_testResourcesPath}\Fixed\fixed.nii";
             _outfile = $@"{_testResourcesPath}\Fixed\fixed.noro.nii";
-            _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.nii";
+            _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
+            _floatingResliced = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
             _rgbafile = $@"{_testResourcesPath}\rgba-test.nii";
             _rgbfile = $@"{_testResourcesPath}\rgb-test.nii";
             _rgbBmpsFolder = $@"{_testResourcesPath}\RgbBmps";
+            _lookUpTable = _unity.Resolve<ISubtractionLookUpTable>();
+            _lookUpTable.LoadImage($@"{_testResourcesPath}\LookupTable.bmp");
         }
 
         [TestMethod]
@@ -126,6 +132,72 @@ namespace CAPI.Tests.ImageProcessing
             nim.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Axial);
 
             //Assert.Fail(); //TODO3: Not Implemented
+        }
+
+        [TestMethod]
+        public void Compare()
+        {
+            var fixedBrain = _unity.Resolve<INifti>();
+            fixedBrain.ReadNifti(_fixedBrain);
+
+            var floatingResliced = _unity.Resolve<INifti>();
+            floatingResliced.ReadNifti(_floatingResliced);
+
+            var result = fixedBrain.Compare(floatingResliced, SliceType.Sagittal, _lookUpTable);
+
+            if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
+            result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);
+
+            //Assert.Fail(); //TODO3: Not Implemented
+        }
+
+        [TestMethod]
+        public void SlicesSagittalToArray()
+        {
+            // Arrange
+            var nim = _unity.Resolve<INifti>();
+            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+            nim.Header.dim = new short[] { 3, 2, 3, 4 };
+            var slices = nim.GetSlices(SliceType.Sagittal).ToArray();
+
+            // Act
+            var arr = nim.SlicesToArray(slices, SliceType.Sagittal);
+
+            // Assert
+            for (var i = 0; i < arr.Length; i++)
+                Assert.AreEqual(arr[i], nim.voxels[i]);
+        }
+        [TestMethod]
+        public void SlicesAxialToArray()
+        {
+            // Arrange
+            var nim = _unity.Resolve<INifti>();
+            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+            nim.Header.dim = new short[] { 3, 2, 3, 4 };
+            var slices = nim.GetSlices(SliceType.Axial).ToArray();
+
+            // Act
+            var arr = nim.SlicesToArray(slices, SliceType.Axial);
+
+            // Assert
+            for (var i = 0; i < arr.Length; i++)
+                Assert.AreEqual(arr[i], nim.voxels[i]);
+        }
+        [TestMethod]
+        public void SlicesCoronalToArray()
+        {
+            // Arrange
+            var nim = _unity.Resolve<INifti>();
+            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+            nim.Header.dim = new short[] { 3, 2, 3, 4 };
+            var slices = nim.GetSlices(SliceType.Coronal).ToArray();
+
+            // Act
+            var arr = nim.SlicesToArray(slices, SliceType.Coronal);
+
+            // Assert
+            for (var i = 0; i < arr.Length; i++)
+                Assert.AreEqual(arr[i], nim.voxels[i]);
         }
 
         [TestMethod]
