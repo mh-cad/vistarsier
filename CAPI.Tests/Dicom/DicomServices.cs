@@ -22,6 +22,7 @@ namespace CAPI.Tests.Dicom
         private static string _testResources;
         private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
         private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
+        private const string OutDicomRelPath = @"OutDicom";
         private const string TestDicomRelativePath = "Dicom\\DicomFile1";
         private const string TestDicomUpdatedTagsRelativePath = "Dicom\\DicomFile1_UpdatedTags";
 
@@ -37,7 +38,7 @@ namespace CAPI.Tests.Dicom
         }
         private static string GetTestObjectsPath()
         {
-            _testResources = Common.Config.Helper.GetTestResourcesPath();
+            _testResources = CAPI.Common.Config.Helper.GetTestResourcesPath();
 
             var binPath = Directory.GetParent(Environment.CurrentDirectory).FullName;
             var projectPath = Directory.GetParent(binPath).FullName;
@@ -180,14 +181,19 @@ namespace CAPI.Tests.Dicom
         [TestMethod]
         public void ConvertBmpToDicom()
         {
-            var bmpFolderPath = Path.Combine(_testResources, @"MF-PC\ColorMapNeg");
-            var dicomFolderPath = Path.Combine(_testResources, ColorMapNegFolderRelPath);
-            var headersFolder = Path.Combine(_testResources, @"MF-PC\Fixed\Dicom");
+            var bmpFolderPath = Path.Combine(_testResources, @"RgbBmps-2018R0101850-1");
+            var dicomFolderPath = Path.Combine(_testResources, OutDicomRelPath);
+            var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
             var dicomServices = _dicomFactory.CreateDicomServices();
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, headersFolder);
 
-            Assert.Fail();
+            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+            dicomTags.SeriesDescription.Values = new[] { "CAPI Modified Signal" };
+            var dicomFiles = Directory.GetFiles(dicomFolderPath);
+            dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
+
+            throw new NotImplementedException();
         }
 
         [TestMethod]

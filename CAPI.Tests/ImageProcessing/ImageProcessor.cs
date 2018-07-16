@@ -15,12 +15,12 @@ namespace CAPI.Tests.ImageProcessing
         [TestInitialize]
         public void TestInit()
         {
-            _testResourcesPath = Common.Config.Helper.GetTestResourcesPath();
+            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
 
             _outputFolder = $@"{_testResourcesPath}\Output";
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
-            _fixedNiiFile = $@"{_testResourcesPath}\Fixed\fixed.ro.nii";
-            _floatingNiiFile = $@"{_testResourcesPath}\Floating\floating.nii";
+            _fixedNiiFile = $@"{_testResourcesPath}\Fixed2\fixed.nii";
+            _floatingNiiFile = $@"{_testResourcesPath}\Floating2\floating.nii";
 
             ClearFilesAndFolders();
         }
@@ -52,13 +52,13 @@ namespace CAPI.Tests.ImageProcessing
         public void ExtractBrainMask()
         {
             // Arrange
-            var brain = $@"{_outputFolder}\fixed.brain.nii";
-            var mask = $@"{_outputFolder}\fixed.mask.nii";
+            var brain = $@"{_outputFolder}\floating.brain.nii";
+            var mask = $@"{_outputFolder}\floating.mask.nii";
             var bseParams = ImgProcConfig.GetBseParams();
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
             // Act
-            ImageProcessorNew.ExtractBrainMask(_fixedNiiFile, bseParams, brain, mask);
+            ImageProcessorNew.ExtractBrainMask(_floatingNiiFile, bseParams, brain, mask);
 
             // Assert
             Assert.IsTrue(File.Exists(brain), $"Skull stripped brain file does not exist [{brain}]");
@@ -69,10 +69,10 @@ namespace CAPI.Tests.ImageProcessing
         public void Registration()
         {
             // Arrange
-            var fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.nii";
-            var floatingBrain = $@"{_testResourcesPath}\Floating\floating.brain.nii";
-            var floatingResliced = $@"{_testResourcesPath}\Floating\floating.resliced.nii";
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            var fixedBrain = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
+            var floatingBrain = $@"{_testResourcesPath}\Floating2\floating.brain.nii";
+            var floatingResliced = $@"{_testResourcesPath}\Floating2\floating.resliced.nii";
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
             // Act
             ImageProcessorNew.Registration(fixedBrain, floatingBrain, floatingResliced);
@@ -85,10 +85,10 @@ namespace CAPI.Tests.ImageProcessing
         public void BiasFieldCorrection()
         {
             // Arrange
-            var inNii = $@"{_testResourcesPath}\Floating\floating.resliced.nii";
-            var outNii = $@"{_outputFolder}\floating.resliced.bfc.nii";
+            var inNii = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
+            var outNii = $@"{_outputFolder}\fixed.brain.bfc.nii";
             var bseParams = ImgProcConfig.GetBfcParams();
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
             // Act
             ImageProcessorNew.BiasFieldCorrection(inNii, bseParams, outNii);
@@ -109,7 +109,7 @@ namespace CAPI.Tests.ImageProcessing
             var subtractNegative = $@"{_outputFolder}\sub.neg.nii";
             var subtractMask = $@"{_outputFolder}\sub.mask.nii";
 
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
             // Act
             ImageProcessorNew.TakeDifference(fixedBrainNii, floatingReslicedNii, fixedMaskNii,
@@ -134,7 +134,7 @@ namespace CAPI.Tests.ImageProcessing
             var positiveImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractPositiveImgFolder()}";
             var negativeImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractNegativeImgFolder()}";
 
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
 
             // Act
             ImageProcessorNew.ColorMap(_fixedNiiFile, fixedDicomFolder, fixedMaskNii,

@@ -258,16 +258,33 @@ namespace CAPI.Dicom
         public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "")
         {
             FileSystem.DirectoryExists(dicomFolder);
-            var files = Directory.GetFiles(bmpFolder);
-            foreach (var file in files)
+            var bmpFiles = Directory.GetFiles(bmpFolder);
+            var orderedFiles = new List<string>();
+            if (!string.IsNullOrEmpty(dicomheadersFolder))
             {
-                var filenameNoExt = Path.GetFileNameWithoutExtension(file);
-                var arguments = string.IsNullOrEmpty(dicomheadersFolder) ? ""
-                    : $@"-df {dicomheadersFolder}\{filenameNoExt} "; // Copy dicom headers from dicom file: -df = dataset file
+                orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomheadersFolder)).ToList();
+                if (bmpFiles.Length != orderedFiles.Count)
+                    throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedFiles.Count}");
+            }
+
+            for (var i = 0; i < bmpFiles.Length; i++)
+            {
+                var filenameNoExt = Path.GetFileNameWithoutExtension(bmpFiles[i]);
+
+                var arguments = string.Empty;
+                if (!string.IsNullOrEmpty(dicomheadersFolder))
+                    arguments = $@"-df {orderedFiles[i]} "; // Copy dicom headers from dicom file: -df = dataset file
+
                 arguments += $"-i BMP {filenameNoExt}.bmp {dicomFolder}\\{filenameNoExt}";
+
                 ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
                     arguments, bmpFolder);
             }
+        }
+
+        private IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)
+        {
+            return files.OrderBy(f => Convert.ToInt32(GetDicomTags(f).InstanceNumber.Values[0])).ToList();
         }
 
         private static IDicomPatient MapToDicomPatient(PatientQueryIod patientQueryIod)

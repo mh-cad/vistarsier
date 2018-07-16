@@ -34,7 +34,7 @@ namespace CAPI.Tests.FileSystem
             File.AppendAllText(filePath, fileContent);
 
             // Act
-            Common.Services.FileSystem.CopyDirectory(_sourcePath, _targetPath);
+            CAPI.Common.Services.FileSystem.CopyDirectory(_sourcePath, _targetPath);
 
             // Assert
             Assert.IsTrue(File.Exists(filePath));

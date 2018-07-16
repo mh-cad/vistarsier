@@ -79,6 +79,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Extensions\Statistics.cs" />
     <Compile Include="ImageProcessing\ImageConverter.cs" />
     <Compile Include="ImageProcessing\ImageProcessor.cs" />
     <Compile Include="Config\Config.cs" />

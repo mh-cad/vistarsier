@@ -14,6 +14,7 @@ namespace CAPI.Dicom.Abstraction
         IDicomTag SeriesDescription { get; }
         IDicomTag SeriesInstanceUid { get; }
         IDicomTag ImageUid { get; }
+        IDicomTag InstanceNumber { get; }
         IDicomTag RequestingService { get; }
         IDicomTag InstitutionName { get; }
         IDicomTag InstitutionAddress { get; }

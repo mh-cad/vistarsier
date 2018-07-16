@@ -3,7 +3,6 @@ using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,6 +17,45 @@ namespace CAPI.ImageProcessing
         public INiftiHeader Header { get; set; }
         public float[] voxels { get; set; }
         public byte[] voxelsBytes { get; set; }
+
+        //#region "Properties"
+        //public int sizeof_hdr { get; set; }
+        //public string dim_info { get; set; }
+        //public short[] dim { get; set; }
+        //public float intent_p1 { get; set; }
+        //public float intent_p2 { get; set; }
+        //public float intent_p3 { get; set; }
+        //public short intent_code { get; set; }
+        //public short datatype { get; set; }
+        //public short bitpix { get; set; }
+        //public short slice_start { get; set; }
+        //public float[] pix_dim { get; set; }
+        //public float vox_offset { get; set; }
+        //public float scl_slope { get; set; }
+        //public float scl_inter { get; set; }
+        //public short slice_end { get; set; }
+        //public string slice_code { get; set; }
+        //public string xyzt_units { get; set; }
+        //public float cal_max { get; set; }
+        //public float cal_min { get; set; }
+        //public float slice_duration { get; set; }
+        //public float toffset { get; set; }
+        //public string descrip { get; set; }
+        //public string aux_file { get; set; }
+        //public short qform_code { get; set; }
+        //public short sform_code { get; set; }
+        //public float quatern_b { get; set; }
+        //public float quatern_c { get; set; }
+        //public float quatern_d { get; set; }
+        //public float qoffset_x { get; set; }
+        //public float qoffset_y { get; set; }
+        //public float qoffset_z { get; set; }
+        //public float[] srow_x { get; set; }
+        //public float[] srow_y { get; set; }
+        //public float[] srow_z { get; set; }
+        //public string intent_name { get; set; }
+        //public string magic { get; set; }
+        //#endregion
 
         /// <summary>
         /// Constructor
@@ -136,68 +174,6 @@ namespace CAPI.ImageProcessing
             return Header;
         }
 
-        public void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType)
-        {
-            ConvertHeaderToRgb();
-            var w = new Bitmap(filepaths[0]).Width;
-            var h = new Bitmap(filepaths[0]).Height;
-
-            SetDimensions((short)filepaths.Length, (short)w, (short)h, sliceType);
-
-            voxels = new float[filepaths.Length * w * h];
-
-            for (var z = 0; z < filepaths.Length; z++)
-            {
-                var bitmap = new Bitmap(filepaths[z]);
-                var sliceVoxels = GetVoxelsFromBitmap(bitmap);
-                for (var j = 0; j < sliceVoxels.Length; j++)
-                {
-                    var index = GetVoxelIndex(j % w, j / w, z, sliceType);
-                    voxels[index] = sliceVoxels[j];
-                }
-            }
-        }
-
-        private void SetDimensions(short numberOfFiles, short width, short height, SliceType sliceType)
-        {
-            switch (sliceType)
-            {
-                case SliceType.Sagittal:
-                    Header.dim[1] = numberOfFiles;
-                    Header.dim[2] = width;
-                    Header.dim[3] = height;
-                    break;
-                case SliceType.Coronal:
-                    Header.dim[1] = width;
-                    Header.dim[2] = numberOfFiles;
-                    Header.dim[3] = height;
-                    break;
-                case SliceType.Axial:
-                    Header.dim[1] = width;
-                    Header.dim[2] = height;
-                    Header.dim[3] = numberOfFiles;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(sliceType), sliceType, null);
-            }
-        }
-
-        private static float[] GetVoxelsFromBitmap(Bitmap bitmap)
-        {
-            var w = bitmap.Width;
-            var h = bitmap.Height;
-            var sliceVoxlels = new float[w * h];
-
-            for (var y = 0; y < bitmap.Height; y++)
-                for (var x = 0; x < bitmap.Width; x++)
-                {
-                    var pixel = bitmap.GetPixel(x, y);
-                    sliceVoxlels[x + y * w] = pixel.B << 16 | pixel.G << 8 | pixel.R; // In bmp files order of colors are BGR
-                }
-
-            return sliceVoxlels;
-        }
-
         public void ExportSlicesToBmps(string folderpath, SliceType sliceType)
         {
             if (Header.dim == null || Header.dim.Length < 4 || Header.dim[3] == 0)
@@ -205,10 +181,8 @@ namespace CAPI.ImageProcessing
             if (Directory.Exists(folderpath)) throw new Exception($"Folder already exists! [{folderpath}]");
             Directory.CreateDirectory(folderpath);
 
-            var sliceCount = Header.dim[(int)sliceType + 1];
-            var digits = (int)Math.Log10(sliceCount) + 1;
-            for (var i = 0; i < sliceCount; i++)
-                GetSlice(i, sliceType).Save($@"{folderpath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
+            for (var i = 0; i < Header.dim[(int)sliceType + 1]; i++)
+                GetSlice(i, sliceType).Save($@"{folderpath}\{i}.bmp");
         }
 
         public INifti Compare(INifti floating, SliceType sliceType, ISubtractionLookUpTable lookUpTable)
@@ -217,31 +191,19 @@ namespace CAPI.ImageProcessing
             var fixedSlices = GetSlices(sliceType).ToArray();
             if (fixedSlices == null) throw new Exception("No slices found in file being compared");
 
-            const int targetMean = 110;
-            const int targetStd = 32;
-
             var rangeWidth = lookUpTable.Width;
             for (var i = 0; i < fixedSlices.Length; i++) // Normalize each slice
-                                                         //fixedSlices[i].Normalize(rangeWidth / 2, rangeWidth / 8, 10, (int)voxels.Max());
-            {
-                if (Header.datatype == 128) fixedSlices[i].RgbValToGrayscale();
-                fixedSlices[i].Normalize(targetMean, targetStd, 10, (int)fixedSlices[i].Max());
-            }
+                fixedSlices[i].Normalize(rangeWidth / 2, rangeWidth / 4, 10, (int)voxels.Max());
 
             var fixedVoxels = SlicesToArray(fixedSlices, sliceType); // Return back from slices to a single array
             fixedVoxels.Trim(0, lookUpTable.Width - 1);
 
             // get FLOATING and normalize each slice
             var floatingSlices = floating.GetSlices(sliceType).ToArray();
-            if (floatingSlices == null || floatingSlices.Length == 0)
-                throw new Exception("No slices found in file being compared");
+            if (floatingSlices == null) throw new Exception("No slices found in file being compared");
 
             for (var i = 0; i < floatingSlices.Length; i++) // Normalize each slice
-                                                            //floatingSlices[i].Normalize(rangeWidth / 2, rangeWidth / 8, 10, (int)floating.voxels.Max());
-            {
-                if (floating.Header.datatype == 128) floatingSlices[i].RgbValToGrayscale();
-                floatingSlices[i].Normalize(targetMean, targetStd, 10, (int)floatingSlices[i].Max());
-            }
+                floatingSlices[i].Normalize(rangeWidth / 2, rangeWidth / 4, 10, (int)floating.voxels.Max());
 
             var floatingVoxels = SlicesToArray(floatingSlices, sliceType); // Return back from slices to a single array
             floatingVoxels.Trim(0, lookUpTable.Width - 1);
@@ -299,6 +261,17 @@ namespace CAPI.ImageProcessing
                 .Select(v => (v - voxelsMin) * (max - min) / (voxelsMax - voxelsMin))
                 .ToArray();
         }
+
+        //public float[] Normalize(int mean, int stdDev)
+        //{
+        //    var currMean = voxels.Mean();
+        //    var currStdDev = voxels.StandardDeviation();
+
+        //    for (var i = 0; i < voxels.Length; ++i)
+        //        voxels[i] = (float)((voxels[i] - currMean) / (currStdDev)) * stdDev + mean;
+
+        //    return voxels; // TODO1: Not Implemented
+        //}
 
         public Bitmap GetSlice(int sliceIndex, SliceType sliceType)
         {
@@ -408,14 +381,7 @@ namespace CAPI.ImageProcessing
             Header.datatype = 128;
             Header.intent_code = 2003;
         }
-        public void ConvertHeaderToGrayScale16bit()
-        {
-            Header.dim[0] = 4; // 3 spatial and one temporal dimension
-            Header.dim[4] = 1; // time
-            Header.bitpix = 16;
-            Header.datatype = 4;
-        }
-        
+
         /// <summary>
         /// Reorient voxels into new dimensions - settings dim property to new values
         /// </summary>
@@ -601,7 +567,7 @@ namespace CAPI.ImageProcessing
         {
             if (voxelsBytes != null && voxelsBytes.Length > 0) return (int)Header.vox_offset + voxelsBytes.Length;
             if (voxels == null || voxels.Length == 0) throw new Exception("Both voxels and voxelsBytes are empty!");
-            return (int)Header.vox_offset + voxels.Length * Header.bitpix / 8;
+            return (int)Header.vox_offset + voxels.Length * 8 * Header.bitpix;
         }
         private byte[] WriteVoxelsBytes(byte[] buffer)
         {
@@ -614,13 +580,13 @@ namespace CAPI.ImageProcessing
         }
         private void GetVoxelsBytes()
         {
-            voxelsBytes = new byte[GetTotalSize() - (int)Header.vox_offset];
+            voxelsBytes = new byte[GetTotalSize()];
             var bytePix = Header.bitpix / 8;
 
             for (var i = 0; i < voxels.Length; i++)
                 for (var j = 0; j < bytePix; j++)
                 {
-                    var position = i * bytePix + j;
+                    var position = Header.sizeof_hdr + i * bytePix + j;
                     switch (bytePix)
                     {
                         case 1 when Header.cal_min >= 0:
@@ -630,17 +596,16 @@ namespace CAPI.ImageProcessing
                             voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToSByte(voxels[i]))[j], position);
                             break;
                         case 2:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt16(voxels[i])).ToArray()[j], position);
+                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt16(voxels[i]))[j], position);
                             break;
                         case 3 when Header.cal_min >= 0:
-                            // RGB is 24bit so needs three bytes for each pixel (bytePix=3) hence .Take(3)
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).Take(3).ToArray()[j], position);
+                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i]))[j + 1], position);
                             break;
                         case 4 when Header.cal_min >= 0:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).ToArray()[j], position);
+                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i]))[j], position);
                             break;
                         case 4 when Header.cal_min < 0:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i])).ToArray()[j], position);
+                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i]))[j], position);
                             break;
                         default:
                             throw new Exception($"Bitpix {Header.bitpix} not supported!");
@@ -649,8 +614,6 @@ namespace CAPI.ImageProcessing
         }
         private int GetVoxelIndex(int x, int y, int z, SliceType sliceType)
         {
-            if (Header.dim[1] == 0 || Header.dim[2] == 0 || Header.dim[3] == 0)
-                throw new Exception("Nifti header dimensions not set!");
             var ltRt = Header.dim[1];
             var antPos = Header.dim[2];
             var infSup = Header.dim[3];

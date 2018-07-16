@@ -14,9 +14,9 @@ namespace CAPI.Tests.ImageProcessing
         [TestInitialize]
         public void TestInit()
         {
-            _testResourcesPath = Common.Config.Helper.GetTestResourcesPath();
-            _fixedDicomFolder = $@"{_testResourcesPath}\Fixed\Dicom";
-            _floatingDicomFolder = $@"{_testResourcesPath}\Floating\Dicom";
+            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _fixedDicomFolder = $@"{_testResourcesPath}\Fixed2\Dicom";
+            _floatingDicomFolder = $@"{_testResourcesPath}\Floating2\Dicom";
             _outputFolder = $@"{_testResourcesPath}\Output";
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
         }
@@ -35,11 +35,11 @@ namespace CAPI.Tests.ImageProcessing
         public void ConvertDicom2Nii()
         {
             // Arrange
-            Common.Services.FileSystem.DirectoryExists(_outputFolder);
-            var outfile = $@"{_outputFolder}\fixed.nii";
+            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
-            CAPI.ImageProcessing.ImageConverter.DicomToNiix(_fixedDicomFolder, outfile);
+            CAPI.ImageProcessing.ImageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert
             Assert.IsTrue(File.Exists(outfile), "dcm2niix failed to convert dicom to nii");

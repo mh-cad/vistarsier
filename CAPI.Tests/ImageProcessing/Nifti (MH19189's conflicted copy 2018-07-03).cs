@@ -1,6 +1,5 @@
 ﻿using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.IO;
 using System.Linq;
 using Unity;
@@ -20,11 +19,9 @@ namespace CAPI.Tests.ImageProcessing
         private string _floatingResliced;
         private string _rgbBmpsFolder;
         private ISubtractionLookUpTable _lookUpTable;
-        private string _fixedBrainCopy;
-        private string _fixedShades;
-        private string _floatingShades;
-        private string _sampleRgbBitmapsFolder;
-        private string _floatingReslicedCopy;
+        private string _fixedBrain1;
+        private string _slice;
+        private string _sliceCopy;
 
         [TestInitialize]
         public void TestInit()
@@ -34,17 +31,15 @@ namespace CAPI.Tests.ImageProcessing
             _fixed = $@"{_testResourcesPath}\Fixed\fixed.nii";
             _outfile = $@"{_testResourcesPath}\Fixed\fixed.noro.nii";
             _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
-            _fixedBrainCopy = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc1.nii";
+            _fixedBrain1 = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc1.nii";
+            _slice = $@"{_testResourcesPath}\slice.nii";
+            _sliceCopy = $@"{_testResourcesPath}\sliceCopy.nii";
             _floatingResliced = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
-            _floatingReslicedCopy = $@"{_testResourcesPath}\Floating\floating.resliced.bfc1.nii";
             _rgbafile = $@"{_testResourcesPath}\rgba-test.nii";
             _rgbfile = $@"{_testResourcesPath}\rgb-test.nii";
             _rgbBmpsFolder = $@"{_testResourcesPath}\RgbBmps";
             _lookUpTable = _unity.Resolve<ISubtractionLookUpTable>();
             _lookUpTable.LoadImage($@"{_testResourcesPath}\LookupTable.bmp");
-            _sampleRgbBitmapsFolder = $@"{_testResourcesPath}\SampleBmps";
-            _fixedShades = $@"{_testResourcesPath}\fixedShades.nii";
-            _floatingShades = $@"{_testResourcesPath}\floatingShades.nii";
         }
 
         [TestMethod]
@@ -146,33 +141,21 @@ namespace CAPI.Tests.ImageProcessing
         }
 
         [TestMethod]
-        public void ReadVoxelsFromRgbBmps()
-        {
-            if (File.Exists($@"{_sampleRgbBitmapsFolder}\nim.nii")) File.Delete($@"{_sampleRgbBitmapsFolder}\nim.nii");
-            var files = Directory.GetFiles(_sampleRgbBitmapsFolder);
-            var nim = _unity.Resolve<INifti>();
-            nim.Header = nim.ReadHeaderFromFile(_fixedBrain);
-            nim.ReadVoxelsFromRgb256Bmps(files, SliceType.Sagittal);
-            nim.WriteNifti($@"{_sampleRgbBitmapsFolder}\nim.nii");
-        }
-
-        [TestMethod]
         public void Compare()
         {
             var fixedBrain = _unity.Resolve<INifti>();
-            fixedBrain.ReadNifti(_fixedShades);
+            fixedBrain.ReadNifti(_slice);
 
             var floatingResliced = _unity.Resolve<INifti>();
             //floatingResliced.ReadNifti(_floatingResliced);
-            floatingResliced.ReadNifti(_floatingShades);
+            floatingResliced.ReadNifti(_sliceCopy);
 
             var result = fixedBrain.Compare(floatingResliced, SliceType.Sagittal, _lookUpTable);
 
             if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
             result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);
 
-            throw new NotImplementedException();
-            //Assert.Fail(); 
+            //Assert.Fail(); //TODO3: Not Implemented
         }
 
         [TestMethod]
