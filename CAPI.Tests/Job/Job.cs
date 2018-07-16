@@ -20,7 +20,7 @@ namespace CAPI.Tests.Job
         [TestInitialize]
         public void TestInit()
         {
-            _imageRepoFolder = Common.Config.ImgProc.GetImageRepositoryPath();
+            _imageRepoFolder = CAPI.Common.Config.ImgProc.GetImageRepositoryPath();
 
             ClearFoldersAndFiles();
         }

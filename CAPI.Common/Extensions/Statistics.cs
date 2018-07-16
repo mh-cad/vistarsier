@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace CAPI.Common.Extensions
 {
@@ -13,7 +14,7 @@ namespace CAPI.Common.Extensions
         {
             double s = 0;
 
-            for (int i = start; i < end; i++)
+            for (var i = start; i < end; i++)
             {
                 s += values[i];
             }
@@ -35,12 +36,12 @@ namespace CAPI.Common.Extensions
         {
             double variance = 0;
 
-            for (int i = start; i < end; i++)
+            for (var i = start; i < end; i++)
             {
                 variance += Math.Pow((values[i] - mean), 2);
             }
 
-            int n = end - start;
+            var n = end - start;
             if (start > 0) n -= 1;
 
             return variance / (n);
@@ -53,31 +54,39 @@ namespace CAPI.Common.Extensions
 
         public static double StandardDeviation(this float[] values, int start, int end)
         {
-            double mean = values.Mean(start, end);
-            double variance = values.Variance(mean, start, end);
+            var mean = values.Mean(start, end);
+            var variance = values.Variance(mean, start, end);
 
             return Math.Sqrt(variance);
         }
 
-        public static float[] Normalize(this float[] array, int mean, int stdDev)
+        public static void Normalize(this float[] array, int mean, int stdDev)
         {
             var currMean = array.Mean();
             var currStdDev = array.StandardDeviation();
 
             for (var i = 0; i < array.Length; ++i)
                 array[i] = Math.Abs(currStdDev) < 0.000001 ? 0 :
-                    (float)((array[i] - currMean) / currStdDev) * stdDev + mean;
-
-            return array;
+                    (float)((array[i] - currMean)) // * stdDev / currStdDev) 
+                        + mean;
         }
 
-        public static float[] Trim(this float[] array, int lower, int upper)
+        public static void Normalize(this float[] array, int mean, int stdDev, int min, int max)
+        {
+            var currMean = array.Where(i => i > min && i < max).ToArray().Mean();
+            var currStdDev = array.Where(i => i > min && i < max).ToArray().StandardDeviation();
+
+            for (var i = 0; i < array.Length; ++i)
+                if (array[i] >= min && array[i] <= max)
+                    array[i] = Math.Abs(currStdDev) < 0.000001 ? 0 :
+                        (float)((array[i] - currMean) / currStdDev * stdDev + mean);
+        }
+
+        public static void Trim(this float[] array, int lower, int upper)
         {
             for (var i = 0; i < array.Length; i++)
                 if (array[i] < lower) array[i] = lower;
                 else if (array[i] > upper) array[i] = upper;
-
-            return array;
         }
 
         public static float[,] Normalize(this float[,] array, int mean, int stdDev)
@@ -94,6 +103,15 @@ namespace CAPI.Common.Extensions
                     array[x, y] = flatArray[x + y * array.GetLength(0)];
 
             return array;
+        }
+    }
+
+    public static class BitmapExtensions
+    {
+        public static void RgbValToGrayscale(this float[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+                array[i] = BitConverter.GetBytes((int)array[i])[0];
         }
     }
 }

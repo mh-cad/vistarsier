@@ -18,6 +18,7 @@ namespace CAPI.ImageProcessing.Abstraction
         void SetPixelRgb(int x, int y, int z, SliceType sliceType, int r, int g, int b);
         int GetPixelColor(int x, int y, int z, SliceType sliceType);
         INiftiHeader ReadHeaderFromFile(string filepath);
+        void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType);
         Bitmap GetSlice(int sliceIndex, SliceType sliceType);
         IEnumerable<float[]> GetSlices(SliceType sliceType);
         float[] SlicesToArray(float[][] slices, SliceType sliceType);
