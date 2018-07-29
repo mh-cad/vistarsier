@@ -1,4 +1,5 @@
-﻿using CAPI.DAL;
+﻿using CAPI.Agent.Abstractions;
+using CAPI.DAL;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
@@ -10,9 +11,11 @@ using CAPI.JobManager.Abstraction;
 using System.Collections.Generic;
 using Unity;
 using Unity.log4net;
+using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 
 namespace CAPI.Tests.Helpers
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class Unity
     {
         public static IUnityContainer CreateContainerCore()
@@ -25,6 +28,7 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IDicomServices, DicomServices>();
             container.RegisterType<IImageConverter, ImageConverter>();
             container.RegisterType<IImageProcessor, ImageProcessor>();
+            container.RegisterType<IImageProcessorNew, ImageProcessorNew>();
             container.RegisterType<IJobManagerFactory, JobManagerFactory>();
             container.RegisterType<IRecipe, Recipe>();
             container.RegisterType<IJobNew<IRecipe>, JobNew<IRecipe>>();
@@ -40,6 +44,8 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
             container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
+            container.RegisterType<IAgent, Agent.Agent>();
+            container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
 
             return container;
         }

@@ -58,6 +58,7 @@
     <Compile Include="IntegratedProcessType.cs" />
     <Compile Include="IRecipe.cs" />
     <Compile Include="IRegistration.cs" />
+    <Compile Include="ISeries.cs" />
     <Compile Include="ISeriesSelectionCriteria.cs" />
     <Compile Include="IJobBuilder.cs" />
     <Compile Include="ITakeDifference.cs" />

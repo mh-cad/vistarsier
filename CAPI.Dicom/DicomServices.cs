@@ -257,7 +257,7 @@ namespace CAPI.Dicom
 
         public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "")
         {
-            FileSystem.DirectoryExists(dicomFolder);
+            FileSystem.DirectoryExistsIfNotCreate(dicomFolder);
             var bmpFiles = Directory.GetFiles(bmpFolder);
             var orderedFiles = new List<string>();
             if (!string.IsNullOrEmpty(dicomheadersFolder))

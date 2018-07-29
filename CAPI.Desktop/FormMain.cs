@@ -314,7 +314,7 @@ namespace CAPI.Desktop
                 var updatedDestination = destination;
 
                 if (string.IsNullOrEmpty(destination.AeTitle))
-                    FileSystem.DirectoryExists(updatedDestination.FolderPath);
+                    FileSystem.DirectoryExistsIfNotCreate(updatedDestination.FolderPath);
                 else
                 {
                     var dicomNode = _dicomNodeRepo.GetAll().FirstOrDefault(n => n.AeTitle == destination.AeTitle);

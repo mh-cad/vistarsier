@@ -141,7 +141,7 @@ namespace CAPI.JobManager
             var patientFullName = Fixed.ParentDicomStudy.PatientsName.Replace("^", "_");
             var jobId = $"{DateTime.Now:yyyyMMddHHmmss}_{patientFullName}";
             OutputFolderPath = $@"{OutputFolderPath}\{jobId}";
-            FileSystem.DirectoryExists(OutputFolderPath);
+            FileSystem.DirectoryExistsIfNotCreate(OutputFolderPath);
 
             Fixed.DicomFolderPath =
                 SaveSeriesToDisk(OutputFolderPath, Fixed.Title, Fixed.ParentDicomStudy, dicomServices);

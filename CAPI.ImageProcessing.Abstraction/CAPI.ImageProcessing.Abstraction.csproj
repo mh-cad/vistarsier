@@ -48,16 +48,9 @@
     <Compile Include="IImageConverter.cs" />
     <Compile Include="INiftiHeader.cs" />
     <Compile Include="INifti.cs" />
-    <Compile Include="ISeries.cs" />
     <Compile Include="ISubtractionLookUpTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SliceType.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
-      <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
-      <Name>CAPI.Dicom.Abstraction</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
