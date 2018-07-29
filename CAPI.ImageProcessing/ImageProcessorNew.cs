@@ -1,80 +1,38 @@
 ﻿using CAPI.Common.Services;
+using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CAPI.ImageProcessing
 {
-    public class ImageProcessorNew //: IImageProcessorNew
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class ImageProcessorNew : IImageProcessorNew
     {
-        private readonly string _executablesPath;
-        //private const string Fixed = "fixed";
-        //private const string Floating = "floating";
-        private readonly string _fixedDicomPath;
-        private readonly string _processesRootDir;
-
-        private const string FlippedSuffix = "_flipped";
-        //private const string MiconvFileName = "miconv.exe";
-        //private const string DstPrefixPositive = "flair_new_with_changes_overlay_positive";
-        //private const string DstPrefixNegative = "flair_new_with_changes_overlay_negative";
-        //private const string StructChangesDarkFloat2BrightFixed = "structural_changes_dark_in_floating_to_bright_in_fixed";
-        //private const string StructChangesBrightFloat2DarkFixed = "structural_changes_bright_in_floating_to_dark_in_fixed";
-        //private const string StructChangesBrainMask = "structural_changes_brain_surface_mask";
-
-        private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
-        private const string Img2DcmFileName = "img2dcm.exe";
-        private const string FlairOldReslicesFolderName = "flair_old_resliced";
-        private const string DicomFilesWithNewHeadersFolder = "flair_old_resliced_new_header";
-        private const string DcmdumpFileName = "dcmdump.exe";
-        private const string DcmodifyFileName = "dcmodify.exe";
-
-        private static Dictionary<string, string> GetFileNamesAndContentsToCreate()
-        {
-            return new Dictionary<string, string>
-            {
-                {"fixed.hdr.properties", "series_description=fixed stack hdr"},
-                {"fixed.img.properties", "series_description=fixed stack img"},
-                {"floating.hdr.properties", "series_description=floating stack hdr"},
-                {"floating.img.properties", "series_description=floating stack img"},
-                {"fixed_to_floating_rap_xform.txt.properties", "series_description=fixed to floating xform in RAP format"},
-                {"structural_changes_dark_in_floating_to_bright_in_fixed.nii.properties", "series_description=growing lesions"},
-                {"structural_changes_bright_in_floating_to_dark_in_fixed.nii.properties", "series_description=shrinking lesions"},
-                {"structural_changes_brain_surface_mask.nii.properties", "series_description=brain surface"}
-            };
-        } // TODO3: Hard-coded name
-        private static Dictionary<string, string> GetFilesToBeRenamed()
-        {
-            return new Dictionary<string, string>
-            {
-                {"diff_dark_in_floating_to_bright_in_fixed.nii", "structural_changes_dark_in_floating_to_bright_in_fixed.nii"},
-                {"diff_bright_in_floating_to_dark_in_fixed.nii", "structural_changes_bright_in_floating_to_dark_in_fixed.nii"},
-                {"diff_brain_surface_mask.nii", "structural_changes_brain_surface_mask.nii"}
-            };
-        } // TODO3: Hard-coded name
-
-        public static void ExtractBrainMask(string infile, string @params, string brain, string mask)
+        public void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii)
         {
             var bseExe = ImgProcConfig.GetBseExeFilePath();
-            var arguments = $"-i {infile} --mask {mask} -o {brain} {@params}";
+            var arguments = $"-i {inNii} --mask {outMaskNii} -o {outBrainNii} {bseParams}";
 
-            if (!Directory.Exists(Path.GetDirectoryName(brain))) throw new DirectoryNotFoundException();
-            if (!Directory.Exists(Path.GetDirectoryName(mask))) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(Path.GetDirectoryName(outBrainNii))) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(Path.GetDirectoryName(outMaskNii))) throw new DirectoryNotFoundException();
 
             ProcessBuilder.CallExecutableFile(bseExe, arguments);
 
-            if (!File.Exists(brain) || !File.Exists(mask))
+            if (!File.Exists(outBrainNii) || !File.Exists(outMaskNii))
                 throw new FileNotFoundException("Brain mask removal failed to create brain/mask.");
         }
 
-        public static void Registration(string fixedNii, string floatingNii, string floatingResliced)
+        public void Registration(string currentNii, string priorNii, string outPriorReslicedNii)
         {
-            var outputPath = Directory.GetParent(Path.GetDirectoryName(fixedNii)).FullName;
+            var outputPath = Directory.GetParent(Path.GetDirectoryName(currentNii)).FullName;
 
-            CreateRawXform(outputPath, fixedNii, floatingNii);
+            CreateRawXform(outputPath, currentNii, priorNii);
 
-            CreateResultXform(outputPath, fixedNii, floatingNii);
+            CreateResultXform(outputPath, currentNii, priorNii);
 
-            ResliceFloatingImages(outputPath, fixedNii, floatingNii, floatingResliced);
+            ResliceFloatingImages(outputPath, currentNii, priorNii, outPriorReslicedNii);
         }
 
         private static void CreateRawXform(string outputPath, string fixedNii, string floatingNii)
@@ -85,7 +43,7 @@ namespace CAPI.ImageProcessing
             var rawForm = $@"{outputPath}\{ImgProcConfig.GetCmtkRawxformFile()}";
 
             if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir);
-            FileSystem.DirectoryExists(cmtkOutputDir);
+            FileSystem.DirectoryExistsIfNotCreate(cmtkOutputDir);
 
             var arguments = $@"{registrationParams} --out-matrix {rawForm} -o . {fixedNii} {floatingNii}";
 
@@ -119,16 +77,147 @@ namespace CAPI.ImageProcessing
             ProcessBuilder.CallExecutableFile(reformatxFilePath, arguments);
         }
 
-        public static void BiasFieldCorrection(string inNii, string @params, string outNii)
+        public void BiasFieldCorrection(string inNii, string bfcParams, string outNii)
         {
             var bfcExe = ImgProcConfig.GetBfcExeFilePath();
-            var arguments = $"-i {inNii} -o {outNii} {@params}";
+            var arguments = $"-i {inNii} -o {outNii} {bfcParams}";
 
             ProcessBuilder.CallExecutableFile(bfcExe, arguments);
         }
 
+        public void Compare(
+            string currentNiiFile, string priorNiiFile, string lookupTableFile,
+            SliceType sliceType, string resultNiiFile)
+        {
+            var currentNii = new Nifti().ReadNifti(currentNiiFile);
+            var priorNii = new Nifti().ReadNifti(priorNiiFile);
+
+            var lookupTable = new SubtractionLookUpTable();
+            lookupTable.LoadImage(lookupTableFile);
+
+            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable);
+
+            FileSystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(resultNiiFile));
+
+            result.WriteNifti(resultNiiFile);
+        }
+
+        public void CompareBrainNiftiWithReslicedBrainNifti_OutNifti(
+            string currentNii, string priorNii, string lookupTable, SliceType sliceType,
+            bool extractBrain, bool register, bool biasFieldCorrect,
+            string resultNii, string outPriorReslicedNii)
+        {
+            FileSystem.FilesExist(new[] { currentNii, priorNii, lookupTable });
+
+            var fixedFile = currentNii;
+            var floatingFile = priorNii;
+
+            if (extractBrain)
+            {
+                var bseParams = ImgProcConfig.GetBseParams();
+                var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
+                var fixedMask = currentNii.Replace(".nii", ".mask.nii");
+                ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
+                fixedFile = fixedBrain;
+
+                var floatingBrain = priorNii.Replace(".nii", ".brain.nii");
+                var floatingMask = priorNii.Replace(".nii", ".mask.nii");
+                ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
+                floatingFile = floatingBrain;
+            }
+
+            if (register)
+            {
+                var resliced = priorNii.Replace(".nii", ".resliced.nii");
+                Registration(fixedFile, floatingFile, resliced);
+                if (!File.Exists(resliced))
+                    throw new FileNotFoundException($"Registration process failed to created resliced file {outPriorReslicedNii}");
+                FileSystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
+                File.Move(resliced, outPriorReslicedNii);
+                floatingFile = outPriorReslicedNii;
+            }
+
+            if (biasFieldCorrect)
+            {
+                var bfcParams = ImgProcConfig.GetBfcParams();
+
+                var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
+                BiasFieldCorrection(fixedFile, bfcParams, fixedBfc);
+                fixedFile = fixedBfc;
+
+                var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
+                BiasFieldCorrection(floatingFile, bfcParams, floatingBfc);
+                floatingFile = floatingBfc;
+            }
+
+            Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
+        }
+
+        [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+        public void CompareDicomInNiftiOut(
+            string currentDicomFolder, string priorDicomFolder, string lookupTable, SliceType sliceType,
+            bool extractBrain, bool register, bool biasFieldCorrect,
+            string resultNii, string outPriorReslicedNii)
+        {
+            if (!File.Exists(lookupTable))
+                throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTable}");
+
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for current seires
+            if (!FileSystem.DirectoryIsValidAndNotEmpty(currentDicomFolder))
+                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {currentDicomFolder}");
+
+            var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
+
+            ImageConverter.DicomToNiix(currentDicomFolder, currentNifti);
+
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior seires
+            if (!FileSystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
+                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {priorDicomFolder}");
+
+            var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
+
+            ImageConverter.DicomToNiix(priorDicomFolder, priorNifti);
+
+            CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
+                extractBrain, register, biasFieldCorrect,
+                resultNii, outPriorReslicedNii);
+        }
+
+        #region "Unused methods"
+        //private const string DicomFilesWithNewHeadersFolder = "flair_old_resliced_new_header";
+        //private const string DcmdumpFileName = "dcmdump.exe";
+        //private const string DcmodifyFileName = "dcmodify.exe";
+        private readonly string _executablesPath;
+        private readonly string _fixedDicomPath;
+        private const string FlippedSuffix = "_flipped";
+        private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
+        private const string Img2DcmFileName = "img2dcm.exe";
+        private const string FlairOldReslicesFolderName = "flair_old_resliced";
+        private static Dictionary<string, string> GetFileNamesAndContentsToCreate()
+        {
+            return new Dictionary<string, string>
+            {
+                {"fixed.hdr.properties", "series_description=fixed stack hdr"},
+                {"fixed.img.properties", "series_description=fixed stack img"},
+                {"floating.hdr.properties", "series_description=floating stack hdr"},
+                {"floating.img.properties", "series_description=floating stack img"},
+                {"fixed_to_floating_rap_xform.txt.properties", "series_description=fixed to floating xform in RAP format"},
+                {"structural_changes_dark_in_floating_to_bright_in_fixed.nii.properties", "series_description=growing lesions"},
+                {"structural_changes_bright_in_floating_to_dark_in_fixed.nii.properties", "series_description=shrinking lesions"},
+                {"structural_changes_brain_surface_mask.nii.properties", "series_description=brain surface"}
+            };
+        } // TODO3: Hard-coded name
+        private static Dictionary<string, string> GetFilesToBeRenamed()
+        {
+            return new Dictionary<string, string>
+            {
+                {"diff_dark_in_floating_to_bright_in_fixed.nii", "structural_changes_dark_in_floating_to_bright_in_fixed.nii"},
+                {"diff_bright_in_floating_to_dark_in_fixed.nii", "structural_changes_bright_in_floating_to_dark_in_fixed.nii"},
+                {"diff_brain_surface_mask.nii", "structural_changes_brain_surface_mask.nii"}
+            };
+        } // TODO3: Hard-coded name
         public static void TakeDifference(string fixedBrainNii, string floatingBrainNii, string fixedMaskNii,
-            string changesPositive, string changesNegative, string changesMask, string sliceInset = "0")
+        string changesPositive, string changesNegative, string changesMask, string sliceInset = "0")
         {
             var outputDir = Path.GetDirectoryName(changesPositive);
             var javaClassPath = ImgProcConfig.GetJavaClassPath();
@@ -252,5 +341,6 @@ namespace CAPI.ImageProcessing
                 }
             }
         }
+        #endregion
     }
 }

@@ -6,7 +6,7 @@ namespace CAPI.Common.Services
 {
     public static class ProcessBuilder
     {
-        public static Process Build(string processPath, string processFileNameExt, string arguments, string workingDir)
+        private static Process Build(string processPath, string processFileNameExt, string arguments, string workingDir)
         {
             if (string.IsNullOrEmpty(workingDir)) workingDir = processPath;
             var proc = new Process
@@ -36,7 +36,6 @@ namespace CAPI.Common.Services
 
             process.Start();
             var stdout = process.StandardOutput.ReadToEnd();
-            //Logger.Write(stdout, Logger.LogType.StdOut, fileNameExt);
             Logger.ProcessErrorLogWrite(process, $"{fileNameExt}");
             process.WaitForExit();
             return stdout;
@@ -51,8 +50,7 @@ namespace CAPI.Common.Services
             var process = Build(javaFolderPath, javaFileNamExt, arguments, workingDir);
 
             process.Start();
-            var stdout = process.StandardOutput.ReadToEnd();
-            //Logger.Write(stdout, Logger.LogType.StdOut, methodCalled);
+            //var stdout = process.StandardOutput.ReadToEnd();
             Logger.ProcessErrorLogWrite(process, $"{javaFileNamExt}");
             process.WaitForExit();
         }

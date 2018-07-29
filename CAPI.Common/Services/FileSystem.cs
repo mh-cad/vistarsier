@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace CAPI.Common.Services
 {
     public static class FileSystem
     {
-        public static bool DirectoryExists(string directoryPath)
+        public static bool DirectoryExistsIfNotCreate(string directoryPath)
         {
             var pathSections = directoryPath.Split('\\');
             if (pathSections.Length < 1) return false;
@@ -45,6 +46,30 @@ namespace CAPI.Common.Services
 
             foreach (var file in Directory.GetFiles(source))
                 File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+        }
+
+        public static bool DirectoryIsValidAndNotEmpty(string folderPath)
+        {
+            try
+            {
+                return
+                    !string.IsNullOrEmpty(folderPath) &&
+                    Directory.Exists(folderPath) &&
+                    Directory.GetFiles(folderPath).Length > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static void FilesExist(IEnumerable<string> files)
+        {
+            foreach (var file in files)
+            {
+                if (!File.Exists(file))
+                    throw new FileNotFoundException($"Unable to locate the following file: {file}");
+            }
         }
     }
 }

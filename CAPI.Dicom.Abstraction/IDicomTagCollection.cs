@@ -11,6 +11,7 @@ namespace CAPI.Dicom.Abstraction
         IDicomTag StudyAccessionNumber { get; }
         IDicomTag StudyDescription { get; }
         IDicomTag StudyInstanceUid { get; }
+        IDicomTag StudyDate { get; }
         IDicomTag SeriesDescription { get; }
         IDicomTag SeriesInstanceUid { get; }
         IDicomTag ImageUid { get; }

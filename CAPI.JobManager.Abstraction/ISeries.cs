@@ -1,6 +1,6 @@
 ﻿using CAPI.Dicom.Abstraction;
 
-namespace CAPI.ImageProcessing.Abstraction
+namespace CAPI.JobManager.Abstraction
 {
     public interface ISeries
     {

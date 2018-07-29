@@ -9,7 +9,7 @@ namespace CAPI.ImageProcessing.Abstraction
         float[] voxels { get; set; }
         byte[] voxelsBytes { get; set; }
 
-        void ReadNifti(string filepath);
+        INifti ReadNifti(string filepath);
         void ReadNiftiHeader(string filepath);
         void WriteNifti(string filepath);
         void Reorient(short width, short height, short slices);
@@ -20,9 +20,10 @@ namespace CAPI.ImageProcessing.Abstraction
         INiftiHeader ReadHeaderFromFile(string filepath);
         void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType);
         Bitmap GetSlice(int sliceIndex, SliceType sliceType);
+        void GetDimensions(SliceType sliceType, out int width, out int height, out int nSlices);
         IEnumerable<float[]> GetSlices(SliceType sliceType);
         float[] SlicesToArray(float[][] slices, SliceType sliceType);
         void ExportSlicesToBmps(string folderpath, SliceType sliceType);
-        INifti Compare(INifti floatingResliced, SliceType sliceType, ISubtractionLookUpTable lookUpTable);
+        INifti Compare(INifti current, INifti prior, SliceType sliceType, ISubtractionLookUpTable lookUpTable);
     }
 }

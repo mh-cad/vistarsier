@@ -29,7 +29,7 @@ namespace CAPI.Common.Config
         {
             var exeAppConfig = GetExeAppConfig();
             var folderPath = exeAppConfig["ProcessesLogPath"].Value;
-            if (!Directory.Exists(folderPath)) Services.FileSystem.DirectoryExists(folderPath);
+            if (!Directory.Exists(folderPath)) Services.FileSystem.DirectoryExistsIfNotCreate(folderPath);
             if (Directory.Exists(folderPath)) return folderPath;
             throw new DirectoryNotFoundException($"Processes Log folder does not exist: [{folderPath}]");
         }
