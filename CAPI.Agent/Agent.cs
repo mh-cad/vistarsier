@@ -1,4 +1,5 @@
 ﻿using CAPI.Agent.Abstractions;
+using CAPI.Common.Config;
 
 namespace CAPI.Agent
 {
@@ -9,6 +10,8 @@ namespace CAPI.Agent
         public string DatabaseConnectionString { get; set; }
         public int NotifyCooloffPeriod { get; set; }
 
+        public CapiConfig Config { get; set; }
+
         public Agent()
         {
 
@@ -18,5 +21,7 @@ namespace CAPI.Agent
         {
 
         }
+
+        
     }
 }

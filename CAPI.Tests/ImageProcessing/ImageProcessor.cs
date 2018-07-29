@@ -120,55 +120,55 @@ namespace CAPI.Tests.ImageProcessing
             Assert.IsTrue(File.Exists(outNii), $"Bias Field Correction output file does not exist [{outNii}]");
         }
 
-        [TestMethod]
-        public void TakeDifference()
-        {
-            // Arrange
-            var fixedBrainNii = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
-            var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
-            var floatingReslicedNii = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
+        //[TestMethod]
+        //public void TakeDifference()
+        //{
+        //    // Arrange
+        //    var fixedBrainNii = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
+        //    var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
+        //    var floatingReslicedNii = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
 
-            var subtractPositive = $@"{_outputFolder}\sub.pos.nii";
-            var subtractNegative = $@"{_outputFolder}\sub.neg.nii";
-            var subtractMask = $@"{_outputFolder}\sub.mask.nii";
+        //    var subtractPositive = $@"{_outputFolder}\sub.pos.nii";
+        //    var subtractNegative = $@"{_outputFolder}\sub.neg.nii";
+        //    var subtractMask = $@"{_outputFolder}\sub.mask.nii";
 
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+        //    CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
 
-            // Act
-            ImageProcessorNew.TakeDifference(fixedBrainNii, floatingReslicedNii, fixedMaskNii,
-                subtractPositive, subtractNegative, subtractMask);
+        //    // Act
+        //    ImageProcessorNew.TakeDifference(fixedBrainNii, floatingReslicedNii, fixedMaskNii,
+        //        subtractPositive, subtractNegative, subtractMask);
 
-            // Assert
-            Assert.IsTrue(File.Exists(subtractPositive), $"Positive structural changes file does not exist [{subtractPositive}]");
-            Assert.IsTrue(File.Exists(subtractPositive), $"Negative structural changes file does not exist [{subtractNegative}]");
-            Assert.IsTrue(File.Exists(subtractPositive), $"Structural changes mask file does not exist [{subtractMask}]");
-        }
+        //    // Assert
+        //    Assert.IsTrue(File.Exists(subtractPositive), $"Positive structural changes file does not exist [{subtractPositive}]");
+        //    Assert.IsTrue(File.Exists(subtractPositive), $"Negative structural changes file does not exist [{subtractNegative}]");
+        //    Assert.IsTrue(File.Exists(subtractPositive), $"Structural changes mask file does not exist [{subtractMask}]");
+        //}
 
-        [TestMethod]
-        public void Colormap()
-        {
-            // Arrange
-            var fixedDicomFolder = $@"{_testResourcesPath}\Fixed\Dicom";
-            var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
+        //[TestMethod]
+        //public void Colormap()
+        //{
+        //    // Arrange
+        //    var fixedDicomFolder = $@"{_testResourcesPath}\Fixed\Dicom";
+        //    var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
 
-            var subtractPositive = $@"{_testResourcesPath}\sub.pos.nii";
-            var subtractNegative = $@"{_testResourcesPath}\sub.neg.nii";
+        //    var subtractPositive = $@"{_testResourcesPath}\sub.pos.nii";
+        //    var subtractNegative = $@"{_testResourcesPath}\sub.neg.nii";
 
-            var positiveImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractPositiveImgFolder()}";
-            var negativeImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractNegativeImgFolder()}";
+        //    var positiveImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractPositiveImgFolder()}";
+        //    var negativeImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractNegativeImgFolder()}";
 
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+        //    CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
 
-            // Act
-            ImageProcessorNew.ColorMap(_fixedNiiFile, fixedDicomFolder, fixedMaskNii,
-                subtractPositive, subtractNegative, positiveImagesFolder, negativeImagesFolder);
+        //    // Act
+        //    ImageProcessorNew.ColorMap(_fixedNiiFile, fixedDicomFolder, fixedMaskNii,
+        //        subtractPositive, subtractNegative, positiveImagesFolder, negativeImagesFolder);
 
-            // Assert
-            Assert.IsTrue(File.Exists(positiveImagesFolder) && Directory.GetFiles(positiveImagesFolder).Length > 0,
-                $"Positive changes images folder does not exist/contains no files in following path: [{positiveImagesFolder}]");
-            Assert.IsTrue(File.Exists(negativeImagesFolder) && Directory.GetFiles(negativeImagesFolder).Length > 0,
-                $"Negative changes images folder does not exist/contains no files in following path: [{negativeImagesFolder}]");
-        }
+        //    // Assert
+        //    Assert.IsTrue(File.Exists(positiveImagesFolder) && Directory.GetFiles(positiveImagesFolder).Length > 0,
+        //        $"Positive changes images folder does not exist/contains no files in following path: [{positiveImagesFolder}]");
+        //    Assert.IsTrue(File.Exists(negativeImagesFolder) && Directory.GetFiles(negativeImagesFolder).Length > 0,
+        //        $"Negative changes images folder does not exist/contains no files in following path: [{negativeImagesFolder}]");
+        //}
 
         [TestMethod]
         public void Compare()

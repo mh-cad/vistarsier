@@ -1,5 +1,4 @@
 ﻿using CAPI.Common.Config;
-using CAPI.ImageProcessing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
@@ -8,16 +7,30 @@ namespace CAPI.Tests.Config
     [TestClass]
     public class Config
     {
+        private CapiConfig _config;
+
         [TestInitialize]
         public void TestInit()
         {
+            _config = CapiConfig.GetConfig();
+        }
+
+        [TestMethod]
+        public void GetConfigFile()
+        {
+            // Arrange
+            // Act
+
+
+            // Assert
+
         }
 
         [TestMethod]
         public void ExecutablesFolderExists()
         {
             // Act
-            var executablesPath = ImgProcConfig.GetImgProcBinPath();
+            var executablesPath = _config.ImgProcConfig.ImgProcBinPath;
             var executablesFolderExists = Directory.Exists(executablesPath);
 
             // Assert
@@ -28,7 +41,7 @@ namespace CAPI.Tests.Config
         public void JavaExeFileExists()
         {
             // Act
-            var javaBinPath = ImgProcConfig.GetJavaExeBin();
+            var javaBinPath = _config.ImgProcConfig.JavaExeBin;
             var javaBinFileExists = File.Exists(javaBinPath);
             // Assert
             Assert.IsTrue(javaBinFileExists, $"Java exe file does not exist: {javaBinPath}");
@@ -38,7 +51,7 @@ namespace CAPI.Tests.Config
         public void JavaClasspathContainsValue()
         {
             // Act
-            var javaclasspath = ImgProcConfig.GetJavaClassPath();
+            var javaclasspath = _config.ImgProcConfig.JavaClassPath;
             // Assert
             Assert.IsTrue(!string.IsNullOrEmpty(javaclasspath), "Java classpath has no values.");
         }
@@ -47,7 +60,7 @@ namespace CAPI.Tests.Config
         public void ProcessesLogPathExists()
         {
             // Act
-            var processesLogPath = ImgProc.GetProcessesLogPath();
+            var processesLogPath = _config.ImgProcConfig.ProcessesLogPath;
             var procLogPathExists = Directory.Exists(processesLogPath);
             // Assert
             Assert.IsTrue(procLogPathExists, $"Processes log path does not exist: {processesLogPath}");
@@ -57,7 +70,7 @@ namespace CAPI.Tests.Config
         public void ImageRepositoryFolderPathExists()
         {
             // Act
-            var imgRepositoryPath = ImgProc.GetImageRepositoryPath();
+            var imgRepositoryPath = _config.ImgProcConfig.ImageRepositoryPath;
             var imgRepositoryPathExists = Directory.Exists(imgRepositoryPath);
 
             // Assert
@@ -67,7 +80,7 @@ namespace CAPI.Tests.Config
         [TestMethod]
         public void Dcm2NiiExeExists()
         {
-            var filepath = ImgProcConfig.GetDcm2NiiExeFilePath();
+            var filepath = _config.ImgProcConfig.Dcm2NiiExeFilePath;
 
             //Assert
             Assert.IsTrue(File.Exists(filepath));
@@ -76,19 +89,23 @@ namespace CAPI.Tests.Config
         [TestMethod]
         public void BseExists()
         {
-            ImgProcConfig.GetBseExeFilePath();
+            // Arrange
+            // Act
+            var bseFile = _config.ImgProcConfig.BseExeFilePath;
+
+            // Assert
+            Assert.IsTrue(File.Exists(bseFile));
         }
 
         [TestMethod]
         public void BfcExists()
         {
-            ImgProcConfig.GetBfcExeFilePath();
-        }
+            // Arrange
+            // Act
+            var bfcFile = _config.ImgProcConfig.BfcExeFilePath;
 
-        [TestMethod]
-        public void ColorMapConfigExists()
-        {
-            ImgProcConfig.GetColorMapConfigFile();
+            // Assert
+            Assert.IsTrue(File.Exists(bfcFile));
         }
     }
 }

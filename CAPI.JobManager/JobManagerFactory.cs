@@ -13,26 +13,29 @@ namespace CAPI.JobManager
         private readonly IImageConverter _imageConverter;
         private readonly IDicomFactory _dicomFactory;
         private readonly IDicomNodeRepository _dicomNodeRepo;
+        private readonly IDicomConfig _dicomConfig;
 
         public JobManagerFactory
             (IImageProcessor imageProcessor, IDicomFactory dicomFactory,
-            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo)
+            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo, IDicomConfig dicomConfig)
         {
             _imageProcessor = imageProcessor;
             _dicomFactory = dicomFactory;
             _imageConverter = imageConverter;
             _dicomNodeRepo = dicomNodeRepo;
+            _dicomConfig = dicomConfig;
         }
 
         public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
         {
-            return new Job<IRecipe>(
-                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo);
+            //return new Job<IRecipe>(
+            //    this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo, _dicomConfig);
+            return null;
         }
         public IJobNew<IRecipe> CreateJobNew(IDicomNode localNode, IDicomNode remoteNode)
         {
             return new JobNew<IRecipe>(
-                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo);
+                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo, _dicomConfig);
         }
 
         public IJob<IRecipe> CreateJob(

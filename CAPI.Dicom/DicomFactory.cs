@@ -4,13 +4,9 @@ using System;
 
 namespace CAPI.Dicom
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class DicomFactory : IDicomFactory
     {
-        public DicomFactory()
-        {
-            
-        }
-
         public IDicomNode CreateDicomNode()
         {
             return new DicomNode();
@@ -27,9 +23,10 @@ namespace CAPI.Dicom
         {
             return new DicomTagCollection();
         }
-        public IDicomServices CreateDicomServices()
+
+        public IDicomServices CreateDicomServices(IDicomConfig config)
         {
-            return new DicomServices();
+            return new DicomServices(config);
         }
         public IDicomStudy CreateStudy()
         {

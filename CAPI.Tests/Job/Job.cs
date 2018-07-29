@@ -1,4 +1,5 @@
-﻿using CAPI.JobManager;
+﻿using CAPI.Common.Config;
+using CAPI.JobManager;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
@@ -16,11 +17,13 @@ namespace CAPI.Tests.Job
 
         private static readonly ILog Log = LogHelper.GetLogger();
         private string _imageRepoFolder;
+        private CapiConfig _capiConfig;
 
         [TestInitialize]
         public void TestInit()
         {
-            _imageRepoFolder = CAPI.Common.Config.ImgProc.GetImageRepositoryPath();
+            _capiConfig = CapiConfig.GetConfig(new[] { "-dev" });
+            _imageRepoFolder = _capiConfig.ImgProcConfig.ImageRepositoryPath;
 
             ClearFoldersAndFiles();
         }
