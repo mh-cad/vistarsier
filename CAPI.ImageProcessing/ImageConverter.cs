@@ -35,6 +35,27 @@ namespace CAPI.ImageProcessing
             _viewableDir = $"{imageRepoDir}\\Viewable"; // TODO3: Hard-coded path
         }
 
+        public static void DicomToNiix(string dicomDir, string outfile, string @params = "")
+        {
+            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExeFilePath();
+
+            var tmpDir = $@"{Path.GetDirectoryName(outfile)}\tmp";
+            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+            FileSystem.DirectoryExistsIfNotCreate(tmpDir);
+
+            ProcessBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
+
+            if (!Directory.Exists(tmpDir))
+                throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
+            var outfiles = Directory.GetFiles(tmpDir);
+            var nim = outfiles.Single(f => Path.GetExtension(f) == ".nii");
+            File.Move(nim, outfile);
+
+            Directory.Delete(tmpDir, true);
+        }
+
+        #region "Unused Methods"
+
         public void Dicom2Hdr(string dicomDir, string outputDir, string outputFileNameNoExt)
         {
             CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiHdrParams);
@@ -43,24 +64,6 @@ namespace CAPI.ImageProcessing
         public void DicomToNii(string dicomDir, string outputDir, string outputFileNameNoExt)
         {
             CallDicomToNii(dicomDir, outputDir, outputFileNameNoExt, _dcm2NiiNiiParams);
-        }
-
-        public static void DicomToNiix(string dicomDir, string outfile, string @params = "")
-        {
-            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExeFilePath();
-
-            var tmpDir = $@"{Path.GetDirectoryName(outfile)}\tmp";
-            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-            FileSystem.DirectoryExists(tmpDir);
-
-            ProcessBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
-
-            if (!Directory.Exists(tmpDir)) throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
-            var outfiles = Directory.GetFiles(tmpDir);
-            var nim = outfiles.Single(f => Path.GetExtension(f) == ".nii");
-            File.Move(nim, outfile);
-
-            Directory.Delete(tmpDir, true);
         }
 
         private void CallDicomToNii(
@@ -135,5 +138,7 @@ namespace CAPI.ImageProcessing
 
             ProcessBuilder.CallJava(arguments, methodName);
         }
+
+        #endregion
     }
 }

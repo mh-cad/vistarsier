@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</ProjectGuid>
+    <ProjectGuid>{1ABF0272-BC85-45A1-85FF-532885D05BC0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Common</RootNamespace>
-    <AssemblyName>CAPI.Common</AssemblyName>
+    <RootNamespace>CAPI.Agent</RootNamespace>
+    <AssemblyName>CAPI.Agent</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,10 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.DirectoryServices.Protocols" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,25 +40,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\Helper.cs" />
-    <Compile Include="Config\ImgProc.cs" />
-    <Compile Include="Extensions\BitmapExtensions.cs" />
-    <Compile Include="Extensions\Statistics.cs" />
-    <Compile Include="Services\FileSystem.cs" />
-    <Compile Include="Services\Logger.cs" />
-    <Compile Include="Services\ProcessBuilder.cs" />
+    <Compile Include="Agent.cs" />
+    <Compile Include="ImageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MF-PC.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rad-VTNew.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="MH19189.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\CAPI.Agent.Abstractions\CAPI.Agent.Abstractions.csproj">
+      <Project>{8b03ddc7-0cdf-472b-8031-65947a23e58a}</Project>
+      <Name>CAPI.Agent.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
+      <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
+      <Name>CAPI.Dicom.Abstraction</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
+      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
+      <Name>CAPI.ImageProcessing.Abstraction</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

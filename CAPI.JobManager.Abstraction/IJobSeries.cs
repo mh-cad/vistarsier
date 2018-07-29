@@ -1,5 +1,4 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CAPI.JobManager.Abstraction
 {

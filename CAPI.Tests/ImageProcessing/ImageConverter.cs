@@ -35,7 +35,7 @@ namespace CAPI.Tests.ImageProcessing
         public void ConvertDicom2Nii()
         {
             // Arrange
-            CAPI.Common.Services.FileSystem.DirectoryExists(_outputFolder);
+            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
