@@ -1,5 +1,4 @@
-﻿using CAPI.Common.Config;
-using CAPI.Common.Services;
+﻿using CAPI.Common.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
@@ -19,14 +18,12 @@ namespace CAPI.Dicom
     {
         private readonly string _executablesPath;
 
-        public DicomServices()
+        public DicomServices(IDicomConfig config)
         {
-            _executablesPath = ImgProc.GetExecutablesPath();
+            _executablesPath = config.ExecutablesPath;
         }
 
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
-        private const string DcmdumpFileName = "dcmdump.exe";
-        private const string DcmodifyFileName = "dcmodify.exe";
         private const string Img2DcmFileName = "img2dcm.exe";
 
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
@@ -108,40 +105,6 @@ namespace CAPI.Dicom
                 dcmFile.Save(filepath);
             }
         }
-
-        //public void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,
-        //    string ouputFolder)
-        //{
-        //    var dicomHeaderFiles = Directory.GetFiles(dicomFolderWithHeaders);
-        //    if (dicomHeaderFiles.Length < 1)
-        //        throw new FileNotFoundException($"No files were found in following folder: {dicomHeaderFiles}");
-
-        //    foreach (var file in dicomHeaderFiles)
-        //        File.Copy(file, $@"{ouputFolder}\{Path.GetFileName(file)}");
-
-        //    CopyPixelData(dicomFolderWithPixelData, ouputFolder);
-        //}
-
-        //private void CopyPixelData(string dicomFolderWithPixelData, string outputFolder)
-        //{
-        //    Create.raw files from files containing pixel data in same folder
-        //    foreach (var fileFullPath in Directory.GetFiles(dicomFolderWithPixelData))
-        //    {
-        //        var arguments = $"+W {dicomFolderWithPixelData} {fileFullPath}";
-        //        ProcessBuilder.CallExecutableFile(
-        //            $"{_executablesPath}\\{DcmtkFolderName}\\{DcmdumpFileName}", arguments);
-        //    }
-
-        //    Modify pixel data on matching files in output folder with .0.raw files just created
-        //    foreach (var fileFullPath in Directory.GetFiles(outputFolder))
-        //    {
-        //        var filename = Path.GetFileName(fileFullPath);
-        //        var arguments =
-        //            $"-nb -mf \"PixelData={dicomFolderWithPixelData}\\{filename}.0.raw\" \"{fileFullPath}\"";
-        //        ProcessBuilder.CallExecutableFile(
-        //            $"{_executablesPath}\\{DcmtkFolderName}\\{DcmodifyFileName}", arguments);
-        //    }
-        //}
 
         private static DicomFile UpdateTags(
             DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)

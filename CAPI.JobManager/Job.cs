@@ -21,6 +21,7 @@ namespace CAPI.JobManager
         private readonly IDicomNode _remoteNode;
         private readonly IImageConverter _imageConverter;
         private readonly IDicomNodeRepository _dicomNodeRepository;
+        private readonly IDicomConfig _dicomConfig;
         private readonly ILog _log;
 
         private const string NegativeDcmFolderName = "flair_new_with_changes_overlay_negative_dcm";
@@ -48,10 +49,12 @@ namespace CAPI.JobManager
         /// <param name="remoteNode"></param>
         /// <param name="imageConverter"></param>
         /// <param name="dicomNodeRepository"></param>
+        /// <param name="dicomConfig">Dicom Configuration</param>
         public Job(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
             IImageConverter imageConverter,
-            IDicomNodeRepository dicomNodeRepository)
+            IDicomNodeRepository dicomNodeRepository,
+            IDicomConfig dicomConfig)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -59,6 +62,7 @@ namespace CAPI.JobManager
             _remoteNode = remoteNode;
             _imageConverter = imageConverter;
             _dicomNodeRepository = dicomNodeRepository;
+            _dicomConfig = dicomConfig;
             _log = LogHelper.GetLogger();
 
             DicomSeriesFixed = new JobSeriesBundle();
@@ -125,7 +129,7 @@ namespace CAPI.JobManager
                     }
                 } // TODO2: Add logging to integrated processes
 
-                var dicomServices = _dicomFactory.CreateDicomServices();
+                var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
                 NegativeOverlay.DicomFolderPath = NegativeOverlay.BmpFolderPath + "_dcm";
                 dicomServices.ConvertBmpsToDicom(
@@ -155,7 +159,7 @@ namespace CAPI.JobManager
         private void FetchSeriesAndSaveToDisk()
         {
             _log.Info("Receiving dicom files from source");
-            var dicomServices = _dicomFactory.CreateDicomServices();
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
             dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);
 
             var patientFullName = DicomSeriesFixed.Original.ParentDicomStudy.PatientsName.Replace("^", "_");
@@ -233,37 +237,37 @@ namespace CAPI.JobManager
             return newDicomFolderPath;
         }
 
-        private IJobSeries HdrFileDoesExist(IJobSeries jobSeries, string studyName)
-        {
-            if (!string.IsNullOrEmpty(jobSeries.HdrFileFullPath)) return jobSeries;
+        //private IJobSeries HdrFileDoesExist(IJobSeries jobSeries, string studyName)
+        //{
+        //    if (!string.IsNullOrEmpty(jobSeries.HdrFileFullPath)) return jobSeries;
 
-            var fileNameNoExt = jobSeries.DicomFolderPath.Split('\\').LastOrDefault();
-            var outputPath = jobSeries.DicomFolderPath.Replace("\\" + fileNameNoExt, "");
+        //    var fileNameNoExt = jobSeries.DicomFolderPath.Split('\\').LastOrDefault();
+        //    var outputPath = jobSeries.DicomFolderPath.Replace("\\" + fileNameNoExt, "");
 
-            _imageConverter.Dicom2Hdr(jobSeries.DicomFolderPath, outputPath, studyName);
+        //    _imageConverter.Dicom2Hdr(jobSeries.DicomFolderPath, outputPath, studyName);
 
-            jobSeries.HdrFileFullPath = $@"{outputPath}\{studyName}.hdr";
+        //    jobSeries.HdrFileFullPath = $@"{outputPath}\{studyName}.hdr";
 
-            return jobSeries;
-        }
-        private IJobSeries NiiFileDoesExist(ISeries originalJobSeries, IJobSeries jobSeries)
-        {
-            if (!string.IsNullOrEmpty(jobSeries.NiiFileFullPath)) return jobSeries;
-            //if (string.IsNullOrEmpty(jobSeries.DicomFolderPath))
-            //throw new NullReferenceException();
-            _imageConverter.Hdr2Nii(originalJobSeries.HdrFileFullPath,
-                jobSeries.HdrFileFullPath, out var niiFileFullPath);
+        //    return jobSeries;
+        //}
+        //private IJobSeries NiiFileDoesExist(ISeries originalJobSeries, IJobSeries jobSeries)
+        //{
+        //    if (!string.IsNullOrEmpty(jobSeries.NiiFileFullPath)) return jobSeries;
+        //    //if (string.IsNullOrEmpty(jobSeries.DicomFolderPath))
+        //    //throw new NullReferenceException();
+        //    _imageConverter.Hdr2Nii(originalJobSeries.HdrFileFullPath,
+        //        jobSeries.HdrFileFullPath, out var niiFileFullPath);
 
-            //var dicomFolderName = jobSeries.DicomFolderPath.Split('\\').LastOrDefault();
-            //var hdrFileNameNoExt = dicomFolderName + ".nii";
+        //    //var dicomFolderName = jobSeries.DicomFolderPath.Split('\\').LastOrDefault();
+        //    //var hdrFileNameNoExt = dicomFolderName + ".nii";
 
-            //_imageConverter.DicomToNii(
-            //   jobSeries.DicomFolderPath, OutputFolderPath, hdrFileNameNoExt);
+        //    //_imageConverter.DicomToNii(
+        //    //   jobSeries.DicomFolderPath, OutputFolderPath, hdrFileNameNoExt);
 
-            jobSeries.NiiFileFullPath = niiFileFullPath;
+        //    jobSeries.NiiFileFullPath = niiFileFullPath;
 
-            return jobSeries;
-        }
+        //    return jobSeries;
+        //}
 
         private void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess)
         {
@@ -324,7 +328,7 @@ namespace CAPI.JobManager
         }
         private void UpdateDicomHeaders(string outputFolderPath, string dicomFolderName, string seriesName)
         {
-            var dicomServices = _dicomFactory.CreateDicomServices();
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
             var dicomFiles = Directory.GetFiles($@"{outputFolderPath}\{dicomFolderName}");
 
@@ -357,7 +361,7 @@ namespace CAPI.JobManager
                     {
                         _log.Info($"Sending files to Dicom node AET: [{destination.AeTitle}] ...");
 
-                        var dicomServices = _dicomFactory.CreateDicomServices();
+                        var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
                         var negativeFiles = Directory.GetFiles(NegativeOverlay.DicomFolderPath);
                         foreach (var negativeFile in negativeFiles)

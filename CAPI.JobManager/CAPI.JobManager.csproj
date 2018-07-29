@@ -59,7 +59,6 @@
     <Compile Include="IntegratedProcess.cs" />
     <Compile Include="IntegratedProcesses.cs" />
     <Compile Include="JobManagerFactory.cs" />
-    <Compile Include="Job.cs" />
     <Compile Include="JobBuilder.cs" />
     <Compile Include="JobSeries.cs" />
     <Compile Include="JobSeriesBundle.cs" />

@@ -1,7 +1,6 @@
 ﻿using CAPI.Common.Services;
 using CAPI.ImageProcessing.Abstraction;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
@@ -168,7 +167,7 @@ namespace CAPI.ImageProcessing
 
             var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
-            ImageConverter.DicomToNiix(currentDicomFolder, currentNifti);
+            new ImageConverter().DicomToNiix(currentDicomFolder, currentNifti);
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior seires
             if (!FileSystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
@@ -176,171 +175,11 @@ namespace CAPI.ImageProcessing
 
             var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
 
-            ImageConverter.DicomToNiix(priorDicomFolder, priorNifti);
+            new ImageConverter().DicomToNiix(priorDicomFolder, priorNifti);
 
             CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
                 extractBrain, register, biasFieldCorrect,
                 resultNii, outPriorReslicedNii);
         }
-
-        #region "Unused methods"
-        //private const string DicomFilesWithNewHeadersFolder = "flair_old_resliced_new_header";
-        //private const string DcmdumpFileName = "dcmdump.exe";
-        //private const string DcmodifyFileName = "dcmodify.exe";
-        private readonly string _executablesPath;
-        private readonly string _fixedDicomPath;
-        private const string FlippedSuffix = "_flipped";
-        private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
-        private const string Img2DcmFileName = "img2dcm.exe";
-        private const string FlairOldReslicesFolderName = "flair_old_resliced";
-        private static Dictionary<string, string> GetFileNamesAndContentsToCreate()
-        {
-            return new Dictionary<string, string>
-            {
-                {"fixed.hdr.properties", "series_description=fixed stack hdr"},
-                {"fixed.img.properties", "series_description=fixed stack img"},
-                {"floating.hdr.properties", "series_description=floating stack hdr"},
-                {"floating.img.properties", "series_description=floating stack img"},
-                {"fixed_to_floating_rap_xform.txt.properties", "series_description=fixed to floating xform in RAP format"},
-                {"structural_changes_dark_in_floating_to_bright_in_fixed.nii.properties", "series_description=growing lesions"},
-                {"structural_changes_bright_in_floating_to_dark_in_fixed.nii.properties", "series_description=shrinking lesions"},
-                {"structural_changes_brain_surface_mask.nii.properties", "series_description=brain surface"}
-            };
-        } // TODO3: Hard-coded name
-        private static Dictionary<string, string> GetFilesToBeRenamed()
-        {
-            return new Dictionary<string, string>
-            {
-                {"diff_dark_in_floating_to_bright_in_fixed.nii", "structural_changes_dark_in_floating_to_bright_in_fixed.nii"},
-                {"diff_bright_in_floating_to_dark_in_fixed.nii", "structural_changes_bright_in_floating_to_dark_in_fixed.nii"},
-                {"diff_brain_surface_mask.nii", "structural_changes_brain_surface_mask.nii"}
-            };
-        } // TODO3: Hard-coded name
-        public static void TakeDifference(string fixedBrainNii, string floatingBrainNii, string fixedMaskNii,
-        string changesPositive, string changesNegative, string changesMask, string sliceInset = "0")
-        {
-            var outputDir = Path.GetDirectoryName(changesPositive);
-            var javaClassPath = ImgProcConfig.GetJavaClassPath();
-
-            var methodName = ImgProcConfig.GetMsProgressionJavaClassName();
-            var arguments = $"-classpath \"{javaClassPath}\" {methodName} \"{outputDir}\" " +
-                            $"\"{fixedBrainNii}\" \"{floatingBrainNii}\" \"{fixedMaskNii}\" {sliceInset}";
-
-            ProcessBuilder.CallJava(arguments, methodName);
-
-            //CreatePropertiesFiles(outputDir);
-            RenameDiffNiiFiles(changesPositive, changesNegative, changesMask, outputDir);
-        }
-        private static void CreatePropertiesFiles(string outputDir)
-        {
-            foreach (var filenameAndContent in GetFileNamesAndContentsToCreate())
-                File.WriteAllText($"{outputDir}\\{filenameAndContent.Key}", filenameAndContent.Value);
-        }
-
-        private static void RenameDiffNiiFiles(string subPos, string subNeg, string subMask, string outputDir)
-        {
-            var outPositive = $@"{outputDir}\{ImgProcConfig.GetSubtractPositiveNii()}";
-            var outNegative = $@"{outputDir}\{ImgProcConfig.GetSubtractNegativeNii()}";
-            var outMask = $@"{outputDir}\{ImgProcConfig.GetSubtractMaskNii()}";
-
-            if (!File.Exists(outPositive)) throw new FileNotFoundException($"File was not found to be renamed: {outPositive}");
-            if (!File.Exists(outNegative)) throw new FileNotFoundException($"File was not found to be renamed: {outNegative}");
-            if (!File.Exists(outMask)) throw new FileNotFoundException($"File was not found to be renamed: {outMask}");
-
-            File.Move(outPositive, subPos);
-            File.Move(outNegative, subNeg);
-            File.Move(outMask, subMask);
-        }
-
-        public void FlipAndConvertFloatingToDicom(string seriesNii)
-        {
-            //var reslicedFloatingName = seriesNii.Description;
-            //var outputDir = seriesNii.FolderPath;
-
-            //FlipFloatingReslicedImages(reslicedFloatingName, outputDir);
-            //ConvertNii2Dicom(reslicedFloatingName, outputDir);
-            //MatchDicom2Nii(reslicedFloatingName, outputDir);
-        }
-        private void FlipFloatingReslicedImages(string reslicedFloatingName, string outputDir)
-        {
-            var javaClassPath = ImgProcConfig.GetJavaClassPath();
-            const string methodName = "au.com.nicta.preprocess.main.FlipNii"; // TODO3: Hard-coded method name
-            var arguments =
-                $"-classpath {javaClassPath} {methodName} {outputDir}\\{reslicedFloatingName}.nii " +
-                $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii";
-            ProcessBuilder.CallJava(arguments, methodName);
-        }
-        private void ConvertNii2Dicom(string reslicedFloatingName, string outputDir)
-        {
-            var arguments = $@"{outputDir}\{reslicedFloatingName}{FlippedSuffix}.nii {outputDir}\{reslicedFloatingName}{FlippedSuffix}.dcm";
-            //ProcessBuilder.CallExecutableFile($"{_executablesPath}\\odin\\{MiconvFileName}", arguments); // TODO3: Hard-coded method name
-        }
-        private void MatchDicom2Nii(string reslicedFloatingName, string outputDir)
-        {
-            var javaClassPath = ImgProcConfig.GetJavaClassPath();
-            const string methodName = "au.com.nicta.preprocess.main.MatchDicom2Nii2Dicom"; // TODO3: Hard-coded method name
-            var arguments =
-                $"-classpath {javaClassPath} {methodName} {outputDir}/Fixed.img " +
-                $"{_fixedDicomPath} {outputDir}/{reslicedFloatingName}{FlippedSuffix}_dcm {outputDir}/{FlairOldReslicesFolderName}";
-            ProcessBuilder.CallJava(arguments, methodName);
-        }
-
-        public static void ColorMap(
-            string fixedNii, string fixedDicomFolder, string fixedMaskNii,
-            string subtractPositive, string subtractNegative,
-            string positiveFolder, string negativeFolder)
-        {
-            var settings = Properties.Settings.Default;
-            var colorMapConfigFile = ImgProcConfig.GetColorMapConfigFile();
-            var javaClassPath = ImgProcConfig.GetJavaClassPath();
-            var outputDir = Path.GetDirectoryName(positiveFolder);
-
-            var methodName = ImgProcConfig.GetColorMapJavaClassName();
-            var arguments =
-                $"-classpath \"{javaClassPath}\" {methodName} \"{colorMapConfigFile}\" " +
-                $"\"{outputDir}\\{settings.colormapPositiveImages}\" " +
-                $"\"{fixedNii}\" \"{fixedDicomFolder}\" \"{fixedMaskNii}\" " +
-                $"\"{subtractPositive}\" \"{subtractNegative}\" positive";
-
-            ProcessBuilder.CallJava(arguments, methodName);
-
-            if (!string.Equals($@"{outputDir}\{settings.colormapPositiveImages}",
-                positiveFolder, StringComparison.CurrentCultureIgnoreCase))
-                Directory.Move($@"{outputDir}\{settings.colormapPositiveImages}", positiveFolder);
-            //positiveFolder = $@"{outputDir}\{DstPrefixPositive}";
-
-            arguments =
-                $"-classpath {javaClassPath} {methodName} {colorMapConfigFile} " +
-                $@"{outputDir}\{settings.colormapNegativeImages} " +
-                $"{fixedNii} {fixedDicomFolder} {fixedMaskNii} " +
-                $"{subtractPositive} {subtractNegative} negative";
-
-            ProcessBuilder.CallJava(arguments, methodName);
-
-            if (!string.Equals($@"{outputDir}\{settings.colormapNegativeImages}",
-                negativeFolder, StringComparison.CurrentCultureIgnoreCase))
-                Directory.Move($@"{outputDir}\{settings.colormapNegativeImages}", negativeFolder);
-            //negativeFolder = $@"{outputDir}\{DstPrefixNegative}";
-        }
-
-        public void ConvertBmpsToDicom(string outputDir)
-        {
-            var settings = Properties.Settings.Default;
-            var folders = new[] { $"{outputDir}\\{settings.colormapNegativeImages}", $"{outputDir}\\{settings.colormapPositiveImages}" };
-            foreach (var folder in folders)
-            {
-                if (!Directory.Exists($"{folder}_dcm")) Directory.CreateDirectory($"{folder}_dcm");
-                var files = Directory.GetFiles(folder);
-                foreach (var file in files)
-                {
-                    var filenameNoExt = Path.GetFileNameWithoutExtension(file);
-                    var arguments = $"-df {outputDir}\\Fixed\\Dicom\\{filenameNoExt} " + // Copy dicom headers from dicom file: -df =  dataset file
-                                    $"-i BMP {filenameNoExt}.bmp {folder}_dcm\\{filenameNoExt}"; // TODO3: Hard-coded method name
-                    ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
-                        arguments, folder);
-                }
-            }
-        }
-        #endregion
     }
 }
