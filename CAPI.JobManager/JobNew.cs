@@ -22,6 +22,7 @@ namespace CAPI.JobManager
         private readonly IImageConverter _imageConverter;
         private readonly IDicomNodeRepository _dicomNodeRepository;
         private readonly ILog _log;
+        private readonly IDicomConfig _dicomConfig;
 
         private const string FixedTitle = "Fixed";
         private const string FloatingTitle = "Floating";
@@ -53,10 +54,11 @@ namespace CAPI.JobManager
         /// <param name="remoteNode"></param>
         /// <param name="imageConverter"></param>
         /// <param name="dicomNodeRepository"></param>
+        /// <param name="dicomConfig">Dicom Configuration</param>
         public JobNew(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
             IImageConverter imageConverter,
-            IDicomNodeRepository dicomNodeRepository)
+            IDicomNodeRepository dicomNodeRepository, IDicomConfig dicomConfig)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -64,6 +66,7 @@ namespace CAPI.JobManager
             _remoteNode = remoteNode;
             _imageConverter = imageConverter;
             _dicomNodeRepository = dicomNodeRepository;
+            _dicomConfig = dicomConfig;
             _log = LogHelper.GetLogger();
 
             Fixed = new JobSeriesBundleNew { Title = FixedTitle };
@@ -106,7 +109,7 @@ namespace CAPI.JobManager
                     }
                 } // TODO2: Add logging to integrated processes
 
-                var dicomServices = _dicomFactory.CreateDicomServices();
+                var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
                 NegativeOverlayDicomFolder = NegativeOverlayImageFolder + DicomFolderSuffix;
                 dicomServices.ConvertBmpsToDicom(
@@ -135,7 +138,7 @@ namespace CAPI.JobManager
         {
             _log.Info("Receiving dicom files from source");
 
-            var dicomServices = _dicomFactory.CreateDicomServices();
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
             dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);
 
             var patientFullName = Fixed.ParentDicomStudy.PatientsName.Replace("^", "_");
@@ -212,8 +215,8 @@ namespace CAPI.JobManager
 
         public void ConvertDicomToNii()
         {
-            _imageConverter.DicomToNii(Fixed.DicomFolderPath, $@"{OutputFolderPath}\{Fixed.Title}", Fixed.Title);
-            _imageConverter.DicomToNii(Floating.DicomFolderPath, $@"{OutputFolderPath}\{Floating.Title}", Floating.Title);
+            _imageConverter.DicomToNiix(Fixed.DicomFolderPath, $@"{OutputFolderPath}\{Fixed.Title}", Fixed.Title);
+            _imageConverter.DicomToNiix(Floating.DicomFolderPath, $@"{OutputFolderPath}\{Floating.Title}", Floating.Title);
         }
 
         public void RunExtractBrainSurfaceProcess(IIntegratedProcess integratedProcess)
@@ -281,7 +284,7 @@ namespace CAPI.JobManager
         }
         private void UpdateDicomHeaders(string outputFolderPath, string dicomFolderName, string seriesName)
         {
-            var dicomServices = _dicomFactory.CreateDicomServices();
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
             var dicomFiles = Directory.GetFiles($@"{outputFolderPath}\{dicomFolderName}");
 
@@ -314,7 +317,7 @@ namespace CAPI.JobManager
                     {
                         _log.Info($"Sending files to Dicom node AET: [{destination.AeTitle}] ...");
 
-                        var dicomServices = _dicomFactory.CreateDicomServices();
+                        var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
 
                         var negativeFiles = Directory.GetFiles(NegativeOverlayDicomFolder);
                         foreach (var negativeFile in negativeFiles)

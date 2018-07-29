@@ -39,7 +39,7 @@ namespace CAPI.Tests.ImageProcessing
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
-            CAPI.ImageProcessing.ImageConverter.DicomToNiix(_floatingDicomFolder, outfile);
+            new CAPI.ImageProcessing.ImageConverter().DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert
             Assert.IsTrue(File.Exists(outfile), "dcm2niix failed to convert dicom to nii");

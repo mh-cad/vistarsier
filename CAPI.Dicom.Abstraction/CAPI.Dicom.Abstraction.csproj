@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DicomNewObjectType.cs" />
+    <Compile Include="IDicomConfig.cs" />
     <Compile Include="IDicomFactory.cs" />
     <Compile Include="IDicomImage.cs" />
     <Compile Include="IDicomNode.cs" />

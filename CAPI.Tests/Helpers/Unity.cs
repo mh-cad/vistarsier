@@ -11,7 +11,7 @@ using CAPI.JobManager.Abstraction;
 using System.Collections.Generic;
 using Unity;
 using Unity.log4net;
-using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
+
 
 namespace CAPI.Tests.Helpers
 {
@@ -27,7 +27,6 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IDicomFactory, DicomFactory>();
             container.RegisterType<IDicomServices, DicomServices>();
             container.RegisterType<IImageConverter, ImageConverter>();
-            container.RegisterType<IImageProcessor, ImageProcessor>();
             container.RegisterType<IImageProcessorNew, ImageProcessorNew>();
             container.RegisterType<IJobManagerFactory, JobManagerFactory>();
             container.RegisterType<IRecipe, Recipe>();
@@ -44,8 +43,8 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
             container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
-            container.RegisterType<IAgent, Agent.Agent>();
-            container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
+            container.RegisterType<IAgent, CAPI.Agent.Agent>();
+            container.RegisterType<CAPI.Agent.Abstractions.IImageProcessor, CAPI.Agent.ImageProcessor>();
 
             return container;
         }

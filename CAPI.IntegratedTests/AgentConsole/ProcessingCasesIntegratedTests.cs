@@ -174,7 +174,7 @@ namespace CAPI.IntegratedTests.AgentConsole
             container.RegisterType<IRecipeRepositoryInMemory<IRecipe>, RecipeRepositoryInMemory<Recipe>>(new TransientLifetimeManager());
             container.RegisterType<IJobBuilder, JobBuilder>(new TransientLifetimeManager());
             container.RegisterType<IJobManagerFactory, JobManagerFactory>(new TransientLifetimeManager());
-            container.RegisterType<IImageProcessor, ImageProcessor>(new TransientLifetimeManager());
+            container.RegisterType<IImageProcessorNew, ImageProcessorNew>(new TransientLifetimeManager());
             container.RegisterType<IImageConverter, ImageConverter>(new TransientLifetimeManager());
             container.RegisterType<IValueComparer, ValueComparer>(new TransientLifetimeManager());
 

@@ -49,6 +49,10 @@
       <Project>{8b03ddc7-0cdf-472b-8031-65947a23e58a}</Project>
       <Name>CAPI.Agent.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
+      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
+      <Name>CAPI.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
       <Name>CAPI.Dicom.Abstraction</Name>
@@ -57,9 +61,6 @@
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
