@@ -15,6 +15,8 @@ namespace CAPI.JobManager
         private readonly IDicomServices _dicomServices;
         private readonly IJobManagerFactory _jobManagerFactory;
         private readonly IValueComparer _valueComparer;
+
+        private readonly ImgProcConfig _imgProcConfig;
         //private readonly ILog _log;
 
         /// <summary>
@@ -24,13 +26,15 @@ namespace CAPI.JobManager
         /// <param name="jobManagerFactory"></param>
         /// <param name="valueComparer"></param>
         /// <param name="log">Log4Net logger</param>
+        /// <param name="imgProcConfig">Image Processing Configuration</param>
         public JobBuilder(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
-            IValueComparer valueComparer)
+            IValueComparer valueComparer, ImgProcConfig imgProcConfig)
         //, ILog log)
         {
             _dicomServices = dicomServices;
             _jobManagerFactory = jobManagerFactory;
             _valueComparer = valueComparer;
+            _imgProcConfig = imgProcConfig;
             //_log = log;
         }
 
@@ -70,7 +74,7 @@ namespace CAPI.JobManager
             if (floatingSeriesBundle.Original.ParentDicomStudy == null)
                 throw new DicomStudyNotFoundException("No prior workable series were found");
 
-            var imageRepositoryPath = ImgProc.GetImageRepositoryPath();
+            var imageRepositoryPath = _imgProcConfig.ImageRepositoryPath;
             var job = _jobManagerFactory.CreateJob(
                 fixedSeriesBundle, floatingSeriesBundle, recipe.IntegratedProcesses, recipe.Destinations,
                 imageRepositoryPath, localNode, sourceNode

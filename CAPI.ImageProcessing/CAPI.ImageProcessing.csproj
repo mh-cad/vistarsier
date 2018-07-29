@@ -48,7 +48,6 @@
     <Compile Include="ImgProcConfig.cs" />
     <Compile Include="FrameOfReference.cs" />
     <Compile Include="ImageConverter.cs" />
-    <Compile Include="ImageProcessor.cs" />
     <Compile Include="NiftiHeader.cs" />
     <Compile Include="Nifti.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

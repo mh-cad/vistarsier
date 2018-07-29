@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unity;
 using IImageProcessor = CAPI.Agent.Abstractions.IImageProcessor;
 
-namespace CAPI.Tests.Broker
+namespace CAPI.Tests.Agent
 {
     [TestClass]
     public class ImageProcessor

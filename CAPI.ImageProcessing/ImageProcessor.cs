@@ -9,23 +9,17 @@ using System.Text.RegularExpressions;
 
 namespace CAPI.ImageProcessing
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessor : IImageProcessor
     {
-        private readonly IImageConverter _imageConverter;
-
         private readonly string _executablesPath;
         private readonly string _javaClassPath;
         private const string Fixed = "fixed";
         private const string Floating = "floating";
-        private readonly string _fixedDicomPath;
         private readonly string _processesRootDir;
 
         private const string FlippedSuffix = "_flipped";
-        private const string Dcm2NiiExe = "dcm2nii.exe";
-        //private const string Dcm2NiiHdrParams = "-n N -f Y -r Y";
-        //private const string Dcm2NiiNiiParams = "-n Y -g N -f Y -r Y";
         private const string BseExe = "bse09e.exe";
-        //private const string BseExe = "bse.exe";
         private const string BrainSurfaceSuffix = "_brain_surface";
         private const string BrainSurfaceExtSuffix = "_brain_surface_extracted";
         private const string RegistrationExeFileName = "registration.exe";
@@ -81,11 +75,6 @@ namespace CAPI.ImageProcessing
             _processesRootDir = ImgProc.GetProcessesRootDir();
         }
 
-        public static void RunAll()
-        {
-            ProcessBuilder.CallExecutableFile($@"{ImgProc.GetProcessesRootDir()}\_runall.bat", "");
-        } // TODO3: To be checked if this is stil working
-
         public void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
             out string brainMaskRemoved, out string smoothBrainMask)
         {
@@ -119,21 +108,6 @@ namespace CAPI.ImageProcessing
             {
                 // TODO3: Exception Handling
             }
-        }
-        private static void RemoveUnnecessaryFiles(string path, string seriesName, string[] exclusions)
-        {
-            var unused = Directory.GetFiles(path)
-                .Select(Path.GetFileName)
-                .Where(f => f.ToLower() == $"{seriesName}.hdr" || f.ToLower() == $"{seriesName}.img")
-                .Where(f => !exclusions.Contains(f))
-                .All(f =>
-                {
-                    File.Delete($"{path}\\{f}");
-                    return true;
-                });
-
-            File.Delete($"{path}\\{Fixed}.nii");
-            File.Delete($"{path}\\{Floating}.nii");
         }
 
         public void Registration(string outputPath, string fixedFullPath, string floatingFullPath,

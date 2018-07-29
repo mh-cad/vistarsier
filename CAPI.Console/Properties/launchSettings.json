@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CAPI.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "-dev"
+    }
+  }
+}
