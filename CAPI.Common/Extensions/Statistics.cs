@@ -105,13 +105,4 @@ namespace CAPI.Common.Extensions
             return array;
         }
     }
-
-    public static class BitmapExtensions
-    {
-        public static void RgbValToGrayscale(this float[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                array[i] = BitConverter.GetBytes((int)array[i])[0];
-        }
-    }
 }

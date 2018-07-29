@@ -2,11 +2,12 @@
 
 namespace CAPI.ImageProcessing
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessingFactory : IImageProcessingFactory
     {
-        //public ISubtractionLookUpTable CreateSubtractionLookUpTable(int xmin, int xmax, int ymin, int ymax)
-        //{
-        //    return new SubtractionLookUpTable(xmin, xmax, ymin, ymax);
-        //}
+        public INifti CreateNifti()
+        {
+            return new Nifti();
+        }
     }
 }

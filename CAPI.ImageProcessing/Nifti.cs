@@ -47,7 +47,7 @@ namespace CAPI.ImageProcessing
         /// Read header and voxels from the nifti file of type nifti-1 (magic:n+1)
         /// </summary>
         /// <param name="filepath"></param>
-        public void ReadNifti(string filepath)
+        public INifti ReadNifti(string filepath)
         {
             var fileReader = new FileStream(filepath, FileMode.Open);
             if (!fileReader.CanRead) throw new IOException($"Unable to access file: {filepath}");
@@ -60,6 +60,8 @@ namespace CAPI.ImageProcessing
 
             if (reader.BaseStream.Position != reader.BaseStream.Length)
                 throw new Exception("Not all bytes in the stream were read!");
+
+            return this;
         }
         /// <summary>
         /// Reads only the header of a nifti-1 file
@@ -211,53 +213,55 @@ namespace CAPI.ImageProcessing
                 GetSlice(i, sliceType).Save($@"{folderpath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
         }
 
-        public INifti Compare(INifti floating, SliceType sliceType, ISubtractionLookUpTable lookUpTable)
+        public INifti Compare(INifti current, INifti prior, SliceType sliceType, ISubtractionLookUpTable lookUpTable)
         {
-            // get FIXED and normalize each slice
-            var fixedSlices = GetSlices(sliceType).ToArray();
-            if (fixedSlices == null) throw new Exception("No slices found in file being compared");
-
-            const int targetMean = 110;
-            const int targetStd = 32;
-
             var rangeWidth = lookUpTable.Width;
-            for (var i = 0; i < fixedSlices.Length; i++) // Normalize each slice
-                                                         //fixedSlices[i].Normalize(rangeWidth / 2, rangeWidth / 8, 10, (int)voxels.Max());
-            {
-                if (Header.datatype == 128) fixedSlices[i].RgbValToGrayscale();
-                fixedSlices[i].Normalize(targetMean, targetStd, 10, (int)fixedSlices[i].Max());
-            }
+            var targetMean = rangeWidth / 2 - 18; // 110
+            var targetStd = rangeWidth / 8;
 
-            var fixedVoxels = SlicesToArray(fixedSlices, sliceType); // Return back from slices to a single array
-            fixedVoxels.Trim(0, lookUpTable.Width - 1);
 
-            // get FLOATING and normalize each slice
-            var floatingSlices = floating.GetSlices(sliceType).ToArray();
-            if (floatingSlices == null || floatingSlices.Length == 0)
-                throw new Exception("No slices found in file being compared");
+            var currentNormal = NormalizeAndTrimEachSlice(current, sliceType, targetMean, targetStd, rangeWidth);
+            currentNormal.ExportSlicesToBmps(@"C:\temp\Capi-out\1\current", SliceType.Sagittal);
 
-            for (var i = 0; i < floatingSlices.Length; i++) // Normalize each slice
-                                                            //floatingSlices[i].Normalize(rangeWidth / 2, rangeWidth / 8, 10, (int)floating.voxels.Max());
-            {
-                if (floating.Header.datatype == 128) floatingSlices[i].RgbValToGrayscale();
-                floatingSlices[i].Normalize(targetMean, targetStd, 10, (int)floatingSlices[i].Max());
-            }
-
-            var floatingVoxels = SlicesToArray(floatingSlices, sliceType); // Return back from slices to a single array
-            floatingVoxels.Trim(0, lookUpTable.Width - 1);
+            var priorNormal = NormalizeAndTrimEachSlice(prior, sliceType, targetMean, targetStd, rangeWidth);
+            priorNormal.ExportSlicesToBmps(@"C:\temp\Capi-out\1\prior", SliceType.Sagittal);
 
             // COMPARE
-            for (var i = 0; i < voxels.Length; i++)
-                voxels[i] = lookUpTable.Pixels[(int)fixedVoxels[i], (int)floatingVoxels[i]].ToArgb();
+            for (var i = 0; i < currentNormal.voxels.Length; i++)
+                current.voxels[i] = lookUpTable.Pixels[(int)currentNormal.voxels[i],
+                    (int)priorNormal.voxels[i]].ToArgb().ToBgr();
 
-            ConvertHeaderToRgb();
+            current.Header.cal_min = current.voxels.Min();
+            current.Header.cal_max = current.voxels.Max();
 
-            return this;
+            current.ConvertHeaderToRgb();
+
+            return current;
+        }
+
+        private static INifti NormalizeAndTrimEachSlice(INifti nifti, SliceType sliceType,
+                                                         int mean, int std, int rangeWidth)
+        {
+            //nifti.GetDimensions(sliceType, out var width, out var height, out var nSlices);
+            var slices = nifti.GetSlices(sliceType).ToArray();
+            if (slices == null) throw new Exception("No slices found in file being compared");
+
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < slices.Length; i++)
+            {
+                if (nifti.Header.datatype == 128) slices[i].RgbValToGrayscale();
+                slices[i].Normalize(mean, std, 10, (int)slices[i].Max()); // Normalize each slice
+            }
+
+            nifti.voxels = nifti.SlicesToArray(slices, sliceType); // Return back from slices to a single array
+            nifti.voxels.Trim(0, rangeWidth - 1);
+
+            return nifti;
         }
 
         public IEnumerable<float[]> GetSlices(SliceType sliceType)
         {
-            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
+            GetDimensions(sliceType, out var width, out var height, out var nSlices);
             var slices = new float[nSlices][];
             for (var z = 0; z < nSlices; z++)
             {
@@ -276,11 +280,11 @@ namespace CAPI.ImageProcessing
         {
             var allVoxels = new float[slices.Length * slices[0].Length];
 
-            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
+            GetDimensions(sliceType, out var width, out var height, out var nSlices);
+            //var width = slices[0].;
 
             for (var z = 0; z < slices.Length; z++)
             {
-
                 for (var y = 0; y < height; y++)
                     for (var x = 0; x < width; x++)
                         allVoxels[GetVoxelIndex(x, y, z, sliceType)]
@@ -308,7 +312,7 @@ namespace CAPI.ImageProcessing
                 Header.dim[1] < 1 || Header.dim[2] < 1 || Header.dim[3] < 1)
                 throw new NullReferenceException("Nifti file header dim 0,1,2,3 are not valid");
 
-            GetSagittalDimensions(sliceType, out var width, out var height, out var nSlices);
+            GetDimensions(sliceType, out var width, out var height, out var nSlices);
             if (sliceIndex >= nSlices) throw new ArgumentOutOfRangeException($"Slice index out of range. No of slices = {nSlices}");
 
             var slice = new Bitmap(width, height);
@@ -316,7 +320,7 @@ namespace CAPI.ImageProcessing
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
-                    var color = Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType));
+                    var color = Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)).SwapRedBlue();
                     slice.SetPixel(x, y, color);
                 }
 
@@ -337,6 +341,8 @@ namespace CAPI.ImageProcessing
                         Header.cal_max = voxels.Max();
                     }
                     // Scale voxel value to 0-255 range
+                    if (voxelValue < Header.cal_min) voxelValue = (int)Header.cal_min;
+                    if (voxelValue > Header.cal_max) voxelValue = (int)Header.cal_max;
                     var val = (int)((voxelValue - Header.cal_min) * 255 / (Header.cal_max - Header.cal_min));
                     return Color.FromArgb(val, val, val).ToArgb();
                 case 128: // RGB 24bit
@@ -347,7 +353,7 @@ namespace CAPI.ImageProcessing
             }
         }
 
-        private void GetSagittalDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
+        public void GetDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
         {
             switch (sliceType)
             {
@@ -415,7 +421,7 @@ namespace CAPI.ImageProcessing
             Header.bitpix = 16;
             Header.datatype = 4;
         }
-        
+
         /// <summary>
         /// Reorient voxels into new dimensions - settings dim property to new values
         /// </summary>
