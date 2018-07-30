@@ -1,23 +1,39 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
+using CAPI.ImageProcessing.Abstraction;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using Unity;
 
 namespace CAPI.Tests.ImageProcessing
 {
     [TestClass]
     public class ImageConverter
     {
+        private IUnityContainer _unity;
+        private IFileSystem _filesystem;
+        private IProcessBuilder _processBuilder;
+        private IImageProcessingFactory _imageProcessingFactory;
+
         private string _testResourcesPath;
         private string _fixedDicomFolder;
         private string _floatingDicomFolder;
         private string _outputFolder;
 
+
         [TestInitialize]
         public void TestInit()
         {
-            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _unity = Helpers.Unity.CreateContainerCore();
+            _filesystem = _unity.Resolve<IFileSystem>();
+            _processBuilder = _unity.Resolve<IProcessBuilder>();
+            _imageProcessingFactory = _unity.Resolve<IImageProcessingFactory>();
+
+            _testResourcesPath = Helper.GetTestResourcesPath();
             _fixedDicomFolder = $@"{_testResourcesPath}\Fixed2\Dicom";
             _floatingDicomFolder = $@"{_testResourcesPath}\Floating2\Dicom";
             _outputFolder = $@"{_testResourcesPath}\Output";
+
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
         }
 
@@ -35,11 +51,12 @@ namespace CAPI.Tests.ImageProcessing
         public void ConvertDicom2Nii()
         {
             // Arrange
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
-            new CAPI.ImageProcessing.ImageConverter().DicomToNiix(_floatingDicomFolder, outfile);
+            var imageConverter = _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder);
+            imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert
             Assert.IsTrue(File.Exists(outfile), "dcm2niix failed to convert dicom to nii");

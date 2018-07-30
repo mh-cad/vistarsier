@@ -1,4 +1,5 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Common.Config;
+using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unity;
 using IImageProcessor = CAPI.Agent.Abstractions.IImageProcessor;
@@ -21,7 +22,7 @@ namespace CAPI.Tests.Agent
         public void TestInitialize()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _testResourcesPath = Helper.GetTestResourcesPath();
             //const string testFolder = ""05_K87728981";
             //_currentStudyDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolder}\fixed\dicom";
             //_priorStudyDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolder}\floating\dicom";

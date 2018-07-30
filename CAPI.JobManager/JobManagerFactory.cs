@@ -1,4 +1,5 @@
-﻿using CAPI.DAL.Abstraction;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.JobManager.Abstraction;
@@ -14,16 +15,21 @@ namespace CAPI.JobManager
         private readonly IDicomFactory _dicomFactory;
         private readonly IDicomNodeRepository _dicomNodeRepo;
         private readonly IDicomConfig _dicomConfig;
+        private readonly IFileSystem _filesystem;
+        private readonly IProcessBuilder _processBuilder;
 
         public JobManagerFactory
             (IImageProcessor imageProcessor, IDicomFactory dicomFactory,
-            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo, IDicomConfig dicomConfig)
+            IImageConverter imageConverter, IDicomNodeRepository dicomNodeRepo,
+            IDicomConfig dicomConfig, IFileSystem filesystem, IProcessBuilder processBuilder)
         {
             _imageProcessor = imageProcessor;
             _dicomFactory = dicomFactory;
             _imageConverter = imageConverter;
             _dicomNodeRepo = dicomNodeRepo;
             _dicomConfig = dicomConfig;
+            _filesystem = filesystem;
+            _processBuilder = processBuilder;
         }
 
         public IJob<IRecipe> CreateJob(IDicomNode localNode, IDicomNode remoteNode)
@@ -35,7 +41,9 @@ namespace CAPI.JobManager
         public IJobNew<IRecipe> CreateJobNew(IDicomNode localNode, IDicomNode remoteNode)
         {
             return new JobNew<IRecipe>(
-                this, _dicomFactory, localNode, remoteNode, _imageConverter, _dicomNodeRepo, _dicomConfig);
+                this, _dicomFactory, localNode, remoteNode,
+                _imageConverter, _dicomNodeRepo, _dicomConfig,
+                _filesystem, _processBuilder);
         }
 
         public IJob<IRecipe> CreateJob(

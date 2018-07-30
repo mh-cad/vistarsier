@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CAPI.Common.Abstractions.Services;
+using System;
 
 namespace CAPI.Dicom.Abstraction
 {
@@ -8,7 +9,7 @@ namespace CAPI.Dicom.Abstraction
         IDicomNode CreateDicomNode(string logicalName, string aeTitle, string ipAddress, int port);
         IDicomTag CreateDicomTag(string name, uint tagValue, TagType dicomTagType, Type valueType);
         IDicomTagCollection CreateDicomTagCollection();
-        IDicomServices CreateDicomServices(IDicomConfig config);
+        IDicomServices CreateDicomServices(IDicomConfig config, IFileSystem filesystem, IProcessBuilder processBuilder);
         IDicomStudy CreateStudy();
         IDicomSeries CreateDicomSeries();
         IDicomImage CreateDicomImage();

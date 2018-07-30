@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Extensions;
+﻿using CAPI.Extensions;
 using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
@@ -280,7 +280,7 @@ namespace CAPI.ImageProcessing
         {
             var allVoxels = new float[slices.Length * slices[0].Length];
 
-            GetDimensions(sliceType, out var width, out var height, out var nSlices);
+            GetDimensions(sliceType, out var width, out var height, out _);
             //var width = slices[0].;
 
             for (var z = 0; z < slices.Length; z++)
@@ -292,16 +292,6 @@ namespace CAPI.ImageProcessing
             }
 
             return allVoxels;
-        }
-
-        private static float[] Scale(IEnumerable<float> voxelsArr, int min, int max)
-        {
-            var vs = voxelsArr as float[] ?? voxelsArr.ToArray();
-            var voxelsMax = vs.Max();
-            var voxelsMin = vs.Min();
-            return vs.ToList()
-                .Select(v => (v - voxelsMin) * (max - min) / (voxelsMax - voxelsMin))
-                .ToArray();
         }
 
         public Bitmap GetSlice(int sliceIndex, SliceType sliceType)
@@ -414,7 +404,7 @@ namespace CAPI.ImageProcessing
             Header.datatype = 128;
             Header.intent_code = 2003;
         }
-        public void ConvertHeaderToGrayScale16bit()
+        public void ConvertHeaderToGrayScale16Bit()
         {
             Header.dim[0] = 4; // 3 spatial and one temporal dimension
             Header.dim[4] = 1; // time

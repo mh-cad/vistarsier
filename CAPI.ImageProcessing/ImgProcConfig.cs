@@ -6,22 +6,8 @@ namespace CAPI.ImageProcessing
 {
     public static class ImgProcConfig
     {
-        private static readonly KeyValueConfigurationCollection ExeAppConfig = Common.Config.Helper.GetExeAppConfig();
-
-        public static string GetImgProcBinPath()
-        {
-            var imgProcBinFolderPath = ExeAppConfig["ImgProcBinFolderPath"].Value;
-            if (Directory.Exists(imgProcBinFolderPath)) return imgProcBinFolderPath;
-            throw new DirectoryNotFoundException($"Image Processing bin folder does not exist in following path [{imgProcBinFolderPath}]");
-        }
-
-        public static string GetJavaExeBin()
-        {
-            var javaExePath = ExeAppConfig["JavaExeFilePath"].Value;
-            if (File.Exists(javaExePath)) return javaExePath;
-            throw new FileNotFoundException("java.exe file does not exist in specified path", javaExePath);
-        }
-
+        private static readonly KeyValueConfigurationCollection ExeAppConfig = null;//Common.Config.Helper.GetExeAppConfig();
+        
         public static string GetJavaClassPath()
         {
             var javaClasspath = ExeAppConfig["JavaClasspath"].Value;
@@ -35,10 +21,6 @@ namespace CAPI.ImageProcessing
             var filepath = Path.Combine(folderPath, Properties.Settings.Default.dcm2niiFilename);
             if (File.Exists(filepath)) return filepath;
             throw new FileNotFoundException("Dcm2Nii file does not exist!", filepath);
-        }
-        public static string GetDcm2NiiParams()
-        {
-            return Properties.Settings.Default.dcm2niiParams;
         }
 
         public static string GetBseExeFilePath()
@@ -97,54 +79,6 @@ namespace CAPI.ImageProcessing
         public static string GetBfcParams()
         {
             return Properties.Settings.Default.bfcParams;
-        }
-
-        public static string GetMsProgressionJavaClassName()
-        {
-            return Properties.Settings.Default.javaClassMsProgression;
-        }
-
-        public static string GetSubtractPositiveNii()
-        {
-            return Properties.Settings.Default.subPosOutFile;
-        }
-        public static string GetSubtractNegativeNii()
-        {
-            return Properties.Settings.Default.subNegOutFile;
-        }
-        public static string GetSubtractMaskNii()
-        {
-            return Properties.Settings.Default.subMaskOutFile;
-        }
-
-        public static string GetSubtractPositiveImgFolder()
-        {
-            return Properties.Settings.Default.colormapPositiveImages;
-        }
-        public static string GetSubtractNegativeImgFolder()
-        {
-            return Properties.Settings.Default.colormapNegativeImages;
-        }
-
-        public static string GetSubtractPositiveDcmFolder()
-        {
-            return Properties.Settings.Default.colormapPositiveDcm;
-        }
-        public static string GetSubtractNegativeDcmFolder()
-        {
-            return Properties.Settings.Default.colormapNegativeDcm;
-        }
-
-        public static string GetColorMapJavaClassName()
-        {
-            return Properties.Settings.Default.javaClassColorMap;
-        }
-        public static string GetColorMapConfigFile()
-        {
-            var folderPath = ExeAppConfig["ImgProcConfigFolderPath"].Value;
-            var filepath = Path.Combine(folderPath, Properties.Settings.Default.colomapConfigFilename);
-            if (File.Exists(filepath)) return filepath;
-            throw new FileNotFoundException("BFC file does not exist!", filepath);
         }
     }
 }

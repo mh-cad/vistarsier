@@ -62,9 +62,9 @@
       <Project>{ad9ece2b-8268-4115-8dc8-860fbd011fff}</Project>
       <Name>ClearCanvas.Dicom</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
-      <Name>CAPI.Common</Name>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
