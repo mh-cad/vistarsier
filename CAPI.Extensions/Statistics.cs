@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+// ReSharper disable MemberCanBePrivate.Global
 
-namespace CAPI.Common.Extensions
+namespace CAPI.Extensions
 {
     public static class Statistics
     {
@@ -67,7 +68,7 @@ namespace CAPI.Common.Extensions
 
             for (var i = 0; i < array.Length; ++i)
                 array[i] = Math.Abs(currStdDev) < 0.000001 ? 0 :
-                    (float)((array[i] - currMean)) // * stdDev / currStdDev) 
+                    (float)((array[i] - currMean))
                         + mean;
         }
 

@@ -1,4 +1,6 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
+using CAPI.ImageProcessing.Abstraction;
 
 namespace CAPI.ImageProcessing
 {
@@ -8,6 +10,16 @@ namespace CAPI.ImageProcessing
         public INifti CreateNifti()
         {
             return new Nifti();
+        }
+
+        public IImageConverter CreateImageConverter(IFileSystem fileSystem, IProcessBuilder processBuilder)
+        {
+            return new ImageConverter(fileSystem, processBuilder);
+        }
+
+        public IImageProcessorNew CreateImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder, IImgProcConfig config)
+        {
+            return new ImageProcessorNew(filesystem, processBuilder, config);
         }
     }
 }

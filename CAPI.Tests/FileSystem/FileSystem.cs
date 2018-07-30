@@ -1,6 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using CAPI.Common.Abstractions.Services;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using Unity;
 
 namespace CAPI.Tests.FileSystem
 {
@@ -10,10 +12,15 @@ namespace CAPI.Tests.FileSystem
         private string _workingDir;
         private string _sourcePath;
         private string _targetPath;
+        private IFileSystem _filesystem;
+        private IUnityContainer _unity;
 
         [TestInitialize]
         public void TestInit()
         {
+            _unity = Helpers.Unity.CreateContainerCore();
+            _filesystem = _unity.Resolve<IFileSystem>();
+
             _workingDir = Environment.CurrentDirectory;
             _sourcePath = $@"{_workingDir}\source-test";
             _targetPath = $@"{_workingDir}\target-test";
@@ -34,7 +41,7 @@ namespace CAPI.Tests.FileSystem
             File.AppendAllText(filePath, fileContent);
 
             // Act
-            CAPI.Common.Services.FileSystem.CopyDirectory(_sourcePath, _targetPath);
+            _filesystem.CopyDirectory(_sourcePath, _targetPath);
 
             // Assert
             Assert.IsTrue(File.Exists(filePath));

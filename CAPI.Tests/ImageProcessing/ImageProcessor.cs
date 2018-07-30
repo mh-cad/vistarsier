@@ -1,4 +1,6 @@
-﻿using CAPI.ImageProcessing;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
+using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
@@ -17,6 +19,7 @@ namespace CAPI.Tests.ImageProcessing
         private string _reslicedfloatingNiiFile;
         private IUnityContainer _unity;
         private IImageProcessorNew _imageProcessor;
+        private IFileSystem _filesystem;
         private string _lookupTable;
         private string _compareResult;
         private string _fixedDicomFolder;
@@ -26,7 +29,8 @@ namespace CAPI.Tests.ImageProcessing
         [TestInitialize]
         public void TestInit()
         {
-            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _filesystem = _unity.Resolve<IFileSystem>();
+            _testResourcesPath = Helper.GetTestResourcesPath();
 
             const string testFolderName = "01_1323314";
             _outputFolder = $@"{_testResourcesPath}\Output";
@@ -78,7 +82,7 @@ namespace CAPI.Tests.ImageProcessing
             var brain = $@"{_outputFolder}\floating.brain.nii";
             var mask = $@"{_outputFolder}\floating.mask.nii";
             var bseParams = ImgProcConfig.GetBseParams();
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
             _imageProcessor.ExtractBrainMask(_floatingNiiFile, bseParams, brain, mask);
@@ -95,7 +99,7 @@ namespace CAPI.Tests.ImageProcessing
             var fixedBrain = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
             var floatingBrain = $@"{_testResourcesPath}\Floating2\floating.brain.nii";
             var floatingResliced = $@"{_testResourcesPath}\Floating2\floating.resliced.nii";
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
             _imageProcessor.Registration(fixedBrain, floatingBrain, floatingResliced);
@@ -111,7 +115,7 @@ namespace CAPI.Tests.ImageProcessing
             var inNii = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
             var outNii = $@"{_outputFolder}\fixed.brain.bfc.nii";
             var bseParams = ImgProcConfig.GetBfcParams();
-            CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
             _imageProcessor.BiasFieldCorrection(inNii, bseParams, outNii);

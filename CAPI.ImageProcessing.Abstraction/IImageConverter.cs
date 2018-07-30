@@ -2,6 +2,6 @@
 {
     public interface IImageConverter
     {
-        void DicomToNiix(string inDicomDir, string outFile, string @params);
+        void DicomToNiix(string inDicomDir, string outFile, string @params = "");
     }
 }

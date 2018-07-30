@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Extensions;
+﻿using CAPI.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 

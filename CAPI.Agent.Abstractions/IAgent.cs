@@ -1,9 +1,12 @@
-﻿namespace CAPI.Agent.Abstractions
+﻿using CAPI.Common.Abstractions.Config;
+
+namespace CAPI.Agent.Abstractions
 {
     public interface IAgent
     {
         void Run();
 
-        Common.Config.CapiConfig Config { get; set; }
+        ICapiConfig Config { get; set; }
+        bool IsBusy { get; set; }
     }
 }

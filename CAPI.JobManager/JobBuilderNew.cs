@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Common.Abstractions.Config;
 using CAPI.Dicom.Abstraction;
 using CAPI.JobManager.Abstraction;
 using log4net;
@@ -16,7 +16,7 @@ namespace CAPI.JobManager
         private readonly IDicomServices _dicomServices;
         private readonly IJobManagerFactory _jobManagerFactory;
         private readonly IValueComparer _valueComparer;
-        private readonly ImgProcConfig _imgProcConfig;
+        private readonly IImgProcConfig _imgProcConfig;
         private readonly ILog _log;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace CAPI.JobManager
         /// <param name="imgProcConfig">Image Processing Configuration</param>
         /// <param name="log">Log4Net logger</param>
         public JobBuilderNew(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
-            IValueComparer valueComparer, ImgProcConfig imgProcConfig, ILog log)
+            IValueComparer valueComparer, IImgProcConfig imgProcConfig, ILog log)
         {
             _dicomServices = dicomServices;
             _jobManagerFactory = jobManagerFactory;

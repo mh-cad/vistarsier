@@ -8,7 +8,7 @@ using IImgProc = CAPI.ImageProcessing.Abstraction.IImageProcessorNew;
 namespace CAPI.Agent
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ImageProcessor : CAPI.Agent.Abstractions.IImageProcessor
+    public class ImageProcessor : Abstractions.IImageProcessor
     {
         private readonly IDicomServices _dicomServices;
         private readonly IImgProc _imgProc;

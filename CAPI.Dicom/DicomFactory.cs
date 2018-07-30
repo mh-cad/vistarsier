@@ -1,4 +1,5 @@
-﻿using CAPI.Dicom.Abstraction;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
 using System;
 
@@ -24,9 +25,9 @@ namespace CAPI.Dicom
             return new DicomTagCollection();
         }
 
-        public IDicomServices CreateDicomServices(IDicomConfig config)
+        public IDicomServices CreateDicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder)
         {
-            return new DicomServices(config);
+            return new DicomServices(config, fileSystem, processBuilder);
         }
         public IDicomStudy CreateStudy()
         {

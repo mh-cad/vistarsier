@@ -73,9 +73,9 @@
     <Compile Include="ValueComparer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
-      <Name>CAPI.Common</Name>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.DAL.Abstraction\CAPI.DAL.Abstraction.csproj">
       <Project>{98cc9f27-5532-4c14-8dbc-64ba2881029d}</Project>

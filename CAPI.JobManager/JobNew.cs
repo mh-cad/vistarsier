@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Services;
+﻿using CAPI.Common.Abstractions.Services;
 using CAPI.DAL.Abstraction;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
@@ -23,6 +23,8 @@ namespace CAPI.JobManager
         private readonly IDicomNodeRepository _dicomNodeRepository;
         private readonly ILog _log;
         private readonly IDicomConfig _dicomConfig;
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcessBuilder _processBuilder;
 
         private const string FixedTitle = "Fixed";
         private const string FloatingTitle = "Floating";
@@ -55,10 +57,13 @@ namespace CAPI.JobManager
         /// <param name="imageConverter"></param>
         /// <param name="dicomNodeRepository"></param>
         /// <param name="dicomConfig">Dicom Configuration</param>
+        /// <param name="fileSystem">CAPI FileSystem services</param>
+        /// <param name="processBuilder">CAPI ProcessBuilder services</param>
         public JobNew(IJobManagerFactory jobManagerFactory, IDicomFactory dicomFactory,
             IDicomNode localNode, IDicomNode remoteNode,
             IImageConverter imageConverter,
-            IDicomNodeRepository dicomNodeRepository, IDicomConfig dicomConfig)
+            IDicomNodeRepository dicomNodeRepository, IDicomConfig dicomConfig,
+            IFileSystem fileSystem, IProcessBuilder processBuilder)
         {
             _jobManagerFactory = jobManagerFactory;
             _dicomFactory = dicomFactory;
@@ -67,6 +72,8 @@ namespace CAPI.JobManager
             _imageConverter = imageConverter;
             _dicomNodeRepository = dicomNodeRepository;
             _dicomConfig = dicomConfig;
+            _fileSystem = fileSystem;
+            _processBuilder = processBuilder;
             _log = LogHelper.GetLogger();
 
             Fixed = new JobSeriesBundleNew { Title = FixedTitle };
@@ -109,7 +116,7 @@ namespace CAPI.JobManager
                     }
                 } // TODO2: Add logging to integrated processes
 
-                var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+                var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _fileSystem, _processBuilder);
 
                 NegativeOverlayDicomFolder = NegativeOverlayImageFolder + DicomFolderSuffix;
                 dicomServices.ConvertBmpsToDicom(
@@ -138,13 +145,13 @@ namespace CAPI.JobManager
         {
             _log.Info("Receiving dicom files from source");
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _fileSystem, _processBuilder);
             dicomServices.CheckRemoteNodeAvailability(_localNode, _remoteNode);
 
             var patientFullName = Fixed.ParentDicomStudy.PatientsName.Replace("^", "_");
             var jobId = $"{DateTime.Now:yyyyMMddHHmmss}_{patientFullName}";
             OutputFolderPath = $@"{OutputFolderPath}\{jobId}";
-            FileSystem.DirectoryExistsIfNotCreate(OutputFolderPath);
+            _fileSystem.DirectoryExistsIfNotCreate(OutputFolderPath);
 
             Fixed.DicomFolderPath =
                 SaveSeriesToDisk(OutputFolderPath, Fixed.Title, Fixed.ParentDicomStudy, dicomServices);
@@ -284,7 +291,7 @@ namespace CAPI.JobManager
         }
         private void UpdateDicomHeaders(string outputFolderPath, string dicomFolderName, string seriesName)
         {
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _fileSystem, _processBuilder);
 
             var dicomFiles = Directory.GetFiles($@"{outputFolderPath}\{dicomFolderName}");
 
@@ -309,7 +316,7 @@ namespace CAPI.JobManager
                         var directoryName = Path.GetFileName(OutputFolderPath);
                         var targetDirectory = $@"{destination.FolderPath}\{directoryName}";
                         _log.Info($"Copying files to {targetDirectory}...");
-                        FileSystem.CopyDirectory(OutputFolderPath, targetDirectory);
+                        _fileSystem.CopyDirectory(OutputFolderPath, targetDirectory);
                         _log.Info($"Finished copying files to destination successfully [{targetDirectory}]");
                     }
                     else
@@ -317,7 +324,7 @@ namespace CAPI.JobManager
                     {
                         _log.Info($"Sending files to Dicom node AET: [{destination.AeTitle}] ...");
 
-                        var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+                        var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _fileSystem, _processBuilder);
 
                         var negativeFiles = Directory.GetFiles(NegativeOverlayDicomFolder);
                         foreach (var negativeFile in negativeFiles)

@@ -1,18 +1,21 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Common.Abstractions.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using Unity;
 
 namespace CAPI.Tests.Config
 {
     [TestClass]
     public class Config
     {
-        private CapiConfig _config;
+        private ICapiConfig _config;
+        private IUnityContainer _unity;
 
         [TestInitialize]
         public void TestInit()
         {
-            _config = CapiConfig.GetConfig();
+            _unity = Helpers.Unity.CreateContainerCore();
+            _config = _unity.Resolve<ICapiConfig>().GetConfig();
         }
 
         [TestMethod]
