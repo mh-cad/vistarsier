@@ -52,5 +52,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SliceType.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33ACFCF5-6147-407C-BA09-993FC6A16CC3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

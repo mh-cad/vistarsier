@@ -1,10 +1,12 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
 using System.Diagnostics;
 using System.Linq;
 
 namespace CAPI.Common.Services
 {
-    public static class ProcessBuilder
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class ProcessBuilder : IProcessBuilder
     {
         private static Process Build(string processPath, string processFileNameExt, string arguments, string workingDir)
         {
@@ -27,7 +29,7 @@ namespace CAPI.Common.Services
             return proc;
         }
 
-        public static string CallExecutableFile(string fileFullPath, string arguments, string workingDir = "")
+        public string CallExecutableFile(string fileFullPath, string arguments, string workingDir = "")
         {
             var fileNameExt = fileFullPath.Split('\\').LastOrDefault();
             var folderPath = fileFullPath.Replace($"\\{fileNameExt}", "");
@@ -36,12 +38,12 @@ namespace CAPI.Common.Services
 
             process.Start();
             var stdout = process.StandardOutput.ReadToEnd();
-            Logger.ProcessErrorLogWrite(process, $"{fileNameExt}");
+            //Logger.ProcessErrorLogWrite(process, $"{fileNameExt}");
             process.WaitForExit();
             return stdout;
         }
 
-        public static void CallJava(string arguments, string methodCalled, string workingDir = "")
+        public void CallJava(string arguments, string methodCalled, string workingDir = "")
         {
             var javaFullPath = Helper.GetJavaExePath();
             var javaFileNamExt = javaFullPath.Split('\\').LastOrDefault();
@@ -51,7 +53,7 @@ namespace CAPI.Common.Services
 
             process.Start();
             //var stdout = process.StandardOutput.ReadToEnd();
-            Logger.ProcessErrorLogWrite(process, $"{javaFileNamExt}");
+            //Logger.ProcessErrorLogWrite(process, $"{javaFileNamExt}");
             process.WaitForExit();
         }
     }

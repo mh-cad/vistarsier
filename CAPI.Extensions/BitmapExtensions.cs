@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace CAPI.Common.Extensions
+namespace CAPI.Extensions
 {
     public static class BitmapExtensions
     {

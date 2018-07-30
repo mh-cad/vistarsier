@@ -1,4 +1,6 @@
-﻿using CAPI.Dicom;
+﻿using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
+using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,8 +21,12 @@ namespace CAPI.Tests.Dicom
         private IDicomNode _localNode;
         private IDicomNode _remoteNode;
         private IDicomConfig _dicomConfig;
+        private IFileSystem _filesystem;
+        private IProcessBuilder _processBuilder;
+
         private string _testObjectsPath;
         private static string _testResources;
+
         private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
         private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
         private const string OutDicomRelPath = @"OutDicom";
@@ -35,6 +41,8 @@ namespace CAPI.Tests.Dicom
             _dicomFactory = container.Resolve<IDicomFactory>();
             _dicomServices = container.Resolve<IDicomServices>();
             _dicomConfig = container.Resolve<IDicomConfig>();
+            _filesystem = container.Resolve<IFileSystem>();
+            _processBuilder = container.Resolve<IProcessBuilder>();
 
             var capiConfig = CapiConfigGetter.GetCapiConfig();
 
@@ -45,7 +53,7 @@ namespace CAPI.Tests.Dicom
         }
         private static string GetTestObjectsPath()
         {
-            _testResources = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _testResources = Helper.GetTestResourcesPath();
 
             var binPath = Directory.GetParent(Environment.CurrentDirectory).FullName;
             var projectPath = Directory.GetParent(binPath).FullName;
@@ -179,7 +187,7 @@ namespace CAPI.Tests.Dicom
             var dicomTags = _dicomFactory.CreateDicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder);
             dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
@@ -192,7 +200,7 @@ namespace CAPI.Tests.Dicom
             var dicomFolderPath = Path.Combine(_testResources, OutDicomRelPath);
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder);
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, headersFolder);
 
             var dicomTags = _dicomFactory.CreateDicomTagCollection();

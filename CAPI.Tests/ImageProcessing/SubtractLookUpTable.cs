@@ -1,4 +1,5 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Common.Config;
+using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unity;
 
@@ -16,7 +17,7 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _testResourcesPath = Helper.GetTestResourcesPath();
             _lookupTableFile = $@"{_testResourcesPath}\lut-lg-test.png";
         }
 

@@ -1,14 +1,18 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Common.Abstractions.Config;
 using CAPI.JobManager;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using Unity;
 
 namespace CAPI.Tests.Job
 {
     [TestClass]
     public class Job
     {
+        private IUnityContainer _unity;
+        private ICapiConfig _capiConfig;
+
         private const string FixedDicomFolderPath = @"D:\Capi-Tests\TestsResources\Fixed\Dicom";
         private const string FloatingDicomFolderPath = @"D:\Capi-Tests\TestsResources\Floating\Dicom";
         private const string Destination = @"D:\temp\Capi-Tests-Output";
@@ -17,12 +21,12 @@ namespace CAPI.Tests.Job
 
         private static readonly ILog Log = LogHelper.GetLogger();
         private string _imageRepoFolder;
-        private CapiConfig _capiConfig;
 
         [TestInitialize]
         public void TestInit()
         {
-            _capiConfig = CapiConfig.GetConfig(new[] { "-dev" });
+            _unity = Helpers.Unity.CreateContainerCore();
+            _capiConfig = _unity.Resolve<ICapiConfig>().GetConfig(new[] { "-dev" });
             _imageRepoFolder = _capiConfig.ImgProcConfig.ImageRepositoryPath;
 
             ClearFoldersAndFiles();

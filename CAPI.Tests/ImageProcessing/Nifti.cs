@@ -1,4 +1,5 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Common.Config;
+using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -28,7 +29,7 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _testResourcesPath = CAPI.Common.Config.Helper.GetTestResourcesPath();
+            _testResourcesPath = Helper.GetTestResourcesPath();
             _fixed = $@"{_testResourcesPath}\SeriesToTest\01_1323314\Fixed\fixed.bfc.nii";
             _outfile = $@"{_testResourcesPath}\Fixed\fixed.noro.nii";
             _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
