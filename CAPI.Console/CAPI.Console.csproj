@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Agent.Abstractions\CAPI.Agent.Abstractions.csproj" />
     <ProjectReference Include="..\CAPI.Agent\CAPI.Agent.csproj" />
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj" />
   </ItemGroup>
 

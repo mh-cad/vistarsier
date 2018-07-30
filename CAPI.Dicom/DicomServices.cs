@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Services;
+﻿using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
 using ClearCanvas.Dicom;
@@ -16,12 +16,17 @@ namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcessBuilder _processBuilder;
         private readonly string _executablesPath;
 
-        public DicomServices(IDicomConfig config)
+        public DicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder)
         {
+            _fileSystem = fileSystem;
+            _processBuilder = processBuilder;
             _executablesPath = config.ExecutablesPath;
         }
+
 
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
         private const string Img2DcmFileName = "img2dcm.exe";
@@ -220,7 +225,7 @@ namespace CAPI.Dicom
 
         public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "")
         {
-            FileSystem.DirectoryExistsIfNotCreate(dicomFolder);
+            _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
             var bmpFiles = Directory.GetFiles(bmpFolder);
             var orderedFiles = new List<string>();
             if (!string.IsNullOrEmpty(dicomheadersFolder))
@@ -240,7 +245,7 @@ namespace CAPI.Dicom
 
                 arguments += $"-i BMP {filenameNoExt}.bmp {dicomFolder}\\{filenameNoExt}";
 
-                ProcessBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
+                _processBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
                     arguments, bmpFolder);
             }
         }

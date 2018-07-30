@@ -121,6 +121,10 @@
       <Project>{1abf0272-bc85-45a1-85ff-532885d05bc0}</Project>
       <Name>CAPI.Agent</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
@@ -141,6 +145,10 @@
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>CAPI.Dicom</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
+      <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
+      <Name>CAPI.Extensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>
@@ -157,11 +165,6 @@
       <Project>{d24b702b-425f-4541-9aca-932d65c21c07}</Project>
       <Name>CAPI.JobManager</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config.dev.MF-PC.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

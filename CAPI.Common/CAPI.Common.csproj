@@ -48,14 +48,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\CapiConfig.cs" />
-    <Compile Include="Config\DicomConfig.cs" />
     <Compile Include="Config\Helper.cs" />
-    <Compile Include="Config\ImgProcConfig.cs" />
-    <Compile Include="Config\TestsConfig.cs" />
-    <Compile Include="Extensions\BitmapExtensions.cs" />
-    <Compile Include="Extensions\Statistics.cs" />
     <Compile Include="Services\FileSystem.cs" />
-    <Compile Include="Services\Logger.cs" />
     <Compile Include="Services\ProcessBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -70,6 +64,17 @@
     <None Include="MH19189.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config.dev.MF-PC.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
