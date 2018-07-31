@@ -19,6 +19,9 @@ namespace CAPI.Console
                 .AddSingleton<IAgent, Agent.Agent>()
                 .AddSingleton<IAgentFactory, AgentFactory>()
                 .AddSingleton<ICapiConfig, CapiConfig>()
+                .AddSingleton<IImgProcConfig, ImgProcConfig>()
+                .AddSingleton<IDicomConfig, DicomConfig>()
+                .AddSingleton<ITestsConfig, TestsConfig>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .BuildServiceProvider();
 
