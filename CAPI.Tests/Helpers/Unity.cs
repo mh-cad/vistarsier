@@ -15,6 +15,8 @@ using CAPI.JobManager.Abstraction;
 using System.Collections.Generic;
 using Unity;
 using Unity.log4net;
+using IDicomConfig = CAPI.Common.Abstractions.Config.IDicomConfig;
+using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 
 namespace CAPI.Tests.Helpers
@@ -50,6 +52,9 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IAgent, CAPI.Agent.Agent>();
             container.RegisterType<CAPI.Agent.Abstractions.IImageProcessor, CAPI.Agent.ImageProcessor>();
             container.RegisterType<ICapiConfig, CapiConfig>();
+            container.RegisterType<IDicomConfig, DicomConfig>();
+            container.RegisterType<IImgProcConfig, ImgProcConfig>();
+            container.RegisterType<ITestsConfig, TestsConfig>();
             container.RegisterType<IFileSystem, CAPI.Common.Services.FileSystem>();
             container.RegisterType<IProcessBuilder, ProcessBuilder>();
 

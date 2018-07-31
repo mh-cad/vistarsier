@@ -13,6 +13,13 @@ namespace CAPI.Common.Config
     /// </summary>
     public class CapiConfig : ICapiConfig
     {
+        public CapiConfig(DicomConfig dicomConfig, ImgProcConfig imgProcConfig, TestsConfig testsConfig)
+        {
+            DicomConfig = dicomConfig;
+            ImgProcConfig = imgProcConfig;
+            TestsConfig = testsConfig;
+        }
+
         public IDicomConfig DicomConfig { get; set; }
         public IImgProcConfig ImgProcConfig { get; set; }
         public ITestsConfig TestsConfig { get; set; }
@@ -31,7 +38,7 @@ namespace CAPI.Common.Config
         /// <returns>CapiConfig which contains DicomConfig, ImgProcConfig and TestsConfig</returns>
         public ICapiConfig GetConfig(string[] args = null)
         {
-            var configFilePath = string.Empty;
+            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
 
             // Has arguaments
             if (args != null && args.Length > 0)
