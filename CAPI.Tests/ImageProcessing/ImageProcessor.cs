@@ -1,6 +1,5 @@
 ﻿using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
-using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
@@ -42,7 +41,6 @@ namespace CAPI.Tests.ImageProcessing
             _lookupTable = $@"{_testResourcesPath}\LookUpTable.bmp";
             _compareResult = $@"{_testResourcesPath}\compareResult.nii";
 
-
             //_fixedDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\fixed";
             //_floatingDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\floating";
 
@@ -54,11 +52,11 @@ namespace CAPI.Tests.ImageProcessing
 
         private void ClearFilesAndFolders()
         {
-            var cmtkRaw = ImgProcConfig.GetCmtkRawxformFile();
+            var cmtkRaw = CAPI.ImageProcessing.ImgProcConfig.GetCmtkRawxformFile();
             if (File.Exists($@"{_testResourcesPath}\{cmtkRaw}")) File.Delete($@"{_testResourcesPath}\{cmtkRaw}");
-            var cmtkResult = ImgProcConfig.GetCmtkResultxformFile();
+            var cmtkResult = CAPI.ImageProcessing.ImgProcConfig.GetCmtkResultxformFile();
             if (File.Exists($@"{_testResourcesPath}\{cmtkResult}")) File.Delete($@"{_testResourcesPath}\{cmtkResult}");
-            var cmtkFolder = ImgProcConfig.GetCmtkFolderName();
+            var cmtkFolder = CAPI.ImageProcessing.ImgProcConfig.GetCmtkFolderName();
             if (Directory.Exists($@"{_testResourcesPath}\{cmtkFolder}")) Directory.Delete($@"{_testResourcesPath}\{cmtkFolder}", true);
         }
 
@@ -81,7 +79,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var brain = $@"{_outputFolder}\floating.brain.nii";
             var mask = $@"{_outputFolder}\floating.mask.nii";
-            var bseParams = ImgProcConfig.GetBseParams();
+            var bseParams = CAPI.ImageProcessing.ImgProcConfig.GetBseParams();
             _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
@@ -114,7 +112,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var inNii = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
             var outNii = $@"{_outputFolder}\fixed.brain.bfc.nii";
-            var bseParams = ImgProcConfig.GetBfcParams();
+            var bseParams = CAPI.ImageProcessing.ImgProcConfig.GetBfcParams();
             _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act

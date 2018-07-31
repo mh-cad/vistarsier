@@ -49,6 +49,9 @@
   <ItemGroup>
     <Compile Include="Config\CapiConfig.cs" />
     <Compile Include="Config\Helper.cs" />
+    <Compile Include="Config\DicomConfig.cs" />
+    <Compile Include="Config\ImgProcConfig.cs" />
+    <Compile Include="Config\TestsConfig.cs" />
     <Compile Include="Services\FileSystem.cs" />
     <Compile Include="Services\ProcessBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -72,6 +75,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="config.dev.MH19189.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="config.dev.MF-PC.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
