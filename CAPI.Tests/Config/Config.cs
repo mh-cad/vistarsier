@@ -15,7 +15,7 @@ namespace CAPI.Tests.Config
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _config = _unity.Resolve<ICapiConfig>().GetConfig();
+            _config = _unity.Resolve<ICapiConfig>().GetConfig(new[] { "-dev" });
         }
 
         [TestMethod]
@@ -23,17 +23,15 @@ namespace CAPI.Tests.Config
         {
             // Arrange
             // Act
-
-
             // Assert
-
+            Assert.IsNotNull(_config);
         }
 
         [TestMethod]
         public void ExecutablesFolderExists()
         {
             // Act
-            var executablesPath = _config.ImgProcConfig.ImgProcBinPath;
+            var executablesPath = _config.ImgProcConfig.ImgProcBinFolderPath;
             var executablesFolderExists = Directory.Exists(executablesPath);
 
             // Assert
@@ -44,7 +42,7 @@ namespace CAPI.Tests.Config
         public void JavaExeFileExists()
         {
             // Act
-            var javaBinPath = _config.ImgProcConfig.JavaExeBin;
+            var javaBinPath = _config.ImgProcConfig.JavaExeFilePath;
             var javaBinFileExists = File.Exists(javaBinPath);
             // Assert
             Assert.IsTrue(javaBinFileExists, $"Java exe file does not exist: {javaBinPath}");

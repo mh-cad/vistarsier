@@ -1,0 +1,22 @@
+{
+  "AgentDbConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;",
+  "RunInterval": "30",
+  "DicomConfig": {
+    "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin"
+  },
+  "ImgProcConfig": {
+    "ImgProcBinFolderPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
+    //"ImgProcConfigFolderPath": "D:\\VT-Files\\RAPPreprocess\\config",
+    "JavaExeFilePath": "C:\\Program Files (x86)\\Java\\jre1.8.0_144\\bin\\java.exe",
+    "JavaClasspath": "D:\\Capi-Files\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
+    "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
+    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository",
+    "ManualProcessPath": "D:\\Capi-Files\\ManualProcess",
+    "Hl7ProcessPath": "",
+    "ProcessCasesAddedManually": true,
+    "ProcessCasesAddedByHL7": false
+  },
+  "TestsConfig": {
+    "TestResources": "D:\\Capi-Tests\\TestsResources"
+  }
+}
