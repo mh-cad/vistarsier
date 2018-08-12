@@ -27,7 +27,6 @@ namespace CAPI.Dicom
             _executablesPath = config.ExecutablesPath;
         }
 
-
         private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
         private const string Img2DcmFileName = "img2dcm.exe";
 

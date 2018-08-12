@@ -17,7 +17,6 @@ namespace CAPI.Tests.Agent
         private string _destinationResults;
         private string _destinationPriorResliced;
 
-
         [TestInitialize]
         public void TestInitialize()
         {
@@ -51,7 +50,6 @@ namespace CAPI.Tests.Agent
                     _currentStudyDicomFolder, _priorStudyDicomFolder, _lookupTableFile, SliceType.Sagittal
                     , true, true, true, _destinationResults, _destinationPriorResliced);
             }
-
 
             // Act
             //brokerImgProc.CompareAndSendToFilesystem(

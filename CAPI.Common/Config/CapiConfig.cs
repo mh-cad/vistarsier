@@ -26,7 +26,9 @@ namespace CAPI.Common.Config
 
         public string RunInterval { get; set; }
         public string AgentDbConnectionString { get; set; }
-
+        public string ManualProcessPath { get; set; }
+        public string Hl7ProcessPath { get; set; }
+        public string DefaultRecipePath { get; set; }
 
         /// <summary>
         /// Arguments passed from running app

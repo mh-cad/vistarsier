@@ -4,6 +4,7 @@ using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using Unity;
+#pragma warning disable 169
 
 namespace CAPI.Tests.ImageProcessing
 {
@@ -23,7 +24,6 @@ namespace CAPI.Tests.ImageProcessing
         private string _compareResult;
         private string _fixedDicomFolder;
         private string _floatingDicomFolder;
-
 
         [TestInitialize]
         public void TestInit()

@@ -1,5 +1,8 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
+using CAPI.Dicom.Abstraction;
+using log4net;
 
 namespace CAPI.Agent
 {
@@ -11,9 +14,10 @@ namespace CAPI.Agent
             return new AgentRepository(dbConnectionString);
         }
 
-        public IAgent CreateAgent(ICapiConfig config)
+        public IAgent CreateAgent(ICapiConfig config, IDicomFactory dicomFactory,
+                                  IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
-            return new Agent(config);
+            return new Agent(config, dicomFactory, fileSystem, processBuilder, log);
         }
     }
 }

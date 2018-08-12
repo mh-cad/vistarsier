@@ -6,7 +6,7 @@ using System;
 namespace CAPI.Dicom
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class DicomFactory : IDicomFactory
+    public partial class DicomFactory : IDicomFactory
     {
         public IDicomNode CreateDicomNode()
         {
@@ -24,7 +24,6 @@ namespace CAPI.Dicom
         {
             return new DicomTagCollection();
         }
-
         public IDicomServices CreateDicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder)
         {
             return new DicomServices(config, fileSystem, processBuilder);
@@ -33,12 +32,10 @@ namespace CAPI.Dicom
         {
             return new DicomStudy();
         }
-
         public IDicomSeries CreateDicomSeries()
         {
             return new DicomSeries();
         }
-
         public IDicomImage CreateDicomImage()
         {
             return new DicomImage();
@@ -46,6 +43,10 @@ namespace CAPI.Dicom
         public IDicomImage CreateDicomImage(string imageUid)
         {
             return new DicomImage { ImageUid = imageUid };
+        }
+        public IDicomConfig CreateDicomConfig()
+        {
+            return new DicomConfig();
         }
     }
 }

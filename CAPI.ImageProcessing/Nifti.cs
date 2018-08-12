@@ -239,6 +239,44 @@ namespace CAPI.ImageProcessing
             return current;
         }
 
+        public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult)
+        {
+            CheckIfDimensionsMatch(currentSlice, priorSlice, compareResult);
+
+            var lut = GetBlankLookupTable();
+            for (var y = 0; y < currentSlice.Height; y++)
+                for (var x = 0; x < currentSlice.Width; x++)
+                {
+                    var lutX = currentSlice.GetPixel(x, y).R;
+                    var lutY = priorSlice.GetPixel(x, y).R;
+                    var lutC = compareResult.GetPixel(x, y);
+                    lut.SetPixel(lutX, lutY, lutC);
+                }
+            return lut;
+        }
+
+        private Bitmap GetBlankLookupTable()
+        {
+            var lut = new Bitmap(256, 256);
+            for (var y = 0; y < 256; y++)
+                for (var x = 0; x < 256; x++)
+                    lut.SetPixel(x, y, Color.FromArgb(255, x, x, x));
+            return lut;
+        }
+
+        private static void CheckIfDimensionsMatch(Image currentSlice, Image priorSlice, Image compareResult)
+        {
+            if (currentSlice.Width != priorSlice.Width || currentSlice.Width != compareResult.Width)
+                throw new ArgumentException(
+                    "Width of current, prior or result slices do not match. " +
+                    $"Current:[{currentSlice.Width}] Prior:[{priorSlice.Width}] Comparison:[{compareResult.Width}]");
+
+            if (currentSlice.Height != priorSlice.Height || currentSlice.Height != compareResult.Height)
+                throw new ArgumentException(
+                    "Height of current, prior or result slices do not match. " +
+                    $"Current:[{currentSlice.Height}] Prior:[{priorSlice.Height}] Comparison:[{compareResult.Height}]");
+        }
+
         private static INifti NormalizeAndTrimEachSlice(INifti nifti, SliceType sliceType,
                                                          int mean, int std, int rangeWidth)
         {

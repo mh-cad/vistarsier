@@ -14,5 +14,6 @@ namespace CAPI.Dicom.Abstraction
         IDicomSeries CreateDicomSeries();
         IDicomImage CreateDicomImage();
         IDicomImage CreateDicomImage(string imageUid);
+        IDicomConfig CreateDicomConfig();
     }
 }

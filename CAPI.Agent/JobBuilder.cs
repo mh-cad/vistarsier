@@ -1,39 +1,38 @@
-﻿using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Agent.Abstractions.Models;
+using CAPI.Agent.Models;
+using CAPI.Common.Abstractions.Config;
 using CAPI.Dicom.Abstraction;
-using CAPI.JobManager.Abstraction;
 using log4net;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 
-namespace CAPI.JobManager
+namespace CAPI.Agent
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class JobBuilderNew : IJobBuilderNew
+    public class JobBuilder //: IJobBuilder
     {
         private readonly IDicomServices _dicomServices;
-        private readonly IJobManagerFactory _jobManagerFactory;
         private readonly IValueComparer _valueComparer;
-        private readonly IImgProcConfig _imgProcConfig;
+        private readonly ICapiConfig _capiConfig;
         private readonly ILog _log;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="dicomServices"></param>
-        /// <param name="jobManagerFactory"></param>
         /// <param name="valueComparer"></param>
-        /// <param name="imgProcConfig">Image Processing Configuration</param>
+        /// <param name="capiConfig">CAPI configuration</param>
         /// <param name="log">Log4Net logger</param>
-        public JobBuilderNew(IDicomServices dicomServices, IJobManagerFactory jobManagerFactory,
-            IValueComparer valueComparer, IImgProcConfig imgProcConfig, ILog log)
+        public JobBuilder(IDicomServices dicomServices, IValueComparer valueComparer,
+                          ICapiConfig capiConfig, ILog log)
         {
             _dicomServices = dicomServices;
-            _jobManagerFactory = jobManagerFactory;
             _valueComparer = valueComparer;
-            _imgProcConfig = imgProcConfig;
+            _capiConfig = capiConfig;
             _log = log;
         }
 
@@ -44,8 +43,12 @@ namespace CAPI.JobManager
         /// <param name="localNode">Details of this dicom node the app is running on</param>
         /// <param name="sourceNode">Details of archive dicom node</param>
         /// <returns></returns>
-        public IJobNew<IRecipe> Build(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
+        public IJob Build(Recipe recipe)
         {
+            var localNode = _capiConfig.DicomConfig.LocalNode;
+            var sourceNode = _capiConfig.DicomConfig.RemoteNodes
+                .Single(n => n.AeTitle.Equals(recipe.SourceAet, StringComparison.InvariantCultureIgnoreCase));
+
             _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
 
             var patientId = GetPatientIdFromRecipe(recipe, localNode, sourceNode);
@@ -55,64 +58,78 @@ namespace CAPI.JobManager
                     .OrderByDescending(s => s.StudyDate).ToList();
 
             if (allStudiesForPatient.Count < 1)
-                throw new DicomStudyNotFoundException(
+                throw new Exception(
                     $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{sourceNode.AeTitle}]");
 
             // Get Current Study (Fixed)
-            var fixedSeriesBundle = GetFixedSeriesBundle(recipe, localNode, sourceNode, allStudiesForPatient);
-            if (fixedSeriesBundle.Original.ParentDicomStudy == null ||
-                fixedSeriesBundle.Original.ParentDicomStudy.Series.Count == 0)
-                throw new DicomStudyNotFoundException("No workable series were found for accession");
+            var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
+            if (currentDicomStudy == null ||
+                currentDicomStudy.Series.Count == 0)
+                throw new Exception("No workable series were found for accession");
 
-            var studyFixedIndex = allStudiesForPatient.IndexOf(fixedSeriesBundle.Original.ParentDicomStudy);
+            var job = new Job(recipe);
+            var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
+            job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
+                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, "Current", localNode, sourceNode);
+
+            var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
             // Get Prior Study (Floating)
-            var floatingSeriesBundle =
-                GetFloatingSeriesBundle(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
+            var priorDicomStudy =
+                GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
-            if (floatingSeriesBundle.Original.ParentDicomStudy == null)
-                throw new DicomStudyNotFoundException("No prior workable series were found");
+            if (priorDicomStudy == null)
+                throw new Exception("No prior workable series were found");
 
-            var imageRepositoryPath = _imgProcConfig.ImageRepositoryPath;
-            var job = _jobManagerFactory.CreateJobNew(
-                fixedSeriesBundle.Original.DicomFolderPath,
-                floatingSeriesBundle.Original.DicomFolderPath,
-                recipe.IntegratedProcesses, recipe.Destinations,
-                imageRepositoryPath, localNode, sourceNode
-            );
+            job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
+                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, "Prior", localNode, sourceNode);
+
             return job;
         }
 
-        private IJobSeriesBundle GetFixedSeriesBundle(
-            IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode,
-            IEnumerable<IDicomStudy> allStudiesForPatient)
+        private string SaveDicomFilesToFilesystem(
+                                                  IDicomStudy dicomStudy, string imageRepositoryPath,
+                                                  string patientFullName, string studyName,
+                                                  IDicomNode locaNode, IDicomNode sourceNode)
         {
-            var fixedSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
-            fixedSeriesBundle.Original.ParentDicomStudy =
-                string.IsNullOrEmpty(recipe.NewStudyAccession)
-                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.NewStudyCriteria, -1, localNode, sourceNode)
-                : FindStudyMatchingAccession(allStudiesForPatient, recipe.NewStudyAccession);
+            var series = dicomStudy.Series.FirstOrDefault();
+            var jobFolderName = $"{patientFullName}-{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
+            var folderPath = Path.Combine(imageRepositoryPath, jobFolderName, studyName, "Dicom");
 
-            fixedSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
-                fixedSeriesBundle.Original.ParentDicomStudy, recipe.NewStudyCriteria, localNode, sourceNode);
+            _dicomServices.SaveSeriesToLocalDisk(series, folderPath, locaNode, sourceNode);
 
-            return fixedSeriesBundle;
+            return folderPath;
         }
 
-        private IJobSeriesBundle GetFloatingSeriesBundle(
-            IRecipe recipe, int studyFixedIndex, IDicomNode localNode, IDicomNode sourceNode,
-            IEnumerable<IDicomStudy> allStudiesForPatient)
+        private IDicomStudy GetCurrentDicomStudy(
+                                                 Recipe recipe, IDicomNode localNode, IDicomNode sourceNode,
+                                                 IEnumerable<IDicomStudy> allStudiesForPatient)
         {
-            var floatingSeriesBundle = _jobManagerFactory.CreateJobSeriesBundle();
-            floatingSeriesBundle.Original.ParentDicomStudy =
-                string.IsNullOrEmpty(recipe.PriorStudyAccession)
-                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorStudyCriteria,
-                        studyFixedIndex, localNode, sourceNode)
-                    : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorStudyAccession);
+            var currentDicomStudy =
+                string.IsNullOrEmpty(recipe.CurrentAccession)
+                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1, localNode, sourceNode)
+                : FindStudyMatchingAccession(allStudiesForPatient, recipe.CurrentAccession);
 
-            if (floatingSeriesBundle.Original.ParentDicomStudy != null)
-                floatingSeriesBundle.Original.ParentDicomStudy = AddMatchingSeriesToStudy(
-                    floatingSeriesBundle.Original.ParentDicomStudy, recipe.PriorStudyCriteria, localNode, sourceNode);
+            currentDicomStudy = AddMatchingSeriesToStudy(
+                currentDicomStudy, recipe.CurrentSeriesCriteria, localNode, sourceNode);
+
+            return currentDicomStudy;
+        }
+
+        private IDicomStudy GetPriorDicomStudy(
+                                               Recipe recipe, int studyFixedIndex,
+                                               IDicomNode localNode, IDicomNode sourceNode,
+                                               IEnumerable<IDicomStudy> allStudiesForPatient)
+        {
+            var floatingSeriesBundle =
+                string.IsNullOrEmpty(recipe.PriorAccession)
+                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria,
+                        studyFixedIndex, localNode, sourceNode)
+                    : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorAccession);
+
+            if (floatingSeriesBundle != null)
+                floatingSeriesBundle = AddMatchingSeriesToStudy(
+                    floatingSeriesBundle, recipe.PriorSeriesCriteria, localNode, sourceNode);
 
             return floatingSeriesBundle;
         }
@@ -132,17 +149,17 @@ namespace CAPI.JobManager
                 return _dicomServices.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate,
                     localNode, sourceNode).PatientId;
 
-            if (string.IsNullOrEmpty(recipe.NewStudyAccession))
+            if (string.IsNullOrEmpty(recipe.CurrentAccession))
                 throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
 
             try
             {
-                var study = _dicomServices.GetStudyForAccession(recipe.NewStudyAccession, localNode, sourceNode);
+                var study = _dicomServices.GetStudyForAccession(recipe.CurrentAccession, localNode, sourceNode);
                 return study.PatientId;
             }
             catch
             {
-                _log.Error($"Failed to find accession {recipe.NewStudyAccession} in source {recipe.SourceAet}");
+                _log.Error($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
 
                 throw;
             }
@@ -158,8 +175,8 @@ namespace CAPI.JobManager
         /// <param name="sourceNode">Dicom archive where studies reside</param>
         /// <returns></returns>
         private IEnumerable<IDicomStudy> GetDicomStudiesForPatient(
-            string patientId, string patientFullName, string patientBirthDate,
-            IDicomNode localNode, IDicomNode sourceNode)
+                                                                   string patientId, string patientFullName, string patientBirthDate,
+                                                                   IDicomNode localNode, IDicomNode sourceNode)
         {
             var patientIdIsProvided = !string.IsNullOrEmpty(patientId) && !string.IsNullOrWhiteSpace(patientId);
 
@@ -180,8 +197,8 @@ namespace CAPI.JobManager
         /// <param name="sourceNode"></param>
         /// <returns></returns>
         private IDicomStudy FindStudyMatchingCriteria(
-            IEnumerable<IDicomStudy> studies, IEnumerable<ISeriesSelectionCriteria> criteria,
-            int referenceStudyIndex, IDicomNode localNode, IDicomNode sourceNode)
+                                                      IEnumerable<IDicomStudy> studies, IEnumerable<ISeriesSelectionCriteria> criteria,
+                                                      int referenceStudyIndex, IDicomNode localNode, IDicomNode sourceNode)
         {
             var allStudies = studies as IList<IDicomStudy> ?? studies.ToList();
             var seriesSelectionCriteria = criteria as IList<ISeriesSelectionCriteria> ?? criteria.ToList();
