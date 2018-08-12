@@ -7,16 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="config.dev.MF-PC.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="config.dev.MF-PC.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
@@ -27,6 +17,7 @@
     <ProjectReference Include="..\CAPI.Agent\CAPI.Agent.csproj" />
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj" />
+    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj" />
   </ItemGroup>
 
   <ItemGroup>

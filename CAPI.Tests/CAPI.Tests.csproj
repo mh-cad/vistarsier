@@ -39,6 +39,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CAPI.DAL.Abstraction, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\CAPI.DAL\bin\Debug\CAPI.DAL.Abstraction.dll</HintPath>
+    </Reference>
     <Reference Include="CommonServiceLocator, Version=2.0.3.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\CommonServiceLocator.dll</HintPath>
     </Reference>
@@ -56,6 +60,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="Unity.Abstractions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=6d32ff45e0ccc69f, processorArchitecture=MSIL">
       <HintPath>..\packages\Unity.Abstractions.3.3.0\lib\net45\Unity.Abstractions.dll</HintPath>
     </Reference>
@@ -82,6 +87,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Agent\Recipe.cs" />
     <Compile Include="Agent\ImageProcessor.cs" />
     <Compile Include="CapiConfigGetter.cs" />
     <Compile Include="Common\Extensions\Statistics.cs" />
@@ -128,14 +134,6 @@
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.DAL.Abstraction\CAPI.DAL.Abstraction.csproj">
-      <Project>{98cc9f27-5532-4c14-8dbc-64ba2881029d}</Project>
-      <Name>CAPI.DAL.Abstraction</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.DAL\CAPI.DAL.csproj">
-      <Project>{6c076210-18a5-4211-940a-5414b7c26730}</Project>
-      <Name>CAPI.DAL</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>

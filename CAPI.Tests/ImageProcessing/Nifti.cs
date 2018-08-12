@@ -2,6 +2,7 @@
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Unity;
@@ -23,13 +24,18 @@ namespace CAPI.Tests.ImageProcessing
         private string _fixedShades;
         private string _floatingShades;
         private string _sampleRgbBitmapsFolder;
-        private string _niftiFileToReadAndWrite;
+        private string _tmpFolder;
+        private string _lutGeneratorCurrent;
+        private string _lutGeneratorPrior;
+        private string _lutGeneratorResult;
 
         [TestInitialize]
         public void TestInit()
         {
+
             _unity = Helpers.Unity.CreateContainerCore();
             _testResourcesPath = Helper.GetTestResourcesPath();
+
             _fixed = $@"{_testResourcesPath}\SeriesToTest\01_1323314\Fixed\fixed.bfc.nii";
             _outfile = $@"{_testResourcesPath}\Fixed\fixed.noro.nii";
             _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
@@ -42,7 +48,13 @@ namespace CAPI.Tests.ImageProcessing
             _fixedShades = $@"{_testResourcesPath}\fixedShades.nii";
             _floatingShades = $@"{_testResourcesPath}\floatingShades.nii";
 
-            _niftiFileToReadAndWrite = $@"{_testResourcesPath}\SeriesToTest\01_1323314\Results_dicom.nii";
+            _lutGeneratorCurrent = $@"{_testResourcesPath}\LookupTableGenerator\01\Current_with_xtra_lesions.bmp";
+            _lutGeneratorPrior = $@"{_testResourcesPath}\LookupTableGenerator\01\Prior_with_xtra_lesions.bmp";
+            _lutGeneratorResult = $@"{_testResourcesPath}\LookupTableGenerator\01\Comparison_with_xtra_lesions.bmp";
+
+            _tmpFolder = $@"{_testResourcesPath}\TempFolder";
+            if (Directory.Exists(_tmpFolder)) Directory.Delete(_tmpFolder, true);
+            Directory.CreateDirectory(_tmpFolder);
         }
 
         [TestMethod]
@@ -171,16 +183,23 @@ namespace CAPI.Tests.ImageProcessing
             //Assert.Fail(); 
         }
 
-        //[TestMethod]
-        //public void ReadNiftiAndWrite()
-        //{
-        //    var fixedBrain = _unity.Resolve<INifti>().ReadNifti(_niftiFileToReadAndWrite);
+        [TestMethod]
+        public void GenerateLookupTable()
+        {
+            // Arrange
+            var current = Image.FromFile(_lutGeneratorCurrent) as Bitmap;
+            var prior = Image.FromFile(_lutGeneratorPrior) as Bitmap;
+            var result = Image.FromFile(_lutGeneratorResult) as Bitmap;
 
-        //    fixedBrain.ExportSlicesToBmps(_niftiFileToReadAndWrite.Replace(".nii", "-img"), SliceType.Sagittal);
+            // Act
+            var nifti = _unity.Resolve<INifti>();
+            var lut = nifti.GenerateLookupTable(current, prior, result);
+            var lutFilePath = $@"{_tmpFolder}\lut.bmp";
+            lut.Save(lutFilePath);
 
-        //    throw new NotImplementedException();
-        //    //Assert.Fail(); 
-        //}
+            // Assert
+            Assert.IsTrue(File.Exists(lutFilePath));
+        }
 
         [TestMethod]
         public void SlicesSagittalToArray()
@@ -237,6 +256,12 @@ namespace CAPI.Tests.ImageProcessing
             var nifti = _unity.Resolve<INifti>();
             nifti.ReadNifti(_fixed);
             nifti.Reorient(256, 256, 160);
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            if (Directory.Exists(_tmpFolder)) Directory.Delete(_tmpFolder, true);
         }
     }
 }

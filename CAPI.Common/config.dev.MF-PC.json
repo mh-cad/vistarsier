@@ -1,6 +1,9 @@
 {
   "AgentDbConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;",
   "RunInterval": "30",
+  "ManualProcessPath": "D:\\VT-Files\\ManualProcess",
+  "Hl7ProcessPath": "",
+  "DefaultRecipePath": "",
   "DicomConfig": {
     "DicomServicesExecutablesPath": "D:\\VT-Files\\RAPPreprocess\\bin"
   },
@@ -11,8 +14,6 @@
     "JavaClasspath": "D:\\VT-Files\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
     "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
     "ImageRepositoryPath": "D:\\VT-Files\\ImageRepository",
-    "ManualProcessPath": "D:\\VT-Files\\ManualProcess",
-    "Hl7ProcessPath": "",
     "ProcessCasesAddedManually": true,
     "ProcessCasesAddedByHL7": false
   },

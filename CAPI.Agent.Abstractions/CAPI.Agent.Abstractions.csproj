@@ -30,19 +30,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\DateOperand.cs" />
     <Compile Include="IAgent.cs" />
     <Compile Include="IAgentFactory.cs" />
     <Compile Include="IAgentRepository.cs" />
-    <Compile Include="ICase.cs" />
+    <Compile Include="Models\ICase.cs" />
+    <Compile Include="Models\IDestination.cs" />
     <Compile Include="IImageProcessor.cs" />
-    <Compile Include="IJob.cs" />
-    <Compile Include="IJobManager.cs" />
-    <Compile Include="IRecipe.cs" />
+    <Compile Include="Models\IJob.cs" />
+    <Compile Include="IJobBuilder.cs" />
+    <Compile Include="Models\IRecipe.cs" />
+    <Compile Include="Models\ISeriesSelectionCriteria.cs" />
+    <Compile Include="Models\IValueComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Models\StringOperand.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
@@ -62,5 +70,6 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
