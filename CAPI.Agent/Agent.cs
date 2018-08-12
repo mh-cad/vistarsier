@@ -1,6 +1,14 @@
 ﻿using CAPI.Agent.Abstractions;
+using CAPI.Agent.Abstractions.Models;
+using CAPI.Agent.Models;
 using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
+using CAPI.Dicom.Abstraction;
+using log4net;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Timers;
 
@@ -9,13 +17,31 @@ namespace CAPI.Agent
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Agent : IAgent
     {
+        private readonly ILog _log;
+        private readonly IDicomFactory _dicomFactory;
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcessBuilder _processBuilder;
         private readonly AgentRepository _context;
 
         public ICapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
 
-        public Agent(ICapiConfig config)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="config">All configuration parameters</param>
+        /// <param name="dicomFactory">Creates required dicom services</param>
+        /// <param name="fileSystem">CAPI FileSystem service</param>
+        /// <param name="processBuilder">CAPI Process Builder</param>
+        /// <param name="log">log4net logger</param>
+        public Agent(ICapiConfig config, IDicomFactory dicomFactory,
+                     IFileSystem fileSystem, IProcessBuilder processBuilder,
+                     ILog log)
         {
+            _dicomFactory = dicomFactory;
+            _fileSystem = fileSystem;
+            _processBuilder = processBuilder;
+            _log = log;
             Config = config;
             _context = new AgentRepository(config.AgentDbConnectionString);
         }
@@ -27,6 +53,38 @@ namespace CAPI.Agent
             StartTimer(int.Parse(Config.RunInterval));
         }
 
+        // Runs every interval
+        private void OnTimeEvent(object sender, ElapsedEventArgs e)
+        {
+            if (IsBusy) return;
+
+            try
+            {
+                ProcessNewlyAddedCases();
+                var pendingCases = _context.GetCaseByStatus("Pending");
+
+                pendingCases.ToList().ForEach(c =>
+                {
+                    var recipe = FindRecipe(c);
+                    Case.Process(recipe, _dicomFactory, Config, _fileSystem, _processBuilder, _log);
+                });
+            }
+            catch
+            {
+                // TODO1: Log Error
+                IsBusy = false;
+
+                var failedCases = _context.GetCaseByStatus("Processing");
+                failedCases.ToList().ForEach(c =>
+                {
+                    c.Status = "Failed";
+                    _context.Cases.Update(c);
+                });
+
+                throw;
+            }
+        }
+
         private void Init()
         {
             SetFailedCasesStatusToPending();
@@ -34,40 +92,127 @@ namespace CAPI.Agent
         private void SetFailedCasesStatusToPending()
         {
             var failedCases = _context.GetCaseByStatus("Processing");
-            failedCases.ToList().ForEach(c => { c.UpdateStatus("Pending"); });
+            failedCases.ToList().ForEach(c =>
+            {
+                var tmp = c;
+                tmp.Status = "Pending";
+                _context.Cases.Update(tmp);
+            });
         }
-
         private void StartTimer(int interval)
         {
             var timer = new Timer { Interval = interval * 1000, Enabled = true };
             timer.Elapsed += OnTimeEvent;
             timer.Start();
         }
-        private void OnTimeEvent(object sender, ElapsedEventArgs e)
+        private void ProcessNewlyAddedCases()
         {
-            if (IsBusy) return;
+            HandleManuallyAddedCases();
+            HandleHl7AddedCases();
+        }
+        private Recipe FindRecipe(ICase @case)
+        {
+            if (@case.AdditionMethod == AdditionMethod.Hl7)
+            {
+                return GetDefaultRecipe();
+            }
+            else
+            {
+                // Find recipe in manually processing folder
+                //throw new NotImplementedException();
+                return GetDefaultRecipe();
+            }
+        }
 
+        private Recipe GetDefaultRecipe()
+        {
+            if (!File.Exists(Config.DefaultRecipePath))
+                throw new FileNotFoundException($"Unable to locate default recipe file in following path: [{Config.DefaultRecipePath}]");
+            var recipeText = File.ReadAllText(Config.DefaultRecipePath);
             try
             {
-                var newAccessions = GetNewAccessions();
-                UpdateDb(newAccessions);
-                var pendingCases = _context.GetCaseByStatus("Pending");
-                pendingCases.ToList().ForEach(c => c.Process());
+                return JsonConvert.DeserializeObject<Recipe>(recipeText);
             }
             catch
             {
-                // TODO1: Log to be implemented
-                IsBusy = false;
+                // Log "Unable to convert default recipe file to json"
                 throw;
             }
         }
-        private static string[] GetNewAccessions()
+
+        #region "Handle Manually Added Cases"
+        private static IEnumerable<ICase> GetManuallyAddedCases(string manualFolder)
         {
-            throw new NotImplementedException();
+            return (
+                from file in Directory.GetFiles(manualFolder)
+                let accession = Path.GetFileNameWithoutExtension(file)
+                where !file.EndsWith(".recipe.json", StringComparison.InvariantCultureIgnoreCase) // Exclude Recipe Files
+                select new Case { Accession = accession, AdditionMethod = AdditionMethod.Manually }
+            ).ToList();
         }
-        private static void UpdateDb(string[] accession)
+        private void HandleManuallyAddedCases()
         {
-            throw new NotImplementedException();
+            var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath);
+            manuallyAddedCases.ToList().ForEach(mc =>
+            {
+                var inDb = _context.Cases.Select(c => c.Accession)
+                    .Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
+                if (inDb)
+                { // If already in database, set status to Pending
+                    var inDbCase = _context.Cases.Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
+                    inDbCase.Status = "Pending";
+                    _context.Cases.Update(inDbCase);
+                }
+                else // if not in database, add to database
+                {
+                    var newCase = new Case { Accession = mc.Accession, AdditionMethod = AdditionMethod.Manually };
+                    try
+                    {
+                        _context.Cases.Add(newCase);
+                        _context.SaveChanges();
+                        // TODO1: Log accession added to database
+                    }
+                    catch
+                    {
+                        // TODO1: Log failing to add to database
+                    }
+
+                }
+            });
         }
+        #endregion
+
+        #region "Handle HL7 Added Cases"
+        private static IEnumerable<Case> GetHl7AddedCases(string hl7Folder)
+        {
+            return (
+                from file in Directory.GetFiles(hl7Folder)
+                let accession = Path.GetFileNameWithoutExtension(file)
+                select new Case { Accession = accession, AdditionMethod = AdditionMethod.Hl7 }
+            ).ToList();
+        }
+        private void HandleHl7AddedCases()
+        {
+            var hl7AddedCases = GetHl7AddedCases(Config.ManualProcessPath);
+            hl7AddedCases.ToList().ForEach(mc =>
+            {
+                var inDb = _context.Cases.Select(c => c.Accession)
+                    .Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
+                if (inDb) return; // If not in database, add to db
+                var newCase = new Case { Accession = mc.Accession, AdditionMethod = AdditionMethod.Hl7 };
+                try
+                {
+                    _context.Cases.Add(newCase);
+                    _context.SaveChanges();
+                    // TODO1: Log accession added to database
+                }
+                catch
+                {
+                    // TODO1: Log failing to add to database
+                }
+                // if already in database, disregard?
+            });
+        }
+        #endregion
     }
 }
