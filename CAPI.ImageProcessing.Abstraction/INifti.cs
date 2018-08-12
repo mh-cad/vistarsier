@@ -25,5 +25,6 @@ namespace CAPI.ImageProcessing.Abstraction
         float[] SlicesToArray(float[][] slices, SliceType sliceType);
         void ExportSlicesToBmps(string folderpath, SliceType sliceType);
         INifti Compare(INifti current, INifti prior, SliceType sliceType, ISubtractionLookUpTable lookUpTable);
+        Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult);
     }
 }

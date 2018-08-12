@@ -1,4 +1,5 @@
 ﻿using CAPI.Agent.Abstractions;
+using CAPI.Agent.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,9 @@ namespace CAPI.Agent
     {
         private readonly string _connectionString;
 
-        public DbSet<ICase> Cases { get; set; }
-        public DbSet<IRecipe> Recipes { get; set; }
-        public DbSet<IJob> Jobs { get; set; }
+        public DbSet<Case> Cases { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<Job> Jobs { get; set; }
 
         public AgentRepository(string connectionString)
         {
@@ -26,7 +27,7 @@ namespace CAPI.Agent
         }
 
         #region "Cases"
-        public IEnumerable<ICase> GetCaseByStatus(string status)
+        public IEnumerable<Case> GetCaseByStatus(string status)
         {
             return Cases.Where(c => c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
