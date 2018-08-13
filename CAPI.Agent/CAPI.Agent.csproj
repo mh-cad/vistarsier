@@ -132,6 +132,11 @@
     <Compile Include="Agent.cs" />
     <Compile Include="AgentFactory.cs" />
     <Compile Include="AgentRepository.cs" />
+    <Compile Include="Migrations\20180813223842_InitialCreate.cs" />
+    <Compile Include="Migrations\20180813223842_InitialCreate.designer.cs">
+      <DependentUpon>20180813223842_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\AgentRepositoryModelSnapshot.cs" />
     <Compile Include="Models\Case.cs" />
     <Compile Include="ImageProcessor.cs" />
     <Compile Include="Models\Destination.cs" />
