@@ -4,7 +4,9 @@ using CAPI.Agent.Models;
 using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing.Abstraction;
 using log4net;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,6 +21,7 @@ namespace CAPI.Agent
     {
         private readonly ILog _log;
         private readonly IDicomFactory _dicomFactory;
+        private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly AgentRepository _context;
@@ -31,10 +34,12 @@ namespace CAPI.Agent
         /// </summary>
         /// <param name="config">All configuration parameters</param>
         /// <param name="dicomFactory">Creates required dicom services</param>
+        /// <param name="imgProcFactory">ImageProcessing Factory</param>
         /// <param name="fileSystem">CAPI FileSystem service</param>
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
         public Agent(ICapiConfig config, IDicomFactory dicomFactory,
+                     IImageProcessingFactory imgProcFactory,
                      IFileSystem fileSystem, IProcessBuilder processBuilder,
                      ILog log)
         {
@@ -42,6 +47,7 @@ namespace CAPI.Agent
             _fileSystem = fileSystem;
             _processBuilder = processBuilder;
             _log = log;
+            _imgProcFactory = imgProcFactory;
             Config = config;
             _context = new AgentRepository(config.AgentDbConnectionString);
         }
@@ -58,28 +64,46 @@ namespace CAPI.Agent
         {
             if (IsBusy) return;
 
+            ProcessNewlyAddedCases();
+
             try
             {
-                ProcessNewlyAddedCases();
                 var pendingCases = _context.GetCaseByStatus("Pending");
-
-                pendingCases.ToList().ForEach(c =>
-                {
-                    var recipe = FindRecipe(c);
-                    Case.Process(recipe, _dicomFactory, Config, _fileSystem, _processBuilder, _log);
-                });
+                pendingCases.ToList().ForEach(ProcessCase);
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO1: Log Error
+                var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
+                _log.Error($"Unable to get pending cases from database. {dbConnectionString}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Do the actual Processing of the case
+        /// </summary>
+        /// <param name="case">Pending case to be processed</param>
+        private void ProcessCase(ICase @case)
+        {
+            var recipe = FindRecipe(@case);
+            try
+            {
+                _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
+                SetCaseStatus(@case, "Processing");
+
+                var cs = @case as Case ?? throw new ArgumentNullException(nameof(@case), "Case not found in database to be updated");
+                cs.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
+
+                _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
+                SetCaseStatus(@case, "Complete");
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Case failed during processing", ex);
                 IsBusy = false;
 
                 var failedCases = _context.GetCaseByStatus("Processing");
-                failedCases.ToList().ForEach(c =>
-                {
-                    c.Status = "Failed";
-                    _context.Cases.Update(c);
-                });
+                failedCases.ToList().ForEach(c => { SetCaseStatus(c, "Failed"); });
 
                 throw;
             }
@@ -123,7 +147,6 @@ namespace CAPI.Agent
                 return GetDefaultRecipe();
             }
         }
-
         private Recipe GetDefaultRecipe()
         {
             if (!File.Exists(Config.DefaultRecipePath))
@@ -138,6 +161,13 @@ namespace CAPI.Agent
                 // Log "Unable to convert default recipe file to json"
                 throw;
             }
+        }
+        private void SetCaseStatus(ICase @case, string status)
+        {
+            @case.Status = status;
+            _context.Cases.Update(@case as Case ?? throw new ArgumentNullException(nameof(@case),
+                                      "Case not found in database to be updated"));
+            _context.SaveChanges();
         }
 
         #region "Handle Manually Added Cases"
@@ -183,7 +213,7 @@ namespace CAPI.Agent
         #endregion
 
         #region "Handle HL7 Added Cases"
-        private static IEnumerable<Case> GetHl7AddedCases(string hl7Folder)
+        private static IEnumerable<ICase> GetHl7AddedCases(string hl7Folder)
         {
             return (
                 from file in Directory.GetFiles(hl7Folder)

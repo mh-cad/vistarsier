@@ -6,9 +6,13 @@ using CAPI.Common.Config;
 using CAPI.Common.Services;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing;
+using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using IDicomConfig = CAPI.Common.Abstractions.Config.IDicomConfig;
+using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 namespace CAPI.Console
 {
@@ -27,13 +31,15 @@ namespace CAPI.Console
             var agentFactory = serviceProvider.GetService<IAgentFactory>();
             var config = serviceProvider.GetService<ICapiConfig>().GetConfig(args);
             var dicomFactory = serviceProvider.GetService<IDicomFactory>();
+            var imgProcFactory = serviceProvider.GetService<IImageProcessingFactory>();
             var fileSystem = serviceProvider.GetService<IFileSystem>();
             var processBuilder = serviceProvider.GetService<IProcessBuilder>();
 
-            var agent = agentFactory.CreateAgent(config, dicomFactory, fileSystem, processBuilder, _log);
+            var agent = agentFactory.CreateAgent(config, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
+
             agent.Run();
 
-            _log.Info("\r\nPress any key to exit.");
+            _log.Info($"{Environment.NewLine}Press any key to exit.");
 
             System.Console.ReadKey();
         }
@@ -54,6 +60,7 @@ namespace CAPI.Console
                 .AddSingleton<ITestsConfig, TestsConfig>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<IDicomFactory, DicomFactory>()
+                .AddSingleton<IImageProcessingFactory, ImageProcessingFactory>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<IProcessBuilder, ProcessBuilder>();
         }
