@@ -22,6 +22,9 @@
         bool BiasFieldCorrection { get; set; }
         string BiasFieldCorrectionParams { get; set; }
 
+        string SliceType { get; set; } // "Sag"=Sagittal | "Ax" = Axial | "Cor" = Coronal
+        string LookUpTablePath { get; set; }
+
         //IList<IDestination> Destinations { get; set; }
     }
 }

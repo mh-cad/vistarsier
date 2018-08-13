@@ -33,6 +33,10 @@ namespace CAPI.Agent.Models
         public bool BiasFieldCorrection { get; set; }
         public string BiasFieldCorrectionParams { get; set; }
 
+        public string SliceType { get; set; }
+        public string LookUpTablePath { get; set; }
+
+
         public List<Destination> Destinations { get; set; }
     }
 }

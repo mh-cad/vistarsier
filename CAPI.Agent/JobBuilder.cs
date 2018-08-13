@@ -1,7 +1,9 @@
 ﻿using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
 using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -15,8 +17,17 @@ namespace CAPI.Agent
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobBuilder //: IJobBuilder
     {
+        private const string Current = "Current";
+        private const string Prior = "Prior";
+        private const string Dicom = "Dicom";
+        private const string Results = "Results";
+        private const string PriorResliced = "PriorResliced";
+
         private readonly IDicomServices _dicomServices;
+        private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IValueComparer _valueComparer;
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcessBuilder _processBuilder;
         private readonly ICapiConfig _capiConfig;
         private readonly ILog _log;
 
@@ -24,14 +35,22 @@ namespace CAPI.Agent
         /// Constructor
         /// </summary>
         /// <param name="dicomServices"></param>
+        /// <param name="imgProcFactory">ImageProcessing Factory</param>
         /// <param name="valueComparer"></param>
+        /// <param name="fileSystem">Provides extra filesystem capabilities</param>
+        /// <param name="processBuilder">Builds exe or java processes and executes them</param>
         /// <param name="capiConfig">CAPI configuration</param>
         /// <param name="log">Log4Net logger</param>
-        public JobBuilder(IDicomServices dicomServices, IValueComparer valueComparer,
+        public JobBuilder(IDicomServices dicomServices,
+                          IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
+                          IFileSystem fileSystem, IProcessBuilder processBuilder,
                           ICapiConfig capiConfig, ILog log)
         {
             _dicomServices = dicomServices;
+            _imgProcFactory = imgProcFactory;
             _valueComparer = valueComparer;
+            _fileSystem = fileSystem;
+            _processBuilder = processBuilder;
             _capiConfig = capiConfig;
             _log = log;
         }
@@ -40,8 +59,6 @@ namespace CAPI.Agent
         /// Builds a Job using details in Recipe
         /// </summary>
         /// <param name="recipe">Contains details of studies to process, source and destinations</param>
-        /// <param name="localNode">Details of this dicom node the app is running on</param>
-        /// <param name="sourceNode">Details of archive dicom node</param>
         /// <returns></returns>
         public IJob Build(Recipe recipe)
         {
@@ -67,10 +84,13 @@ namespace CAPI.Agent
                 currentDicomStudy.Series.Count == 0)
                 throw new Exception("No workable series were found for accession");
 
-            var job = new Job(recipe);
+            var job = new Job(recipe, _capiConfig.AgentDbConnectionString,
+                              _dicomServices, _imgProcFactory,
+                              _fileSystem, _processBuilder, _capiConfig, _log);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
+            var jobFolderName = $"{recipe.PatientFullName}-{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
             job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, "Current", localNode, sourceNode);
+                currentDicomStudy, imageRepositoryPath, jobFolderName, Current, localNode, sourceNode);
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
@@ -82,19 +102,22 @@ namespace CAPI.Agent
                 throw new Exception("No prior workable series were found");
 
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, "Prior", localNode, sourceNode);
+                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, Prior, localNode, sourceNode);
+
+            job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
+            job.PriorSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
 
             return job;
         }
 
         private string SaveDicomFilesToFilesystem(
                                                   IDicomStudy dicomStudy, string imageRepositoryPath,
-                                                  string patientFullName, string studyName,
+                                                  string jobFolderName, string studyName,
                                                   IDicomNode locaNode, IDicomNode sourceNode)
         {
             var series = dicomStudy.Series.FirstOrDefault();
-            var jobFolderName = $"{patientFullName}-{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
-            var folderPath = Path.Combine(imageRepositoryPath, jobFolderName, studyName, "Dicom");
+
+            var folderPath = Path.Combine(imageRepositoryPath, jobFolderName, studyName, Dicom);
 
             _dicomServices.SaveSeriesToLocalDisk(series, folderPath, locaNode, sourceNode);
 
@@ -369,7 +392,7 @@ namespace CAPI.Agent
                 $"Only one study should match accession number. {matchingAccession.Count} " +
                 $"studies found for accession: {accessionNumber}");
 
-            return matchingAccession.FirstOrDefault(); ;
+            return matchingAccession.FirstOrDefault();
         }
 
         /// <summary>
