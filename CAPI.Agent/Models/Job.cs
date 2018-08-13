@@ -88,7 +88,8 @@ namespace CAPI.Agent.Models
             _log.Info($"Current Accession: [{_recipe.CurrentAccession}]");
             _log.Info($"Prior Accession: [{_recipe.PriorAccession}]");
 
-            var context = new AgentRepository(_dbConnectionString);
+            var context = new AgentRepository();
+            //var context = new AgentRepository(_dbConnectionString);
             context.Jobs.Add(this);
             context.SaveChanges();
 

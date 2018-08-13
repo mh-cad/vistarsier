@@ -1,5 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,8 +10,13 @@ namespace CAPI.Common.Config
     /// <summary>
     /// Finds the proper config file based on the arguments passed
     /// </summary>
-    public class CapiConfig : ICapiConfig
+    public class CapiConfig //: ICapiConfig
     {
+        public CapiConfig()
+        {
+
+        }
+
         public CapiConfig(DicomConfig dicomConfig, ImgProcConfig imgProcConfig, TestsConfig testsConfig)
         {
             DicomConfig = dicomConfig;
@@ -20,9 +24,9 @@ namespace CAPI.Common.Config
             TestsConfig = testsConfig;
         }
 
-        public IDicomConfig DicomConfig { get; set; }
-        public IImgProcConfig ImgProcConfig { get; set; }
-        public ITestsConfig TestsConfig { get; set; }
+        public DicomConfig DicomConfig { get; set; }
+        public ImgProcConfig ImgProcConfig { get; set; }
+        public TestsConfig TestsConfig { get; set; }
 
         public string RunInterval { get; set; }
         public string AgentDbConnectionString { get; set; }
@@ -38,7 +42,7 @@ namespace CAPI.Common.Config
         /// </summary>
         /// <param name="args"></param>
         /// <returns>CapiConfig which contains DicomConfig, ImgProcConfig and TestsConfig</returns>
-        public ICapiConfig GetConfig(string[] args = null)
+        public CapiConfig GetConfig(string[] args = null)
         {
             var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
 
