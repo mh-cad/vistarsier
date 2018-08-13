@@ -77,10 +77,6 @@
       <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
       <Name>CAPI.Common.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.DAL.Abstraction\CAPI.DAL.Abstraction.csproj">
-      <Project>{98cc9f27-5532-4c14-8dbc-64ba2881029d}</Project>
-      <Name>CAPI.DAL.Abstraction</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstraction</Name>
