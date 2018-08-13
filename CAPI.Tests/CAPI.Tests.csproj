@@ -155,14 +155,6 @@
       <Project>{bf71c555-cfc8-43e8-8615-44619adc91cd}</Project>
       <Name>CAPI.ImageProcessing</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.JobManager.Abstraction\CAPI.JobManager.Abstraction.csproj">
-      <Project>{55fc43a0-8528-436a-9a7e-211cad504b93}</Project>
-      <Name>CAPI.JobManager.Abstraction</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.JobManager\CAPI.JobManager.csproj">
-      <Project>{d24b702b-425f-4541-9aca-932d65c21c07}</Project>
-      <Name>CAPI.JobManager</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
