@@ -50,7 +50,6 @@ namespace CAPI.Agent
             _imgProcFactory = imgProcFactory;
             Config = config;
             _context = new AgentRepository();
-            //_context = new AgentRepository(config.AgentDbConnectionString);
         }
 
         public void Run()
