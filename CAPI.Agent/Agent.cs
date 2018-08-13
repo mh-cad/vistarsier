@@ -1,8 +1,8 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -24,10 +24,10 @@ namespace CAPI.Agent
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
-        private readonly AgentRepository _context;
 
-        public ICapiConfig Config { get; set; }
+        public CapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
+        private readonly AgentRepository _context;
 
         /// <summary>
         /// Constructor
@@ -38,7 +38,7 @@ namespace CAPI.Agent
         /// <param name="fileSystem">CAPI FileSystem service</param>
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
-        public Agent(ICapiConfig config, IDicomFactory dicomFactory,
+        public Agent(CapiConfig config, IDicomFactory dicomFactory,
                      IImageProcessingFactory imgProcFactory,
                      IFileSystem fileSystem, IProcessBuilder processBuilder,
                      ILog log)
@@ -49,7 +49,8 @@ namespace CAPI.Agent
             _log = log;
             _imgProcFactory = imgProcFactory;
             Config = config;
-            _context = new AgentRepository(config.AgentDbConnectionString);
+            _context = new AgentRepository();
+            //_context = new AgentRepository(config.AgentDbConnectionString);
         }
 
         public void Run()
