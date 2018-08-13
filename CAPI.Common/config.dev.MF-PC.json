@@ -5,7 +5,21 @@
   "Hl7ProcessPath": "",
   "DefaultRecipePath": "",
   "DicomConfig": {
-    "DicomServicesExecutablesPath": "D:\\VT-Files\\RAPPreprocess\\bin"
+    "DicomServicesExecutablesPath": "D:\\VT-Files\\RAPPreprocess\\bin",
+    "LocalNode": {
+      "LogicalName": "MF-PC",
+      "AeTitle": "MFPC",
+      "IpAddress": "127.0.0.1",
+      "Port": "104"
+    },
+    "RemoteNodes": [
+      {
+        "LogicalName": "Synapse",
+        "AeTitle": "RHMSYNSCP",
+        "IpAddress": "***REMOVED***",
+        "Port": "104"
+      }
+    ] 
   },
   "ImgProcConfig": {
     "ImgProcBinFolderPath": "D:\\VT-Files\\RAPPreprocess\\bin",

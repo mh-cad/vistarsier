@@ -6,12 +6,12 @@ using CAPI.Common.Config;
 using CAPI.Common.Services;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Model;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using IDicomConfig = CAPI.Common.Abstractions.Config.IDicomConfig;
 using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 namespace CAPI.Console
@@ -29,7 +29,8 @@ namespace CAPI.Console
             _log.Info("App Started...");
 
             var agentFactory = serviceProvider.GetService<IAgentFactory>();
-            var config = serviceProvider.GetService<ICapiConfig>().GetConfig(args);
+            //var config = serviceProvider.GetService<ICapiConfig>().GetConfig(args);
+            var config = new CapiConfig().GetConfig(args);
             var dicomFactory = serviceProvider.GetService<IDicomFactory>();
             var imgProcFactory = serviceProvider.GetService<IImageProcessingFactory>();
             var fileSystem = serviceProvider.GetService<IFileSystem>();
@@ -51,18 +52,21 @@ namespace CAPI.Console
 
         private static IServiceCollection RegisterTypes(this IServiceCollection services)
         {
-            return services
+            services
                 .AddSingleton<IAgent, Agent.Agent>()
                 .AddSingleton<IAgentFactory, AgentFactory>()
-                .AddSingleton<ICapiConfig, CapiConfig>()
+                //.AddSingleton<IAgentRepository, AgentRepository>()
+                //.AddSingleton<ICapiConfig, CapiConfig>()
+                //.AddSingleton<Common.Abstractions.Config.IDicomConfig, Common.Config.DicomConfig>()
                 .AddSingleton<IImgProcConfig, ImgProcConfig>()
-                .AddSingleton<IDicomConfig, Common.Config.DicomConfig>()
                 .AddSingleton<ITestsConfig, TestsConfig>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<IDicomFactory, DicomFactory>()
+                .AddSingleton<IDicomNode, DicomNode>()
                 .AddSingleton<IImageProcessingFactory, ImageProcessingFactory>()
                 .AddSingleton<IFileSystem, FileSystem>()
                 .AddSingleton<IProcessBuilder, ProcessBuilder>();
+            return services;
         }
     }
 }
