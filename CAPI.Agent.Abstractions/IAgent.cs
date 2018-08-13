@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Common.Config;
 
 namespace CAPI.Agent.Abstractions
 {
@@ -6,7 +6,7 @@ namespace CAPI.Agent.Abstractions
     {
         void Run();
 
-        ICapiConfig Config { get; set; }
+        CapiConfig Config { get; set; }
         bool IsBusy { get; set; }
     }
 }

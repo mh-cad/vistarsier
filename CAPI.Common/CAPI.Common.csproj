@@ -77,6 +77,10 @@
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstraction</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
+      <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
+      <Name>CAPI.Dicom</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="config.dev.MH19189.json">

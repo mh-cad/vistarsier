@@ -16,10 +16,15 @@ namespace CAPI.Agent
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Job> Jobs { get; set; }
 
-        public AgentRepository(string connectionString)
+        public AgentRepository()
         {
-            _connectionString = connectionString;
+            _connectionString = ;
         }
+
+        //public AgentRepository(string connectionString)
+        //{
+        //    _connectionString = connectionString;
+        //}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
