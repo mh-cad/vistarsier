@@ -1,12 +1,16 @@
-﻿using CAPI.Dicom.Abstraction;
+﻿using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
+using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
-using System;
 using System.IO;
 using System.Linq;
 using IImgProc = CAPI.ImageProcessing.Abstraction.IImageProcessorNew;
 
 namespace CAPI.Agent
 {
+    /// <summary>
+    /// Compares current and prior sereis and saves results into filesystem or sends off to a dicom node
+    /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessor : Abstractions.IImageProcessor
     {
@@ -14,11 +18,13 @@ namespace CAPI.Agent
         private readonly IImgProc _imgProc;
         private readonly IImageProcessingFactory _imgProcFactory;
 
-        public ImageProcessor(IDicomServices dicomServices, IImgProc imgProc, IImageProcessingFactory imgProcFactory)
+        public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
+                              IFileSystem filesystem, IProcessBuilder processBuilder,
+                              IImgProcConfig imgProcConfig)
         {
             _dicomServices = dicomServices;
-            _imgProc = imgProc;
             _imgProcFactory = imgProcFactory;
+            _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig);
         }
 
         public void CompareAndSendToFilesystem(
@@ -68,7 +74,8 @@ namespace CAPI.Agent
             return $"{year}-{month}-{day}";
         }
 
-        private void ConvertToDicom(string inNiftiFile, string outDicomFolder, SliceType sliceType, string dicomFolderForReadingHeaders)
+        private void ConvertToDicom(string inNiftiFile, string outDicomFolder,
+                                    SliceType sliceType, string dicomFolderForReadingHeaders)
         {
             var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
             var bmpFolder = outDicomFolder + "_Images";
@@ -77,9 +84,11 @@ namespace CAPI.Agent
             _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders);
         }
 
-        public void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable, SliceType sliceType,
-            bool extractBrain, bool register, bool biasFieldCorrect,
-            string outResultDicom, string outPriorReslicedDicom, IDicomNode localNode, IDicomNode destination)
+        public void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder,
+                                              string inLookupTable, SliceType sliceType,
+                                              bool extractBrain, bool register, bool biasFieldCorrect,
+                                              string outResultDicom, string outPriorReslicedDicom,
+                                              IDicomNode localNode, IDicomNode destination)
         {
             CompareAndSendToFilesystem(inCurrentDicomFolder, inPriorDicomFolder, inLookupTable, sliceType,
                     extractBrain, register, biasFieldCorrect,
@@ -91,30 +100,5 @@ namespace CAPI.Agent
             foreach (var dcmFile in Directory.GetFiles(outPriorReslicedDicom))
                 _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
         }
-
-        private string UpdateStudyDescriptionDicomTag(string dcmFile, string studyDescription)
-        {
-            var headers = _dicomServices.GetDicomTags(dcmFile);
-            var studyDate = DateTime.Parse(headers.StudyDate.Values[0]).ToString("yyyy-MM-dd");
-            headers.SeriesDescription.Values = new[] { $"{studyDescription} ({studyDate})" };
-            _dicomServices.UpdateDicomHeaders(dcmFile, headers, DicomNewObjectType.NewSeries);
-            return dcmFile;
-        }
-
-        //[SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
-        //public void CompareAndSendToFilesystem1(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable, SliceType sliceType,
-        //    bool extractBrain, bool register, bool biasFieldCorrect,
-        //    string outResultDicom, string outPriorReslicedDicom, string destinationFolder)
-        //{
-        //    CompareAndSendToFilesystem(inCurrentDicomFolder, inPriorDicomFolder, inLookupTable, sliceType,
-        //            extractBrain, register, biasFieldCorrect,
-        //            outResultDicom, outPriorReslicedDicom);
-
-        //    var destinationResultsDicomFolder = Path.Combine(destinationFolder, Path.GetFileName(outResultDicom));
-        //    Directory.Move(outResultDicom, destinationResultsDicomFolder);
-
-        //    var destinationPriorsReslicedDicomFolder = Path.Combine(destinationFolder, Path.GetFileName(outPriorReslicedDicom));
-        //    Directory.Move(outResultDicom, destinationPriorsReslicedDicomFolder);
-        //}
     }
 }

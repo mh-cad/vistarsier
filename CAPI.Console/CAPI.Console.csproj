@@ -18,6 +18,7 @@
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj" />
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj" />
     <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj" />
+    <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
