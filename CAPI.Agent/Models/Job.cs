@@ -1,26 +1,36 @@
 ﻿using CAPI.Agent.Abstractions.Models;
+using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
+using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing.Abstraction;
+using log4net;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 
 namespace CAPI.Agent.Models
 {
     public class Job : IJob
     {
-        //private readonly IDicomFactory _dicomFactory;
-        //private readonly IDicomServices _dicomServices;
-        //private readonly ICapiConfig _capiConfig;
-        //private readonly IFileSystem _filesystem;
-        //private readonly IProcessBuilder _processBuilder;
+        private readonly Recipe _recipe;
+        private readonly string _dbConnectionString;
+        private readonly IDicomServices _dicomServices;
+        private readonly IImageProcessingFactory _imgProcFactory;
+        private readonly IFileSystem _filesystem;
+        private readonly IProcessBuilder _processBuilder;
+        private readonly ICapiConfig _capiConfig;
+        private readonly ILog _log;
 
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string SourceAet { get; set; }
         public string PatientId { get; set; }
         public string PatientFullName { get; set; }
         public string PatientBirthDate { get; set; }
         public string CurrentAccession { get; set; }
         public string PriorAccession { get; set; }
-        public string ResultDestination { get; set; }
+        public string DefaultDestination { get; set; }
         public bool ExtractBrain { get; set; }
         public string ExtractBrainParams { get; set; }
         public bool Register { get; set; }
@@ -31,15 +41,27 @@ namespace CAPI.Agent.Models
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
 
-        public Job(Recipe recipe)
+        public Job(Recipe recipe, string dbConnectionString,
+                   IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
+                   IFileSystem filesystem, IProcessBuilder processBuilder,
+                   ICapiConfig capiConfig, ILog log)
         {
+            _recipe = recipe;
+            _dbConnectionString = dbConnectionString;
+            _dicomServices = dicomServices;
+            _imgProcFactory = imgProcFactory;
+            _filesystem = filesystem;
+            _processBuilder = processBuilder;
+            _capiConfig = capiConfig;
+            _log = log;
+
             SourceAet = recipe.SourceAet;
             PatientId = recipe.PatientId;
             PatientFullName = recipe.PatientFullName;
             PatientBirthDate = recipe.PatientBirthDate;
             CurrentAccession = recipe.CurrentAccession;
             PriorAccession = recipe.PriorAccession;
-            ResultDestination = recipe.Destinations.FirstOrDefault()?.DisplayName;
+            DefaultDestination = recipe.Destinations.FirstOrDefault()?.DisplayName;
             ExtractBrain = recipe.ExtractBrain;
             ExtractBrainParams = recipe.ExtractBrainParams;
             Register = recipe.Register;
@@ -51,120 +73,105 @@ namespace CAPI.Agent.Models
         public string CurrentSeriesDicomFolder { get; set; }
         [NotMapped]
         public string PriorSeriesDicomFolder { get; set; }
-
-        //public Job(IDicomFactory dicomFactory, ICapiConfig capiConfig,
-        //           IFileSystem filesystem, IProcessBuilder processBuilder)
-        //{
-        //    //_dicomFactory = dicomFactory;
-        //    //_capiConfig = capiConfig;
-        //    //_filesystem = filesystem;
-        //    //_processBuilder = processBuilder;
-
-        //    //var dicomConfig = GetDicomConfigFromCapiConfig(_capiConfig);
-        //    //_dicomServices = _dicomFactory.CreateDicomServices(dicomConfig, _filesystem, _processBuilder);
-        //}
-
-        //public void Build(Recipe recipe)
-        //{
-        //    GetCurrentSeriesDicomFiles(recipe);
-        //    GetPriorSeriesDicomFiles(recipe);
-
-        //    ExtractBrain = recipe.ExtractBrain;
-        //    ExtractBrainParams = recipe.ExtractBrainParams;
-        //    Register = recipe.Register;
-        //    BiasFieldCorrection = recipe.BiasFieldCorrection;
-        //    BiasFieldCorrectionParams = recipe.BiasFieldCorrectionParams;
-        //}
+        [NotMapped]
+        public string ResultSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string PriorReslicedSeriesDicomFolder { get; set; }
 
         public void Process()
         {
             Start = DateTime.Now;
             Status = "Processing";
-            // TODO1: Update database
+            _log.Info("*************************");
+            _log.Info("Job processing started...");
+            _log.Info($"Job Id: [{Id}]");
+            _log.Info($"Current Accession: [{_recipe.CurrentAccession}]");
+            _log.Info($"Prior Accession: [{_recipe.PriorAccession}]");
 
-            throw new NotImplementedException();
+            var context = new AgentRepository(_dbConnectionString);
+            context.Jobs.Add(this);
+            context.SaveChanges();
 
-#pragma warning disable 162
+            var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
+                                                    _filesystem, _processBuilder, _capiConfig.ImgProcConfig);
+
+            var sliceType = GetSliceType(_recipe.SliceType);
+            imageProcessor.CompareAndSendToFilesystem(
+                CurrentSeriesDicomFolder, PriorSeriesDicomFolder, _recipe.LookUpTablePath, sliceType,
+                _recipe.ExtractBrain, _recipe.Register, _recipe.BiasFieldCorrection,
+                ResultSeriesDicomFolder, PriorSeriesDicomFolder);
+
+            SendToDestinations(GetDestinations());
+
             End = DateTime.Now;
-#pragma warning restore 162
+            Status = "Complete";
+            context.Jobs.Update(this);
+            context.SaveChanges();
+
+            _log.Info($"Job Id=[{Id}] completed.");
+            _log.Info("-------------------------");
         }
 
-        //private void GetCurrentSeriesDicomFiles(Recipe recipe)
-        //{
-        //    // Recipe has path to dicom folder
-        //    if (!string.IsNullOrEmpty(recipe.CurrentSeriesDicomFolder))
-        //        CurrentSeriesDicomFolder = recipe.CurrentSeriesDicomFolder;
+        private void SendToDestinations(IEnumerable<IDestination> destinations)
+        {
+            if (string.IsNullOrEmpty(ResultSeriesDicomFolder) || Directory.GetFiles(ResultSeriesDicomFolder).Length == 0)
+                throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
+                                                     $"at following path: [{ResultSeriesDicomFolder}] or empty!");
 
-        //    if (!DicomNodeIsUp(recipe.CurrentSourceAet))
-        //        throw new Exception($"Dicom node with following AET not accessible to retrieve study from: {recipe.CurrentSourceAet}");
+            if (string.IsNullOrEmpty(PriorReslicedSeriesDicomFolder) || Directory.GetFiles(PriorReslicedSeriesDicomFolder).Length == 0)
+                throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
+                                                     $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
 
-        //    // Recipe doesn't has path to dicom folder, but has SourceAet and Accession
-        //    if (!string.IsNullOrEmpty(recipe.CurrentAccession))
-        //        CurrentSeriesDicomFolder =
-        //            GetSeriesByAccession(recipe.CurrentSourceAet, recipe.CurrentAccession, recipe.CurrentSeriesCriteria);
+            foreach (var destination in destinations)
+            {
+                if (!string.IsNullOrEmpty(destination.FolderPath))
+                // Send to filesystem
+                {
+                    var resultsDestFolder = Path.Combine(destination.FolderPath, Path.GetFileName(ResultSeriesDicomFolder));
+                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
 
-        //    // Recipe doesn't has path to dicom folder or accession, but has SourceAet and selection criteria
-        //    CurrentSeriesDicomFolder = GetSeriesBySelectionCriteria(recipe);
-        //}
-        //private void GetPriorSeriesDicomFiles(Recipe recipe)
-        //{
-        //    // Recipe has path to dicom folder
-        //    if (!string.IsNullOrEmpty(recipe.PriorSeriesDicomFolder))
-        //        PriorSeriesDicomFolder = recipe.PriorSeriesDicomFolder;
+                    var priorReslicedDestFolder = Path.Combine(destination.FolderPath, Path.GetFileName(PriorReslicedSeriesDicomFolder));
+                    _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
+                }
+                // Send to Dicom Node
+                else
+                {
+                    var localNode = _capiConfig.DicomConfig.LocalNode;
+                    var remoteNode = _capiConfig.DicomConfig.RemoteNodes
+                        .SingleOrDefault(n => n.AeTitle.Equals(destination.AeTitle, StringComparison.InvariantCultureIgnoreCase));
 
-        //    if (!DicomNodeIsUp(recipe.PriorSourceAet))
-        //        throw new Exception($"Dicom node with following AET not accessible to retrieve study from: {recipe.CurrentSourceAet}");
+                    _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
 
-        //    // Recipe doesn't has path to dicom folder, but has SourceAet and Accession
-        //    if (!string.IsNullOrEmpty(recipe.PriorAccession))
-        //        PriorSeriesDicomFolder =
-        //            GetSeriesByAccession(recipe.PriorSourceAet, recipe.PriorAccession, recipe.PriorSeriesCriteria);
+                    var resultDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
+                    foreach (var resultDicomFile in resultDicomFiles)
+                        _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
 
-        //    // Recipe doesn't has path to dicom folder or accession, but has SourceAet and selection criteria
-        //    PriorSeriesDicomFolder = GetSeriesBySelectionCriteria(recipe);
-        //}
+                    var priorReslicedDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
+                    foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
+                        _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
+                }
+            }
+        }
 
-        //private bool DicomNodeIsUp(string aet)
-        //{
-        //    var localDicomNode = _capiConfig.DicomConfig.LocalNode;
-        //    var remoteDicomNode = _capiConfig.DicomConfig.RemoteNodes.Single(n => n.AeTitle == aet);
+        public IList<IDestination> GetDestinations()
+        {
+            // ReSharper disable once SuspiciousTypeConversion.Global
+            return _recipe.Destinations as IList<IDestination>;
+        }
 
-        //    _dicomServices.CheckRemoteNodeAvailability(localDicomNode, remoteDicomNode);
-
-        //    return true;
-        //}
-
-        //private IDicomConfig GetDicomConfigFromCapiConfig(ICapiConfig capiConfig)
-        //{
-        //    var dicomConfig = _dicomFactory.CreateDicomConfig();
-        //    dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
-        //    return dicomConfig;
-        //}
-
-        //private string GetSeriesByAccession(string aet, string accession, List<SeriesSelectionCriteria> criteria)
-        //{
-        //    var localDicomNode = _capiConfig.DicomConfig.LocalNode;
-        //    var remoteDicomNode = _capiConfig.DicomConfig.RemoteNodes.Single(n => n.AeTitle == aet);
-
-        //    var study = _dicomServices.GetStudyForAccession(accession, localDicomNode, remoteDicomNode);
-        //    var studySeries = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid, localDicomNode, remoteDicomNode);
-        //    var series = GetMatchingSeries(studySeries, criteria);
-
-        //    var imgRepoFolderPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
-        //    var dicomFolderPath = Path.Combine(imgRepoFolderPath, ""); // TODO1: Folder name
-        //    _dicomServices.SaveSeriesToLocalDisk(series, dicomFolderPath, localDicomNode, remoteDicomNode);
-
-        //    return dicomFolderPath;
-        //}
-
-        //private IDicomSeries GetMatchingSeries(IEnumerable<IDicomSeries> studySeries, List<SeriesSelectionCriteria> criteria)
-        //{
-        //    return null;
-        //}
-
-        //private string GetSeriesBySelectionCriteria(Recipe recipe)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        private SliceType GetSliceType(string sliceType)
+        {
+            switch (sliceType)
+            {
+                case "Sag":
+                    return SliceType.Sagittal;
+                case "Ax":
+                    return SliceType.Axial;
+                case "Cor":
+                    return SliceType.Coronal;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sliceType), "SliceType should be either [Sag], [Ax] or [Cor]");
+            }
+        }
     }
 }

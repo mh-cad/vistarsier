@@ -2,6 +2,7 @@
 using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
+using CAPI.ImageProcessing.Abstraction;
 using log4net;
 
 namespace CAPI.Agent
@@ -15,9 +16,10 @@ namespace CAPI.Agent
         }
 
         public IAgent CreateAgent(ICapiConfig config, IDicomFactory dicomFactory,
+                                  IImageProcessingFactory imgProcFactory,
                                   IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
-            return new Agent(config, dicomFactory, fileSystem, processBuilder, log);
+            return new Agent(config, dicomFactory, imgProcFactory, fileSystem, processBuilder, log);
         }
     }
 }

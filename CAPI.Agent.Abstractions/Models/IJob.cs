@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CAPI.Agent.Abstractions.Models
 {
     public interface IJob
     {
-        int Id { get; set; }
+        string Id { get; set; }
         string SourceAet { get; set; }
         string PatientId { get; set; }
         string PatientFullName { get; set; }
         string PatientBirthDate { get; set; }
         string CurrentAccession { get; set; }
         string PriorAccession { get; set; }
-        string ResultDestination { get; set; }
+        string DefaultDestination { get; set; }
         bool ExtractBrain { get; set; }
         string ExtractBrainParams { get; set; }
         bool Register { get; set; }
@@ -22,7 +23,10 @@ namespace CAPI.Agent.Abstractions.Models
         DateTime End { get; set; }
         string CurrentSeriesDicomFolder { get; set; }
         string PriorSeriesDicomFolder { get; set; }
+        string ResultSeriesDicomFolder { get; set; }
+        string PriorReslicedSeriesDicomFolder { get; set; }
 
         void Process();
+        IList<IDestination> GetDestinations();
     }
 }
