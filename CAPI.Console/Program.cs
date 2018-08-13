@@ -29,12 +29,12 @@ namespace CAPI.Console
             _log.Info("App Started...");
 
             var agentFactory = serviceProvider.GetService<IAgentFactory>();
-            //var config = serviceProvider.GetService<ICapiConfig>().GetConfig(args);
-            var config = new CapiConfig().GetConfig(args);
             var dicomFactory = serviceProvider.GetService<IDicomFactory>();
             var imgProcFactory = serviceProvider.GetService<IImageProcessingFactory>();
             var fileSystem = serviceProvider.GetService<IFileSystem>();
             var processBuilder = serviceProvider.GetService<IProcessBuilder>();
+
+            var config = new CapiConfig().GetConfig(args);
 
             var agent = agentFactory.CreateAgent(config, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
 

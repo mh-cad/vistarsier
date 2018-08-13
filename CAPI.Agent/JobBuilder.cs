@@ -84,7 +84,7 @@ namespace CAPI.Agent
                 currentDicomStudy.Series.Count == 0)
                 throw new Exception("No workable series were found for accession");
 
-            var job = new Job(recipe, _capiConfig.AgentDbConnectionString,
+            var job = new Job(recipe,
                               _dicomServices, _imgProcFactory,
                               _fileSystem, _processBuilder, _capiConfig, _log);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;

@@ -13,18 +13,12 @@ namespace CAPI.Agent
         private readonly string _connectionString;
 
         public DbSet<Case> Cases { get; set; }
-        public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Job> Jobs { get; set; }
 
         public AgentRepository()
         {
-            _connectionString = ;
+            _connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;";
         }
-
-        //public AgentRepository(string connectionString)
-        //{
-        //    _connectionString = connectionString;
-        //}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -40,9 +34,6 @@ namespace CAPI.Agent
 
         #region "Jobs"
 
-        #endregion
-
-        #region "Recipes"
         #endregion
     }
 }

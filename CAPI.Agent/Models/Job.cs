@@ -15,7 +15,6 @@ namespace CAPI.Agent.Models
     public class Job : IJob
     {
         private readonly Recipe _recipe;
-        private readonly string _dbConnectionString;
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IFileSystem _filesystem;
@@ -41,13 +40,15 @@ namespace CAPI.Agent.Models
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
 
-        public Job(Recipe recipe, string dbConnectionString,
+        // Needed for EntityFramework
+        public Job() { }
+
+        public Job(Recipe recipe,
                    IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                    IFileSystem filesystem, IProcessBuilder processBuilder,
                    ICapiConfig capiConfig, ILog log)
         {
             _recipe = recipe;
-            _dbConnectionString = dbConnectionString;
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _filesystem = filesystem;
