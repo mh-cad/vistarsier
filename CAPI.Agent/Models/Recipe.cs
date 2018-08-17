@@ -33,7 +33,7 @@ namespace CAPI.Agent.Models
         public bool BiasFieldCorrection { get; set; }
         public string BiasFieldCorrectionParams { get; set; }
 
-        public string SliceType { get; set; }
+        public string SliceType { get; set; } // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
         public string LookUpTablePath { get; set; }
 
 

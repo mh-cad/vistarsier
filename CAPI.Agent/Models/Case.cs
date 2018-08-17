@@ -1,5 +1,4 @@
 ﻿using CAPI.Agent.Abstractions.Models;
-using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
@@ -24,7 +23,7 @@ namespace CAPI.Agent.Models
                                      imgProcFactory,
                                      new ValueComparer(),
                                      fileSystem, processBuilder,
-                                     capiConfig as ICapiConfig, log)
+                                     capiConfig, log)
                       .Build(recipe);
             job.Process();
         }

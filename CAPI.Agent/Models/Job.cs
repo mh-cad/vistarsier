@@ -1,6 +1,6 @@
 ﻿using CAPI.Agent.Abstractions.Models;
-using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -19,7 +19,7 @@ namespace CAPI.Agent.Models
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
-        private readonly ICapiConfig _capiConfig;
+        private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
         public string Id { get; set; }
@@ -46,7 +46,7 @@ namespace CAPI.Agent.Models
         public Job(Recipe recipe,
                    IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                    IFileSystem filesystem, IProcessBuilder processBuilder,
-                   ICapiConfig capiConfig, ILog log)
+                   CapiConfig capiConfig, ILog log)
         {
             _recipe = recipe;
             _dicomServices = dicomServices;
@@ -138,7 +138,7 @@ namespace CAPI.Agent.Models
                 // Send to Dicom Node
                 else
                 {
-                    var localNode = _capiConfig.DicomConfig.LocalNode;
+                    var localNode = _capiConfig.DicomConfig.LocalNode;//  _capiConfig.DicomConfig.LocalNode;
                     var remoteNode = _capiConfig.DicomConfig.RemoteNodes
                         .SingleOrDefault(n => n.AeTitle.Equals(destination.AeTitle, StringComparison.InvariantCultureIgnoreCase));
 
