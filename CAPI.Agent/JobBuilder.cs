@@ -1,7 +1,7 @@
 ﻿using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
+using CAPI.Common.Config;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -28,7 +28,7 @@ namespace CAPI.Agent
         private readonly IValueComparer _valueComparer;
         private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
-        private readonly ICapiConfig _capiConfig;
+        private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace CAPI.Agent
         public JobBuilder(IDicomServices dicomServices,
                           IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
                           IFileSystem fileSystem, IProcessBuilder processBuilder,
-                          ICapiConfig capiConfig, ILog log)
+                          CapiConfig capiConfig, ILog log)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;

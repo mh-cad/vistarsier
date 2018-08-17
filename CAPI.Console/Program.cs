@@ -57,7 +57,6 @@ namespace CAPI.Console
                 .AddSingleton<IAgentFactory, AgentFactory>()
                 //.AddSingleton<IAgentRepository, AgentRepository>()
                 //.AddSingleton<ICapiConfig, CapiConfig>()
-                //.AddSingleton<Common.Abstractions.Config.IDicomConfig, Common.Config.DicomConfig>()
                 .AddSingleton<IImgProcConfig, ImgProcConfig>()
                 .AddSingleton<ITestsConfig, TestsConfig>()
                 .AddSingleton<IFileSystem, FileSystem>()

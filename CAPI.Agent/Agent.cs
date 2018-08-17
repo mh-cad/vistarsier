@@ -63,8 +63,17 @@ namespace CAPI.Agent
         private void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
             if (IsBusy) return;
+            IsBusy = true;
 
-            ProcessNewlyAddedCases();
+            try
+            {
+                ProcessNewlyAddedCases();
+            }
+            catch
+            {
+                IsBusy = false;
+                return;
+            }
 
             try
             {
@@ -75,6 +84,7 @@ namespace CAPI.Agent
             {
                 var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
                 _log.Error($"Unable to get pending cases from database. {dbConnectionString}", ex);
+                IsBusy = false;
                 throw;
             }
         }
@@ -131,8 +141,25 @@ namespace CAPI.Agent
         }
         private void ProcessNewlyAddedCases()
         {
-            HandleManuallyAddedCases();
-            HandleHl7AddedCases();
+            try
+            {
+                HandleManuallyAddedCases();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to get manually added cases.", ex);
+                throw;
+            }
+
+            try
+            {
+                HandleHl7AddedCases();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to get HL7 added cases.", ex);
+                throw;
+            }
         }
         private Recipe FindRecipe(ICase @case)
         {
@@ -186,7 +213,8 @@ namespace CAPI.Agent
             manuallyAddedCases.ToList().ForEach(mc =>
             {
                 var inDb = _context.Cases.Select(c => c.Accession)
-                    .Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
+                    .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
+                //.Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
                 if (inDb)
                 { // If already in database, set status to Pending
                     var inDbCase = _context.Cases.Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
@@ -195,16 +223,16 @@ namespace CAPI.Agent
                 }
                 else // if not in database, add to database
                 {
-                    var newCase = new Case { Accession = mc.Accession, AdditionMethod = AdditionMethod.Manually };
+                    var newCase = new Case { Accession = mc.Accession, Status = "Pending", AdditionMethod = AdditionMethod.Manually };
                     try
                     {
                         _context.Cases.Add(newCase);
                         _context.SaveChanges();
-                        // TODO1: Log accession added to database
+                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // TODO1: Log failing to add to database
+                        _log.Error($"Failed to insert manually added case into database. Accession: [{newCase.Accession}]", ex);
                     }
 
                 }
@@ -227,18 +255,19 @@ namespace CAPI.Agent
             hl7AddedCases.ToList().ForEach(mc =>
             {
                 var inDb = _context.Cases.Select(c => c.Accession)
-                    .Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
+                        .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
+                //.Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
                 if (inDb) return; // If not in database, add to db
                 var newCase = new Case { Accession = mc.Accession, AdditionMethod = AdditionMethod.Hl7 };
                 try
                 {
                     _context.Cases.Add(newCase);
                     _context.SaveChanges();
-                    // TODO1: Log accession added to database
+                    _log.Info($"Successfully inserted HL7 added case into database. Accession: [{newCase.Accession}]");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // TODO1: Log failing to add to database
+                    _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.Accession}]", ex);
                 }
                 // if already in database, disregard?
             });
