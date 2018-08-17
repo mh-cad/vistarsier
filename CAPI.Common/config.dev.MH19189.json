@@ -3,9 +3,23 @@
   "RunInterval": "30",
   "ManualProcessPath": "D:\\Capi-Files\\ManualProcess",
   "Hl7ProcessPath": "",
-  "DefaultRecipePath": "D:\\VT-Files\\DefaultRecipe.recipe.json",
+  "DefaultRecipePath": "D:\\Capi-Files\\DefaultRecipe.recipe.json",
   "DicomConfig": {
-    "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin"
+    "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
+    "LocalNode": {
+      "LogicalName": "Mehdi's PC MH19189",
+      "AeTitle": "KPSB",
+      "IpAddress": "172.28.42.42",
+      "Port": 104
+    },
+    "RemoteNodes": [
+      {
+        "LogicalName": "Syn-mini",
+        "AeTitle": "RMHSYNMINISCP",
+        "IpAddress": "172.28.40.152",
+        "Port": 104
+      }
+    ] 
   },
   "ImgProcConfig": {
     "ImgProcBinFolderPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
