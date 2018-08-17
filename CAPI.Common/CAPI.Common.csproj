@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\CapiConfig.cs" />
+    <Compile Include="Config\CapiConfigJsonConverter.cs" />
     <Compile Include="Config\Helper.cs" />
     <Compile Include="Config\DicomConfig.cs" />
     <Compile Include="Config\ImgProcConfig.cs" />
