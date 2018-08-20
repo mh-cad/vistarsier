@@ -14,6 +14,12 @@
     },
     "RemoteNodes": [
       {
+        "LogicalName": "Synapse Live",
+        "AeTitle": "RMHSYNSCP",
+        "IpAddress": "172.28.40.151",
+        "Port": 104
+      },
+      {
         "LogicalName": "Syn-mini",
         "AeTitle": "RMHSYNMINISCP",
         "IpAddress": "172.28.40.152",

@@ -328,7 +328,8 @@ namespace CAPI.Dicom
         public void CheckRemoteNodeAvailability(IDicomNode localNode, IDicomNode remoteNode)
         {
             var verificationScu = new VerificationScu();
-            var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
+            //var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
+            var result = verificationScu.Verify("KPSB", "RMHSYNSCP", "172.28.40.151", 104);
             if (result != VerificationResult.Success)
                 throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
         }
