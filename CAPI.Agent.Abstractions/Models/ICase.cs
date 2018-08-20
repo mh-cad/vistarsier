@@ -10,7 +10,7 @@
 
     public enum AdditionMethod
     {
-        Hl7 = 'H',
-        Manually = 'M'
+        Hl7,
+        Manually
     }
 }
