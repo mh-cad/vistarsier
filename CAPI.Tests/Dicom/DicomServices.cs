@@ -37,14 +37,14 @@ namespace CAPI.Tests.Dicom
         public void TestInit()
         {
             _testObjectsPath = GetTestObjectsPath();
-            var container = CreateContainerCore();
+            var container = Helpers.Unity.CreateContainerCore();
             _dicomFactory = container.Resolve<IDicomFactory>();
             _dicomServices = container.Resolve<IDicomServices>();
             _dicomConfig = container.Resolve<IDicomConfig>();
             _filesystem = container.Resolve<IFileSystem>();
             _processBuilder = container.Resolve<IProcessBuilder>();
 
-            var capiConfig = CapiConfigGetter.GetCapiConfig();
+            var capiConfig = new CapiConfig().GetConfig(new[] { "-dev" }); //CapiConfigGetter.GetCapiConfig();
 
             _dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
 

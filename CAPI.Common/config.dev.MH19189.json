@@ -14,6 +14,12 @@
     },
     "RemoteNodes": [
       {
+        "LogicalName": "Synapse Live",
+        "AeTitle": "***REMOVED***",
+        "IpAddress": "***REMOVED***",
+        "Port": 104
+      },
+      {
         "LogicalName": "Syn-mini",
         "AeTitle": "***REMOVED***",
         "IpAddress": "***REMOVED***",
