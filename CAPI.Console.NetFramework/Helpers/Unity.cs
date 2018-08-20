@@ -13,7 +13,7 @@ using Unity.log4net;
 using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 
-namespace CAPI.Tests.Helpers
+namespace CAPI.Console.NetFramework.Helpers
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Unity
@@ -26,30 +26,31 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IDicomNode, DicomNode>();
             container.RegisterType<IDicomFactory, DicomFactory>();
             container.RegisterType<IDicomServices, DicomServices>();
-            container.RegisterType<CAPI.Dicom.Abstraction.IDicomConfig, CAPI.Dicom.DicomConfig>();
+            container.RegisterType<Dicom.Abstraction.IDicomConfig, Dicom.DicomConfig>();
             container.RegisterType<IImageConverter, ImageConverter>();
             container.RegisterType<IImageProcessorNew, ImageProcessorNew>();
             //container.RegisterType<IJobManagerFactory, JobManagerFactory>();
             //container.RegisterType<JobManager.Abstraction.IRecipe, Recipe>();
             //container.RegisterType<IJobNew<JobManager.Abstraction.IRecipe>, JobNew<JobManager.Abstraction.IRecipe>>();
             //container.RegisterType<IJobBuilderNew, JobBuilderNew>();
-            container.RegisterType<CAPI.Agent.Abstractions.Models.ISeriesSelectionCriteria, CAPI.Agent.Models.SeriesSelectionCriteria>();
+            container.RegisterType<Agent.Abstractions.Models.ISeriesSelectionCriteria, Agent.Models.SeriesSelectionCriteria>();
             //container.RegisterType<IIntegratedProcess, IntegratedProcess>();
             //container.RegisterType<IDestination, Destination>();
-            container.RegisterType<CAPI.Agent.Abstractions.Models.IDestination, CAPI.Agent.Models.Destination>();
+            container.RegisterType<Agent.Abstractions.Models.IDestination, Agent.Models.Destination>();
             //container.RegisterType<IRecipeRepositoryInMemory<JobManager.Abstraction.IRecipe>, RecipeRepositoryInMemory<Recipe>>();
             //container.RegisterType<IDicomNodeRepository, DicomNodeRepositoryInMemory>();
-            container.RegisterType<CAPI.Agent.Abstractions.Models.IValueComparer, CAPI.Agent.Models.ValueComparer>();
+            container.RegisterType<Agent.Abstractions.Models.IValueComparer, Agent.Models.ValueComparer>();
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
             container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
-            container.RegisterType<IAgent, CAPI.Agent.Agent>();
-            container.RegisterType<CAPI.Agent.Abstractions.IImageProcessor, CAPI.Agent.ImageProcessor>();
+            container.RegisterType<IAgent, Agent.Agent>();
+            container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
+            container.RegisterType<IAgentFactory, Agent.AgentFactory>();
             //container.RegisterType<ICapiConfig, CapiConfig>();
             //container.RegisterType<IDicomConfig, CAPI.Common.Config.DicomConfig>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IFileSystem, CAPI.Common.Services.FileSystem>();
+            container.RegisterType<IFileSystem, FileSystem>();
             container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;

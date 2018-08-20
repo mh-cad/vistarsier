@@ -234,7 +234,6 @@ namespace CAPI.Agent
                     {
                         _log.Error($"Failed to insert manually added case into database. Accession: [{newCase.Accession}]", ex);
                     }
-
                 }
             });
         }

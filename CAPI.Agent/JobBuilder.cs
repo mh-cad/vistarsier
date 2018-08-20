@@ -62,11 +62,7 @@ namespace CAPI.Agent
         /// <returns></returns>
         public IJob Build(Recipe recipe)
         {
-            var localNode = _capiConfig.DicomConfig.LocalNode;
-            var sourceNode = _capiConfig.DicomConfig.RemoteNodes
-                .Single(n => n.AeTitle.Equals(recipe.SourceAet, StringComparison.InvariantCultureIgnoreCase));
-
-            _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
+            GetLocalAndRemoteNodes(recipe.SourceAet, out var localNode, out var sourceNode);
 
             var patientId = GetPatientIdFromRecipe(recipe, localNode, sourceNode);
 
@@ -108,6 +104,43 @@ namespace CAPI.Agent
             job.PriorSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
 
             return job;
+        }
+
+        private void GetLocalAndRemoteNodes(string sourceAet, out IDicomNode localNode, out IDicomNode sourceNode)
+        {
+            localNode = _capiConfig.DicomConfig.LocalNode;
+
+            var remoteNodes = _capiConfig.DicomConfig.RemoteNodes;
+
+            if (remoteNodes.Count == 0)
+            {
+                _log.Error("No remote nodes found in config file.");
+                throw new Exception("No remote nodes found in config file.");
+            }
+
+            try
+            {
+                sourceNode = remoteNodes
+                    .Single(n => n.AeTitle.Equals(sourceAet, StringComparison.InvariantCultureIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                var errorMesesage =
+                    $"Source node AET [{sourceAet}] in Recipe was not found in config file list of remote nodes";
+                _log.Error(errorMesesage, ex);
+                throw new Exception(errorMesesage);
+            }
+
+            try
+            {
+                _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Local Node AET [{localNode.AeTitle}] cannot reach" +
+                           $"Source Node AET [{sourceAet}]", ex);
+                throw;
+            }
         }
 
         private string SaveDicomFilesToFilesystem(
