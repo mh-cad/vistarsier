@@ -12,9 +12,10 @@ namespace CAPI.ImageProcessing
             return new Nifti();
         }
 
-        public IImageConverter CreateImageConverter(IFileSystem fileSystem, IProcessBuilder processBuilder)
+        public IImageConverter CreateImageConverter(
+            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig config)
         {
-            return new ImageConverter(fileSystem, processBuilder);
+            return new ImageConverter(fileSystem, processBuilder, config);
         }
 
         public IImageProcessorNew CreateImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder, IImgProcConfig config)

@@ -5,7 +5,6 @@ using CAPI.Console.NetFramework.Helpers;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
-using System;
 using Unity;
 
 namespace CAPI.Console.NetFramework
@@ -34,9 +33,11 @@ namespace CAPI.Console.NetFramework
 
             agent.Run();
 
-            _log.Info($"{Environment.NewLine}Press any key to exit.");
+            //_log.Info($"{Environment.NewLine}Press any key to exit.");
 
-            System.Console.ReadKey();
+            //System.Console.ReadKey();
+
+            while (true) { }
         }
 
         private static void InitialiseLog4Net()
