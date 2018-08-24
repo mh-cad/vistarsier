@@ -1,4 +1,5 @@
-﻿using CAPI.Common.Abstractions.Services;
+﻿using CAPI.Common.Abstractions.Config;
+using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +15,7 @@ namespace CAPI.Tests.ImageProcessing
         private IFileSystem _filesystem;
         private IProcessBuilder _processBuilder;
         private IImageProcessingFactory _imageProcessingFactory;
+        private IImgProcConfig _imgProcConfig;
 
         private string _testResourcesPath;
         private string _fixedDicomFolder;
@@ -28,6 +30,7 @@ namespace CAPI.Tests.ImageProcessing
             _filesystem = _unity.Resolve<IFileSystem>();
             _processBuilder = _unity.Resolve<IProcessBuilder>();
             _imageProcessingFactory = _unity.Resolve<IImageProcessingFactory>();
+            _imgProcConfig = _unity.Resolve<IImgProcConfig>();
 
             _testResourcesPath = Helper.GetTestResourcesPath();
             _fixedDicomFolder = $@"{_testResourcesPath}\Fixed2\Dicom";
@@ -55,7 +58,8 @@ namespace CAPI.Tests.ImageProcessing
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
-            var imageConverter = _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder);
+            var imageConverter =
+                _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder, _imgProcConfig);
             imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert

@@ -14,6 +14,7 @@ namespace CAPI.ImageProcessing
         private readonly IProcessBuilder _processBuilder;
         private readonly IImgProcConfig _config;
 
+
         public ImageProcessorNew(IFileSystem filesystem, IProcessBuilder processBuilder, IImgProcConfig config)
         {
             _filesystem = filesystem;
@@ -23,7 +24,11 @@ namespace CAPI.ImageProcessing
 
         public void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii)
         {
-            var bseExe = _config.BseExeFilePath;
+            var bseExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BseExeRelFilePath);
+
+            if (!File.Exists(bseExe))
+                throw new FileNotFoundException($"Unable to find {nameof(bseExe)} file: [{bseExe}]");
+
             var arguments = $"-i {inNii} --mask {outMaskNii} -o {outBrainNii} {bseParams}";
 
             if (!Directory.Exists(Path.GetDirectoryName(outBrainNii))) throw new DirectoryNotFoundException();
@@ -48,7 +53,11 @@ namespace CAPI.ImageProcessing
 
         private void CreateRawXform(string outputPath, string fixedNii, string floatingNii)
         {
-            var registrationFile = _config.RegistrationFile;
+            var registrationFile = Path.Combine(_config.ImgProcBinFolderPath, _config.RegistrationRelFilePath);
+
+            if (!File.Exists(registrationFile))
+                throw new FileNotFoundException($"Unable to find {nameof(registrationFile)} file: [{registrationFile}]");
+
             var registrationParams = _config.RegistrationParams;
             var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}";
             var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}";
@@ -83,14 +92,21 @@ namespace CAPI.ImageProcessing
 
             var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
 
-            var reformatxFilePath = _config.ReformatXFilePath;
+            var reformatxFilePath = Path.Combine(_config.ImgProcBinFolderPath, _config.ReformatXRelFilePath);
+
+            if (!File.Exists(reformatxFilePath)) throw new
+                FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
 
             _processBuilder.CallExecutableFile(reformatxFilePath, arguments);
         }
 
         public void BiasFieldCorrection(string inNii, string bfcParams, string outNii)
         {
-            var bfcExe = _config.BfcExeFilePath;
+            var bfcExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BfcExeRelFilePath);
+
+            if (!File.Exists(bfcExe))
+                throw new FileNotFoundException($"Unable to find {nameof(bfcExe)} file: [{bfcExe}]");
+
             var arguments = $"-i {inNii} -o {outNii} {bfcParams}";
 
             _processBuilder.CallExecutableFile(bfcExe, arguments);
@@ -179,7 +195,7 @@ namespace CAPI.ImageProcessing
 
             var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
-            new ImageConverter(_filesystem, _processBuilder).DicomToNiix(currentDicomFolder, currentNifti);
+            new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(currentDicomFolder, currentNifti);
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior seires
             if (!_filesystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
@@ -187,7 +203,7 @@ namespace CAPI.ImageProcessing
 
             var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
 
-            new ImageConverter(_filesystem, _processBuilder).DicomToNiix(priorDicomFolder, priorNifti);
+            new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(priorDicomFolder, priorNifti);
 
             CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
                 extractBrain, register, biasFieldCorrect,

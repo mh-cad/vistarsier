@@ -83,16 +83,15 @@ namespace CAPI.Agent.Models
         {
             Start = DateTime.Now;
             Status = "Processing";
-            _log.Info("*************************");
-            _log.Info("Job processing started...");
-            _log.Info($"Job Id: [{Id}]");
-            _log.Info($"Current Accession: [{_recipe.CurrentAccession}]");
-            _log.Info($"Prior Accession: [{_recipe.PriorAccession}]");
 
             var context = new AgentRepository();
-            //var context = new AgentRepository(_dbConnectionString);
             context.Jobs.Add(this);
             context.SaveChanges();
+
+            _log.Info($"{Environment.NewLine}Job processing started...");
+            _log.Info($"Job Id: [{Id}]");
+            _log.Info($"Current Accession: [{CurrentAccession}]");
+            _log.Info($"Prior Accession: [{PriorAccession}]");
 
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
                                                     _filesystem, _processBuilder, _capiConfig.ImgProcConfig);
@@ -101,7 +100,7 @@ namespace CAPI.Agent.Models
             imageProcessor.CompareAndSendToFilesystem(
                 CurrentSeriesDicomFolder, PriorSeriesDicomFolder, _recipe.LookUpTablePath, sliceType,
                 _recipe.ExtractBrain, _recipe.Register, _recipe.BiasFieldCorrection,
-                ResultSeriesDicomFolder, PriorSeriesDicomFolder);
+                ResultSeriesDicomFolder, PriorReslicedSeriesDicomFolder);
 
             SendToDestinations(GetDestinations());
 

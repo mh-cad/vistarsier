@@ -81,7 +81,7 @@ namespace CAPI.Tests.Config
         [TestMethod]
         public void Dcm2NiiExeExists()
         {
-            var filepath = _config.ImgProcConfig.Dcm2NiiExeFilePath;
+            var filepath = _config.ImgProcConfig.Dcm2NiiExeRelFilePath;
 
             //Assert
             Assert.IsTrue(File.Exists(filepath));
@@ -92,7 +92,7 @@ namespace CAPI.Tests.Config
         {
             // Arrange
             // Act
-            var bseFile = _config.ImgProcConfig.BseExeFilePath;
+            var bseFile = _config.ImgProcConfig.BseExeRelFilePath;
 
             // Assert
             Assert.IsTrue(File.Exists(bseFile));
@@ -103,7 +103,7 @@ namespace CAPI.Tests.Config
         {
             // Arrange
             // Act
-            var bfcFile = _config.ImgProcConfig.BfcExeFilePath;
+            var bfcFile = _config.ImgProcConfig.BfcExeRelFilePath;
 
             // Assert
             Assert.IsTrue(File.Exists(bfcFile));

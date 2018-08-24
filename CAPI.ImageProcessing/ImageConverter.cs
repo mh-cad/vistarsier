@@ -9,16 +9,22 @@ namespace CAPI.ImageProcessing
     {
         private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
+        private readonly Common.Abstractions.Config.IImgProcConfig _config;
 
-        public ImageConverter(IFileSystem filesystem, IProcessBuilder processBuilder)
+        public ImageConverter(
+            IFileSystem filesystem, IProcessBuilder processBuilder, Common.Abstractions.Config.IImgProcConfig config)
         {
             _filesystem = filesystem;
             _processBuilder = processBuilder;
+            _config = config;
         }
 
         public void DicomToNiix(string dicomDir, string outfile, string @params = "")
         {
-            var dcm2NiiExe = ImgProcConfig.GetDcm2NiiExeFilePath();
+            var dcm2NiiExe = Path.Combine(_config.ImgProcBinFolderPath, _config.Dcm2NiiExeRelFilePath);
+
+            if (!File.Exists(dcm2NiiExe))
+                throw new FileNotFoundException($"Unable to find {nameof(dcm2NiiExe)} file: [{dcm2NiiExe}]");
 
             var tmpDir = $@"{Path.GetDirectoryName(outfile)}\tmp";
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
