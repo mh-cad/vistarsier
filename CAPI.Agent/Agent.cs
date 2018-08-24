@@ -62,28 +62,40 @@ namespace CAPI.Agent
         // Runs every interval
         private void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
-            if (IsBusy) return;
+            if (IsBusy)
+            {
+                _log.Info("Agent is processing cases");
+                return;
+            }
+
             IsBusy = true;
 
             try
             {
+                _log.Info("Checking for new cases");
                 ProcessNewlyAddedCases();
             }
-            catch
+            catch (Exception ex)
             {
+                _log.Error($"{Environment.NewLine}Error occured while adding new cases to database", ex);
                 IsBusy = false;
                 return;
             }
 
             try
             {
-                var pendingCases = _context.GetCaseByStatus("Pending");
-                pendingCases.ToList().ForEach(ProcessCase);
+                var pendingCases = _context.GetCaseByStatus("Pending").ToList();
+                if (pendingCases.ToArray().Any())
+                {
+                    _log.Info("Start processing pending cases...");
+                    pendingCases.ToList().ForEach(ProcessCase);
+                }
+                IsBusy = false;
             }
             catch (Exception ex)
             {
                 var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
-                _log.Error($"Unable to get pending cases from database. {dbConnectionString}", ex);
+                _log.Error($"\r\nUnable to get pending cases from database. {dbConnectionString}", ex);
                 IsBusy = false;
                 throw;
             }
@@ -143,7 +155,8 @@ namespace CAPI.Agent
         {
             try
             {
-                HandleManuallyAddedCases();
+                if (Config.ProcessCasesAddedManually)
+                    HandleManuallyAddedCases();
             }
             catch (Exception ex)
             {
@@ -153,7 +166,8 @@ namespace CAPI.Agent
 
             try
             {
-                HandleHl7AddedCases();
+                if (Config.ProcessCasesAddedByHL7)
+                    HandleHl7AddedCases();
             }
             catch (Exception ex)
             {
@@ -163,16 +177,18 @@ namespace CAPI.Agent
         }
         private Recipe FindRecipe(ICase @case)
         {
+            var recipe = new Recipe();
             if (@case.AdditionMethod == AdditionMethod.Hl7)
             {
-                return GetDefaultRecipe();
+                recipe = GetDefaultRecipe();
+                recipe.CurrentAccession = @case.Accession;
             }
             else
             {
-                // Find recipe in manually processing folder
-                //throw new NotImplementedException();
-                return GetDefaultRecipe();
+                // TODO1: Find recipe in manually processing folder
+                recipe = GetDefaultRecipe();
             }
+            return recipe;
         }
         private Recipe GetDefaultRecipe()
         {
@@ -250,14 +266,14 @@ namespace CAPI.Agent
         }
         private void HandleHl7AddedCases()
         {
-            var hl7AddedCases = GetHl7AddedCases(Config.ManualProcessPath);
+            var hl7AddedCases = GetHl7AddedCases(Config.Hl7ProcessPath);
             hl7AddedCases.ToList().ForEach(mc =>
             {
                 var inDb = _context.Cases.Select(c => c.Accession)
                         .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
                 //.Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
                 if (inDb) return; // If not in database, add to db
-                var newCase = new Case { Accession = mc.Accession, AdditionMethod = AdditionMethod.Hl7 };
+                var newCase = new Case { Accession = mc.Accession, Status = "Pending", AdditionMethod = AdditionMethod.Hl7 };
                 try
                 {
                     _context.Cases.Add(newCase);

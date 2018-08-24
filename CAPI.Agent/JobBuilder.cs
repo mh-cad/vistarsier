@@ -74,6 +74,8 @@ namespace CAPI.Agent
                 throw new Exception(
                     $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{sourceNode.AeTitle}]");
 
+            recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
+
             // Get Current Study (Fixed)
             var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
             if (currentDicomStudy == null ||
@@ -84,7 +86,8 @@ namespace CAPI.Agent
                               _dicomServices, _imgProcFactory,
                               _fileSystem, _processBuilder, _capiConfig, _log);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
-            var jobFolderName = $"{recipe.PatientFullName}-{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
+            var patientName = recipe.PatientFullName.Split('^')[0];
+            var jobFolderName = $"{patientName}-{DateTime.Now:yyyyMMdd_HHmmssfff}";
             job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
                 currentDicomStudy, imageRepositoryPath, jobFolderName, Current, localNode, sourceNode);
 
@@ -98,12 +101,20 @@ namespace CAPI.Agent
                 throw new Exception("No prior workable series were found");
 
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, imageRepositoryPath, recipe.PatientFullName, Prior, localNode, sourceNode);
+                currentDicomStudy, imageRepositoryPath, jobFolderName, Prior, localNode, sourceNode);
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
-            job.PriorSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
+            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
+            job.PriorAccession = priorDicomStudy.AccessionNumber;
 
             return job;
+        }
+
+        private static Recipe UpdateRecipeWithPatientDetails(Recipe recipe, IReadOnlyCollection<IDicomStudy> studies)
+        {
+            recipe.PatientFullName = studies.FirstOrDefault()?.PatientsName;
+            recipe.PatientBirthDate = studies.FirstOrDefault()?.PatientBirthDate.ToString("yyyyMMdd");
+            return recipe;
         }
 
         private void GetLocalAndRemoteNodes(string sourceAet, out IDicomNode localNode, out IDicomNode sourceNode)
@@ -154,7 +165,27 @@ namespace CAPI.Agent
 
             _dicomServices.SaveSeriesToLocalDisk(series, folderPath, locaNode, sourceNode);
 
+            CopyDicomFilesToRootFolder(folderPath);
+
             return folderPath;
+        }
+
+        private static void CopyDicomFilesToRootFolder(string folderPath)
+        {
+            var studyFolderPath = Directory.GetDirectories(folderPath).FirstOrDefault();
+            if (studyFolderPath == null)
+                throw new DirectoryNotFoundException($"Study folder not found in [{folderPath}]");
+
+            var seriesFolderPath = Directory.GetDirectories(studyFolderPath).FirstOrDefault();
+            if (seriesFolderPath == null)
+                throw new DirectoryNotFoundException($"Series folder not found in [{studyFolderPath}]");
+
+            var files = Directory.GetFiles(seriesFolderPath);
+
+            for (var i = 0; i < files.Length; i++)
+                File.Move(files[i], Path.Combine(folderPath, i.ToString("D3")));
+
+            Directory.Delete(studyFolderPath, true);
         }
 
         private IDicomStudy GetCurrentDicomStudy(

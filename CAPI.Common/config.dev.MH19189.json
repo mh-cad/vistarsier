@@ -1,9 +1,11 @@
 {
   "AgentDbConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;",
-  "RunInterval": "30",
+  "RunInterval": "5",
   "ManualProcessPath": "D:\\Capi-Files\\ManualProcess",
-  "Hl7ProcessPath": "",
+  "Hl7ProcessPath": "D:\\Capi-Files\\Hl7Process",
   "DefaultRecipePath": "D:\\Capi-Files\\DefaultRecipe.recipe.json",
+  "ProcessCasesAddedManually": true,
+  "ProcessCasesAddedByHL7": false,
   "DicomConfig": {
     "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
     "LocalNode": {
@@ -25,17 +27,26 @@
         "IpAddress": "***REMOVED***",
         "Port": 104
       }
-    ] 
+    ]
   },
   "ImgProcConfig": {
     "ImgProcBinFolderPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
+    "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
+    "BseExeRelFilePath": "bse.exe",
+    "BseParams": "--auto --trim",
+    "RegistrationRelFilePath": "CMTK\\bin\\registration.exe",
+    "CmtkFolderName": "CMTK_Output",
+    "CmtkRawxformFile": "CmtkRawxFormFile",
+    "RegistrationParams": "--initxlate --dofs 6 --auto-multi-levels 4",
+    "CmtkResultxformFile": "CmtkResultxFormFile",
+    "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
+    "BfcExeRelFilePath": "bfc.exe",
+    "BfcParams": "--iterate",
     //"ImgProcConfigFolderPath": "D:\\VT-Files\\RAPPreprocess\\config",
     "JavaExeFilePath": "C:\\Program Files (x86)\\Java\\jre1.8.0_144\\bin\\java.exe",
     "JavaClasspath": "D:\\Capi-Files\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
     "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
-    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository",
-    "ProcessCasesAddedManually": true,
-    "ProcessCasesAddedByHL7": false
+    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository"
   },
   "TestsConfig": {
     "TestResources": "D:\\Capi-Tests\\TestsResources"
