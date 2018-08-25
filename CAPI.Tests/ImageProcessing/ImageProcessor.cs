@@ -18,7 +18,7 @@ namespace CAPI.Tests.ImageProcessing
         private string _fixedBrainNiiFile;
         private string _reslicedfloatingNiiFile;
         private IUnityContainer _unity;
-        private IImageProcessorNew _imageProcessor;
+        private IImageProcessor _imageProcessor;
         private IFileSystem _filesystem;
         private string _lookupTable;
         private string _compareResult;
@@ -45,7 +45,7 @@ namespace CAPI.Tests.ImageProcessing
             //_floatingDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\floating";
 
             _unity = Helpers.Unity.CreateContainerCore();
-            _imageProcessor = _unity.Resolve<IImageProcessorNew>();
+            _imageProcessor = _unity.Resolve<IImageProcessor>();
 
             ClearFilesAndFolders();
         }

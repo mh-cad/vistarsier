@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace CAPI.Agent.Abstractions.Models
 {
@@ -27,6 +26,5 @@ namespace CAPI.Agent.Abstractions.Models
         string PriorReslicedSeriesDicomFolder { get; set; }
 
         void Process();
-        IList<IDestination> GetDestinations();
     }
 }

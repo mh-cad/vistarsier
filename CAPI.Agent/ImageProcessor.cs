@@ -2,9 +2,9 @@
 using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
 using System.IO;
 using System.Linq;
-using IImgProc = CAPI.ImageProcessing.Abstraction.IImageProcessorNew;
 
 namespace CAPI.Agent
 {
@@ -15,16 +15,18 @@ namespace CAPI.Agent
     public class ImageProcessor : Abstractions.IImageProcessor
     {
         private readonly IDicomServices _dicomServices;
-        private readonly IImgProc _imgProc;
+        private readonly IImageProcessor _imgProc;
         private readonly IImageProcessingFactory _imgProcFactory;
+        private readonly ILog _log;
 
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                               IFileSystem filesystem, IProcessBuilder processBuilder,
-                              IImgProcConfig imgProcConfig)
+                              IImgProcConfig imgProcConfig, ILog log)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
-            _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig);
+            _log = log;
+            _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
         }
 
         public void CompareAndSendToFilesystem(
@@ -41,13 +43,17 @@ namespace CAPI.Agent
                 extractBrain, register, biasFieldCorrect,
                 resultNiiFile, outPriorReslicedNiiFile);
 
+            _log.Info("Start Converting Results back to Dicom");
             ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder);
+            _log.Info("Finished Converting Results back to Dicom");
 
             UpdateSeriesDescriptionForAllFiles(resultDicom, "CAPI Modified Signal");
 
             // current study headers are used as this series is going to be sent to the current study
             // prior study date will be added to the end of Series Description tag
+            _log.Info("Start Converting Resliced Prior Series back to Dicom");
             ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder);
+            _log.Info("Finished Converting Resliced Prior Series back to Dicom");
 
             var studydate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
             UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, $"CAPI Old Study (comparison) re-slilced ({studydate})");

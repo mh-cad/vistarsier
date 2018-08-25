@@ -10,6 +10,7 @@ using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using Unity;
 using Unity.log4net;
+using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 
@@ -28,7 +29,7 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IDicomServices, DicomServices>();
             container.RegisterType<CAPI.Dicom.Abstraction.IDicomConfig, CAPI.Dicom.DicomConfig>();
             container.RegisterType<IImageConverter, ImageConverter>();
-            container.RegisterType<IImageProcessorNew, ImageProcessorNew>();
+            container.RegisterType<IImageProcessor, ImageProcessor>();
             //container.RegisterType<IJobManagerFactory, JobManagerFactory>();
             //container.RegisterType<JobManager.Abstraction.IRecipe, Recipe>();
             //container.RegisterType<IJobNew<JobManager.Abstraction.IRecipe>, JobNew<JobManager.Abstraction.IRecipe>>();
