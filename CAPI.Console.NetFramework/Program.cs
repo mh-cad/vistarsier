@@ -33,10 +33,6 @@ namespace CAPI.Console.NetFramework
 
             agent.Run();
 
-            //_log.Info($"{Environment.NewLine}Press any key to exit.");
-
-            //System.Console.ReadKey();
-
             while (true) { }
         }
 

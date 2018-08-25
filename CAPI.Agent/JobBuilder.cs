@@ -77,6 +77,7 @@ namespace CAPI.Agent
             recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
 
             // Get Current Study (Fixed)
+            _log.Info("Finding current series using recipe prvided...");
             var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
@@ -88,20 +89,26 @@ namespace CAPI.Agent
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var jobFolderName = $"{patientName}-{DateTime.Now:yyyyMMdd_HHmmssfff}";
+
+            _log.Info("Saving current series to disk...");
             job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
                 currentDicomStudy, imageRepositoryPath, jobFolderName, Current, localNode, sourceNode);
+            _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
             // Get Prior Study (Floating)
+            _log.Info("Finding prior series using recipe prvided...");
             var priorDicomStudy =
                 GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
             if (priorDicomStudy == null)
                 throw new Exception("No prior workable series were found");
 
+            _log.Info("Saving prior series to disk...");
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
                 currentDicomStudy, imageRepositoryPath, jobFolderName, Prior, localNode, sourceNode);
+            _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
             job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);

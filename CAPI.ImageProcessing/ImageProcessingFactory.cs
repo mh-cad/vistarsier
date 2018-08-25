@@ -1,6 +1,7 @@
 ﻿using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
 
 namespace CAPI.ImageProcessing
 {
@@ -18,9 +19,10 @@ namespace CAPI.ImageProcessing
             return new ImageConverter(fileSystem, processBuilder, config);
         }
 
-        public IImageProcessorNew CreateImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder, IImgProcConfig config)
+        public IImageProcessor CreateImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
+                                                    IImgProcConfig config, ILog log)
         {
-            return new ImageProcessorNew(filesystem, processBuilder, config);
+            return new ImageProcessor(filesystem, processBuilder, config, log);
         }
     }
 }

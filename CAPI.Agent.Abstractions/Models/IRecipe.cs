@@ -1,4 +1,6 @@
-﻿namespace CAPI.Agent.Abstractions.Models
+﻿using System.Collections.Generic;
+
+namespace CAPI.Agent.Abstractions.Models
 {
     public interface IRecipe
     {
@@ -25,6 +27,7 @@
         string SliceType { get; set; } // "Sag"=Sagittal | "Ax" = Axial | "Cor" = Coronal
         string LookUpTablePath { get; set; }
 
-        //IList<IDestination> Destinations { get; set; }
+        List<string> FilesystemDestinations { get; set; }
+        List<string> DicomDestinations { get; set; }
     }
 }
