@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -44,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ImageProcessingFactory.cs" />
-    <Compile Include="ImageProcessorNew.cs" />
+    <Compile Include="ImageProcessor.cs" />
     <Compile Include="FrameOfReference.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="ImgProcConfig.cs" />
@@ -80,6 +83,7 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings1.Designer.cs</LastGenOutput>

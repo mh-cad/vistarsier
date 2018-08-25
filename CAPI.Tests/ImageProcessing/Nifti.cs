@@ -174,7 +174,7 @@ namespace CAPI.Tests.ImageProcessing
             var floatingResliced = _unity.Resolve<INifti>().ReadNifti(_floatingShades);
 
             var result = _unity.Resolve<INifti>()
-                .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable);
+                .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, "C:\\temp\\Capi-out\\tmp");
 
             if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
             result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);

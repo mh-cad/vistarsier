@@ -1,6 +1,7 @@
 ﻿using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -8,18 +9,20 @@ using System.IO;
 namespace CAPI.ImageProcessing
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ImageProcessorNew : IImageProcessorNew
+    public class ImageProcessor : IImageProcessor
     {
         private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly IImgProcConfig _config;
+        private readonly ILog _log;
 
-
-        public ImageProcessorNew(IFileSystem filesystem, IProcessBuilder processBuilder, IImgProcConfig config)
+        public ImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
+                              IImgProcConfig config, ILog log)
         {
             _filesystem = filesystem;
             _processBuilder = processBuilder;
             _config = config;
+            _log = log;
         }
 
         public void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii)
@@ -122,7 +125,9 @@ namespace CAPI.ImageProcessing
             var lookupTable = new SubtractionLookUpTable();
             lookupTable.LoadImage(lookupTableFile);
 
-            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable);
+            var workingDir = Directory.GetParent(currentNiiFile).FullName;
+
+            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir);
 
             _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(resultNiiFile));
 
@@ -141,6 +146,7 @@ namespace CAPI.ImageProcessing
 
             if (extractBrain)
             {
+                _log.Info("Starting Extraction of Brain Mask...");
                 var bseParams = _config.BseParams;
                 var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
                 var fixedMask = currentNii.Replace(".nii", ".mask.nii");
@@ -151,10 +157,12 @@ namespace CAPI.ImageProcessing
                 var floatingMask = priorNii.Replace(".nii", ".mask.nii");
                 ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
                 floatingFile = floatingBrain;
+                _log.Info("Finished Extracting Brain Mask...");
             }
 
             if (register)
             {
+                _log.Info("Starting Registration of Current and Prior Series...");
                 var resliced = priorNii.Replace(".nii", ".resliced.nii");
                 Registration(fixedFile, floatingFile, resliced);
                 if (!File.Exists(resliced))
@@ -162,10 +170,12 @@ namespace CAPI.ImageProcessing
                 _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
                 File.Move(resliced, outPriorReslicedNii);
                 floatingFile = outPriorReslicedNii;
+                _log.Info("Finished Current and Prior Series...");
             }
 
             if (biasFieldCorrect)
             {
+                _log.Info("Starting Bias Field Correction...");
                 var bfcParams = _config.BfcParams;
 
                 var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
@@ -175,9 +185,12 @@ namespace CAPI.ImageProcessing
                 var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
                 BiasFieldCorrection(floatingFile, bfcParams, floatingBfc);
                 floatingFile = floatingBfc;
+                _log.Info("Finished Bias Field Correction...");
             }
 
+            _log.Info("Starting Comparison of Current and Resliced Prior Series...");
             Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
+            _log.Info("Finished Comparison of Current and Resliced Prior Series...");
         }
 
         [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
@@ -195,7 +208,9 @@ namespace CAPI.ImageProcessing
 
             var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
+            _log.Info("Start converting current series dicom files to Nii");
             new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(currentDicomFolder, currentNifti);
+            _log.Info("Finished converting current series dicom files to Nii");
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior seires
             if (!_filesystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
@@ -203,7 +218,9 @@ namespace CAPI.ImageProcessing
 
             var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
 
+            _log.Info("Start converting prior series dicom files to Nii");
             new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(priorDicomFolder, priorNifti);
+            _log.Info("Finished converting prior series dicom files to Nii");
 
             CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
                 extractBrain, register, biasFieldCorrect,

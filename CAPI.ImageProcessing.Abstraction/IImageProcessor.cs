@@ -2,34 +2,19 @@
 {
     public interface IImageProcessor
     {
-        void CopyNiftiImage2PatientTransform(string inputHdrOrNii, string originalHdr);
+        void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii);
+        void Registration(string currentNii, string priorNii, string outPriorReslicedNii);
+        void BiasFieldCorrection(string inNii, string bfcParams, string outNii);
+        void Compare(
+            string currentNii, string priorNii, string lookupTable, SliceType sliceType, string resultNiiFile);
+        void CompareBrainNiftiWithReslicedBrainNifti_OutNifti(
+            string currentNii, string priorNii, string lookupTable, SliceType sliceType,
+            bool extractBrain, bool register, bool biasFieldCorrect,
+            string resultNii, string outPriorReslicedNii);
 
-        void ExtractBrainMask(string inputHdrFullPath, string outputPath, string bseParams,
-            out string brainMaskRemoved, out string smoothBrainMask);
-
-        void Registration(string fixedFullPath, string seriesFloating, string outputPath,
-            out string floatingReslicedFullPath, out IFrameOfReference fixedFrameOfRef);
-
-        void TakeDifference(string fixedHdrFullPath, string floatingReslicedNiiFullPath,
-            string brainSurfaceNiiFullPath, string outputDir,
-            out string darkInFloating2BrightInFixed, out string brightInFloating2DarkInFixed,
-            out string brainMask,
-            string sliceInset = "0");
-
-        void ColorMap(
-            string fixedHdrFullPath, string fixedDicomFolderPath,
-            string brainSurfaceNiiFullPath,
-            string darkFloatToBrightFixedNiiFullPath,
-            string brightFloatToDarkFixedNiiFullPath,
-            string outputDir, out string positive, out string negative);
-
-        void ConvertBmpsToDicom(string outputDir);
-
-        void CopyDicomHeaders(string fixedDicomFolderPath, string outputDir
-            , out string dicomFolderNewHeaders);
-
-        void Resize(string inHdr, string outNii, int destinationWidth);
-
-        void ResizeBacktToOriginalSize(string resizedHdr, string outNii, string seriesHdr);
+        void CompareDicomInNiftiOut(
+            string currentDicomFolder, string priorDicomFolder, string lookupTable, SliceType sliceType,
+            bool extractBrain, bool register, bool biasFieldCorrect,
+            string resultNii, string outPriorReslicedNii);
     }
 }

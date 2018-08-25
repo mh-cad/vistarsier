@@ -5,7 +5,6 @@ using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Linq;
@@ -62,12 +61,17 @@ namespace CAPI.Agent.Models
             PatientBirthDate = recipe.PatientBirthDate;
             CurrentAccession = recipe.CurrentAccession;
             PriorAccession = recipe.PriorAccession;
-            DefaultDestination = recipe.Destinations.FirstOrDefault()?.DisplayName;
+
             ExtractBrain = recipe.ExtractBrain;
             ExtractBrainParams = recipe.ExtractBrainParams;
             Register = recipe.Register;
             BiasFieldCorrection = recipe.BiasFieldCorrection;
             BiasFieldCorrectionParams = recipe.BiasFieldCorrectionParams;
+
+            DefaultDestination = recipe.DicomDestinations != null ?
+                recipe.DicomDestinations.FirstOrDefault() :
+                recipe.FilesystemDestinations.FirstOrDefault();
+            //Destinations.FirstOrDefault()?.DisplayName;
         }
 
         [NotMapped]
@@ -88,21 +92,22 @@ namespace CAPI.Agent.Models
             context.Jobs.Add(this);
             context.SaveChanges();
 
-            _log.Info($"{Environment.NewLine}Job processing started...");
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"Job processing started...{Environment.NewLine}");
             _log.Info($"Job Id: [{Id}]");
             _log.Info($"Current Accession: [{CurrentAccession}]");
             _log.Info($"Prior Accession: [{PriorAccession}]");
 
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
-                                                    _filesystem, _processBuilder, _capiConfig.ImgProcConfig);
+                                                    _filesystem, _processBuilder, _capiConfig.ImgProcConfig, _log);
 
             var sliceType = GetSliceType(_recipe.SliceType);
             imageProcessor.CompareAndSendToFilesystem(
                 CurrentSeriesDicomFolder, PriorSeriesDicomFolder, _recipe.LookUpTablePath, sliceType,
-                _recipe.ExtractBrain, _recipe.Register, _recipe.BiasFieldCorrection,
+                ExtractBrain, Register, BiasFieldCorrection,
                 ResultSeriesDicomFolder, PriorReslicedSeriesDicomFolder);
 
-            SendToDestinations(GetDestinations());
+            SendToDestinations();
 
             End = DateTime.Now;
             Status = "Complete";
@@ -113,7 +118,7 @@ namespace CAPI.Agent.Models
             _log.Info("-------------------------");
         }
 
-        private void SendToDestinations(IEnumerable<IDestination> destinations)
+        private void SendToDestinations()
         {
             if (string.IsNullOrEmpty(ResultSeriesDicomFolder) || Directory.GetFiles(ResultSeriesDicomFolder).Length == 0)
                 throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
@@ -123,23 +128,12 @@ namespace CAPI.Agent.Models
                 throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
                                                      $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
 
-            foreach (var destination in destinations)
-            {
-                if (!string.IsNullOrEmpty(destination.FolderPath))
-                // Send to filesystem
-                {
-                    var resultsDestFolder = Path.Combine(destination.FolderPath, Path.GetFileName(ResultSeriesDicomFolder));
-                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
-
-                    var priorReslicedDestFolder = Path.Combine(destination.FolderPath, Path.GetFileName(PriorReslicedSeriesDicomFolder));
-                    _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
-                }
-                // Send to Dicom Node
-                else
+            if (_recipe.DicomDestinations != null)
+                foreach (var dicomDestination in _recipe.DicomDestinations)
                 {
                     var localNode = _capiConfig.DicomConfig.LocalNode;//  _capiConfig.DicomConfig.LocalNode;
                     var remoteNode = _capiConfig.DicomConfig.RemoteNodes
-                        .SingleOrDefault(n => n.AeTitle.Equals(destination.AeTitle, StringComparison.InvariantCultureIgnoreCase));
+                        .SingleOrDefault(n => n.AeTitle.Equals(dicomDestination, StringComparison.InvariantCultureIgnoreCase));
 
                     _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
 
@@ -151,13 +145,16 @@ namespace CAPI.Agent.Models
                     foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
                         _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
                 }
-            }
-        }
 
-        public IList<IDestination> GetDestinations()
-        {
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            return _recipe.Destinations as IList<IDestination>;
+            if (_recipe.FilesystemDestinations != null)
+                foreach (var fsDestinations in _recipe.FilesystemDestinations)
+                {
+                    var resultsDestFolder = Path.Combine(fsDestinations, Path.GetFileName(ResultSeriesDicomFolder));
+                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
+
+                    var priorReslicedDestFolder = Path.Combine(fsDestinations, Path.GetFileName(PriorReslicedSeriesDicomFolder));
+                    _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
+                }
         }
 
         private SliceType GetSliceType(string sliceType)
