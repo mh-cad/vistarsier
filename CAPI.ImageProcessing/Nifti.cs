@@ -213,18 +213,26 @@ namespace CAPI.ImageProcessing
                 GetSlice(i, sliceType).Save($@"{folderpath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
         }
 
-        public INifti Compare(INifti current, INifti prior, SliceType sliceType, ISubtractionLookUpTable lookUpTable)
+        public INifti Compare(INifti current, INifti prior, SliceType sliceType,
+                              ISubtractionLookUpTable lookUpTable, string workingDir)
         {
             var rangeWidth = lookUpTable.Width;
             var targetMean = rangeWidth / 2 - 18; // 110
             var targetStd = rangeWidth / 8;
 
-
             var currentNormal = NormalizeAndTrimEachSlice(current, sliceType, targetMean, targetStd, rangeWidth);
-            currentNormal.ExportSlicesToBmps(@"C:\temp\Capi-out\1\current", SliceType.Sagittal);
+            //var currentOutDir = Path.Combine(workingDir, "Current");
+            //if (Directory.Exists(currentOutDir)) Directory.Delete(currentOutDir, true);
+            //currentNormal.ExportSlicesToBmps(currentOutDir, SliceType.Sagittal);
 
             var priorNormal = NormalizeAndTrimEachSlice(prior, sliceType, targetMean, targetStd, rangeWidth);
-            priorNormal.ExportSlicesToBmps(@"C:\temp\Capi-out\1\prior", SliceType.Sagittal);
+            //var priorOutDir = Path.Combine(workingDir, "Prior");
+            //if (Directory.Exists(priorOutDir)) Directory.Delete(currentOutDir, true);
+            //priorNormal.ExportSlicesToBmps(priorOutDir, SliceType.Sagittal);
+
+            // Remove temp working directories
+            //if (Directory.Exists(currentOutDir)) Directory.Delete(currentOutDir, true);
+            //if (Directory.Exists(priorOutDir)) Directory.Delete(priorOutDir, true);
 
             // COMPARE
             for (var i = 0; i < currentNormal.voxels.Length; i++)

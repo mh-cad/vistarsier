@@ -10,7 +10,8 @@ namespace CAPI.Agent.Models
         {
             CurrentSeriesCriteria = new List<SeriesSelectionCriteria>();
             PriorSeriesCriteria = new List<SeriesSelectionCriteria>();
-            Destinations = new List<Destination>();
+            FilesystemDestinations = new List<string>();
+            DicomDestinations = new List<string>();
         }
 
         public string SourceAet { get; set; }
@@ -36,7 +37,7 @@ namespace CAPI.Agent.Models
         public string SliceType { get; set; } // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
         public string LookUpTablePath { get; set; }
 
-
-        public List<Destination> Destinations { get; set; }
+        public List<string> FilesystemDestinations { get; set; }
+        public List<string> DicomDestinations { get; set; }
     }
 }

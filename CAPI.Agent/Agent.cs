@@ -95,7 +95,7 @@ namespace CAPI.Agent
             catch (Exception ex)
             {
                 var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
-                _log.Error($"\r\nUnable to get pending cases from database. {dbConnectionString}", ex);
+                _log.Error($"{Environment.NewLine}Unable to get pending cases from database. {dbConnectionString}", ex);
                 IsBusy = false;
                 throw;
             }
@@ -121,7 +121,7 @@ namespace CAPI.Agent
             }
             catch (Exception ex)
             {
-                _log.Error("Case failed during processing", ex);
+                _log.Error($"{Environment.NewLine}Case failed during processing", ex);
                 IsBusy = false;
 
                 var failedCases = _context.GetCaseByStatus("Processing");
@@ -160,7 +160,7 @@ namespace CAPI.Agent
             }
             catch (Exception ex)
             {
-                _log.Error("Failed to get manually added cases.", ex);
+                _log.Error($"{Environment.NewLine}Failed to get manually added cases.", ex);
                 throw;
             }
 
@@ -171,7 +171,7 @@ namespace CAPI.Agent
             }
             catch (Exception ex)
             {
-                _log.Error("Failed to get HL7 added cases.", ex);
+                _log.Error($"{Environment.NewLine}Failed to get HL7 added cases.", ex);
                 throw;
             }
         }
@@ -199,9 +199,9 @@ namespace CAPI.Agent
             {
                 return JsonConvert.DeserializeObject<Recipe>(recipeText);
             }
-            catch
+            catch (Exception ex)
             {
-                // Log "Unable to convert default recipe file to json"
+                _log.Error("Failed to convert from json to recipe object.", ex);
                 throw;
             }
         }
@@ -248,7 +248,8 @@ namespace CAPI.Agent
                     }
                     catch (Exception ex)
                     {
-                        _log.Error($"Failed to insert manually added case into database. Accession: [{newCase.Accession}]", ex);
+                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                                   $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
                     }
                 }
             });
