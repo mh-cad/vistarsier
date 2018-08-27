@@ -29,6 +29,8 @@ namespace CAPI.Common.Config
 
                 DefaultRecipePath = jsonToken["DefaultRecipePath"].ToString(),
                 ManualProcessPath = jsonToken["ManualProcessPath"].ToString(),
+                ProcessCasesAddedManually = (bool)jsonToken["ProcessCasesAddedManually"],
+                ProcessCasesAddedByHL7 = (bool)jsonToken["ProcessCasesAddedByHL7"],
                 AgentDbConnectionString = jsonToken["AgentDbConnectionString"].ToString(),
                 Hl7ProcessPath = jsonToken["Hl7ProcessPath"].ToString(),
                 RunInterval = jsonToken["RunInterval"].ToString(),

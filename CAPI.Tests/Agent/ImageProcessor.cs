@@ -48,7 +48,7 @@ namespace CAPI.Tests.Agent
 
                 brokerImgProc.CompareAndSendToFilesystem(
                     _currentStudyDicomFolder, _priorStudyDicomFolder, _lookupTableFile, SliceType.Sagittal
-                    , true, true, true, _destinationResults, _destinationPriorResliced);
+                    , true, true, true, _destinationResults, _destinationPriorResliced, "Results", "Prior Resliced");
             }
 
             // Act

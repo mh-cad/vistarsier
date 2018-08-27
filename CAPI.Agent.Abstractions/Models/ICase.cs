@@ -2,7 +2,7 @@
 {
     public interface ICase
     {
-        int Id { get; set; }
+        long Id { get; set; }
         string Accession { get; set; }
         string Status { get; set; }
         AdditionMethod AdditionMethod { get; set; }

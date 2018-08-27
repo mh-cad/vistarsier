@@ -1,13 +1,13 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
-using CAPI.Console.NetFramework.Helpers;
+using CAPI.Console.Net.Helpers;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Unity;
 
-namespace CAPI.Console.NetFramework
+namespace CAPI.Console.Net
 {
     internal static class Program
     {

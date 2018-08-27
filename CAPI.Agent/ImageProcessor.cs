@@ -33,7 +33,8 @@ namespace CAPI.Agent
             string currentDicomFolder, string priorDicomFolder,
             string lookupTable, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultDicom, string outPriorReslicedDicom)
+            string resultDicom, string outPriorReslicedDicom,
+            string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription)
         {
             var resultNiiFile = resultDicom + ".nii";
             var outPriorReslicedNiiFile = outPriorReslicedDicom + ".nii";
@@ -47,7 +48,7 @@ namespace CAPI.Agent
             ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder);
             _log.Info("Finished Converting Results back to Dicom");
 
-            UpdateSeriesDescriptionForAllFiles(resultDicom, "CAPI Modified Signal");
+            UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
 
             // current study headers are used as this series is going to be sent to the current study
             // prior study date will be added to the end of Series Description tag
@@ -56,7 +57,8 @@ namespace CAPI.Agent
             _log.Info("Finished Converting Resliced Prior Series back to Dicom");
 
             var studydate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-            UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, $"CAPI Old Study (comparison) re-slilced ({studydate})");
+            UpdateSeriesDescriptionForAllFiles(
+                outPriorReslicedDicom, $"{priorReslicedDicomSeriesDescription} ({studydate})");
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)
@@ -90,21 +92,21 @@ namespace CAPI.Agent
             _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders);
         }
 
-        public void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder,
-                                              string inLookupTable, SliceType sliceType,
-                                              bool extractBrain, bool register, bool biasFieldCorrect,
-                                              string outResultDicom, string outPriorReslicedDicom,
-                                              IDicomNode localNode, IDicomNode destination)
-        {
-            CompareAndSendToFilesystem(inCurrentDicomFolder, inPriorDicomFolder, inLookupTable, sliceType,
-                    extractBrain, register, biasFieldCorrect,
-                    outResultDicom, outPriorReslicedDicom);
+        //public void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder,
+        //                                      string inLookupTable, SliceType sliceType,
+        //                                      bool extractBrain, bool register, bool biasFieldCorrect,
+        //                                      string outResultDicom, string outPriorReslicedDicom,
+        //                                      IDicomNode localNode, IDicomNode destination)
+        //{
+        //    CompareAndSendToFilesystem(inCurrentDicomFolder, inPriorDicomFolder, inLookupTable, sliceType,
+        //            extractBrain, register, biasFieldCorrect,
+        //            outResultDicom, outPriorReslicedDicom);
 
-            foreach (var dcmFile in Directory.GetFiles(outResultDicom))
-                _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
+        //    foreach (var dcmFile in Directory.GetFiles(outResultDicom))
+        //        _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
 
-            foreach (var dcmFile in Directory.GetFiles(outPriorReslicedDicom))
-                _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
-        }
+        //    foreach (var dcmFile in Directory.GetFiles(outPriorReslicedDicom))
+        //        _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
+        //}
     }
 }

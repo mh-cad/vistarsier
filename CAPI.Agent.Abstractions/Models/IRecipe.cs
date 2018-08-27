@@ -27,6 +27,9 @@ namespace CAPI.Agent.Abstractions.Models
         string SliceType { get; set; } // "Sag"=Sagittal | "Ax" = Axial | "Cor" = Coronal
         string LookUpTablePath { get; set; }
 
+        string ResultsDicomSeriesDescription { get; set; }
+        string PriorReslicedDicomSeriesDescription { get; set; }
+
         List<string> FilesystemDestinations { get; set; }
         List<string> DicomDestinations { get; set; }
     }

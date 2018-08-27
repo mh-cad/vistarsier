@@ -1,5 +1,7 @@
 ﻿using CAPI.Common.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -10,13 +12,16 @@ namespace CAPI.ImageProcessing
         private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly Common.Abstractions.Config.IImgProcConfig _config;
+        private readonly ILog _log;
 
         public ImageConverter(
-            IFileSystem filesystem, IProcessBuilder processBuilder, Common.Abstractions.Config.IImgProcConfig config)
+            IFileSystem filesystem, IProcessBuilder processBuilder,
+            Common.Abstractions.Config.IImgProcConfig config, ILog log)
         {
             _filesystem = filesystem;
             _processBuilder = processBuilder;
             _config = config;
+            _log = log;
         }
 
         public void DicomToNiix(string dicomDir, string outfile, string @params = "")
@@ -30,7 +35,9 @@ namespace CAPI.ImageProcessing
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
             _filesystem.DirectoryExistsIfNotCreate(tmpDir);
 
-            _processBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
+            var process = _processBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
 
             if (!Directory.Exists(tmpDir))
                 throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
@@ -39,6 +46,11 @@ namespace CAPI.ImageProcessing
             File.Move(nim, outfile);
 
             Directory.Delete(tmpDir, true);
+        }
+
+        private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
+        {
+            _log.Error(e.Data);
         }
     }
 }

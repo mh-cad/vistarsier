@@ -13,10 +13,7 @@ namespace CAPI.Common.Config
     /// </summary>
     public class CapiConfig //: ICapiConfig
     {
-        public CapiConfig()
-        {
-
-        }
+        public CapiConfig() { }
 
         public CapiConfig(DicomConfig dicomConfig, ImgProcConfig imgProcConfig, TestsConfig testsConfig)
         {
