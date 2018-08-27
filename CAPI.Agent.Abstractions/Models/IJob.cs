@@ -4,7 +4,7 @@ namespace CAPI.Agent.Abstractions.Models
 {
     public interface IJob
     {
-        string Id { get; set; }
+        long Id { get; set; }
         string SourceAet { get; set; }
         string PatientId { get; set; }
         string PatientFullName { get; set; }
@@ -24,6 +24,7 @@ namespace CAPI.Agent.Abstractions.Models
         string PriorSeriesDicomFolder { get; set; }
         string ResultSeriesDicomFolder { get; set; }
         string PriorReslicedSeriesDicomFolder { get; set; }
+        string ProcessingFolder { get; set; }
 
         void Process();
     }

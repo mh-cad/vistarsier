@@ -37,6 +37,9 @@ namespace CAPI.Agent.Models
         public string SliceType { get; set; } // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
         public string LookUpTablePath { get; set; }
 
+        public string ResultsDicomSeriesDescription { get; set; }
+        public string PriorReslicedDicomSeriesDescription { get; set; }
+
         public List<string> FilesystemDestinations { get; set; }
         public List<string> DicomDestinations { get; set; }
     }

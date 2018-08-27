@@ -1,10 +1,10 @@
-﻿using System.IO;
+﻿using log4net;
+using log4net.Config;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using log4net;
-using log4net.Config;
 
-namespace CAPI.Console.NetFramework.Helpers
+namespace CAPI.Console.Net.Helpers
 {
     internal static class LogHelper
     {

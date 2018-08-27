@@ -3,6 +3,7 @@ using CAPI.Common.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
@@ -37,7 +38,9 @@ namespace CAPI.ImageProcessing
             if (!Directory.Exists(Path.GetDirectoryName(outBrainNii))) throw new DirectoryNotFoundException();
             if (!Directory.Exists(Path.GetDirectoryName(outMaskNii))) throw new DirectoryNotFoundException();
 
-            _processBuilder.CallExecutableFile(bseExe, arguments);
+            var process = _processBuilder.CallExecutableFile(bseExe, arguments);
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
 
             if (!File.Exists(outBrainNii) || !File.Exists(outMaskNii))
                 throw new FileNotFoundException("Brain mask removal failed to create brain/mask.");
@@ -70,7 +73,9 @@ namespace CAPI.ImageProcessing
 
             var arguments = $@"{registrationParams} --out-matrix {rawForm} -o . {fixedNii} {floatingNii}";
 
-            _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir);
+            var process = _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir);
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
         }
         private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
         {
@@ -100,7 +105,9 @@ namespace CAPI.ImageProcessing
             if (!File.Exists(reformatxFilePath)) throw new
                 FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
 
-            _processBuilder.CallExecutableFile(reformatxFilePath, arguments);
+            var process = _processBuilder.CallExecutableFile(reformatxFilePath, arguments);
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
         }
 
         public void BiasFieldCorrection(string inNii, string bfcParams, string outNii)
@@ -112,7 +119,9 @@ namespace CAPI.ImageProcessing
 
             var arguments = $"-i {inNii} -o {outNii} {bfcParams}";
 
-            _processBuilder.CallExecutableFile(bfcExe, arguments);
+            var process = _processBuilder.CallExecutableFile(bfcExe, arguments);
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
         }
 
         public void Compare(
@@ -209,7 +218,7 @@ namespace CAPI.ImageProcessing
             var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
             _log.Info("Start converting current series dicom files to Nii");
-            new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(currentDicomFolder, currentNifti);
+            new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
             _log.Info("Finished converting current series dicom files to Nii");
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior seires
@@ -219,12 +228,17 @@ namespace CAPI.ImageProcessing
             var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
 
             _log.Info("Start converting prior series dicom files to Nii");
-            new ImageConverter(_filesystem, _processBuilder, _config).DicomToNiix(priorDicomFolder, priorNifti);
+            new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(priorDicomFolder, priorNifti);
             _log.Info("Finished converting prior series dicom files to Nii");
 
             CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
                 extractBrain, register, biasFieldCorrect,
                 resultNii, outPriorReslicedNii);
+        }
+
+        private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
+        {
+            _log.Error(e.Data);
         }
     }
 }

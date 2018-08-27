@@ -2,6 +2,7 @@
 using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using Unity;
@@ -16,12 +17,12 @@ namespace CAPI.Tests.ImageProcessing
         private IProcessBuilder _processBuilder;
         private IImageProcessingFactory _imageProcessingFactory;
         private IImgProcConfig _imgProcConfig;
+        private ILog _log;
 
         private string _testResourcesPath;
         private string _fixedDicomFolder;
         private string _floatingDicomFolder;
         private string _outputFolder;
-
 
         [TestInitialize]
         public void TestInit()
@@ -31,6 +32,7 @@ namespace CAPI.Tests.ImageProcessing
             _processBuilder = _unity.Resolve<IProcessBuilder>();
             _imageProcessingFactory = _unity.Resolve<IImageProcessingFactory>();
             _imgProcConfig = _unity.Resolve<IImgProcConfig>();
+            _log = LogHelper.GetLogger();
 
             _testResourcesPath = Helper.GetTestResourcesPath();
             _fixedDicomFolder = $@"{_testResourcesPath}\Fixed2\Dicom";
@@ -59,7 +61,7 @@ namespace CAPI.Tests.ImageProcessing
 
             // Act
             var imageConverter =
-                _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder, _imgProcConfig);
+                _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder, _imgProcConfig, _log);
             imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert

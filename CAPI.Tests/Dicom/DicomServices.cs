@@ -3,6 +3,7 @@ using CAPI.Common.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstraction;
 using CAPI.Dicom.Model;
+using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -26,6 +27,7 @@ namespace CAPI.Tests.Dicom
 
         private string _testObjectsPath;
         private static string _testResources;
+        private ILog _log;
 
         private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
         private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
@@ -43,6 +45,8 @@ namespace CAPI.Tests.Dicom
             _dicomConfig = container.Resolve<IDicomConfig>();
             _filesystem = container.Resolve<IFileSystem>();
             _processBuilder = container.Resolve<IProcessBuilder>();
+
+            _log = LogHelper.GetLogger();
 
             var capiConfig = new CapiConfig().GetConfig(new[] { "-dev" }); //CapiConfigGetter.GetCapiConfig();
 
@@ -187,7 +191,7 @@ namespace CAPI.Tests.Dicom
             var dicomTags = _dicomFactory.CreateDicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder, _log);
             dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
@@ -200,7 +204,7 @@ namespace CAPI.Tests.Dicom
             var dicomFolderPath = Path.Combine(_testResources, OutDicomRelPath);
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder, _log);
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, headersFolder);
 
             var dicomTags = _dicomFactory.CreateDicomTagCollection();
