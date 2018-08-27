@@ -12,7 +12,7 @@ namespace CAPI.Agent.Migrations
                 name: "Cases",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Accession = table.Column<string>(nullable: true),
                     Status = table.Column<string>(nullable: true),
@@ -27,7 +27,8 @@ namespace CAPI.Agent.Migrations
                 name: "Jobs",
                 columns: table => new
                 {
-                    Id = table.Column<string>(nullable: false),
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     SourceAet = table.Column<string>(nullable: true),
                     PatientId = table.Column<string>(nullable: true),
                     PatientFullName = table.Column<string>(nullable: true),

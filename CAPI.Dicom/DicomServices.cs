@@ -5,8 +5,10 @@ using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;
 using ClearCanvas.Dicom.Network.Scu;
+using log4net;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,11 +21,13 @@ namespace CAPI.Dicom
         private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly string _executablesPath;
+        private readonly ILog _log;
 
-        public DicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder)
+        public DicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
             _fileSystem = fileSystem;
             _processBuilder = processBuilder;
+            _log = log;
             _executablesPath = config.ExecutablesPath;
         }
 
@@ -244,9 +248,16 @@ namespace CAPI.Dicom
 
                 arguments += $"-i BMP {filenameNoExt}.bmp {dicomFolder}\\{filenameNoExt}";
 
-                _processBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
+                var process = _processBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
                     arguments, bmpFolder);
+                process.ErrorDataReceived += ErrorOccuredInProcess;
+                process.WaitForExit();
             }
+        }
+
+        private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
+        {
+            _log.Error(e.Data);
         }
 
         private IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)

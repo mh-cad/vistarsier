@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Common.Abstractions", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CAPI.Extensions", "CAPI.Extensions\CAPI.Extensions.csproj", "{CF73B4C7-8313-466C-AFA6-9530AEAFF89B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Console.NetFramework", "CAPI.Console.NetFramework\CAPI.Console.NetFramework.csproj", "{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Console.Net", "CAPI.Console.NetFramework\CAPI.Console.Net.csproj", "{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
