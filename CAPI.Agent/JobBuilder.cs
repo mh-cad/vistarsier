@@ -89,10 +89,11 @@ namespace CAPI.Agent
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var jobFolderName = $"{patientName}-{DateTime.Now:yyyyMMdd_HHmmssfff}";
+            job.ProcessingFolder = Path.Combine(_capiConfig.ImgProcConfig.ImageRepositoryPath, jobFolderName);
 
             _log.Info("Saving current series to disk...");
             job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, imageRepositoryPath, jobFolderName, Current, localNode, sourceNode);
+                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
@@ -107,7 +108,7 @@ namespace CAPI.Agent
 
             _log.Info("Saving prior series to disk...");
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, imageRepositoryPath, jobFolderName, Prior, localNode, sourceNode);
+                currentDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
@@ -162,13 +163,12 @@ namespace CAPI.Agent
         }
 
         private string SaveDicomFilesToFilesystem(
-                                                  IDicomStudy dicomStudy, string imageRepositoryPath,
-                                                  string jobFolderName, string studyName,
-                                                  IDicomNode locaNode, IDicomNode sourceNode)
+                                                  IDicomStudy dicomStudy, string jobProcessingFolder,
+                                                  string studyName, IDicomNode locaNode, IDicomNode sourceNode)
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
-            var folderPath = Path.Combine(imageRepositoryPath, jobFolderName, studyName, Dicom);
+            var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
 
             _dicomServices.SaveSeriesToLocalDisk(series, folderPath, locaNode, sourceNode);
 

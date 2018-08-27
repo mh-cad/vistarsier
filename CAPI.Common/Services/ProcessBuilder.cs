@@ -29,7 +29,7 @@ namespace CAPI.Common.Services
             return proc;
         }
 
-        public string CallExecutableFile(string fileFullPath, string arguments, string workingDir = "")
+        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "")
         {
             var fileNameExt = fileFullPath.Split('\\').LastOrDefault();
             var folderPath = fileFullPath.Replace($"\\{fileNameExt}", "");
@@ -37,10 +37,11 @@ namespace CAPI.Common.Services
             var process = Build(folderPath, fileNameExt, arguments, workingDir);
 
             process.Start();
-            var stdout = process.StandardOutput.ReadToEnd();
+            //var stdout = process.StandardOutput.ReadToEnd();
             //Logger.ProcessErrorLogWrite(process, $"{fileNameExt}");
-            process.WaitForExit();
-            return stdout;
+            //process.WaitForExit();
+
+            return process;
         }
 
         public void CallJava(string arguments, string methodCalled, string workingDir = "")

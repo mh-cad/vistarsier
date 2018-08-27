@@ -21,7 +21,7 @@ namespace CAPI.Agent.Models
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string SourceAet { get; set; }
         public string PatientId { get; set; }
         public string PatientFullName { get; set; }
@@ -82,6 +82,8 @@ namespace CAPI.Agent.Models
         public string ResultSeriesDicomFolder { get; set; }
         [NotMapped]
         public string PriorReslicedSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string ProcessingFolder { get; set; }
 
         public void Process()
         {
@@ -105,9 +107,12 @@ namespace CAPI.Agent.Models
             imageProcessor.CompareAndSendToFilesystem(
                 CurrentSeriesDicomFolder, PriorSeriesDicomFolder, _recipe.LookUpTablePath, sliceType,
                 ExtractBrain, Register, BiasFieldCorrection,
-                ResultSeriesDicomFolder, PriorReslicedSeriesDicomFolder);
+                ResultSeriesDicomFolder, PriorReslicedSeriesDicomFolder,
+                _recipe.ResultsDicomSeriesDescription, _recipe.PriorReslicedDicomSeriesDescription);
 
             SendToDestinations();
+
+            Directory.Delete(ProcessingFolder, true);
 
             End = DateTime.Now;
             Status = "Complete";

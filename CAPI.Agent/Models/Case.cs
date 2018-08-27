@@ -9,7 +9,7 @@ namespace CAPI.Agent.Models
 {
     public class Case : ICase
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Accession { get; set; }
         public string Status { get; set; }
         public AdditionMethod AdditionMethod { get; set; }
@@ -18,7 +18,7 @@ namespace CAPI.Agent.Models
                             IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
             var dicomConfig = GetDicomConfigFromCapiConfig(capiConfig, dicomFactory);
-            var dicomServices = dicomFactory.CreateDicomServices(dicomConfig, fileSystem, processBuilder);
+            var dicomServices = dicomFactory.CreateDicomServices(dicomConfig, fileSystem, processBuilder, log);
             var job = new JobBuilder(dicomServices,
                                      imgProcFactory,
                                      new ValueComparer(),
@@ -28,7 +28,7 @@ namespace CAPI.Agent.Models
             job.Process();
         }
 
-        private static Dicom.Abstraction.IDicomConfig GetDicomConfigFromCapiConfig(
+        private static IDicomConfig GetDicomConfigFromCapiConfig(
             CapiConfig capiConfig, IDicomFactory dicomFactory)
         {
             var dicomConfig = dicomFactory.CreateDicomConfig();

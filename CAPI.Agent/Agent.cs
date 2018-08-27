@@ -177,7 +177,7 @@ namespace CAPI.Agent
         }
         private Recipe FindRecipe(ICase @case)
         {
-            var recipe = new Recipe();
+            Recipe recipe;
             if (@case.AdditionMethod == AdditionMethod.Hl7)
             {
                 recipe = GetDefaultRecipe();
@@ -187,6 +187,7 @@ namespace CAPI.Agent
             {
                 // TODO1: Find recipe in manually processing folder
                 recipe = GetDefaultRecipe();
+                recipe.CurrentAccession = @case.Accession;
             }
             return recipe;
         }
@@ -230,12 +231,23 @@ namespace CAPI.Agent
             {
                 var inDb = _context.Cases.Select(c => c.Accession)
                     .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
-                //.Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
                 if (inDb)
                 { // If already in database, set status to Pending
-                    var inDbCase = _context.Cases.Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
+                    var inDbCase = _context.Cases
+                        .Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
                     inDbCase.Status = "Pending";
-                    _context.Cases.Update(inDbCase);
+                    try
+                    {
+                        _context.Cases.Update(inDbCase);
+                        _context.SaveChanges();
+                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                                   $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
+                        return;
+                    }
                 }
                 else // if not in database, add to database
                 {
@@ -250,8 +262,11 @@ namespace CAPI.Agent
                     {
                         _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
                                    $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
+                        return;
                     }
                 }
+                // Delete file in Manual Folder after it was added to DB
+                DeleteFileInFolderAfterAddedToDb(Config.ManualProcessPath, mc.Accession);
             });
         }
         #endregion
@@ -272,9 +287,13 @@ namespace CAPI.Agent
             {
                 var inDb = _context.Cases.Select(c => c.Accession)
                         .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
-                //.Contains(mc.Accession, StringComparer.InvariantCultureIgnoreCase);
                 if (inDb) return; // If not in database, add to db
-                var newCase = new Case { Accession = mc.Accession, Status = "Pending", AdditionMethod = AdditionMethod.Hl7 };
+                var newCase = new Case
+                {
+                    Accession = mc.Accession,
+                    Status = "Pending",
+                    AdditionMethod = AdditionMethod.Hl7
+                };
                 try
                 {
                     _context.Cases.Add(newCase);
@@ -285,9 +304,20 @@ namespace CAPI.Agent
                 {
                     _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.Accession}]", ex);
                 }
-                // if already in database, disregard?
+                // Delete file in HL7 Folder after it was added to DB
+                DeleteFileInFolderAfterAddedToDb(Config.Hl7ProcessPath, mc.Accession);
+                // if already in database, disregard
             });
         }
         #endregion
+
+        private void DeleteFileInFolderAfterAddedToDb(string folderPath, string accession)
+        {
+            var file = Directory.GetFiles(folderPath)
+                .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
+                    .Contains(accession.ToLower()));
+            File.Delete(file);
+            _log.Info($"File deleted from process folder [{folderPath}] for Accession: [{accession}]");
+        }
     }
 }

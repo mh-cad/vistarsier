@@ -1,18 +1,20 @@
-﻿using CAPI.Dicom.Abstraction;
-using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.ImageProcessing.Abstraction;
 
 namespace CAPI.Agent.Abstractions
 {
     public interface IImageProcessor
     {
-        void CompareAndSendToFilesystem(string currentDicomFolder, string priorDicomFolder, string lookupTable, SliceType sliceType,
+        void CompareAndSendToFilesystem(
+            string currentDicomFolder, string priorDicomFolder,
+            string lookupTable, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultDicom, string outPriorReslicedDicom);
+            string resultDicom, string outPriorReslicedDicom,
+            string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription);
 
-        void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable,
-            SliceType sliceType,
-            bool extractBrain, bool register, bool biasFieldCorrect,
-            string outResultDicom, string outPriorReslicedDicom, IDicomNode localNode, IDicomNode destination);
+        //void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable,
+        //    SliceType sliceType,
+        //    bool extractBrain, bool register, bool biasFieldCorrect,
+        //    string outResultDicom, string outPriorReslicedDicom, IDicomNode localNode, IDicomNode destination);
 
         //void CompareAndSendToFilesystem1(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable,
         //    SliceType sliceType,

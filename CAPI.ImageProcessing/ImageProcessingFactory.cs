@@ -14,9 +14,9 @@ namespace CAPI.ImageProcessing
         }
 
         public IImageConverter CreateImageConverter(
-            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig config)
+            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig config, ILog log)
         {
-            return new ImageConverter(fileSystem, processBuilder, config);
+            return new ImageConverter(fileSystem, processBuilder, config, log);
         }
 
         public IImageProcessor CreateImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,

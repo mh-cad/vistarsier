@@ -13,7 +13,6 @@ using Unity.log4net;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
-
 namespace CAPI.Tests.Helpers
 {
     // ReSharper disable once ClassNeverInstantiated.Global
