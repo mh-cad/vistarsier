@@ -1,4 +1,5 @@
-﻿using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Agent.Abstractions.Models;
+using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
@@ -59,6 +60,22 @@ namespace CAPI.Agent
             var studydate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
             UpdateSeriesDescriptionForAllFiles(
                 outPriorReslicedDicom, $"{priorReslicedDicomSeriesDescription} ({studydate})");
+        }
+
+        public IJob CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
+        {
+            CompareAndSendToFilesystem(
+                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
+                recipe.LookUpTablePath, sliceType,
+                job.ExtractBrain, job.Register, job.BiasFieldCorrection,
+                job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
+                recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
+            );
+
+            //job.PatientId = 
+            //    _dicomServices.GetStudyForAccession(recipe.CurrentAccession, null, null).PatientId;
+
+            return job;
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)

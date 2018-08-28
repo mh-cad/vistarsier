@@ -153,9 +153,12 @@ namespace CAPI.ImageProcessing
             var fixedFile = currentNii;
             var floatingFile = priorNii;
 
+            var stopwatch = new Stopwatch();
+
             if (extractBrain)
             {
                 _log.Info("Starting Extraction of Brain Mask...");
+                stopwatch.Start();
                 var bseParams = _config.BseParams;
                 var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
                 var fixedMask = currentNii.Replace(".nii", ".mask.nii");
@@ -166,12 +169,14 @@ namespace CAPI.ImageProcessing
                 var floatingMask = priorNii.Replace(".nii", ".mask.nii");
                 ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
                 floatingFile = floatingBrain;
-                _log.Info("Finished Extracting Brain Mask...");
+                stopwatch.Stop();
+                _log.Info($"Finished Extracting Brain Mask in {stopwatch.Elapsed.TotalSeconds} seconds.");
             }
 
             if (register)
             {
                 _log.Info("Starting Registration of Current and Prior Series...");
+                stopwatch.Restart();
                 var resliced = priorNii.Replace(".nii", ".resliced.nii");
                 Registration(fixedFile, floatingFile, resliced);
                 if (!File.Exists(resliced))
@@ -179,12 +184,14 @@ namespace CAPI.ImageProcessing
                 _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
                 File.Move(resliced, outPriorReslicedNii);
                 floatingFile = outPriorReslicedNii;
-                _log.Info("Finished Current and Prior Series...");
+                stopwatch.Stop();
+                _log.Info($"Finished Current and Prior in {stopwatch.Elapsed.TotalSeconds} seconds.");
             }
 
             if (biasFieldCorrect)
             {
                 _log.Info("Starting Bias Field Correction...");
+                stopwatch.Restart();
                 var bfcParams = _config.BfcParams;
 
                 var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
@@ -194,7 +201,8 @@ namespace CAPI.ImageProcessing
                 var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
                 BiasFieldCorrection(floatingFile, bfcParams, floatingBfc);
                 floatingFile = floatingBfc;
-                _log.Info("Finished Bias Field Correction...");
+                stopwatch.Stop();
+                _log.Info($"Finished Bias Field Correction in {stopwatch.Elapsed.TotalSeconds} seconds.");
             }
 
             _log.Info("Starting Comparison of Current and Resliced Prior Series...");
@@ -204,7 +212,8 @@ namespace CAPI.ImageProcessing
 
         [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
         public void CompareDicomInNiftiOut(
-            string currentDicomFolder, string priorDicomFolder, string lookupTable, SliceType sliceType,
+            string currentDicomFolder, string priorDicomFolder,
+            string lookupTable, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string resultNii, string outPriorReslicedNii)
         {

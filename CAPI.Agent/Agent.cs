@@ -133,9 +133,9 @@ namespace CAPI.Agent
 
         private void Init()
         {
-            SetFailedCasesStatusToPending();
+            HandleFailedCasesAndJobs();
         }
-        private void SetFailedCasesStatusToPending()
+        private void HandleFailedCasesAndJobs()
         {
             var failedCases = _context.GetCaseByStatus("Processing");
             failedCases.ToList().ForEach(c =>
@@ -143,6 +143,13 @@ namespace CAPI.Agent
                 var tmp = c;
                 tmp.Status = "Pending";
                 _context.Cases.Update(tmp);
+            });
+            var failedJobs = _context.GetJobByStatus("Processing");
+            failedJobs.ToList().ForEach(j =>
+            {
+                var tmp = j;
+                tmp.Status = "Failed";
+                _context.Jobs.Update(tmp);
             });
         }
         private void StartTimer(int interval)
