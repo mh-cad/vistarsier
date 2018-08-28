@@ -6,6 +6,7 @@ using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -68,10 +69,10 @@ namespace CAPI.Agent.Models
             BiasFieldCorrection = recipe.BiasFieldCorrection;
             BiasFieldCorrectionParams = recipe.BiasFieldCorrectionParams;
 
-            DefaultDestination = recipe.DicomDestinations != null ?
+            DefaultDestination =
+                recipe.DicomDestinations != null && !string.IsNullOrEmpty(recipe.DicomDestinations.FirstOrDefault()) ?
                 recipe.DicomDestinations.FirstOrDefault() :
                 recipe.FilesystemDestinations.FirstOrDefault();
-            //Destinations.FirstOrDefault()?.DisplayName;
         }
 
         [NotMapped]
@@ -87,28 +88,32 @@ namespace CAPI.Agent.Models
 
         public void Process()
         {
-            Start = DateTime.Now;
-            Status = "Processing";
+            IJob job = this;
+
+            job.Start = DateTime.Now;
+            job.Status = "Processing";
 
             var context = new AgentRepository();
-            context.Jobs.Add(this);
+
+            context.Jobs.Add((Job)job);
             context.SaveChanges();
 
             _log.Info($"{Environment.NewLine}");
             _log.Info($"Job processing started...{Environment.NewLine}");
-            _log.Info($"Job Id: [{Id}]");
+            _log.Info($"Job Id: [{job.Id}]");
             _log.Info($"Current Accession: [{CurrentAccession}]");
             _log.Info($"Prior Accession: [{PriorAccession}]");
 
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
-                                                    _filesystem, _processBuilder, _capiConfig.ImgProcConfig, _log);
+                                                    _filesystem, _processBuilder,
+                                                    _capiConfig.ImgProcConfig, _log);
 
             var sliceType = GetSliceType(_recipe.SliceType);
-            imageProcessor.CompareAndSendToFilesystem(
-                CurrentSeriesDicomFolder, PriorSeriesDicomFolder, _recipe.LookUpTablePath, sliceType,
-                ExtractBrain, Register, BiasFieldCorrection,
-                ResultSeriesDicomFolder, PriorReslicedSeriesDicomFolder,
-                _recipe.ResultsDicomSeriesDescription, _recipe.PriorReslicedDicomSeriesDescription);
+
+            job = imageProcessor.CompareAndSendToFilesystem(job, _recipe, sliceType);
 
             SendToDestinations();
 
@@ -116,10 +121,12 @@ namespace CAPI.Agent.Models
 
             End = DateTime.Now;
             Status = "Complete";
-            context.Jobs.Update(this);
+            context.Jobs.Update((Job)job);
             context.SaveChanges();
 
-            _log.Info($"Job Id=[{Id}] completed.");
+            stopwatch.Stop();
+            _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes} minutes and " +
+                      $"{stopwatch.Elapsed.Seconds} seconds.");
             _log.Info("-------------------------");
         }
 
@@ -152,13 +159,22 @@ namespace CAPI.Agent.Models
                 }
 
             if (_recipe.FilesystemDestinations != null)
-                foreach (var fsDestinations in _recipe.FilesystemDestinations)
+                foreach (var fsDestination in _recipe.FilesystemDestinations)
                 {
-                    var resultsDestFolder = Path.Combine(fsDestinations, Path.GetFileName(ResultSeriesDicomFolder));
-                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
+                    var jobFolderName = Path.GetFileName(ProcessingFolder) ?? "";
+                    var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
 
-                    var priorReslicedDestFolder = Path.Combine(fsDestinations, Path.GetFileName(PriorReslicedSeriesDicomFolder));
-                    _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
+                    if (_recipe.OnlyCopyResults)
+                    {
+                        var resultsDestFolder = Path.Combine(destJobFolderPath, Path.GetFileName(ResultSeriesDicomFolder));
+                        _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
+                    }
+                    else
+                    {
+                        _filesystem.CopyDirectory(ProcessingFolder, destJobFolderPath);
+                    }
+                    //var priorReslicedDestFolder = Path.Combine(jobFolderPath, Path.GetFileName(PriorReslicedSeriesDicomFolder));
+                    //_filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
                 }
         }
 

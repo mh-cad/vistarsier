@@ -31,6 +31,8 @@ namespace CAPI.Agent.Abstractions.Models
         string PriorReslicedDicomSeriesDescription { get; set; }
 
         List<string> FilesystemDestinations { get; set; }
+        bool OnlyCopyResults { get; set; }
+
         List<string> DicomDestinations { get; set; }
     }
 }

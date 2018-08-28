@@ -33,7 +33,10 @@ namespace CAPI.Agent
         #endregion
 
         #region "Jobs"
-
+        public IEnumerable<Job> GetJobByStatus(string status)
+        {
+            return Jobs.Where(j => j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
         #endregion
     }
 }
