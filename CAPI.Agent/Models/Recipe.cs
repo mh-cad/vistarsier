@@ -41,6 +41,7 @@ namespace CAPI.Agent.Models
         public string PriorReslicedDicomSeriesDescription { get; set; }
 
         public List<string> FilesystemDestinations { get; set; }
+        public bool OnlyCopyResults { get; set; }
         public List<string> DicomDestinations { get; set; }
     }
 }
