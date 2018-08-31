@@ -1,6 +1,6 @@
-﻿using CAPI.Common.Abstractions.Services;
-using CAPI.Dicom.Abstraction;
+﻿using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
+using CAPI.General.Abstractions.Services;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;

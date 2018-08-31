@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CAPI.Common.Abstractions.Services
+namespace CAPI.General.Abstractions.Services
 {
     public interface IFileSystem
     {

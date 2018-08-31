@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.ImageProcessing", "CAP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Common", "CAPI.Common\CAPI.Common.csproj", "{06C9CB99-3266-4DD0-B790-B94FFC3CB154}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Dicom.Abstraction", "CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj", "{C11F23F0-DE98-46F9-8203-670ECE388551}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Dicom.Abstractions", "CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj", "{C11F23F0-DE98-46F9-8203-670ECE388551}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.ImageProcessing.Abstraction", "CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj", "{0E90E48A-28A0-4762-BFAD-4A3A8753613D}"
 EndProject
@@ -30,6 +30,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Console.Net", "CAPI.Console.Net\CAPI.Console.Net.csproj", "{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.LookUpTableGenerator", "CAPI.LookUpTableGenerator\CAPI.LookUpTableGenerator.csproj", "{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.General.Abstractions", "CAPI.General.Abstractions\CAPI.General.Abstractions.csproj", "{644E77B3-A14A-4A11-9F4B-FADA5D67D839}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.General", "CAPI.General\CAPI.General.csproj", "{B4385310-57A2-4A56-AC62-58311D9C0C65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,6 +126,18 @@ Global
 		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.Release|Any CPU.Build.0 = Release|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{644E77B3-A14A-4A11-9F4B-FADA5D67D839}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{B4385310-57A2-4A56-AC62-58311D9C0C65}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

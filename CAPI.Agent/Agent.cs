@@ -1,9 +1,9 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
-using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Abstractions;
+using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +34,6 @@ namespace CAPI.Agent
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="config">All configuration parameters</param>
         /// <param name="args">Arguements passed to agent</param>
         /// <param name="dicomFactory">Creates required dicom services</param>
         /// <param name="imgProcFactory">ImageProcessing Factory</param>
