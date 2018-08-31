@@ -1,9 +1,8 @@
-﻿using CAPI.Common.Abstractions.Services;
-using CAPI.Common.Config;
+﻿using CAPI.General.Abstractions.Services;
 using System.Diagnostics;
 using System.Linq;
 
-namespace CAPI.Common.Services
+namespace CAPI.General.Services
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ProcessBuilder : IProcessBuilder

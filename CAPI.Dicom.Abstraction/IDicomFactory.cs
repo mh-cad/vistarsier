@@ -1,8 +1,8 @@
-﻿using CAPI.Common.Abstractions.Services;
+﻿using CAPI.General.Abstractions.Services;
 using log4net;
 using System;
 
-namespace CAPI.Dicom.Abstraction
+namespace CAPI.Dicom.Abstractions
 {
     public interface IDicomFactory
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CAPI.Dicom.Abstraction
+namespace CAPI.Dicom.Abstractions
 {
     public interface IDicomSeries
     {

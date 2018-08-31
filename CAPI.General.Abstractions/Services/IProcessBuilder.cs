@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CAPI.Common.Abstractions.Services
+namespace CAPI.General.Abstractions.Services
 {
     public interface IProcessBuilder
     {
