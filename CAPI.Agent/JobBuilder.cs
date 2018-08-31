@@ -76,7 +76,7 @@ namespace CAPI.Agent
 
             recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
 
-            // Get Current Study (Fixed)
+            // Find Current Study (Fixed)
             _log.Info("Finding current series using recipe prvided...");
             var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
             if (currentDicomStudy == null ||
@@ -91,20 +91,21 @@ namespace CAPI.Agent
             var jobFolderName = $"{patientName}-{DateTime.Now:yyyyMMdd_HHmmssfff}";
             job.ProcessingFolder = Path.Combine(_capiConfig.ImgProcConfig.ImageRepositoryPath, jobFolderName);
 
-            _log.Info("Saving current series to disk...");
-            job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
-            _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
-
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
-            // Get Prior Study (Floating)
+            // Find Prior Study (Floating)
             _log.Info("Finding prior series using recipe prvided...");
             var priorDicomStudy =
                 GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
             if (priorDicomStudy == null)
                 throw new Exception("No prior workable series were found");
+
+            // If both current and prior are found save them to disk for processing
+            _log.Info("Saving current series to disk...");
+            job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
+                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
+            _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             _log.Info("Saving prior series to disk...");
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
@@ -114,6 +115,7 @@ namespace CAPI.Agent
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
             job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
             job.PriorAccession = priorDicomStudy.AccessionNumber;
+            job.PatientId = currentDicomStudy.PatientId;
 
             return job;
         }

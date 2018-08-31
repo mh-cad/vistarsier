@@ -136,6 +136,10 @@
     <Compile Include="Migrations\20180825090043_InitialCreate.designer.cs">
       <DependentUpon>20180825090043_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20180829010411_CaseCommentPropAdded.cs" />
+    <Compile Include="Migrations\20180829010411_CaseCommentPropAdded.designer.cs">
+      <DependentUpon>20180829010411_CaseCommentPropAdded.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\AgentRepositoryModelSnapshot.cs" />
     <Compile Include="Models\Case.cs" />
     <Compile Include="ImageProcessor.cs" />

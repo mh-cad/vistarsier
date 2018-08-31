@@ -28,17 +28,20 @@ namespace CAPI.Agent
         public CapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
         private readonly AgentRepository _context;
+        private readonly string[] _args;
+        private Timer _timer;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="config">All configuration parameters</param>
+        /// <param name="args">Arguements passed to agent</param>
         /// <param name="dicomFactory">Creates required dicom services</param>
         /// <param name="imgProcFactory">ImageProcessing Factory</param>
         /// <param name="fileSystem">CAPI FileSystem service</param>
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
-        public Agent(CapiConfig config, IDicomFactory dicomFactory,
+        public Agent(string[] args, IDicomFactory dicomFactory,
                      IImageProcessingFactory imgProcFactory,
                      IFileSystem fileSystem, IProcessBuilder processBuilder,
                      ILog log)
@@ -48,7 +51,8 @@ namespace CAPI.Agent
             _processBuilder = processBuilder;
             _log = log;
             _imgProcFactory = imgProcFactory;
-            Config = config;
+            _args = args;
+            Config = new CapiConfig().GetConfig(args);
             _context = new AgentRepository();
         }
 
@@ -73,6 +77,8 @@ namespace CAPI.Agent
             try
             {
                 _log.Info("Checking for new cases");
+                Config = new CapiConfig().GetConfig(_args);
+                _timer.Interval = int.Parse(Config.RunInterval) * 1000;
                 ProcessNewlyAddedCases();
             }
             catch (Exception ex)
@@ -114,7 +120,8 @@ namespace CAPI.Agent
                 SetCaseStatus(@case, "Processing");
 
                 var cs = @case as Case ?? throw new ArgumentNullException(nameof(@case), "Case not found in database to be updated");
-                cs.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
+
+                Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
 
                 _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
                 SetCaseStatus(@case, "Complete");
@@ -124,10 +131,9 @@ namespace CAPI.Agent
                 _log.Error($"{Environment.NewLine}Case failed during processing", ex);
                 IsBusy = false;
 
-                var failedCases = _context.GetCaseByStatus("Processing");
-                failedCases.ToList().ForEach(c => { SetCaseStatus(c, "Failed"); });
-
-                throw;
+                SetCaseStatus(@case, "Failed");
+                SetCaseComment(@case, ex.Message);
+                //throw;
             }
         }
 
@@ -154,9 +160,9 @@ namespace CAPI.Agent
         }
         private void StartTimer(int interval)
         {
-            var timer = new Timer { Interval = interval * 1000, Enabled = true };
-            timer.Elapsed += OnTimeEvent;
-            timer.Start();
+            _timer = new Timer { Interval = interval * 1000, Enabled = true };
+            _timer.Elapsed += OnTimeEvent;
+            _timer.Start();
         }
         private void ProcessNewlyAddedCases()
         {
@@ -216,6 +222,13 @@ namespace CAPI.Agent
         private void SetCaseStatus(ICase @case, string status)
         {
             @case.Status = status;
+            _context.Cases.Update(@case as Case ?? throw new ArgumentNullException(nameof(@case),
+                                      "Case not found in database to be updated"));
+            _context.SaveChanges();
+        }
+        private void SetCaseComment(ICase @case, string comment)
+        {
+            @case.Comment = comment;
             _context.Cases.Update(@case as Case ?? throw new ArgumentNullException(nameof(@case),
                                       "Case not found in database to be updated"));
             _context.SaveChanges();

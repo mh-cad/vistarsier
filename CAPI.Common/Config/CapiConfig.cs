@@ -69,7 +69,8 @@ namespace CAPI.Common.Config
 
             if (string.IsNullOrEmpty(configFilePath) || !File.Exists(configFilePath))
                 throw new FileNotFoundException($"Unable to locate the following file: [{configFilePath}]");
-            var config = JsonConvert.DeserializeObject<CapiConfig>(File.ReadAllText(configFilePath), new JsonSerializerSettings()
+            var configFileContent = File.ReadAllText(configFilePath);
+            var config = JsonConvert.DeserializeObject<CapiConfig>(configFileContent, new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.Auto
             });
