@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</ProjectGuid>
+    <ProjectGuid>{C11F23F0-DE98-46F9-8203-670ECE388551}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Common</RootNamespace>
-    <AssemblyName>CAPI.Common</AssemblyName>
+    <RootNamespace>CAPI.Dicom.Abstractions</RootNamespace>
+    <AssemblyName>CAPI.Dicom.Abstractions</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,14 +30,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.DirectoryServices.Protocols" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,51 +43,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\CapiConfig.cs" />
-    <Compile Include="Config\CapiConfigJsonConverter.cs" />
-    <Compile Include="Config\Helper.cs" />
-    <Compile Include="Config\DicomConfig.cs" />
-    <Compile Include="Config\ImgProcConfig.cs" />
-    <Compile Include="Config\TestsConfig.cs" />
+    <Compile Include="DicomNewObjectType.cs" />
+    <Compile Include="IDicomConfig.cs" />
+    <Compile Include="IDicomFactory.cs" />
+    <Compile Include="IDicomImage.cs" />
+    <Compile Include="IDicomNode.cs" />
+    <Compile Include="IDicomPatient.cs" />
+    <Compile Include="IDicomServices.cs" />
+    <Compile Include="IDicomTag.cs" />
+    <Compile Include="IDicomTagCollection.cs" />
+    <Compile Include="IDicomSeries.cs" />
+    <Compile Include="IDicomStudy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TagType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MF-PC.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
-    <None Include="Rad-VTNew.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="MH19189.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
-      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
-      <Name>CAPI.Common.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
-      <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
-      <Name>CAPI.Dicom.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
-      <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
-      <Name>CAPI.Dicom</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
       <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
       <Name>CAPI.General.Abstractions</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config.dev.MH19189.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config.dev.MF-PC.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

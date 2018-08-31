@@ -1,5 +1,5 @@
 using System;
-using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Abstractions;
 
 namespace CAPI.Dicom.Model
 {

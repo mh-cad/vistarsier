@@ -1,4 +1,4 @@
-﻿namespace CAPI.Dicom.Abstraction
+﻿namespace CAPI.Dicom.Abstractions
 {
     public enum TagType
     {

@@ -1,5 +1,5 @@
 ﻿using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Abstractions.Services;
+using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 

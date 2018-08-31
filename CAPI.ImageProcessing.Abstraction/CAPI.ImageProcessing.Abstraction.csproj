@@ -59,6 +59,10 @@
       <Project>{33ACFCF5-6147-407C-BA09-993FC6A16CC3}</Project>
       <Name>CAPI.Common.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
+      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
+      <Name>CAPI.General.Abstractions</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

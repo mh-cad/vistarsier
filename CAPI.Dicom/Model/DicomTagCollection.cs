@@ -1,4 +1,4 @@
-using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Abstractions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;

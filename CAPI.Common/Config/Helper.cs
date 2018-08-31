@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Abstractions.Services;
+﻿using CAPI.General.Abstractions.Services;
 using System;
 using System.Configuration;
 using System.IO;

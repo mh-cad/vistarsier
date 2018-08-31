@@ -30,9 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CAPI.Dicom.Abstraction">
-      <HintPath>..\CAPI.DAL\bin\Debug\CAPI.Dicom.Abstraction.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,8 +45,12 @@
     <Compile Include="Config\IImgProcConfig.cs" />
     <Compile Include="Config\ITestsConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\IFileSystem.cs" />
-    <Compile Include="Services\IProcessBuilder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
+      <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
+      <Name>CAPI.Dicom.Abstractions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,11 +1,11 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Abstractions.Services;
 using CAPI.Common.Config;
-using CAPI.Common.Services;
 using CAPI.Dicom;
-using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
+using CAPI.General.Abstractions.Services;
+using CAPI.General.Services;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using Unity;
@@ -27,7 +27,7 @@ namespace CAPI.Console.Net.Helpers
             container.RegisterType<IDicomNode, DicomNode>();
             container.RegisterType<IDicomFactory, DicomFactory>();
             container.RegisterType<IDicomServices, DicomServices>();
-            container.RegisterType<Dicom.Abstraction.IDicomConfig, Dicom.DicomConfig>();
+            container.RegisterType<Dicom.Abstractions.IDicomConfig, Dicom.DicomConfig>();
             container.RegisterType<IImageConverter, ImageConverter>();
             container.RegisterType<IImageProcessor, ImageProcessor>();
             container.RegisterType<Agent.Abstractions.Models.ISeriesSelectionCriteria, Agent.Models.SeriesSelectionCriteria>();

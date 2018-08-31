@@ -1,9 +1,9 @@
-﻿using CAPI.Common.Abstractions.Services;
+﻿using CAPI.General.Abstractions.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CAPI.Common.Services
+namespace CAPI.General.Services
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class FileSystem : IFileSystem

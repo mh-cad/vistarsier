@@ -1,5 +1,5 @@
-﻿using CAPI.Common.Abstractions.Services;
-using CAPI.Common.Config;
+﻿using CAPI.Common.Config;
+using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
