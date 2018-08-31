@@ -157,20 +157,29 @@ namespace CAPI.ImageProcessing
 
             if (extractBrain)
             {
-                _log.Info("Starting Extraction of Brain Mask...");
-                stopwatch.Start();
+
                 var bseParams = _config.BseParams;
                 var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
                 var fixedMask = currentNii.Replace(".nii", ".mask.nii");
+                _log.Info("Starting Extraction of Brain Mask for Current series...");
+                stopwatch.Start();
+
                 ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
+
+                stopwatch.Stop();
+                _log.Info($"Finished Extracting Brain Mask for Current series in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds.");
                 fixedFile = fixedBrain;
 
                 var floatingBrain = priorNii.Replace(".nii", ".brain.nii");
                 var floatingMask = priorNii.Replace(".nii", ".mask.nii");
+                _log.Info("Starting Extraction of Brain Mask for Prior series...");
+                stopwatch.Restart();
+
                 ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
+
                 floatingFile = floatingBrain;
                 stopwatch.Stop();
-                _log.Info($"Finished Extracting Brain Mask in {stopwatch.Elapsed.TotalSeconds} seconds.");
+                _log.Info($"Finished Extracting Brain Mask for Prior series in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds.");
             }
 
             if (register)
@@ -185,29 +194,41 @@ namespace CAPI.ImageProcessing
                 File.Move(resliced, outPriorReslicedNii);
                 floatingFile = outPriorReslicedNii;
                 stopwatch.Stop();
-                _log.Info($"Finished Current and Prior in {stopwatch.Elapsed.TotalSeconds} seconds.");
+                _log.Info($"Finished Registration of Current and Prior in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds.");
             }
 
             if (biasFieldCorrect)
             {
-                _log.Info("Starting Bias Field Correction...");
-                stopwatch.Restart();
-                var bfcParams = _config.BfcParams;
 
+                var bfcParams = _config.BfcParams;
                 var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
+                _log.Info("Starting Bias Field Correction for Current series...");
+                stopwatch.Restart();
+
                 BiasFieldCorrection(fixedFile, bfcParams, fixedBfc);
+
+                stopwatch.Stop();
+                _log.Info($"Finished Bias Field Correction of Current series in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds.");
                 fixedFile = fixedBfc;
 
                 var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
+                _log.Info("Starting Bias Field Correction for Prior series...");
+                stopwatch.Restart();
+
                 BiasFieldCorrection(floatingFile, bfcParams, floatingBfc);
+
                 floatingFile = floatingBfc;
                 stopwatch.Stop();
-                _log.Info($"Finished Bias Field Correction in {stopwatch.Elapsed.TotalSeconds} seconds.");
+                _log.Info($"Finished Bias Field Correction for Prior series in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds.");
             }
 
             _log.Info("Starting Comparison of Current and Resliced Prior Series...");
+            stopwatch.Restart();
+
             Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
-            _log.Info("Finished Comparison of Current and Resliced Prior Series...");
+
+            stopwatch.Stop();
+            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds...");
         }
 
         [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]

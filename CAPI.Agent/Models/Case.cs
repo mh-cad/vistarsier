@@ -12,10 +12,11 @@ namespace CAPI.Agent.Models
         public long Id { get; set; }
         public string Accession { get; set; }
         public string Status { get; set; }
+        public string Comment { get; set; }
         public AdditionMethod AdditionMethod { get; set; }
 
-        public void Process(Recipe recipe, IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory, CapiConfig capiConfig,
-                            IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
+        public static void Process(Recipe recipe, IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
+                            CapiConfig capiConfig, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
             var dicomConfig = GetDicomConfigFromCapiConfig(capiConfig, dicomFactory);
             var dicomServices = dicomFactory.CreateDicomServices(dicomConfig, fileSystem, processBuilder, log);
@@ -28,8 +29,7 @@ namespace CAPI.Agent.Models
             job.Process();
         }
 
-        private static IDicomConfig GetDicomConfigFromCapiConfig(
-            CapiConfig capiConfig, IDicomFactory dicomFactory)
+        private static IDicomConfig GetDicomConfigFromCapiConfig(CapiConfig capiConfig, IDicomFactory dicomFactory)
         {
             var dicomConfig = dicomFactory.CreateDicomConfig();
             dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;

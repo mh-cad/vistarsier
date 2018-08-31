@@ -29,7 +29,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Common.Abstractions", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CAPI.Extensions", "CAPI.Extensions\CAPI.Extensions.csproj", "{CF73B4C7-8313-466C-AFA6-9530AEAFF89B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Console.Net", "CAPI.Console.NetFramework\CAPI.Console.Net.csproj", "{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Console.Net", "CAPI.Console.Net\CAPI.Console.Net.csproj", "{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.LookUpTableGenerator", "CAPI.LookUpTableGenerator\CAPI.LookUpTableGenerator.csproj", "{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,6 +124,12 @@ Global
 		{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
 		{8A383FDB-D7B3-4D7F-8C54-6DB2E7DA0A17}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.UNIT_TESTS_USAGE_TRACKING|Any CPU.ActiveCfg = Release|Any CPU
+		{2A0AFC55-CDF9-4794-B1D9-E1EA303D0FD1}.UNIT_TESTS_USAGE_TRACKING|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

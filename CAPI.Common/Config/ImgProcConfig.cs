@@ -6,15 +6,12 @@ namespace CAPI.Common.Config
     public class ImgProcConfig : IImgProcConfig
     {
         public string ImgProcBinFolderPath { get; set; }
-        //public string ImgProcConfigFolderPath { get; set; }
         public string JavaExeFilePath { get; set; }
         public string JavaClassPath { get; set; }
         public string ProcessesLogPath { get; set; }
         public string ImageRepositoryPath { get; set; }
         public string ManualProcessPath { get; set; }
         public string Hl7ProcessPath { get; set; }
-        //public bool ProcessCasesAddedManually { get; set; }
-        //public bool ProcessCasesAddedByHl7 { get; set; }
         public string Dcm2NiiExeRelFilePath { get; set; }
         public string BseExeRelFilePath { get; set; }
         public string BseParams { get; set; }
@@ -26,5 +23,7 @@ namespace CAPI.Common.Config
         public string CmtkRawxformFile { get; set; }
         public string CmtkResultxformFile { get; set; }
         public string ReformatXRelFilePath { get; set; }
+        public string ResultsDicomSeriesDescription { get; set; }
+        public string PriorReslicedDicomSeriesDescription { get; set; }
     }
 }
