@@ -1,6 +1,5 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Common.Abstractions.Services;
-using CAPI.Common.Config;
 using CAPI.Console.Net.Helpers;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
@@ -27,13 +26,11 @@ namespace CAPI.Console.Net
             var fileSystem = container.Resolve<IFileSystem>();
             var processBuilder = container.Resolve<IProcessBuilder>();
 
-            var config = new CapiConfig().GetConfig(args);
-
-            var agent = agentFactory.CreateAgent(config, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
+            var agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
 
             agent.Run();
 
-            while (true) { }
+            while (System.Console.ReadKey(true).KeyChar != 'q') { }
         }
 
         private static void InitialiseLog4Net()

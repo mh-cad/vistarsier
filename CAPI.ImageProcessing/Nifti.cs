@@ -247,23 +247,33 @@ namespace CAPI.ImageProcessing
             return current;
         }
 
-        public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult)
+        public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null)
         {
             CheckIfDimensionsMatch(currentSlice, priorSlice, compareResult);
 
-            var lut = GetBlankLookupTable();
+            var lut = baseLut ?? GetBlankLookupTable();
             for (var y = 0; y < currentSlice.Height; y++)
                 for (var x = 0; x < currentSlice.Width; x++)
                 {
                     var lutX = currentSlice.GetPixel(x, y).R;
                     var lutY = priorSlice.GetPixel(x, y).R;
-                    var lutC = compareResult.GetPixel(x, y);
-                    lut.SetPixel(lutX, lutY, lutC);
+                    var lutColor = compareResult.GetPixel(x, y);
+
+                    if (IsColor(lut.GetPixel(lutX, lutY))) continue;
+
+                    lut.SetPixel(lutX, lutY, lutColor);
                 }
             return lut;
         }
 
-        private Bitmap GetBlankLookupTable()
+        private static bool IsColor(Color color)
+        {
+            return Math.Abs(color.R - color.G) > 2 ||
+                   Math.Abs(color.R - color.B) > 2 ||
+                   Math.Abs(color.G - color.B) > 2;
+        }
+
+        private static Bitmap GetBlankLookupTable()
         {
             var lut = new Bitmap(256, 256);
             for (var y = 0; y < 256; y++)
@@ -286,7 +296,7 @@ namespace CAPI.ImageProcessing
         }
 
         private static INifti NormalizeAndTrimEachSlice(INifti nifti, SliceType sliceType,
-                                                         int mean, int std, int rangeWidth)
+                                                        int mean, int std, int rangeWidth)
         {
             //nifti.GetDimensions(sliceType, out var width, out var height, out var nSlices);
             var slices = nifti.GetSlices(sliceType).ToArray();

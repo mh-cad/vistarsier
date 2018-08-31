@@ -4,6 +4,8 @@ using CAPI.Common.Abstractions.Services;
 using CAPI.Dicom.Abstraction;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -46,16 +48,21 @@ namespace CAPI.Agent
                 resultNiiFile, outPriorReslicedNiiFile);
 
             _log.Info("Start Converting Results back to Dicom");
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder);
-            _log.Info("Finished Converting Results back to Dicom");
+            stopwatch.Stop();
+            _log.Info($"Finished Converting Results back to Dicom in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
 
             UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
 
             // current study headers are used as this series is going to be sent to the current study
             // prior study date will be added to the end of Series Description tag
             _log.Info("Start Converting Resliced Prior Series back to Dicom");
+            stopwatch.Restart();
             ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder);
-            _log.Info("Finished Converting Resliced Prior Series back to Dicom");
+            stopwatch.Stop();
+            _log.Info($"Finished Converting Resliced Prior Series back to Dicom in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
 
             var studydate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
             UpdateSeriesDescriptionForAllFiles(
@@ -71,9 +78,6 @@ namespace CAPI.Agent
                 job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
                 recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
             );
-
-            //job.PatientId = 
-            //    _dicomServices.GetStudyForAccession(recipe.CurrentAccession, null, null).PatientId;
 
             return job;
         }
