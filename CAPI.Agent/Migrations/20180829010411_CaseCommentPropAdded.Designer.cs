@@ -4,14 +4,16 @@ using CAPI.Agent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CAPI.Agent.Migrations
 {
     [DbContext(typeof(AgentRepository))]
-    partial class AgentRepositoryModelSnapshot : ModelSnapshot
+    [Migration("20180829010411_CaseCommentPropAdded")]
+    partial class CaseCommentPropAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

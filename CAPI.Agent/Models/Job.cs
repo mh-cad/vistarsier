@@ -107,6 +107,7 @@ namespace CAPI.Agent.Models
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
+            _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
                                                     _filesystem, _processBuilder,
                                                     _capiConfig.ImgProcConfig, _log);
@@ -130,6 +131,25 @@ namespace CAPI.Agent.Models
             _log.Info("-------------------------");
         }
 
+        private ImgProcConfig UpdateImgProcConfig(IRecipe recipe)
+        {
+            var imgProcConfig = _capiConfig.ImgProcConfig;
+
+            if (!string.IsNullOrEmpty(recipe.ExtractBrainParams))
+                imgProcConfig.BseParams = recipe.ExtractBrainParams;
+
+            if (!string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams))
+                imgProcConfig.BfcParams = recipe.BiasFieldCorrectionParams;
+
+            if (!string.IsNullOrEmpty(recipe.ResultsDicomSeriesDescription.Trim()))
+                imgProcConfig.ResultsDicomSeriesDescription = recipe.ResultsDicomSeriesDescription;
+
+            if (!string.IsNullOrEmpty(recipe.PriorReslicedDicomSeriesDescription.Trim()))
+                imgProcConfig.PriorReslicedDicomSeriesDescription = recipe.PriorReslicedDicomSeriesDescription;
+
+            return imgProcConfig;
+        }
+
         private void SendToDestinations()
         {
             if (string.IsNullOrEmpty(ResultSeriesDicomFolder) || Directory.GetFiles(ResultSeriesDicomFolder).Length == 0)
@@ -140,6 +160,9 @@ namespace CAPI.Agent.Models
                 throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
                                                      $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
 
+            _log.Info("Sending to destinations...");
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             if (_recipe.DicomDestinations != null)
                 foreach (var dicomDestination in _recipe.DicomDestinations)
                 {
@@ -176,6 +199,9 @@ namespace CAPI.Agent.Models
                     //var priorReslicedDestFolder = Path.Combine(jobFolderPath, Path.GetFileName(PriorReslicedSeriesDicomFolder));
                     //_filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
                 }
+
+            stopwatch.Stop();
+            _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
         }
 
         private SliceType GetSliceType(string sliceType)

@@ -34,9 +34,7 @@ namespace CAPI.Console
             var fileSystem = serviceProvider.GetService<IFileSystem>();
             var processBuilder = serviceProvider.GetService<IProcessBuilder>();
 
-            var config = new CapiConfig().GetConfig(args);
-
-            var agent = agentFactory.CreateAgent(config, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
+            var agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
 
             agent.Run();
 
@@ -55,8 +53,8 @@ namespace CAPI.Console
             services
                 .AddSingleton<IAgent, Agent.Agent>()
                 .AddSingleton<IAgentFactory, AgentFactory>()
-                //.AddSingleton<IAgentRepository, AgentRepository>()
-                //.AddSingleton<ICapiConfig, CapiConfig>()
+                //.AddSingleton<IAgentRepository, AgentRepository>() // Because of EntityFramework Model Config
+                //.AddSingleton<ICapiConfig, CapiConfig>() // Because of Json Conversion
                 .AddSingleton<IImgProcConfig, ImgProcConfig>()
                 .AddSingleton<ITestsConfig, TestsConfig>()
                 .AddSingleton<IFileSystem, FileSystem>()
