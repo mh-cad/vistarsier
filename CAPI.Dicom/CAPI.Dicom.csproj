@@ -70,9 +70,13 @@
       <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
       <Name>CAPI.Common.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstraction.csproj">
+    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
-      <Name>CAPI.Dicom.Abstraction</Name>
+      <Name>CAPI.Dicom.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
+      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
+      <Name>CAPI.General.Abstractions</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

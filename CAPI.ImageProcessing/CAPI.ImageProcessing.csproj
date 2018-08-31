@@ -74,6 +74,10 @@
       <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
       <Name>CAPI.Extensions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
+      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
+      <Name>CAPI.General.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>

@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Abstractions.Services;
+﻿using CAPI.General.Abstractions.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;

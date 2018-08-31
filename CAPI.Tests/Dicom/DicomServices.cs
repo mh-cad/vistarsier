@@ -1,8 +1,8 @@
-﻿using CAPI.Common.Abstractions.Services;
-using CAPI.Common.Config;
+﻿using CAPI.Common.Config;
 using CAPI.Dicom;
-using CAPI.Dicom.Abstraction;
+using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
+using CAPI.General.Abstractions.Services;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
