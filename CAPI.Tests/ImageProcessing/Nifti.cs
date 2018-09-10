@@ -1,7 +1,6 @@
 ﻿using CAPI.Common.Config;
 using CAPI.ImageProcessing.Abstraction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -158,10 +157,14 @@ namespace CAPI.Tests.ImageProcessing
         [TestMethod]
         public void ReadVoxelsFromRgbBmps()
         {
+            // Arrange
             if (File.Exists($@"{_sampleRgbBitmapsFolder}\nim.nii")) File.Delete($@"{_sampleRgbBitmapsFolder}\nim.nii");
-            var files = Directory.GetFiles(_sampleRgbBitmapsFolder);
+            var files = Directory.GetFiles(_sampleRgbBitmapsFolder)
+                .Where(f => Path.GetExtension(f) == ".bmp").ToArray();
             var nim = _unity.Resolve<INifti>();
             nim.Header = nim.ReadHeaderFromFile(_fixedBrain);
+
+            // Act
             nim.ReadVoxelsFromRgb256Bmps(files, SliceType.Sagittal);
             nim.WriteNifti($@"{_sampleRgbBitmapsFolder}\nim.nii");
         }
@@ -169,18 +172,18 @@ namespace CAPI.Tests.ImageProcessing
         [TestMethod]
         public void Compare()
         {
+            // Arrange
             var fixedBrain = _unity.Resolve<INifti>().ReadNifti(_fixedShades);
-
             var floatingResliced = _unity.Resolve<INifti>().ReadNifti(_floatingShades);
-
             var result = _unity.Resolve<INifti>()
                 .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, "C:\\temp\\Capi-out\\tmp");
-
             if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
+
+            // Act
             result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);
 
-            throw new NotImplementedException();
-            //Assert.Fail(); 
+            // Assert
+            Assert.IsTrue(Directory.GetFiles(_rgbBmpsFolder).Length > 0, "No bmp files were found exported from result");
         }
 
         [TestMethod]

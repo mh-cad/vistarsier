@@ -88,14 +88,14 @@ namespace CAPI.Agent.Models
 
         public void Process()
         {
-            IJob job = this;
+            var job = this;
 
             job.Start = DateTime.Now;
             job.Status = "Processing";
 
-            var context = new AgentRepository();
+            var context = new AgentRepository(_capiConfig.AgentDbConnectionString);
 
-            context.Jobs.Add((Job)job);
+            context.Jobs.Add(job);
             context.SaveChanges();
 
             _log.Info($"{Environment.NewLine}");
@@ -114,7 +114,7 @@ namespace CAPI.Agent.Models
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
-            job = imageProcessor.CompareAndSendToFilesystem(job, _recipe, sliceType);
+            imageProcessor.CompareAndSendToFilesystem(job, _recipe, sliceType);
 
             SendToDestinations();
 
@@ -122,12 +122,13 @@ namespace CAPI.Agent.Models
 
             End = DateTime.Now;
             Status = "Complete";
-            context.Jobs.Update((Job)job);
+            var jobToUpdate = context.Jobs.SingleOrDefault(j => j.Id == Id);
+            if (jobToUpdate == null) throw new Exception($"Job with id [{Id}] not found");
+            context.Jobs.Update(jobToUpdate);
             context.SaveChanges();
 
             stopwatch.Stop();
-            _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes} minutes and " +
-                      $"{stopwatch.Elapsed.Seconds} seconds.");
+            _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
             _log.Info("-------------------------");
         }
 
@@ -163,45 +164,58 @@ namespace CAPI.Agent.Models
             _log.Info("Sending to destinations...");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            if (_recipe.DicomDestinations != null)
-                foreach (var dicomDestination in _recipe.DicomDestinations)
-                {
-                    var localNode = _capiConfig.DicomConfig.LocalNode;//  _capiConfig.DicomConfig.LocalNode;
-                    var remoteNode = _capiConfig.DicomConfig.RemoteNodes
-                        .SingleOrDefault(n => n.AeTitle.Equals(dicomDestination, StringComparison.InvariantCultureIgnoreCase));
 
-                    _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
-
-                    var resultDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
-                    foreach (var resultDicomFile in resultDicomFiles)
-                        _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
-
-                    var priorReslicedDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
-                    foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
-                        _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
-                }
-
-            if (_recipe.FilesystemDestinations != null)
-                foreach (var fsDestination in _recipe.FilesystemDestinations)
-                {
-                    var jobFolderName = Path.GetFileName(ProcessingFolder) ?? "";
-                    var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
-
-                    if (_recipe.OnlyCopyResults)
-                    {
-                        var resultsDestFolder = Path.Combine(destJobFolderPath, Path.GetFileName(ResultSeriesDicomFolder));
-                        _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
-                    }
-                    else
-                    {
-                        _filesystem.CopyDirectory(ProcessingFolder, destJobFolderPath);
-                    }
-                    //var priorReslicedDestFolder = Path.Combine(jobFolderPath, Path.GetFileName(PriorReslicedSeriesDicomFolder));
-                    //_filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorReslicedDestFolder);
-                }
+            // Sending to Dicom Destinations
+            SendToDicomDestinations();
+            // Sending to Filesystem Destinations
+            SendToFilesystemDestinations();
 
             stopwatch.Stop();
             _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
+        }
+        private void SendToFilesystemDestinations()
+        {
+            if (_recipe.FilesystemDestinations == null) return;
+            foreach (var fsDestination in _recipe.FilesystemDestinations)
+            {
+                var jobFolderName = Path.GetFileName(ProcessingFolder) ?? "";
+                var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
+
+                _log.Info($"Sending to folder [{destJobFolderPath}]...");
+                if (_recipe.OnlyCopyResults)
+                {
+                    var resultsDestFolder = Path.Combine(destJobFolderPath, Path.GetFileName(ResultSeriesDicomFolder));
+                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
+                }
+                else
+                {
+                    _filesystem.CopyDirectory(ProcessingFolder, destJobFolderPath);
+                }
+            }
+        }
+        private void SendToDicomDestinations()
+        {
+            if (_recipe.DicomDestinations == null) return;
+            foreach (var dicomDestination in _recipe.DicomDestinations)
+            {
+                var localNode = _capiConfig.DicomConfig.LocalNode;
+                var remoteNode = _capiConfig.DicomConfig.RemoteNodes
+                    .SingleOrDefault(n => n.AeTitle.Equals(dicomDestination, StringComparison.InvariantCultureIgnoreCase));
+                if (remoteNode == null)
+                    throw new Exception($"Remote node not found in config file [{dicomDestination}]");
+
+                _log.Info($"Establishing connection to AET [{remoteNode.AeTitle}]...");
+                _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
+
+                _log.Info($"Sending to AET [{remoteNode.AeTitle}]...");
+                var resultDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
+                foreach (var resultDicomFile in resultDicomFiles)
+                    _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
+
+                var priorReslicedDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
+                foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
+                    _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
+            }
         }
 
         private SliceType GetSliceType(string sliceType)

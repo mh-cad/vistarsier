@@ -20,19 +20,16 @@ namespace CAPI.Dicom
     {
         private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
-        private readonly string _executablesPath;
         private readonly ILog _log;
+        private readonly IDicomConfig _config;
 
         public DicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
             _fileSystem = fileSystem;
             _processBuilder = processBuilder;
             _log = log;
-            _executablesPath = config.ExecutablesPath;
+            _config = config;
         }
-
-        private const string DcmtkFolderName = "dcmtk-3.6.0-win32-i386";
-        private const string Img2DcmFileName = "img2dcm.exe";
 
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
         {
@@ -241,23 +238,16 @@ namespace CAPI.Dicom
             for (var i = 0; i < bmpFiles.Length; i++)
             {
                 var filenameNoExt = Path.GetFileNameWithoutExtension(bmpFiles[i]);
+                var filepath = Path.Combine(dicomFolder, filenameNoExt);
 
                 var arguments = string.Empty;
                 if (!string.IsNullOrEmpty(dicomheadersFolder))
                     arguments = $@"-df {orderedFiles[i]} "; // Copy dicom headers from dicom file: -df = dataset file
 
-                arguments += $"-i BMP {filenameNoExt}.bmp {dicomFolder}\\{filenameNoExt}";
+                arguments += $"-i BMP {filenameNoExt}.bmp {filepath}";
 
-                var process = _processBuilder.CallExecutableFile($@"{_executablesPath}\{DcmtkFolderName}\{Img2DcmFileName}",
-                    arguments, bmpFolder);
-                process.ErrorDataReceived += ErrorOccuredInProcess;
-                process.WaitForExit();
+                _processBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, bmpFolder, OutputDataReceivedInProcess, ErrorOccuredInProcess);
             }
-        }
-
-        private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
-        {
-            _log.Error(e.Data);
         }
 
         private IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)
@@ -441,6 +431,35 @@ namespace CAPI.Dicom
             if (studies.Count > 1)
                 throw new Exception($"{studies.Count} studies returned for accession {accessionNumber}");
             return studies.FirstOrDefault();
+        }
+
+        private void OutputDataReceivedInProcess(object sender, DataReceivedEventArgs e)
+        {
+            var consoleColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                    _log.Info($"Process stdout:{Environment.NewLine}{e.Data}");
+            }
+            finally
+            {
+                Console.ForegroundColor = consoleColor;
+            }
+        }
+        private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
+        {
+            var consoleColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                    _log.Error($"Process error:{Environment.NewLine}{e.Data}");
+            }
+            finally
+            {
+                Console.ForegroundColor = consoleColor;
+            }
         }
     }
 }

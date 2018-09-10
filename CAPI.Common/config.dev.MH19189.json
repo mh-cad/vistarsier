@@ -8,6 +8,7 @@
   "ProcessCasesAddedByHL7": false,
   "DicomConfig": {
     "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
+    "Img2DcmFilePath": "D:\\Capi-Files\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
     "LocalNode": {
       "LogicalName": "Mehdi's PC MH19189",
       "AeTitle": "KPSB",
@@ -33,7 +34,7 @@
     "ImgProcBinFolderPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
     "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
     "BseExeRelFilePath": "bse.exe",
-    "BseParams": "--auto --trim",
+    "BseParams": "--auto --trim --timer",
     "RegistrationRelFilePath": "CMTK\\bin\\registration.exe",
     "CmtkFolderName": "CMTK_Output",
     "CmtkRawxformFile": "CmtkRawxFormFile",
@@ -41,14 +42,16 @@
     "CmtkResultxformFile": "CmtkResultxFormFile",
     "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
     "BfcExeRelFilePath": "bfc.exe",
-    "BfcParams": "--iterate",
+    "BfcParams": "--iterate --ellipse --timer",
     //"ImgProcConfigFolderPath": "D:\\VT-Files\\RAPPreprocess\\config",
     "JavaExeFilePath": "C:\\Program Files (x86)\\Java\\jre1.8.0_144\\bin\\java.exe",
     "JavaClasspath": "D:\\Capi-Files\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
     "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
-    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository"
+    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository",
+    "ResultsDicomSeriesDescription": "CAPI Modified Signal",
+    "PriorReslicedDicomSeriesDescription": "Prior Resliced" 
   },
   "TestsConfig": {
-    "TestResources": "D:\\Capi-Tests\\TestsResources"
+    "TestResourcesPath": "D:\\Capi-Tests\\TestsResources"
   }
 }

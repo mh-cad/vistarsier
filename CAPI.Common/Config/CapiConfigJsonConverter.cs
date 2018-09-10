@@ -41,7 +41,7 @@ namespace CAPI.Common.Config
             // Deserialize DicomConfig
             dynamic dicomConfig = jsonToken["DicomConfig"];
 
-            capiConfig.DicomConfig.DicomServicesExecutablesPath = dicomConfig.DicomServicesExecutablesPath.Value;
+            capiConfig.DicomConfig.Img2DcmFilePath = dicomConfig.Img2DcmFilePath.Value;
 
             capiConfig.DicomConfig.LocalNode = JsonConvert.DeserializeObject<DicomNode>(dicomConfig.LocalNode.ToString());
 

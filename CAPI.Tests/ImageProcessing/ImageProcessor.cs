@@ -1,6 +1,7 @@
 ﻿using CAPI.Common.Config;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
+using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using Unity;
@@ -13,8 +14,8 @@ namespace CAPI.Tests.ImageProcessing
     {
         private string _testResourcesPath;
         private string _outputFolder;
-        private string _fixedNiiFile;
-        private string _floatingNiiFile;
+        private string _fixedBfcNiiFile;
+        private string _floatingBfcNiiFile;
         private string _fixedBrainNiiFile;
         private string _reslicedfloatingNiiFile;
         private IUnityContainer _unity;
@@ -24,28 +25,71 @@ namespace CAPI.Tests.ImageProcessing
         private string _compareResult;
         private string _fixedDicomFolder;
         private string _floatingDicomFolder;
+        private CapiConfig _capiConfig;
+        private string _fixedMaskFile;
+        private string _fixedNiiFile;
+        private IProcessBuilder _processBuilder;
+        private ILog _log;
+        private string _fixedBrainFile;
+        private string _floatingBrainFile;
+        private string _floatingMaskFile;
+        private string _resultsFolder;
 
         [TestInitialize]
         public void TestInit()
         {
-            _filesystem = _unity.Resolve<IFileSystem>();
-            _testResourcesPath = Helper.GetTestResourcesPath();
+            _unity = Helpers.Unity.CreateContainerCore();
 
-            const string testFolderName = "01_1323314";
+            _log = LogHelper.GetLogger();
+            _filesystem = _unity.Resolve<IFileSystem>();
+            _processBuilder = _unity.Resolve<IProcessBuilder>();
+            _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
+            _testResourcesPath = _capiConfig.TestsConfig.TestResourcesPath;  //Helper.GetTestResourcesPath();
+            var imgProcFactory = _unity.Resolve<IImageProcessingFactory>();
+            _imageProcessor = imgProcFactory.CreateImageProcessor(_filesystem, _processBuilder, _capiConfig.ImgProcConfig, _log);
+
+            const string testFolderName = "sample_series";
             _outputFolder = $@"{_testResourcesPath}\Output";
+            _resultsFolder = $@"{_outputFolder}\Results";
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
-            _fixedNiiFile = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\fixed\fixed.bfc.nii";
-            _floatingNiiFile = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\floating\floating.bfc.nii";
-            //_fixedBrainNiiFile = $@"{_testResourcesPath}\Fixed2\fixed.bfc.nii";
-            //_reslicedfloatingNiiFile = $@"{_testResourcesPath}\Floating2\floating.bfc.nii";
+            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
+            if (Directory.Exists(_resultsFolder)) Directory.Delete(_resultsFolder, true);
+            _filesystem.DirectoryExistsIfNotCreate(_resultsFolder);
+
+            var fixedFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.nii";
+            var fixedBrainFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.brain.nii";
+            var fixedMaskFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.mask.nii";
+            var floatingBrainFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Prior\floating.brain.nii";
+            var floatingMaskFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Prior\floating.mask.nii";
+            var fixedBfcFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.bfc.nii";
+            var floatingBfcFilePath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\prior.resliced.bfc.nii";
+
             _lookupTable = $@"{_testResourcesPath}\LookUpTable.bmp";
             _compareResult = $@"{_testResourcesPath}\compareResult.nii";
 
-            //_fixedDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\fixed";
-            //_floatingDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\floating";
+            _fixedNiiFile = Path.Combine(_outputFolder, "current.nii");
+            _fixedBrainFile = Path.Combine(_outputFolder, "current.brain.nii");
+            _fixedMaskFile = Path.Combine(_outputFolder, "current.mask.nii");
+            _floatingBrainFile = Path.Combine(_outputFolder, "prior.brain.nii");
+            _floatingMaskFile = Path.Combine(_outputFolder, "prior.mask.nii");
+            _fixedBfcNiiFile = Path.Combine(_outputFolder, "current.bfc.nii");
+            _floatingBfcNiiFile = Path.Combine(_outputFolder, "prior.bfc.nii");
 
-            _unity = Helpers.Unity.CreateContainerCore();
-            _imageProcessor = _unity.Resolve<IImageProcessor>();
+            File.Copy(fixedFilepath, _fixedNiiFile);
+            File.Copy(fixedBrainFilepath, _fixedBrainFile);
+            File.Copy(fixedMaskFilepath, _fixedMaskFile);
+            File.Copy(floatingBrainFilepath, _floatingBrainFile);
+            File.Copy(floatingMaskFilepath, _floatingMaskFile);
+            File.Copy(fixedBfcFilepath, _fixedBfcNiiFile);
+            File.Copy(floatingBfcFilePath, _floatingBfcNiiFile);
+
+            ClearFilesAndFolders();
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
 
             ClearFilesAndFolders();
         }
@@ -83,7 +127,7 @@ namespace CAPI.Tests.ImageProcessing
             _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
-            _imageProcessor.ExtractBrainMask(_floatingNiiFile, bseParams, brain, mask);
+            _imageProcessor.ExtractBrainMask(_floatingBfcNiiFile, bseParams, brain, mask);
 
             // Assert
             Assert.IsTrue(File.Exists(brain), $"Skull stripped brain file does not exist [{brain}]");
@@ -94,123 +138,78 @@ namespace CAPI.Tests.ImageProcessing
         public void Registration()
         {
             // Arrange
-            var fixedBrain = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
-            var floatingBrain = $@"{_testResourcesPath}\Floating2\floating.brain.nii";
-            var floatingResliced = $@"{_testResourcesPath}\Floating2\floating.resliced.nii";
-            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
+            var floatingResliced = $@"{_resultsFolder}\prior.resliced.nii";
+            var maskResliced = $@"{_resultsFolder}\prior.resliced.mask.nii";
+            _filesystem.DirectoryExistsIfNotCreate(_resultsFolder);
 
             // Act
-            _imageProcessor.Registration(fixedBrain, floatingBrain, floatingResliced);
+            _imageProcessor.Registration(_fixedBrainFile, _floatingBrainFile, floatingResliced);
+            _imageProcessor.Registration(_fixedMaskFile, _floatingMaskFile, maskResliced);
 
             // Assert
             Assert.IsTrue(File.Exists(floatingResliced), $"Resliced floating file does not exist [{floatingResliced}]");
+            Assert.IsTrue(File.Exists(maskResliced), $"Resliced floating mask file does not exist [{maskResliced}]");
         }
 
         [TestMethod]
         public void BiasFieldCorrection()
         {
             // Arrange
-            var inNii = $@"{_testResourcesPath}\Fixed2\fixed.brain.nii";
-            var outNii = $@"{_outputFolder}\fixed.brain.bfc.nii";
-            var bseParams = CAPI.ImageProcessing.ImgProcConfig.GetBfcParams();
-            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
+            var outNii = $@"{_resultsFolder}\prior.brain.bfc.nii";
+            const string bseParams = "--iterate --ellipse --timer";
+            _filesystem.DirectoryExistsIfNotCreate($"{_resultsFolder}");
 
             // Act
-            _imageProcessor.BiasFieldCorrection(inNii, bseParams, outNii);
+            _imageProcessor.BiasFieldCorrection(_floatingBrainFile, _floatingMaskFile, bseParams, outNii);
 
             // Assert
             Assert.IsTrue(File.Exists(outNii), $"Bias Field Correction output file does not exist [{outNii}]");
         }
 
-        //[TestMethod]
-        //public void TakeDifference()
-        //{
-        //    // Arrange
-        //    var fixedBrainNii = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
-        //    var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
-        //    var floatingReslicedNii = $@"{_testResourcesPath}\Floating\floating.resliced.bfc.nii";
+        [TestMethod]
+        public void Normalize()
+        {
+            // Arrange
+            var lookupTable = _lookupTable;
 
-        //    var subtractPositive = $@"{_outputFolder}\sub.pos.nii";
-        //    var subtractNegative = $@"{_outputFolder}\sub.neg.nii";
-        //    var subtractMask = $@"{_outputFolder}\sub.mask.nii";
+            // Act
+            _imageProcessor.Normalize(_fixedBfcNiiFile, _fixedMaskFile, SliceType.Sagittal, 128, 32, 256);
+            _imageProcessor.Normalize(_floatingBfcNiiFile, _floatingMaskFile, SliceType.Sagittal, 128, 32, 256);
 
-        //    CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            // Assert
+            // pre-normalized nifti files get renamed to %currentNii%.preNormalized.nii - normalized files keep original file names
+            Assert.IsTrue(File.Exists(_fixedBfcNiiFile));
+            Assert.IsTrue(File.Exists(_floatingBfcNiiFile));
+        }
 
-        //    // Act
-        //    ImageProcessorNew.TakeDifference(fixedBrainNii, floatingReslicedNii, fixedMaskNii,
-        //        subtractPositive, subtractNegative, subtractMask);
+        [TestMethod]
+        public void TempNormalize()
+        {
+            // Arrange
+            var currentBfc = @"C:\temp\Capi-out\Normalization\fixed.bfc.nii";
+            var currentMask = @"C:\temp\Capi-out\Normalization\fixed.mask.nii";
+            var priorBfc = @"C:\temp\Capi-out\Normalization\PriorResliced.bfc.nii";
+            var priorMask = @"C:\temp\Capi-out\Normalization\floating.mask.nii";
 
-        //    // Assert
-        //    Assert.IsTrue(File.Exists(subtractPositive), $"Positive structural changes file does not exist [{subtractPositive}]");
-        //    Assert.IsTrue(File.Exists(subtractPositive), $"Negative structural changes file does not exist [{subtractNegative}]");
-        //    Assert.IsTrue(File.Exists(subtractPositive), $"Structural changes mask file does not exist [{subtractMask}]");
-        //}
+            // Act
+            _imageProcessor.Normalize(currentBfc, currentMask, SliceType.Sagittal, 128, 32, 256);
+            _imageProcessor.Normalize(priorBfc, priorMask, SliceType.Sagittal, 128, 32, 256);
 
-        //[TestMethod]
-        //public void Colormap()
-        //{
-        //    // Arrange
-        //    var fixedDicomFolder = $@"{_testResourcesPath}\Fixed\Dicom";
-        //    var fixedMaskNii = $@"{_testResourcesPath}\Fixed\fixed.mask.nii";
-
-        //    var subtractPositive = $@"{_testResourcesPath}\sub.pos.nii";
-        //    var subtractNegative = $@"{_testResourcesPath}\sub.neg.nii";
-
-        //    var positiveImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractPositiveImgFolder()}";
-        //    var negativeImagesFolder = $@"{_outputFolder}\{ImgProcConfig.GetSubtractNegativeImgFolder()}";
-
-        //    CAPI.Common.Services.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
-
-        //    // Act
-        //    ImageProcessorNew.ColorMap(_fixedNiiFile, fixedDicomFolder, fixedMaskNii,
-        //        subtractPositive, subtractNegative, positiveImagesFolder, negativeImagesFolder);
-
-        //    // Assert
-        //    Assert.IsTrue(File.Exists(positiveImagesFolder) && Directory.GetFiles(positiveImagesFolder).Length > 0,
-        //        $"Positive changes images folder does not exist/contains no files in following path: [{positiveImagesFolder}]");
-        //    Assert.IsTrue(File.Exists(negativeImagesFolder) && Directory.GetFiles(negativeImagesFolder).Length > 0,
-        //        $"Negative changes images folder does not exist/contains no files in following path: [{negativeImagesFolder}]");
-        //}
+            // Assert
+            // pre-normalized nifti files get renamed to %currentNii%.preNormalized.nii - normalized files keep original file names
+            Assert.IsTrue(File.Exists(_fixedBfcNiiFile));
+            Assert.IsTrue(File.Exists(_floatingBfcNiiFile));
+        }
 
         [TestMethod]
         public void Compare()
         {
-            var currentNii = _fixedNiiFile;
-            var priorNii = _floatingNiiFile;
+            var currentNii = _fixedBfcNiiFile;
+            var priorNii = _floatingBfcNiiFile;
             var lookupTable = _lookupTable;
             var resultNii = _compareResult;
 
             _imageProcessor.Compare(currentNii, priorNii, lookupTable, SliceType.Sagittal, resultNii);
-        }
-
-        //[TestMethod]
-        //public void RunWholeProcess()
-        //{
-        //    var currentDicomFolder = _fixedDicomFolder;
-        //    var priorDicomFolder = _floatingDicomFolder;
-        //    var lookupTable = _lookupTable;
-        //    const bool extractBrain = true;
-        //    const bool register = true;
-        //    const bool biasFieldCorrect = true;
-        //    var resultNiiFile = _compareResult;
-        //    var outPriorReslicedNii = _reslicedfloatingNiiFile;
-
-        //    _imageProcessor.CompareDicomInNiftiOut(
-        //        currentDicomFolder, priorDicomFolder, lookupTable, SliceType.Sagittal,
-        //        extractBrain, register, biasFieldCorrect, resultNiiFile, outPriorReslicedNii);
-
-        //    var resultNii = _unity.Resolve<INifti>().ReadNifti(resultNiiFile);
-
-        //    var bmpFolder = Path.Combine(Path.GetDirectoryName(resultNiiFile), "CompareResultBmpFiles");
-        //    resultNii.ExportSlicesToBmps(bmpFolder, SliceType.Sagittal);
-        //}
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
-
-            ClearFilesAndFolders();
         }
     }
 }
