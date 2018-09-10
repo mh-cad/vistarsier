@@ -3,5 +3,6 @@
     public interface IDicomConfig
     {
         string ExecutablesPath { get; set; }
+        string Img2DcmFilePath { get; set; }
     }
 }

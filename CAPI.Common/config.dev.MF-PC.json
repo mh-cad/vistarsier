@@ -32,6 +32,6 @@
     "ProcessCasesAddedByHL7": false
   },
   "TestsConfig": {
-    "TestResources": "D:\\VT-Files\\TestResources"
+    "TestResourcesPath": "D:\\VT-Files\\TestResources"
   }
 }

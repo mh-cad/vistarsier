@@ -200,44 +200,25 @@ namespace CAPI.ImageProcessing
             return sliceVoxlels;
         }
 
-        public void ExportSlicesToBmps(string folderpath, SliceType sliceType)
+        public void ExportSlicesToBmps(string folderPath, SliceType sliceType)
         {
             if (Header.dim == null || Header.dim.Length < 4 || Header.dim[3] == 0)
                 throw new Exception("dim[3] in nifti file header not valid");
-            if (Directory.Exists(folderpath)) throw new Exception($"Folder already exists! [{folderpath}]");
-            Directory.CreateDirectory(folderpath);
+            if (Directory.Exists(folderPath)) throw new Exception($"Folder already exists! [{folderPath}]");
+            Directory.CreateDirectory(folderPath);
 
             var sliceCount = Header.dim[(int)sliceType + 1];
             var digits = (int)Math.Log10(sliceCount) + 1;
             for (var i = 0; i < sliceCount; i++)
-                GetSlice(i, sliceType).Save($@"{folderpath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
+                GetSlice(i, sliceType).Save($@"{folderPath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
         }
 
         public INifti Compare(INifti current, INifti prior, SliceType sliceType,
                               ISubtractionLookUpTable lookUpTable, string workingDir)
         {
-            var rangeWidth = lookUpTable.Width;
-            var targetMean = rangeWidth / 2 - 18; // 110
-            var targetStd = rangeWidth / 8;
-
-            var currentNormal = NormalizeAndTrimEachSlice(current, sliceType, targetMean, targetStd, rangeWidth);
-            //var currentOutDir = Path.Combine(workingDir, "Current");
-            //if (Directory.Exists(currentOutDir)) Directory.Delete(currentOutDir, true);
-            //currentNormal.ExportSlicesToBmps(currentOutDir, SliceType.Sagittal);
-
-            var priorNormal = NormalizeAndTrimEachSlice(prior, sliceType, targetMean, targetStd, rangeWidth);
-            //var priorOutDir = Path.Combine(workingDir, "Prior");
-            //if (Directory.Exists(priorOutDir)) Directory.Delete(currentOutDir, true);
-            //priorNormal.ExportSlicesToBmps(priorOutDir, SliceType.Sagittal);
-
-            // Remove temp working directories
-            //if (Directory.Exists(currentOutDir)) Directory.Delete(currentOutDir, true);
-            //if (Directory.Exists(priorOutDir)) Directory.Delete(priorOutDir, true);
-
-            // COMPARE
-            for (var i = 0; i < currentNormal.voxels.Length; i++)
-                current.voxels[i] = lookUpTable.Pixels[(int)currentNormal.voxels[i],
-                    (int)priorNormal.voxels[i]].ToArgb().ToBgr();
+            for (var i = 0; i < current.voxels.Length; i++)
+                current.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
+                    (int)prior.voxels[i]].ToArgb().ToBgr();
 
             current.Header.cal_min = current.voxels.Min();
             current.Header.cal_max = current.voxels.Max();
@@ -259,18 +240,20 @@ namespace CAPI.ImageProcessing
                     var lutY = priorSlice.GetPixel(x, y).R;
                     var lutColor = compareResult.GetPixel(x, y);
 
-                    if (IsColor(lut.GetPixel(lutX, lutY))) continue;
+                    if (IsColor(lut.GetPixel(lutX, lutY), 5)) continue;
 
-                    lut.SetPixel(lutX, lutY, lutColor);
+                    if (IsColor(lutColor, 5))
+                        lut.SetPixel(lutX, lutY, lutColor);
                 }
+
             return lut;
         }
 
-        private static bool IsColor(Color color)
+        private static bool IsColor(Color color, int rgbValueGap)
         {
-            return Math.Abs(color.R - color.G) > 2 ||
-                   Math.Abs(color.R - color.B) > 2 ||
-                   Math.Abs(color.G - color.B) > 2;
+            return Math.Abs(color.R - color.G) > rgbValueGap ||
+                   Math.Abs(color.R - color.B) > rgbValueGap ||
+                   Math.Abs(color.G - color.B) > rgbValueGap;
         }
 
         private static Bitmap GetBlankLookupTable()
@@ -295,18 +278,21 @@ namespace CAPI.ImageProcessing
                     $"Current:[{currentSlice.Height}] Prior:[{priorSlice.Height}] Comparison:[{compareResult.Height}]");
         }
 
-        private static INifti NormalizeAndTrimEachSlice(INifti nifti, SliceType sliceType,
-                                                        int mean, int std, int rangeWidth)
+        public INifti NormalizeEachSlice(INifti nifti, SliceType sliceType,
+                                                        int mean, int std, int rangeWidth, INifti mask)
         {
             //nifti.GetDimensions(sliceType, out var width, out var height, out var nSlices);
             var slices = nifti.GetSlices(sliceType).ToArray();
             if (slices == null) throw new Exception("No slices found in file being compared");
+            var maskArray = GetArrayFromMask(mask, sliceType);
 
             // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < slices.Length; i++)
             {
                 if (nifti.Header.datatype == 128) slices[i].RgbValToGrayscale();
-                slices[i].Normalize(mean, std, 10, (int)slices[i].Max()); // Normalize each slice
+                //slices[i].Normalize(mean, std, 10, (int)slices[i].Max()); // Normalize each slice
+                //slices[i].Normalize(mean, std); // Normalize each slice
+                slices[i].Normalize(mean, std, maskArray[i]); // Normalize each slice with mask
             }
 
             nifti.voxels = nifti.SlicesToArray(slices, sliceType); // Return back from slices to a single array
@@ -314,6 +300,16 @@ namespace CAPI.ImageProcessing
 
             return nifti;
         }
+
+        private static bool[][] GetArrayFromMask(INifti mask, SliceType sliceType)
+        {
+            var slices = mask.GetSlices(sliceType).ToArray();
+            var arr = new bool[slices.Length][];
+            for (var i = 0; i < slices.Length; i++)
+                arr[i] = slices[i].Select(v => v > 0).ToArray();
+            return arr;
+        }
+
 
         public IEnumerable<float[]> GetSlices(SliceType sliceType)
         {

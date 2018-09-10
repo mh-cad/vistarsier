@@ -4,8 +4,8 @@ using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
-using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 
@@ -21,6 +21,7 @@ namespace CAPI.Agent
         private readonly IImageProcessor _imgProc;
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly ILog _log;
+        private readonly IImgProcConfig _imgProcConfig;
 
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                               IFileSystem filesystem, IProcessBuilder processBuilder,
@@ -29,6 +30,7 @@ namespace CAPI.Agent
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _log = log;
+            _imgProcConfig = imgProcConfig;
             _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
         }
 
@@ -47,29 +49,42 @@ namespace CAPI.Agent
                 extractBrain, register, biasFieldCorrect,
                 resultNiiFile, outPriorReslicedNiiFile);
 
+            //#region To be removed - This section is only to build lookup tables
+            //var fixedBfcNii = Path.Combine(Directory.GetParent(currentDicomFolder).FullName, "fixed.bfc.nii");
+            //if (File.Exists(fixedBfcNii))
+            //    ConvertToBmp(fixedBfcNii, fixedBfcNii.Replace(".nii", ""), sliceType, "", true);
+            //#endregion
+
             _log.Info("Start Converting Results back to Dicom");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder);
+            ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder,
+                           _imgProcConfig.ResultsDicomSeriesDescription);
             stopwatch.Stop();
-            _log.Info($"Finished Converting Results back to Dicom in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
+            _log.Info("Finished Converting Results back to Dicom in " +
+                      $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
 
             UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
 
             // current study headers are used as this series is going to be sent to the current study
             // prior study date will be added to the end of Series Description tag
             _log.Info("Start Converting Resliced Prior Series back to Dicom");
-            stopwatch.Restart();
-            ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder);
-            stopwatch.Stop();
-            _log.Info($"Finished Converting Resliced Prior Series back to Dicom in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
 
-            var studydate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-            UpdateSeriesDescriptionForAllFiles(
-                outPriorReslicedDicom, $"{priorReslicedDicomSeriesDescription} ({studydate})");
+            var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
+            var priorStudyDescription = $"{_imgProcConfig.PriorReslicedDicomSeriesDescription} {priorStudyDate}";
+
+            stopwatch.Restart();
+            ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
+                           currentDicomFolder, priorStudyDescription);
+            stopwatch.Stop();
+
+            _log.Info("Finished Converting Resliced Prior Series back to Dicom in " +
+                      $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+
+            UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
         }
 
-        public IJob CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
+        public void CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
         {
             CompareAndSendToFilesystem(
                 job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
@@ -78,8 +93,6 @@ namespace CAPI.Agent
                 job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
                 recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
             );
-
-            return job;
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)
@@ -104,30 +117,56 @@ namespace CAPI.Agent
         }
 
         private void ConvertToDicom(string inNiftiFile, string outDicomFolder,
-                                    SliceType sliceType, string dicomFolderForReadingHeaders)
+                                    SliceType sliceType, string dicomFolderForReadingHeaders,
+                                    string overlayText)
         {
-            var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
+            //if (normalize && File.Exists(maskFilePath))
+            //{
+            //    var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
+            //    var mask = _imgProcFactory.CreateNifti().ReadNifti(maskFilePath);
+            //    nim = nim.NormalizeEachSlice(nim, sliceType, 128, 32, 256, mask);
+            //    File.Move(inNiftiFile, inNiftiFile.Replace(".nii", ".prenormalization.nii"));
+            //    nim.WriteNifti(inNiftiFile);
+            //}
+
             var bmpFolder = outDicomFolder + "_Images";
-            nim.ExportSlicesToBmps(bmpFolder, sliceType);
+
+            ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
 
             _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders);
         }
 
-        //public void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder,
-        //                                      string inLookupTable, SliceType sliceType,
-        //                                      bool extractBrain, bool register, bool biasFieldCorrect,
-        //                                      string outResultDicom, string outPriorReslicedDicom,
-        //                                      IDicomNode localNode, IDicomNode destination)
-        //{
-        //    CompareAndSendToFilesystem(inCurrentDicomFolder, inPriorDicomFolder, inLookupTable, sliceType,
-        //            extractBrain, register, biasFieldCorrect,
-        //            outResultDicom, outPriorReslicedDicom);
+        private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
+        {
+            var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
 
-        //    foreach (var dcmFile in Directory.GetFiles(outResultDicom))
-        //        _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
+            nim.ExportSlicesToBmps(bmpFolder, sliceType);
 
-        //    foreach (var dcmFile in Directory.GetFiles(outPriorReslicedDicom))
-        //        _dicomServices.SendDicomFile(dcmFile, localNode.AeTitle, destination);
-        //}
+            foreach (var bmpFilePath in Directory.GetFiles(bmpFolder))
+                AddOverlayToImage(bmpFilePath, overlayText);
+        }
+
+        public void AddOverlayToImage(string bmpFilePath, string overlayText)
+        {
+            if (string.IsNullOrEmpty(overlayText) || string.IsNullOrWhiteSpace(overlayText)) return;
+            Bitmap bmpWithOverlay;
+            using (var fs = new FileStream(bmpFilePath, FileMode.Open))
+            {
+                var bitmap = (Bitmap)Image.FromStream(fs);
+
+                using (var graphics = Graphics.FromImage(bitmap))
+                {
+                    using (var text = new Font("Tahoma", 9))
+                    {
+                        var x = (float)(bitmap.Width - overlayText.Length * 5.4) / 2;
+                        var y = bitmap.Height - text.Height - 5;
+                        graphics.DrawString(overlayText, text, Brushes.White, new PointF(x, y));
+                    }
+                }
+                bmpWithOverlay = bitmap;
+            }
+            if (File.Exists(bmpFilePath)) File.Delete(bmpFilePath);
+            bmpWithOverlay.Save(bmpFilePath);
+        }
     }
 }

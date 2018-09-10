@@ -20,6 +20,11 @@ namespace CAPI.Agent
             _connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;";
         }
 
+        public AgentRepository(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_connectionString);

@@ -27,6 +27,7 @@ namespace CAPI.Agent
 
         public CapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
+        public bool IsHealthy { get; set; }
         private readonly AgentRepository _context;
         private readonly string[] _args;
         private Timer _timer;
@@ -45,25 +46,82 @@ namespace CAPI.Agent
                      IFileSystem fileSystem, IProcessBuilder processBuilder,
                      ILog log)
         {
+            IsHealthy = true;
             _dicomFactory = dicomFactory;
             _fileSystem = fileSystem;
             _processBuilder = processBuilder;
             _log = log;
             _imgProcFactory = imgProcFactory;
             _args = args;
-            Config = new CapiConfig().GetConfig(args);
-            _context = new AgentRepository();
+            Config = GetCapiConfig(args);
+            _context = GetAgentRepository();
+        }
+
+        private AgentRepository GetAgentRepository()
+        {
+            try
+            {
+                _log.Info("Connecting to database...");
+                var repo = Config?.AgentDbConnectionString != null ?
+                    new AgentRepository(Config.AgentDbConnectionString) :
+                    new AgentRepository();
+                repo.Database.EnsureCreated();
+                _log.Info($"Database connection established{Environment.NewLine}ConnectionString " +
+                          $"[{repo.Database.GetDbConnection().ConnectionString}]");
+                return repo;
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to connect to database.", ex);
+                IsHealthy = false;
+            }
+            return null;
+        }
+        private CapiConfig GetCapiConfig(string[] args)
+        {
+            try
+            {
+                return new CapiConfig().GetConfig(args);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Capi cofig failed to be retreived.", ex);
+                IsHealthy = false;
+                return null;
+            }
         }
 
         public void Run()
         {
+            if (!IsHealthy) return;
+
             Init();
 
-            StartTimer(int.Parse(Config.RunInterval));
+            CheckForNewCasesAndProcessPendings();
+
+            _timer.Start();
         }
 
-        // Runs every interval
+        private void InitTimer(int interval)
+        {
+            _timer = new Timer { Interval = interval * 1000, Enabled = true };
+            _timer.Elapsed += OnTimeEvent;
+        }
+
+        /// <summary>
+        /// Runs every interval
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnTimeEvent(object sender, ElapsedEventArgs e)
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
+            CheckForNewCasesAndProcessPendings();
+        }
+        /// <summary>
+        /// Runs once after app starts, then every interval
+        /// </summary>
+        private void CheckForNewCasesAndProcessPendings()
         {
             if (IsBusy)
             {
@@ -118,11 +176,10 @@ namespace CAPI.Agent
                 _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
                 SetCaseStatus(@case, "Processing");
 
-                var cs = @case as Case ?? throw new ArgumentNullException(nameof(@case), "Case not found in database to be updated");
-
                 Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
 
                 _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
+                @case.Comment = string.Empty;
                 SetCaseStatus(@case, "Complete");
             }
             catch (Exception ex)
@@ -132,13 +189,23 @@ namespace CAPI.Agent
 
                 SetCaseStatus(@case, "Failed");
                 SetCaseComment(@case, ex.Message);
-                //throw;
             }
         }
 
         private void Init()
         {
             HandleFailedCasesAndJobs();
+
+            var interval = int.Parse(Config.RunInterval);
+            InitTimer(interval);
+        }
+        private void CleanupProcessFolder(string folderPath, string accession)
+        {
+            var file = Directory.GetFiles(folderPath)
+                .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
+                    .Contains(accession.ToLower()));
+            File.Delete(file);
+            _log.Info($"File deleted from process folder [{folderPath}] for Accession: [{accession}]");
         }
         private void HandleFailedCasesAndJobs()
         {
@@ -156,12 +223,6 @@ namespace CAPI.Agent
                 tmp.Status = "Failed";
                 _context.Jobs.Update(tmp);
             });
-        }
-        private void StartTimer(int interval)
-        {
-            _timer = new Timer { Interval = interval * 1000, Enabled = true };
-            _timer.Elapsed += OnTimeEvent;
-            _timer.Start();
         }
         private void ProcessNewlyAddedCases()
         {
@@ -240,6 +301,7 @@ namespace CAPI.Agent
                 from file in Directory.GetFiles(manualFolder)
                 let accession = Path.GetFileNameWithoutExtension(file)
                 where !file.EndsWith(".recipe.json", StringComparison.InvariantCultureIgnoreCase) // Exclude Recipe Files
+
                 select new Case { Accession = accession, AdditionMethod = AdditionMethod.Manually }
             ).ToList();
         }
@@ -255,6 +317,7 @@ namespace CAPI.Agent
                     var inDbCase = _context.Cases
                         .Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
                     inDbCase.Status = "Pending";
+                    inDbCase.AdditionMethod = AdditionMethod.Manually;
                     try
                     {
                         _context.Cases.Update(inDbCase);
@@ -285,7 +348,7 @@ namespace CAPI.Agent
                     }
                 }
                 // Delete file in Manual Folder after it was added to DB
-                DeleteFileInFolderAfterAddedToDb(Config.ManualProcessPath, mc.Accession);
+                CleanupProcessFolder(Config.ManualProcessPath, mc.Accession);
             });
         }
         #endregion
@@ -324,19 +387,10 @@ namespace CAPI.Agent
                     _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.Accession}]", ex);
                 }
                 // Delete file in HL7 Folder after it was added to DB
-                DeleteFileInFolderAfterAddedToDb(Config.Hl7ProcessPath, mc.Accession);
+                CleanupProcessFolder(Config.Hl7ProcessPath, mc.Accession);
                 // if already in database, disregard
             });
         }
         #endregion
-
-        private void DeleteFileInFolderAfterAddedToDb(string folderPath, string accession)
-        {
-            var file = Directory.GetFiles(folderPath)
-                .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
-                    .Contains(accession.ToLower()));
-            File.Delete(file);
-            _log.Info($"File deleted from process folder [{folderPath}] for Accession: [{accession}]");
-        }
     }
 }
