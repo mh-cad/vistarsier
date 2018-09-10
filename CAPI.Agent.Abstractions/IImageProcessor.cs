@@ -11,6 +11,8 @@ namespace CAPI.Agent.Abstractions
             string resultDicom, string outPriorReslicedDicom,
             string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription);
 
+        void AddOverlayToImage(string bmpFilePath, string overlayText);
+
         //void CompareAndSendToDicomNode(string inCurrentDicomFolder, string inPriorDicomFolder, string inLookupTable,
         //    SliceType sliceType,
         //    bool extractBrain, bool register, bool biasFieldCorrect,

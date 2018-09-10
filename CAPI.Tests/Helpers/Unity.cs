@@ -1,4 +1,5 @@
-﻿using CAPI.Agent.Abstractions;
+﻿using CAPI.Agent;
+using CAPI.Agent.Abstractions;
 using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Config;
 using CAPI.Dicom;
@@ -11,6 +12,7 @@ using CAPI.ImageProcessing.Abstraction;
 using Unity;
 using Unity.log4net;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
+using ImageProcessor = CAPI.ImageProcessing.ImageProcessor;
 using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
 
 namespace CAPI.Tests.Helpers
@@ -37,9 +39,10 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
             container.RegisterType<IAgent, CAPI.Agent.Agent>();
             container.RegisterType<CAPI.Agent.Abstractions.IImageProcessor, CAPI.Agent.ImageProcessor>();
+            container.RegisterType<IAgentFactory, AgentFactory>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IFileSystem, CAPI.General.Services.FileSystem>();
+            container.RegisterType<IFileSystem, General.Services.FileSystem>();
             container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;

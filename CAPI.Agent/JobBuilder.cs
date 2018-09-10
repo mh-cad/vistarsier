@@ -109,13 +109,19 @@ namespace CAPI.Agent
 
             _log.Info("Saving prior series to disk...");
             job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
+                priorDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
+            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
-            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
             job.PriorAccession = priorDicomStudy.AccessionNumber;
             job.PatientId = currentDicomStudy.PatientId;
+            job.ExtractBrainParams = string.IsNullOrEmpty(recipe.ExtractBrainParams) ?
+                _capiConfig.ImgProcConfig.BseParams :
+                recipe.ExtractBrainParams;
+            job.BiasFieldCorrectionParams = string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams) ?
+                _capiConfig.ImgProcConfig.BfcParams :
+                recipe.BiasFieldCorrectionParams;
 
             return job;
         }

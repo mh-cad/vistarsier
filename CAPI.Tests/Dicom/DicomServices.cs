@@ -50,7 +50,7 @@ namespace CAPI.Tests.Dicom
 
             var capiConfig = new CapiConfig().GetConfig(new[] { "-dev" }); //CapiConfigGetter.GetCapiConfig();
 
-            _dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
+            //_dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
 
             _localNode = GetLocalDicomNode();
             _remoteNode = GetRemoteDicomNode();

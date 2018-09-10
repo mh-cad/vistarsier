@@ -1,5 +1,7 @@
 ﻿using CAPI.General.Abstractions.Services;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace CAPI.General.Services
@@ -16,7 +18,7 @@ namespace CAPI.General.Services
                     new ProcessStartInfo
                     {
                         WorkingDirectory = workingDir,
-                        FileName = $"{processPath}\\{processFileNameExt}",
+                        FileName = Path.Combine(processPath, processFileNameExt),
                         CreateNoWindow = false,
                         UseShellExecute = false,
                         RedirectStandardError = true,
@@ -28,32 +30,72 @@ namespace CAPI.General.Services
             return proc;
         }
 
-        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "")
+        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "", DataReceivedEventHandler outputDataReceived = null,
+            DataReceivedEventHandler errorOccuredInProcess = null)
         {
+            if (!File.Exists(fileFullPath))
+                throw new FileNotFoundException($"Executable file not found at location [{fileFullPath}]");
+
             var fileNameExt = fileFullPath.Split('\\').LastOrDefault();
             var folderPath = fileFullPath.Replace($"\\{fileNameExt}", "");
 
             var process = Build(folderPath, fileNameExt, arguments, workingDir);
 
-            process.Start();
-            //var stdout = process.StandardOutput.ReadToEnd();
-            //Logger.ProcessErrorLogWrite(process, $"{fileNameExt}");
+            RunProcess(process, outputDataReceived, errorOccuredInProcess);
+
+            //process.Start();
+            //if (outputDataReceived != null)
+            //    process.OutputDataReceived += outputDataReceived;
+            //process.BeginOutputReadLine();
+            //if (errorOccuredInProcess != null)
+            //    process.ErrorDataReceived += errorOccuredInProcess;
+            //process.BeginErrorReadLine();
             //process.WaitForExit();
 
             return process;
         }
 
-        public void CallJava(string arguments, string methodCalled, string workingDir = "")
+        public Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "", DataReceivedEventHandler outputDataReceived = null,
+            DataReceivedEventHandler errorOccuredInProcess = null)
         {
-            var javaFullPath = Helper.GetJavaExePath();
+            if (!File.Exists(javaFullPath))
+                throw new FileNotFoundException($"Java.exe file not found at location [{javaFullPath}]");
+            if (string.IsNullOrEmpty(arguments))
+                throw new ArgumentNullException(nameof(arguments), "No arguments are passed for java process");
+
             var javaFileNamExt = javaFullPath.Split('\\').LastOrDefault();
             var javaFolderPath = javaFullPath.Replace($"\\{javaFileNamExt}", "");
 
             var process = Build(javaFolderPath, javaFileNamExt, arguments, workingDir);
 
+            RunProcess(process, outputDataReceived, errorOccuredInProcess);
+
+            //process.Start();
+            //if (outputDataReceived != null)
+            //    process.OutputDataReceived += outputDataReceived;
+            //process.BeginOutputReadLine();
+            //if (errorOccuredInProcess != null)
+            //    process.ErrorDataReceived += errorOccuredInProcess;
+            //process.BeginErrorReadLine();
+            //process.WaitForExit();
+
+            return process;
+        }
+
+        private static void RunProcess(Process process,
+                               DataReceivedEventHandler outputDataReceived = null,
+                               DataReceivedEventHandler errorOccuredInProcess = null)
+        {
             process.Start();
-            //var stdout = process.StandardOutput.ReadToEnd();
-            //Logger.ProcessErrorLogWrite(process, $"{javaFileNamExt}");
+
+            if (outputDataReceived != null)
+                process.OutputDataReceived += outputDataReceived;
+            process.BeginOutputReadLine();
+
+            if (errorOccuredInProcess != null)
+                process.ErrorDataReceived += errorOccuredInProcess;
+            process.BeginErrorReadLine();
+
             process.WaitForExit();
         }
     }
