@@ -32,7 +32,7 @@ namespace CAPI.Agent.Models
         private static IDicomConfig GetDicomConfigFromCapiConfig(CapiConfig capiConfig, IDicomFactory dicomFactory)
         {
             var dicomConfig = dicomFactory.CreateDicomConfig();
-            dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
+            dicomConfig.Img2DcmFilePath = capiConfig.DicomConfig.Img2DcmFilePath;
             return dicomConfig;
         }
     }

@@ -4,6 +4,7 @@ using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
+using System;
 using Unity;
 
 namespace CAPI.Console.Net
@@ -14,10 +15,11 @@ namespace CAPI.Console.Net
 
         private static void Main(string[] args)
         {
-            var container = Helpers.Unity.CreateContainerCore();//new ServiceCollection().RegisterTypes().BuildServiceProvider();
+            var container = Helpers.Unity.CreateContainerCore();
 
             InitialiseLog4Net();
 
+            System.Console.ForegroundColor = ConsoleColor.Gray;
             _log.Info("App Started...");
 
             var agentFactory = container.Resolve<IAgentFactory>();

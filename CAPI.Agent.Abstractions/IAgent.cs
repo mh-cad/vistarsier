@@ -8,5 +8,6 @@ namespace CAPI.Agent.Abstractions
 
         CapiConfig Config { get; set; }
         bool IsBusy { get; set; }
+        bool IsHealthy { get; set; }
     }
 }

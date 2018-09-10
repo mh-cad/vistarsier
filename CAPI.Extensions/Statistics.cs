@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace CAPI.Extensions
@@ -63,25 +64,45 @@ namespace CAPI.Extensions
 
         public static void Normalize(this float[] array, int mean, int stdDev)
         {
-            var currMean = array.Mean();
-            var currStdDev = array.StandardDeviation();
+            var currentMean = array.Mean();
+            var currentStdDev = array.StandardDeviation();
 
-            for (var i = 0; i < array.Length; ++i)
-                array[i] = Math.Abs(currStdDev) < 0.000001 ? 0 :
-                    (float)((array[i] - currMean))
-                        + mean;
+            if (Math.Abs(currentStdDev) < 0.000001) return;
+
+            for (var i = 0; i < array.Length; i++)
+                array[i] = (float)((array[i] - currentMean) / currentStdDev) * stdDev + mean;
         }
 
-        public static void Normalize(this float[] array, int mean, int stdDev, int min, int max)
+        public static void Normalize(this float[] array, int mean, int stdDev, bool[] mask)
         {
-            var currMean = array.Where(i => i > min && i < max).ToArray().Mean();
-            var currStdDev = array.Where(i => i > min && i < max).ToArray().StandardDeviation();
+            var currentMean = array
+                .Select((v, i) => new { v, i })
+                .Where(x => mask[x.i] && x.v > 0)
+                .Select(x => x.v).ToArray()
+                .Mean();
+            var currentStdDev = array
+                .Select((v, i) => new { v, i })
+                .Where(x => mask[x.i] && x.v > 0)
+                .Select(x => x.v).ToArray()
+                .StandardDeviation();
 
-            for (var i = 0; i < array.Length; ++i)
-                if (array[i] >= min && array[i] <= max)
-                    array[i] = Math.Abs(currStdDev) < 0.000001 ? 0 :
-                        (float)((array[i] - currMean) / currStdDev * stdDev + mean);
+            if (Math.Abs(currentStdDev) < 0.000001) return;
+
+            for (var i = 0; i < array.Length; i++)
+                if (mask[i] && array[i] > 0)
+                    array[i] = (float)((array[i] - currentMean) / currentStdDev) * stdDev + mean;
         }
+
+        //public static void Normalize(this float[] array, int mean, int stdDev, int min, int max)
+        //{
+        //    var currentMean = array.Where(i => i > min && i < max).ToArray().Mean();
+        //    var currentStdDev = array.Where(i => i > min && i < max).ToArray().StandardDeviation();
+
+        //    for (var i = 0; i < array.Length; ++i)
+        //        if (array[i] >= min && array[i] <= max)
+        //            array[i] = Math.Abs(currentStdDev) < 0.000001 ? 0 :
+        //                (float)((array[i] - currentMean) / currentStdDev * stdDev + mean);
+        //}
 
         public static void Trim(this float[] array, int lower, int upper)
         {
@@ -90,20 +111,20 @@ namespace CAPI.Extensions
                 else if (array[i] > upper) array[i] = upper;
         }
 
-        public static float[,] Normalize(this float[,] array, int mean, int stdDev)
-        {
-            var flatArray = new float[array.Length];
-            for (var x = 0; x < array.GetLength(0); x++)
-                for (var y = 0; y < array.GetLength(1); x++)
-                    flatArray[x + y * array.GetLength(0)] = array[x, y];
+        //public static float[,] Normalize(this float[,] array, int mean, int stdDev)
+        //{
+        //    var flatArray = new float[array.Length];
+        //    for (var x = 0; x < array.GetLength(0); x++)
+        //        for (var y = 0; y < array.GetLength(1); x++)
+        //            flatArray[x + y * array.GetLength(0)] = array[x, y];
 
-            flatArray.Normalize(mean, stdDev);
+        //    flatArray.Normalize(mean, stdDev);
 
-            for (var x = 0; x < array.GetLength(0); x++)
-                for (var y = 0; y < array.GetLength(1); x++)
-                    array[x, y] = flatArray[x + y * array.GetLength(0)];
+        //    for (var x = 0; x < array.GetLength(0); x++)
+        //        for (var y = 0; y < array.GetLength(1); x++)
+        //            array[x, y] = flatArray[x + y * array.GetLength(0)];
 
-            return array;
-        }
+        //    return array;
+        //}
     }
 }

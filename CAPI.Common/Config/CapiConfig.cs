@@ -31,14 +31,15 @@ namespace CAPI.Common.Config
         public string ManualProcessPath { get; set; }
         public string Hl7ProcessPath { get; set; }
         public string DefaultRecipePath { get; set; }
+        public string LogPath { get; set; }
         public bool ProcessCasesAddedManually { get; set; }
         public bool ProcessCasesAddedByHL7 { get; set; }
 
         /// <summary>
         /// Arguments passed from running app
-        /// [option] arg1 = -f / arg2 = %config_file_path%
-        /// [option] -dev => for development environment
-        /// [option] -staging => for staging environment
+        /// [option1] arg1 = -f / arg2 = %config_file_path%
+        /// [option2] -dev => for development environment
+        /// [option3] -staging => for staging environment
         /// </summary>
         /// <param name="args"></param>
         /// <returns>CapiConfig which contains DicomConfig, ImgProcConfig and TestsConfig</returns>

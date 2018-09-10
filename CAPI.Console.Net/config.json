@@ -1,19 +1,19 @@
 {
-  "AgentDbConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;",
-  "RunInterval": "5",
-  "ManualProcessPath": "D:\\Capi-Files\\ManualProcess",
-  "Hl7ProcessPath": "D:\\Capi-Files\\Hl7Process",
-  "DefaultRecipePath": "D:\\Capi-Files\\DefaultRecipe.recipe.json",
+  "AgentDbConnectionString": "Server=RAD-VTNEW;Database=Capi;User Id=sa;Password=radsysadmin;Connection Timeout=120",
+  "RunInterval": "30",
+  "ManualProcessPath": "D:\\MehdiFiles\\ManualProcess",
+  "Hl7ProcessPath": "D:\\Mirth_data\\Capi\\CompletedMRIs",
+  "DefaultRecipePath": "D:\\MehdiFiles\\DefaultRecipe.recipe.json",
+  "LogPath:": "D:\\MehdiFiles\\Logs\\log.txt",
   "ProcessCasesAddedManually": true,
   "ProcessCasesAddedByHL7": false,
   "DicomConfig": {
-    "DicomServicesExecutablesPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
-    "Img2DcmFilePath": "D:\\Capi-Files\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
+    "Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
     "LocalNode": {
-      "LogicalName": "Mehdi's PC MH19189",
-      "AeTitle": "KPSB",
-      "IpAddress": "172.28.42.42",
-      "Port": 104
+      "LogicalName": "CAPI Server",
+      "AeTitle": "CAPI",
+      "IpAddress": "172.28.43.65",
+      "Port": 4104
     },
     "RemoteNodes": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "ImgProcConfig": {
-    "ImgProcBinFolderPath": "D:\\Capi-Files\\RAPPreprocess\\bin",
+    "ImgProcBinFolderPath": "D:\\MehdiFiles\\RAPPreprocess\\bin",
     "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
     "BseExeRelFilePath": "bse.exe",
     "BseParams": "--auto --trim --timer",
@@ -43,13 +43,13 @@
     "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
     "BfcExeRelFilePath": "bfc.exe",
     "BfcParams": "--iterate --ellipse --timer",
-    //"ImgProcConfigFolderPath": "D:\\VT-Files\\RAPPreprocess\\config",
-    "JavaExeFilePath": "C:\\Program Files (x86)\\Java\\jre1.8.0_144\\bin\\java.exe",
-    "JavaClasspath": "D:\\Capi-Files\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
+
+    "JavaExeFilePath": "C:\\Program Files\\Java\\jre1.8.0_121\\bin\\java.exe",
+    "JavaClasspath": "D:\\MehdiFiles\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
     "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
-    "ImageRepositoryPath": "D:\\Capi-Files\\ImageRepository",
+    "ImageRepositoryPath": "D:\\MehdiFiles\\ImageRepository",
     "ResultsDicomSeriesDescription": "CAPI Modified Signal",
-    "PriorReslicedDicomSeriesDescription": "Prior Resliced" 
+    "PriorReslicedDicomSeriesDescription": "Prior Resliced"
   },
   "TestsConfig": {
     "TestResourcesPath": "D:\\Capi-Tests\\TestsResources"

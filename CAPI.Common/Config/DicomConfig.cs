@@ -6,7 +6,8 @@ namespace CAPI.Common.Config
 {
     public class DicomConfig //: IDicomConfig
     {
-        public string DicomServicesExecutablesPath { get; set; }
+        //public string DicomServicesExecutablesPath { get; set; }
+        public string Img2DcmFilePath { get; set; }
         public IDicomNode LocalNode { get; set; }
         public List<IDicomNode> RemoteNodes { get; set; }
 
