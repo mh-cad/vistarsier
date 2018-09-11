@@ -9,7 +9,7 @@
         void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, int mean, int std, int widthRange);
         void Compare(
             string currentNii, string priorNii, string lookupTable, SliceType sliceType, string resultNiiFile);
-        void CompareBrainNiftiWithReslicedBrainNifti_OutNifti(
+        void ExtractBrainRegisterAndCompare(
             string currentNii, string priorNii, string lookupTable, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string resultNii, string outPriorReslicedNii);

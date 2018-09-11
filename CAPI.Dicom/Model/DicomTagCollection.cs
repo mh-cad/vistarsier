@@ -66,6 +66,7 @@ namespace CAPI.Dicom.Model
 
         public void SetTagValue(uint tagValue, object value)
         {
+            if (value == null) return;
             foreach (var propertyInfo in GetType().GetProperties())
                 if (((DicomTag)propertyInfo.GetValue(this)).GetTagValue() == tagValue)
                     if (((DicomTag)propertyInfo.GetValue(this)).GetValueType() == typeof(string[]))
