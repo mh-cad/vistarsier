@@ -56,12 +56,13 @@ namespace CAPI.Agent
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder,
-                    string.IsNullOrEmpty(resultsDicomSeriesDescription) ?
-                        _imgProcConfig.ResultsDicomSeriesDescription :
-                        resultsDicomSeriesDescription);
+                var resultsSeriesDescription = string.IsNullOrEmpty(resultsDicomSeriesDescription)
+                    ? _imgProcConfig.ResultsDicomSeriesDescription
+                    : resultsDicomSeriesDescription;
 
-                UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
+                ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder, resultsSeriesDescription);
+
+                UpdateSeriesDescriptionForAllFiles(resultDicom, resultsSeriesDescription);
 
                 stopwatch.Stop();
 
@@ -76,13 +77,15 @@ namespace CAPI.Agent
                 _log.Info("Start Converting Resliced Prior Series back to Dicom");
 
                 var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-                var priorStudyDescription = $"{_imgProcConfig.PriorReslicedDicomSeriesDescription} {priorStudyDate}";
+                var priorStudyDescBase = string.IsNullOrEmpty(priorReslicedDicomSeriesDescription) ?
+                    _imgProcConfig.PriorReslicedDicomSeriesDescription :
+                    priorReslicedDicomSeriesDescription;
+                var priorStudyDescription = $"{priorStudyDescBase} {priorStudyDate}";
 
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
-                    currentDicomFolder, priorStudyDescription);
+                ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder, priorStudyDescription);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
 
