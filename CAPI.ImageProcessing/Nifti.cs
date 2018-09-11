@@ -209,8 +209,8 @@ namespace CAPI.ImageProcessing
 
             var sliceCount = Header.dim[(int)sliceType + 1];
             var digits = (int)Math.Log10(sliceCount) + 1;
-            for (var i = 1; i <= sliceCount; i++)
-                GetSlice(i, sliceType).Save($@"{folderPath}\{i.ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
+            for (var i = 0; i < sliceCount; i++)
+                GetSlice(i, sliceType).Save($@"{folderPath}\{(i + 1).ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
         }
 
         public INifti Compare(INifti current, INifti prior, SliceType sliceType,
