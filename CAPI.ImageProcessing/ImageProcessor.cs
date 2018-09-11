@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace CAPI.ImageProcessing
 {
@@ -141,7 +142,19 @@ namespace CAPI.ImageProcessing
             result.WriteNifti(resultNiiFile);
         }
 
-        public void CompareBrainNiftiWithReslicedBrainNifti_OutNifti(
+        /// <summary>
+        /// Main method responsible for calling other methods to Extract Brain from current and prior series, Register the two, BFC and Normalize and then compare using a lookup table
+        /// </summary>
+        /// <param name="currentNii">current series nifti file path</param>
+        /// <param name="priorNii">prior series nifti file path</param>
+        /// <param name="lookupTable">bmp file mapping current and prior comparison result colors</param>
+        /// <param name="sliceType">Sagittal, Axial or Coronal</param>
+        /// <param name="extractBrain">to do skull stripping or not</param>
+        /// <param name="register">to register or not</param>
+        /// <param name="biasFieldCorrect">to perform bias field correction or not</param>
+        /// <param name="resultNii">end result output nifti file path</param>
+        /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
+        public void ExtractBrainRegisterAndCompare(
             string currentNii, string priorNii, string lookupTable, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string resultNii, string outPriorReslicedNii)
@@ -153,93 +166,150 @@ namespace CAPI.ImageProcessing
             var fixedMask = ""; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
             var floatingMask = ""; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
 
-            var stopwatch = new Stopwatch();
+            var stopwatch1 = new Stopwatch();
+            var stopwatch2 = new Stopwatch();
 
             if (extractBrain)
             {
                 var bseParams = _config.BseParams;
-                var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
-                fixedMask = currentNii.Replace(".nii", ".mask.nii");
-                _log.Info("Starting Extraction of Brain Surface for Current series...");
-                stopwatch.Start();
 
-                ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
+                var task1 = Task.Run(() =>
+                {
+                    var fixedBrain = currentNii.Replace(".nii", ".brain.nii");
+                    fixedMask = currentNii.Replace(".nii", ".mask.nii");
+                    _log.Info("Starting EXTRACTING BRAIN for Current series...");
+                    stopwatch1.Start();
 
-                stopwatch.Stop();
-                _log.Info($"Finished Extracting Brain Surface for Current series in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
-                fixedFile = fixedBrain;
+                    ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
 
-                var floatingBrain = priorNii.Replace(".nii", ".brain.nii");
-                floatingMask = priorNii.Replace(".nii", ".mask.nii");
-                _log.Info("Starting Extraction of Brain Surface for Prior series...");
-                stopwatch.Restart();
+                    stopwatch1.Stop();
+                    _log.Info($"Finished extracting brain for Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                    fixedFile = fixedBrain;
+                });
 
-                ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
+                var task2 = Task.Run(() =>
+                {
+                    var floatingBrain = priorNii.Replace(".nii", ".brain.nii");
+                    floatingMask = priorNii.Replace(".nii", ".mask.nii");
+                    _log.Info("Starting EXTRACTING BRAIN for Prior series...");
 
-                floatingFile = floatingBrain;
-                stopwatch.Stop();
-                _log.Info($"Finished Extracting Brain Surface for Prior series in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                    stopwatch2.Start();
+                    ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
+                    stopwatch2.Stop();
+
+                    _log.Info($"Finished extracting brain for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+                    floatingFile = floatingBrain;
+                });
+
+                task1.Wait();
+                task2.Wait();
             }
 
             if (register)
             {
-                _log.Info("Starting Registration of Current and Prior Series...");
-                stopwatch.Restart();
-                var resliced = priorNii.Replace(".nii", ".resliced.nii");
-                Registration(fixedFile, floatingFile, resliced);
-                if (!File.Exists(resliced))
-                    throw new FileNotFoundException($"Registration process failed to created resliced file {outPriorReslicedNii}");
-                _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
-                File.Move(resliced, outPriorReslicedNii);
-                floatingFile = outPriorReslicedNii;
-                stopwatch.Stop();
-                _log.Info($"Finished Registration of Current and Prior in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                _log.Info("Starting REGISTRATION of current and prior series...");
+
+                var task1 = Task.Run(() =>
+                {
+                    var resliced = priorNii.Replace(".nii", ".resliced.nii");
+                    stopwatch1.Restart();
+                    // Registering current and prior nifti files
+                    Registration(fixedFile, floatingFile, resliced);
+                    stopwatch1.Stop();
+                    if (!File.Exists(resliced))
+                        throw new FileNotFoundException(
+                            $"Registration process failed to created resliced file {outPriorReslicedNii}");
+                    _log.Info(
+                        $"Finished registration of current and prior series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                    // Move resliced prior to desired out file
+                    _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
+                    File.Move(resliced, outPriorReslicedNii);
+                    floatingFile = outPriorReslicedNii;
+                });
+
+                var task2 = Task.Run(() =>
+                {
+                    _log.Info("Starting REGISTRATION of current and prior MASKS...");
+                    var reslicedMask = floatingMask.Replace(".mask.nii", ".resliced.mask.nii");
+                    stopwatch2.Restart();
+                    // Registering current and prior nifti mask files
+                    Registration(fixedMask, floatingMask, reslicedMask);
+                    stopwatch2.Stop();
+                    if (!File.Exists(reslicedMask))
+                        throw new FileNotFoundException($"Registration process failed to created resliced mask file {reslicedMask}");
+                    _log.Info($"Finished registration of current and prior MASKS in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+
+                    floatingMask = reslicedMask;
+                });
+                task1.Wait();
+                task2.Wait();
             }
 
             if (biasFieldCorrect)
             {
-
                 var bfcParams = _config.BfcParams;
-                var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
-                _log.Info("Starting Bias Field Correction for Current series...");
-                stopwatch.Restart();
 
-                BiasFieldCorrection(fixedFile, fixedMask, bfcParams, fixedBfc);
+                var task1 = Task.Run(() =>
+                {
+                    var fixedBfc = currentNii.Replace(".nii", ".bfc.nii");
+                    _log.Info("Starting Bias Field Correction for Current series...");
+                    stopwatch1.Restart();
 
-                stopwatch.Stop();
-                _log.Info($"Finished Bias Field Correction of Current series in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
-                fixedFile = fixedBfc;
+                    BiasFieldCorrection(fixedFile, fixedMask, bfcParams, fixedBfc);
 
-                var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
-                _log.Info("Starting Bias Field Correction for Prior series...");
-                stopwatch.Restart();
+                    stopwatch1.Stop();
+                    _log.Info($"Finished Bias Field Correction of Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                    fixedFile = fixedBfc;
+                });
 
-                BiasFieldCorrection(floatingFile, fixedMask, bfcParams, floatingBfc);
+                var task2 = Task.Run(() =>
+                {
+                    var floatingBfc = priorNii.Replace(".nii", ".bfc.nii");
+                    _log.Info("Starting Bias Field Correction for Prior series...");
+                    stopwatch2.Restart();
 
-                if (File.Exists(outPriorReslicedNii)) File.Move(outPriorReslicedNii, outPriorReslicedNii.Replace(".nii", ".preBfc.nii"));
-                if (File.Exists(floatingBfc) && !File.Exists(outPriorReslicedNii))
-                    File.Move(floatingBfc, outPriorReslicedNii);
-                floatingFile = outPriorReslicedNii;
+                    BiasFieldCorrection(floatingFile, floatingMask, bfcParams, floatingBfc);
 
-                stopwatch.Stop();
-                _log.Info($"Finished Bias Field Correction for Prior series in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                    stopwatch2.Stop();
+                    if (File.Exists(outPriorReslicedNii)) File.Move(outPriorReslicedNii, outPriorReslicedNii.Replace(".nii", ".preBfc.nii"));
+                    if (File.Exists(floatingBfc) && !File.Exists(outPriorReslicedNii))
+                        File.Move(floatingBfc, outPriorReslicedNii);
+                    floatingFile = outPriorReslicedNii;
+
+                    _log.Info($"Finished Bias Field Correction for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+                });
+                task1.Wait();
+                task2.Wait();
             }
 
             const bool normalize = true;
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (normalize && extractBrain)
             {
-                Normalize(fixedFile, fixedMask, sliceType, lookupTable);
-                Normalize(floatingFile, floatingMask, sliceType, lookupTable);
+                var task1 = Task.Run(() =>
+                {
+                    _log.Info("Starting NORMALIZATION of current series...");
+                    Normalize(fixedFile, fixedMask, sliceType, lookupTable);
+                    _log.Info("Finished normalization of current series...");
+                });
+
+                var task2 = Task.Run(() =>
+                {
+                    _log.Info("Starting NORMALIZATION of prior series...");
+                    Normalize(floatingFile, floatingMask, sliceType, lookupTable);
+                    _log.Info("Finished normalization of prior series...");
+                });
+                task1.Wait();
+                task2.Wait();
             }
 
             _log.Info("Starting Comparison of Current and Resliced Prior Series...");
-            stopwatch.Restart();
+            stopwatch1.Restart();
 
             Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
 
-            stopwatch.Stop();
-            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+            stopwatch1.Stop();
+            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
         }
 
         public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable)
@@ -257,7 +327,7 @@ namespace CAPI.ImageProcessing
             normalizedNim.WriteNifti(niftiFilePath);
 
             // TODO3: Remove when done testing
-            #region Generating bmp files for create LUT
+            #region Generating bmp files for reverse-generating LUT
             normalizedNim.ExportSlicesToBmps(niftiFilePath.Replace(".nii", "_For_LUT"), sliceType);
             #endregion
         }
@@ -278,9 +348,14 @@ namespace CAPI.ImageProcessing
 
             var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
-            _log.Info("Start converting current series dicom files to Nii");
-            new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
-            _log.Info("Finished converting current series dicom files to Nii");
+            var task1 = Task.Run(() =>
+            {
+                _log.Info("Start converting current series dicom files to Nii");
+                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
+                _log.Info("Finished converting current series dicom files to Nii");
+
+
+            });
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior series
             if (!_filesystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
@@ -288,11 +363,17 @@ namespace CAPI.ImageProcessing
 
             var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
 
-            _log.Info("Start converting prior series dicom files to Nii");
-            new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(priorDicomFolder, priorNifti);
-            _log.Info("Finished converting prior series dicom files to Nii");
+            var task2 = Task.Run(() =>
+            {
+                _log.Info("Start converting prior series dicom files to Nii");
+                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(priorDicomFolder, priorNifti);
+                _log.Info("Finished converting prior series dicom files to Nii");
+            });
 
-            CompareBrainNiftiWithReslicedBrainNifti_OutNifti(currentNifti, priorNifti, lookupTable, sliceType,
+            task1.Wait();
+            task2.Wait();
+
+            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, lookupTable, sliceType,
                                                              extractBrain, register, biasFieldCorrect,
                                                              resultNii, outPriorReslicedNii);
         }
@@ -300,30 +381,19 @@ namespace CAPI.ImageProcessing
         private void OutputDataReceivedInProcess(object sender, DataReceivedEventArgs e)
         {
             var consoleColor = Console.ForegroundColor;
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
-                    _log.Info($"Process stdout:{Environment.NewLine}{e.Data}");
-            }
-            finally
-            {
-                Console.ForegroundColor = consoleColor;
-            }
+
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                _log.Info($"Process stdout:{Environment.NewLine}{e.Data}");
+
+            Console.ForegroundColor = consoleColor;
         }
         private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
         {
-            var consoleColor = Console.ForegroundColor;
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
-                    _log.Error($"Process error:{Environment.NewLine}{e.Data}");
-            }
-            finally
-            {
-                Console.ForegroundColor = consoleColor;
-            }
+            if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                _log.Error($"Process error:{Environment.NewLine}{e.Data}");
+
+            //throw new Exception("Error occured while running a third-party process!");
         }
     }
 }
