@@ -263,3 +263,9 @@ __pycache__/
 /JavaLib/Capi/nbproject/private/
 /JavaLib/Capi/build/
 /JavaLib/Capi/dist/
+
+# JavaLib Folder should be eventually removed
+JavaLib/
+
+# Test folders
+Test*/
