@@ -265,7 +265,10 @@ __pycache__/
 /JavaLib/Capi/dist/
 
 # JavaLib Folder should be eventually removed
-JavaLib/
+/JavaLib/
 
 # Test folders
-Test*/
+/Test*/
+
+# PathCheckApp
+/PathCheckApp/
