@@ -125,18 +125,19 @@ namespace CAPI.Agent
         {
             if (IsBusy)
             {
-                _log.Info("Agent is processing cases");
+                _log.Info("Agent is busy processing cases");
                 return;
             }
 
             IsBusy = true;
 
+            // Handle newly added cases
             try
             {
                 _log.Info("Checking for new cases");
                 Config = new CapiConfig().GetConfig(_args);
                 _timer.Interval = int.Parse(Config.RunInterval) * 1000;
-                ProcessNewlyAddedCases();
+                HandleNewlyAddedCases();
             }
             catch (Exception ex)
             {
@@ -145,13 +146,15 @@ namespace CAPI.Agent
                 return;
             }
 
+            // Process next pending case
             try
             {
                 var pendingCases = _context.GetCaseByStatus("Pending").ToList();
                 if (pendingCases.ToArray().Any())
                 {
-                    _log.Info("Start processing pending cases...");
-                    pendingCases.ToList().ForEach(ProcessCase);
+                    _log.Info("Processing next pending case...");
+                    var firstCase = pendingCases.OrderBy(c => c.Id).First();
+                    if (firstCase != null) ProcessCase(firstCase);
                 }
                 IsBusy = false;
             }
@@ -224,7 +227,7 @@ namespace CAPI.Agent
                 _context.Jobs.Update(tmp);
             });
         }
-        private void ProcessNewlyAddedCases()
+        private void HandleNewlyAddedCases()
         {
             try
             {
