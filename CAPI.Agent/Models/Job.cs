@@ -128,7 +128,7 @@ namespace CAPI.Agent.Models
             context.SaveChanges();
 
             stopwatch.Stop();
-            _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+            _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             _log.Info("-------------------------");
         }
 
