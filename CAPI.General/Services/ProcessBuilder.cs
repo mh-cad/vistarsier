@@ -43,15 +43,6 @@ namespace CAPI.General.Services
 
             RunProcess(process, outputDataReceived, errorOccuredInProcess);
 
-            //process.Start();
-            //if (outputDataReceived != null)
-            //    process.OutputDataReceived += outputDataReceived;
-            //process.BeginOutputReadLine();
-            //if (errorOccuredInProcess != null)
-            //    process.ErrorDataReceived += errorOccuredInProcess;
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
-
             return process;
         }
 
@@ -69,15 +60,6 @@ namespace CAPI.General.Services
             var process = Build(javaFolderPath, javaFileNamExt, arguments, workingDir);
 
             RunProcess(process, outputDataReceived, errorOccuredInProcess);
-
-            //process.Start();
-            //if (outputDataReceived != null)
-            //    process.OutputDataReceived += outputDataReceived;
-            //process.BeginOutputReadLine();
-            //if (errorOccuredInProcess != null)
-            //    process.ErrorDataReceived += errorOccuredInProcess;
-            //process.BeginErrorReadLine();
-            //process.WaitForExit();
 
             return process;
         }

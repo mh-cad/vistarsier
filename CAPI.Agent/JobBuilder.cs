@@ -101,7 +101,17 @@ namespace CAPI.Agent
             if (priorDicomStudy == null)
                 throw new Exception("No prior workable series were found");
 
-            // If both current and prior are found save them to disk for processing
+            job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
+            job.PriorAccession = priorDicomStudy.AccessionNumber;
+            job.PatientId = currentDicomStudy.PatientId;
+            job.ExtractBrainParams = string.IsNullOrEmpty(recipe.ExtractBrainParams) ?
+                _capiConfig.ImgProcConfig.BseParams :
+                recipe.ExtractBrainParams;
+            job.BiasFieldCorrectionParams = string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams) ?
+                _capiConfig.ImgProcConfig.BfcParams :
+                recipe.BiasFieldCorrectionParams;
+
+            // If both current and prior are found, save them to disk for processing
             _log.Info("Saving current series to disk...");
             job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
                 currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
@@ -112,16 +122,6 @@ namespace CAPI.Agent
                 priorDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
             job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
-
-            job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
-            job.PriorAccession = priorDicomStudy.AccessionNumber;
-            job.PatientId = currentDicomStudy.PatientId;
-            job.ExtractBrainParams = string.IsNullOrEmpty(recipe.ExtractBrainParams) ?
-                _capiConfig.ImgProcConfig.BseParams :
-                recipe.ExtractBrainParams;
-            job.BiasFieldCorrectionParams = string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams) ?
-                _capiConfig.ImgProcConfig.BfcParams :
-                recipe.BiasFieldCorrectionParams;
 
             return job;
         }

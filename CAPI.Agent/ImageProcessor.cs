@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CAPI.Agent
 {
@@ -49,39 +50,47 @@ namespace CAPI.Agent
                 extractBrain, register, biasFieldCorrect,
                 resultNiiFile, outPriorReslicedNiiFile);
 
-            //#region To be removed - This section is only to build lookup tables
-            //var fixedBfcNii = Path.Combine(Directory.GetParent(currentDicomFolder).FullName, "fixed.bfc.nii");
-            //if (File.Exists(fixedBfcNii))
-            //    ConvertToBmp(fixedBfcNii, fixedBfcNii.Replace(".nii", ""), sliceType, "", true);
-            //#endregion
+            var task1 = Task.Run(() =>
+            {
+                _log.Info("Start Converting Results back to Dicom");
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-            _log.Info("Start Converting Results back to Dicom");
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder,
-                           _imgProcConfig.ResultsDicomSeriesDescription);
-            stopwatch.Stop();
-            _log.Info("Finished Converting Results back to Dicom in " +
-                      $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder,
+                    _imgProcConfig.ResultsDicomSeriesDescription);
 
-            UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
+                UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
+
+                stopwatch.Stop();
+
+                _log.Info("Finished Converting Results back to Dicom in " +
+                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+            });
 
             // current study headers are used as this series is going to be sent to the current study
             // prior study date will be added to the end of Series Description tag
-            _log.Info("Start Converting Resliced Prior Series back to Dicom");
+            var task2 = Task.Run(() =>
+            {
+                _log.Info("Start Converting Resliced Prior Series back to Dicom");
 
-            var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-            var priorStudyDescription = $"{_imgProcConfig.PriorReslicedDicomSeriesDescription} {priorStudyDate}";
+                var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
+                var priorStudyDescription = $"{_imgProcConfig.PriorReslicedDicomSeriesDescription} {priorStudyDate}";
 
-            stopwatch.Restart();
-            ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
-                           currentDicomFolder, priorStudyDescription);
-            stopwatch.Stop();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-            _log.Info("Finished Converting Resliced Prior Series back to Dicom in " +
-                      $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
+                    currentDicomFolder, priorStudyDescription);
 
-            UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
+                UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
+
+                stopwatch.Stop();
+
+                _log.Info("Finished Converting Resliced Prior Series back to Dicom in " +
+                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+            });
+            task1.Wait();
+            task2.Wait();
         }
 
         public void CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
