@@ -183,7 +183,7 @@ namespace CAPI.ImageProcessing
                     ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
 
                     stopwatch1.Stop();
-                    _log.Info($"Finished extracting brain for Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                    _log.Info($"Finished extracting brain for Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
                     fixedFile = fixedBrain;
                 });
 
@@ -197,7 +197,7 @@ namespace CAPI.ImageProcessing
                     ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
                     stopwatch2.Stop();
 
-                    _log.Info($"Finished extracting brain for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+                    _log.Info($"Finished extracting brain for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
                     floatingFile = floatingBrain;
                 });
 
@@ -220,7 +220,7 @@ namespace CAPI.ImageProcessing
                         throw new FileNotFoundException(
                             $"Registration process failed to created resliced file {outPriorReslicedNii}");
                     _log.Info(
-                        $"Finished registration of current and prior series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                        $"Finished registration of current and prior series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
                     // Move resliced prior to desired out file
                     _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
                     File.Move(resliced, outPriorReslicedNii);
@@ -237,7 +237,7 @@ namespace CAPI.ImageProcessing
                     stopwatch2.Stop();
                     if (!File.Exists(reslicedMask))
                         throw new FileNotFoundException($"Registration process failed to created resliced mask file {reslicedMask}");
-                    _log.Info($"Finished registration of current and prior MASKS in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+                    _log.Info($"Finished registration of current and prior MASKS in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
 
                     floatingMask = reslicedMask;
                 });
@@ -258,7 +258,7 @@ namespace CAPI.ImageProcessing
                     BiasFieldCorrection(fixedFile, fixedMask, bfcParams, fixedBfc);
 
                     stopwatch1.Stop();
-                    _log.Info($"Finished Bias Field Correction of Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+                    _log.Info($"Finished Bias Field Correction of Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
                     fixedFile = fixedBfc;
                 });
 
@@ -276,7 +276,7 @@ namespace CAPI.ImageProcessing
                         File.Move(floatingBfc, outPriorReslicedNii);
                     floatingFile = outPriorReslicedNii;
 
-                    _log.Info($"Finished Bias Field Correction for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds} minutes.");
+                    _log.Info($"Finished Bias Field Correction for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
                 });
                 task1.Wait();
                 task2.Wait();
@@ -309,7 +309,7 @@ namespace CAPI.ImageProcessing
             Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
 
             stopwatch1.Stop();
-            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds} minutes.");
+            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
         }
 
         public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable)
