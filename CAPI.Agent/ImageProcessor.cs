@@ -57,14 +57,16 @@ namespace CAPI.Agent
                 stopwatch.Start();
 
                 ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder,
-                    _imgProcConfig.ResultsDicomSeriesDescription);
+                    string.IsNullOrEmpty(resultsDicomSeriesDescription) ?
+                        _imgProcConfig.ResultsDicomSeriesDescription :
+                        resultsDicomSeriesDescription);
 
                 UpdateSeriesDescriptionForAllFiles(resultDicom, resultsDicomSeriesDescription);
 
                 stopwatch.Stop();
 
                 _log.Info("Finished Converting Results back to Dicom in " +
-                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
 
             // current study headers are used as this series is going to be sent to the current study
@@ -87,7 +89,7 @@ namespace CAPI.Agent
                 stopwatch.Stop();
 
                 _log.Info("Finished Converting Resliced Prior Series back to Dicom in " +
-                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds} minutes.");
+                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
             task1.Wait();
             task2.Wait();
@@ -95,13 +97,16 @@ namespace CAPI.Agent
 
         public void CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
         {
-            CompareAndSendToFilesystem(
-                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
-                recipe.LookUpTablePath, sliceType,
-                job.ExtractBrain, job.Register, job.BiasFieldCorrection,
-                job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
-                recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
-            );
+            foreach (var lookUpTablePath in recipe.LookUpTablePaths)
+            {
+                CompareAndSendToFilesystem(
+                    job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
+                    lookUpTablePath, sliceType,
+                    job.ExtractBrain, job.Register, job.BiasFieldCorrection,
+                    job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
+                    recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
+                );
+            }
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)
@@ -129,15 +134,6 @@ namespace CAPI.Agent
                                     SliceType sliceType, string dicomFolderForReadingHeaders,
                                     string overlayText)
         {
-            //if (normalize && File.Exists(maskFilePath))
-            //{
-            //    var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
-            //    var mask = _imgProcFactory.CreateNifti().ReadNifti(maskFilePath);
-            //    nim = nim.NormalizeEachSlice(nim, sliceType, 128, 32, 256, mask);
-            //    File.Move(inNiftiFile, inNiftiFile.Replace(".nii", ".prenormalization.nii"));
-            //    nim.WriteNifti(inNiftiFile);
-            //}
-
             var bmpFolder = outDicomFolder + "_Images";
 
             ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
