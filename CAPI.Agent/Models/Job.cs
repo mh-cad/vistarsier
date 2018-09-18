@@ -80,6 +80,8 @@ namespace CAPI.Agent.Models
         [NotMapped]
         public string PriorSeriesDicomFolder { get; set; }
         [NotMapped]
+        public JobResult[] Results { get; set; }
+        [NotMapped]
         public string ResultSeriesDicomFolder { get; set; }
         [NotMapped]
         public string PriorReslicedSeriesDicomFolder { get; set; }
@@ -114,7 +116,7 @@ namespace CAPI.Agent.Models
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
-            imageProcessor.CompareAndSendToFilesystem(job, _recipe, sliceType);
+            imageProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
 
             SendToDestinations();
 
@@ -153,7 +155,9 @@ namespace CAPI.Agent.Models
 
         private void SendToDestinations()
         {
-            if (string.IsNullOrEmpty(ResultSeriesDicomFolder) || Directory.GetFiles(ResultSeriesDicomFolder).Length == 0)
+            if (string.IsNullOrEmpty(ResultSeriesDicomFolder) ||
+                Directory.GetFiles(ResultSeriesDicomFolder).Length == 0 ||
+                Directory.GetDirectories(ResultSeriesDicomFolder).Length == 0)
                 throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
                                                      $"at following path: [{ResultSeriesDicomFolder}] or empty!");
 
@@ -178,14 +182,18 @@ namespace CAPI.Agent.Models
             if (_recipe.FilesystemDestinations == null) return;
             foreach (var fsDestination in _recipe.FilesystemDestinations)
             {
-                var jobFolderName = Path.GetFileName(ProcessingFolder) ?? "";
+                var jobFolderName = Path.GetFileName(ProcessingFolder) ?? throw new InvalidOperationException();
                 var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
 
                 _log.Info($"Sending to folder [{destJobFolderPath}]...");
                 if (_recipe.OnlyCopyResults)
                 {
-                    var resultsDestFolder = Path.Combine(destJobFolderPath, Path.GetFileName(ResultSeriesDicomFolder));
-                    _filesystem.CopyDirectory(ResultSeriesDicomFolder, resultsDestFolder);
+                    foreach (var result in Results)
+                    {
+                        var resultParentFolderPath = Directory.GetParent(result.NiftiFilePath).FullName;
+                        var destinationFolder = Path.Combine(destJobFolderPath, Path.GetDirectoryName(resultParentFolderPath) ?? throw new InvalidOperationException());
+                        _filesystem.CopyDirectory(resultParentFolderPath, destinationFolder);
+                    }
                 }
                 else
                 {
@@ -207,14 +215,20 @@ namespace CAPI.Agent.Models
                 _log.Info($"Establishing connection to AET [{remoteNode.AeTitle}]...");
                 _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
 
-                _log.Info($"Sending to AET [{remoteNode.AeTitle}]...");
-                var resultDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
-                foreach (var resultDicomFile in resultDicomFiles)
-                    _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
+                _log.Info($"Sending results to AET [{remoteNode.AeTitle}]...");
+                foreach (var result in Results)
+                {
+                    var resultDicomFiles = Directory.GetFiles(result.DicomFolderPath);
+                    foreach (var resultDicomFile in resultDicomFiles)
+                        _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
+                }
+                _log.Info($"Finished sending results to AET [{remoteNode.AeTitle}]");
 
+                _log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
                 var priorReslicedDicomFiles = Directory.GetFiles(ResultSeriesDicomFolder);
                 foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
                     _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
+                _log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
             }
         }
 

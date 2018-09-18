@@ -46,6 +46,7 @@
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="Models\IJob.cs" />
     <Compile Include="IJobBuilder.cs" />
+    <Compile Include="Models\IJobResult.cs" />
     <Compile Include="Models\IRecipe.cs" />
     <Compile Include="Models\ISeriesSelectionCriteria.cs" />
     <Compile Include="Models\IValueComparer.cs" />

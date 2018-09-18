@@ -147,6 +147,7 @@
     <Compile Include="Models\Destination.cs" />
     <Compile Include="Models\Job.cs" />
     <Compile Include="JobBuilder.cs" />
+    <Compile Include="Models\JobResult.cs" />
     <Compile Include="Models\SeriesSelectionCriteria.cs" />
     <Compile Include="Models\ValueComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

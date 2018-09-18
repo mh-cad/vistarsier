@@ -4,6 +4,7 @@ using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -35,46 +36,27 @@ namespace CAPI.Agent
             _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
         }
 
-        public void CompareAndSendToFilesystem(
+        public string[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder,
-            string lookupTable, SliceType sliceType,
+            string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultDicom, string outPriorReslicedDicom,
+            string outPriorReslicedDicom,
             string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription)
         {
-            var resultNiiFile = resultDicom + ".nii";
+            var workingDir = Directory.GetParent(outPriorReslicedDicom).FullName;
+            var resultNiis = BuildResultNiftiPathsFromLuts(lookupTablePaths, workingDir).ToArray();
             var outPriorReslicedNiiFile = outPriorReslicedDicom + ".nii";
 
             _imgProc.CompareDicomInNiftiOut(
-                currentDicomFolder, priorDicomFolder, lookupTable, sliceType,
+                currentDicomFolder, priorDicomFolder, lookupTablePaths, sliceType,
                 extractBrain, register, biasFieldCorrect,
-                resultNiiFile, outPriorReslicedNiiFile);
+                resultNiis, outPriorReslicedNiiFile);
 
-            var task1 = Task.Run(() =>
-            {
-                _log.Info("Start Converting Results back to Dicom");
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
-
-                var resultsSeriesDescription = string.IsNullOrEmpty(resultsDicomSeriesDescription)
-                    ? _imgProcConfig.ResultsDicomSeriesDescription
-                    : resultsDicomSeriesDescription;
-
-                ConvertToDicom(resultNiiFile, resultDicom, sliceType, currentDicomFolder, resultsSeriesDescription);
-
-                UpdateSeriesDescriptionForAllFiles(resultDicom, resultsSeriesDescription);
-
-                stopwatch.Stop();
-
-                _log.Info("Finished Converting Results back to Dicom in " +
-                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
-            });
-
-            // current study headers are used as this series is going to be sent to the current study
+            // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
             // prior study date will be added to the end of Series Description tag
-            var task2 = Task.Run(() =>
+            var task = Task.Run(() =>
             {
-                _log.Info("Start Converting Resliced Prior Series back to Dicom");
+                _log.Info("Start converting resliced prior series back to Dicom");
 
                 var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
                 var priorStudyDescBase = string.IsNullOrEmpty(priorReslicedDicomSeriesDescription) ?
@@ -90,26 +72,65 @@ namespace CAPI.Agent
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
 
                 stopwatch.Stop();
-
-                _log.Info("Finished Converting Resliced Prior Series back to Dicom in " +
+                _log.Info("Finished Converting resliced prior series back to Dicom in " +
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
-            task1.Wait();
-            task2.Wait();
+
+            foreach (var resultNii in resultNiis)
+            {
+                _log.Info("Start converting results back to Dicom");
+
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                var resultsSeriesDescription = string.IsNullOrEmpty(resultsDicomSeriesDescription)
+                    ? _imgProcConfig.ResultsDicomSeriesDescription
+                    : resultsDicomSeriesDescription;
+
+                var dicomFolderPath = resultNii.Replace(".nii", "");
+                ConvertToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, resultsSeriesDescription);
+
+                UpdateSeriesDescriptionForAllFiles(dicomFolderPath, resultsSeriesDescription);
+
+                stopwatch.Stop();
+                _log.Info("Finished converting results back to Dicom in " +
+                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
+            }
+
+            task.Wait();
+            task.Dispose();
+
+            var resultDicomFolderPaths = resultNiis.Select(r => r.Replace(".nii", "")).ToArray();
+            return resultDicomFolderPaths;
         }
 
-        public void CompareAndSendToFilesystem(IJob job, IRecipe recipe, SliceType sliceType)
+        private static IEnumerable<string> BuildResultNiftiPathsFromLuts(IReadOnlyList<string> lookupTablePaths, string workingDir)
         {
-            foreach (var lookUpTablePath in recipe.LookUpTablePaths)
+            var allResultsFolder = Path.Combine(workingDir, "Results");
+            Directory.CreateDirectory(allResultsFolder);
+            var resultPaths = new string[lookupTablePaths.Count];
+            for (var i = 0; i < lookupTablePaths.Count; i++)
             {
-                CompareAndSendToFilesystem(
-                    job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
-                    lookUpTablePath, sliceType,
-                    job.ExtractBrain, job.Register, job.BiasFieldCorrection,
-                    job.ResultSeriesDicomFolder, job.PriorReslicedSeriesDicomFolder,
-                    recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
-                );
+                if (!File.Exists(lookupTablePaths[i]))
+                    throw new FileNotFoundException($"Could not find the lookup table in following path [{lookupTablePaths[i]}]", lookupTablePaths[i]);
+                var lookupTableName = Path.GetFileNameWithoutExtension(lookupTablePaths[i]);
+                var resultFolder = Path.Combine(allResultsFolder, lookupTableName ?? "_");
+                Directory.CreateDirectory(resultFolder);
+                resultPaths[i] = Path.Combine(resultFolder, "result.nii");
             }
+
+            return resultPaths;
+        }
+
+        public void CompareAndSaveLocally(IJob job, IRecipe recipe, SliceType sliceType)
+        {
+            CompareAndSaveLocally(
+                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
+                recipe.LookUpTablePaths, sliceType,
+                job.ExtractBrain, job.Register, job.BiasFieldCorrection,
+                job.PriorReslicedSeriesDicomFolder,
+                recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
+            );
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)

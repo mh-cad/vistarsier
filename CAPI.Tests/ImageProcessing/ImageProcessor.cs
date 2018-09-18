@@ -34,6 +34,8 @@ namespace CAPI.Tests.ImageProcessing
         private string _floatingBrainFile;
         private string _floatingMaskFile;
         private string _resultsFolder;
+        private string _fixedNormalizedNiiFile;
+        private string _floatingNormalizedNiiFile;
 
         [TestInitialize]
         public void TestInit()
@@ -63,6 +65,8 @@ namespace CAPI.Tests.ImageProcessing
             var floatingMaskFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Prior\floating.mask.nii";
             var fixedBfcFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.bfc.nii";
             var floatingBfcFilePath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\prior.resliced.bfc.nii";
+            var fixedNormalizedFilePath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.normalized.nii";
+            var floatingNormalizedFilePath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\PriorResliced.nii";
 
             _lookupTable = $@"{_testResourcesPath}\LookUpTable.bmp";
             _compareResult = $@"{_testResourcesPath}\compareResult.nii";
@@ -74,6 +78,8 @@ namespace CAPI.Tests.ImageProcessing
             _floatingMaskFile = Path.Combine(_outputFolder, "prior.mask.nii");
             _fixedBfcNiiFile = Path.Combine(_outputFolder, "current.bfc.nii");
             _floatingBfcNiiFile = Path.Combine(_outputFolder, "prior.bfc.nii");
+            _fixedNormalizedNiiFile = Path.Combine(_outputFolder, "current.normalized.nii");
+            _floatingNormalizedNiiFile = Path.Combine(_outputFolder, "prior.normalized.nii");
 
             File.Copy(fixedFilepath, _fixedNiiFile);
             File.Copy(fixedBrainFilepath, _fixedBrainFile);
@@ -82,6 +88,8 @@ namespace CAPI.Tests.ImageProcessing
             File.Copy(floatingMaskFilepath, _floatingMaskFile);
             File.Copy(fixedBfcFilepath, _fixedBfcNiiFile);
             File.Copy(floatingBfcFilePath, _floatingBfcNiiFile);
+            File.Copy(fixedNormalizedFilePath, _fixedNormalizedNiiFile);
+            File.Copy(floatingNormalizedFilePath, _floatingNormalizedNiiFile);
 
             ClearFilesAndFolders();
         }
@@ -204,8 +212,8 @@ namespace CAPI.Tests.ImageProcessing
         [TestMethod]
         public void Compare()
         {
-            var currentNii = _fixedBfcNiiFile;
-            var priorNii = _floatingBfcNiiFile;
+            var currentNii = _fixedNormalizedNiiFile;
+            var priorNii = _floatingNormalizedNiiFile;
             var lookupTable = _lookupTable;
             var resultNii = _compareResult;
 
