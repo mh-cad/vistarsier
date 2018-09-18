@@ -4,11 +4,11 @@ namespace CAPI.Agent.Abstractions
 {
     public interface IImageProcessor
     {
-        void CompareAndSendToFilesystem(
+        string[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder,
-            string lookupTable, SliceType sliceType,
+            string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultDicom, string outPriorReslicedDicom,
+            string outPriorReslicedDicom,
             string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription);
 
         void AddOverlayToImage(string bmpFilePath, string overlayText);

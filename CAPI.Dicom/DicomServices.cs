@@ -223,14 +223,14 @@ namespace CAPI.Dicom
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
 
-        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "")
+        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomHeadersFolder = "")
         {
             _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
             var bmpFiles = Directory.GetFiles(bmpFolder);
             var orderedFiles = new List<string>();
-            if (!string.IsNullOrEmpty(dicomheadersFolder))
+            if (!string.IsNullOrEmpty(dicomHeadersFolder))
             {
-                orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomheadersFolder)).ToList();
+                orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
                 if (bmpFiles.Length != orderedFiles.Count)
                     throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedFiles.Count}");
             }
@@ -241,7 +241,7 @@ namespace CAPI.Dicom
                 var filepath = Path.Combine(dicomFolder, filenameNoExt);
 
                 var arguments = string.Empty;
-                if (!string.IsNullOrEmpty(dicomheadersFolder))
+                if (!string.IsNullOrEmpty(dicomHeadersFolder))
                     arguments = $@"-df {orderedFiles[i]} "; // Copy dicom headers from dicom file: -df = dataset file
 
                 arguments += $"-i BMP {filenameNoExt}.bmp {filepath}";
