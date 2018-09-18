@@ -68,15 +68,13 @@ namespace CAPI.Tests.Agent
                 _priorStudyDicomFolder = Path.Combine(_tmpFolder, "floating", "dicom");
                 _fileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\floating\dicom", _priorStudyDicomFolder);
 
-                //_currentStudyDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{folder}\fixed\dicom";
-                //_priorStudyDicomFolder = $@"{_testResourcesPath}\SeriesToTest\{folder}\floating\dicom";
                 _lookupTableFile = $@"{_testResourcesPath}\LookUpTable.bmp";
-                _destinationResults = Path.Combine(_tmpFolder, "Results_dicom"); //$@"{_testResourcesPath}\SeriesToTest\{folder}\Results_dicom";
-                _destinationPriorResliced = Path.Combine(_tmpFolder, "Resliced"); //$@"{_testResourcesPath}\SeriesToTest\{folder}\floating\Resliced";
+                _destinationResults = Path.Combine(_tmpFolder, "Results", Path.GetFileNameWithoutExtension(_lookupTableFile), "Dicom");
+                _destinationPriorResliced = Path.Combine(_tmpFolder, "Resliced");
 
-                agentImgProc.CompareAndSendToFilesystem(
-                    _currentStudyDicomFolder, _priorStudyDicomFolder, _lookupTableFile, SliceType.Sagittal
-                    , true, true, true, _destinationResults, _destinationPriorResliced, "Results", "Prior Resliced");
+                agentImgProc.CompareAndSaveLocally(
+                    _currentStudyDicomFolder, _priorStudyDicomFolder, new[] { _lookupTableFile }, SliceType.Sagittal
+                    , true, true, true, _destinationPriorResliced, "Results", "Prior Resliced");
 
                 // Assert
                 Assert.IsTrue(Directory.Exists(_destinationResults));
@@ -84,18 +82,6 @@ namespace CAPI.Tests.Agent
                 Assert.IsTrue(Directory.Exists(_destinationPriorResliced));
                 Assert.IsTrue(Directory.GetFiles(_destinationPriorResliced).Length > 0);
             }
-
-            // Act
-            //brokerImgProc.CompareAndSendToFilesystem(
-            //    _currentStudyDicomFolder, _priorStudyDicomFolder, _lookupTableFile, SliceType.Sagittal
-            //    , true, true, true, _destinationResults, _destinationPriorResliced);
-
-            //// Assert
-            //Assert.IsTrue(Directory.Exists(_destinationResults) && Directory.GetFiles(_destinationResults).Length > 0,
-            //    $"CompareAndSendToFilesystem results folder is either empty or contains no files: {_destinationResults}");
-
-            //Assert.IsTrue(Directory.Exists(_destinationPriorResliced) && Directory.GetFiles(_destinationPriorResliced).Length > 0,
-            //    $"Prior study resliced folder is either empty or contains no files: {_destinationPriorResliced}");
         }
 
         [TestMethod]

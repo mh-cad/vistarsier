@@ -216,6 +216,8 @@ namespace CAPI.ImageProcessing
         public INifti Compare(INifti current, INifti prior, SliceType sliceType,
                               ISubtractionLookUpTable lookUpTable, string workingDir)
         {
+            EnsureNormalization(current, prior, lookUpTable);
+
             for (var i = 0; i < current.voxels.Length; i++)
                 current.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
                     (int)prior.voxels[i]].ToArgb().ToBgr();
@@ -226,6 +228,26 @@ namespace CAPI.ImageProcessing
             current.ConvertHeaderToRgb();
 
             return current;
+        }
+
+        private static void EnsureNormalization(INifti current, INifti prior, ISubtractionLookUpTable lookUpTable)
+        {
+            var currentMinVal = current.voxels.Min();
+            var currentMaxVal = current.voxels.Max();
+            var priorMinVal = prior.voxels.Min();
+            var priorMaxVal = prior.voxels.Max();
+
+            if (currentMinVal < 0
+                || currentMaxVal > lookUpTable.Width)
+                throw new ArgumentOutOfRangeException($"Current nifti file voxels value range does not match with lookup table:{Environment.NewLine}" +
+                                                      $"current min={currentMinVal}, current max={currentMaxVal}{Environment.NewLine}" +
+                                                      $"lookup Table X min={lookUpTable.Xmin}, lookup Table X max={lookUpTable.Xmax}");
+
+            if (priorMinVal < 0
+                || priorMaxVal > lookUpTable.Height)
+                throw new ArgumentOutOfRangeException($"Prior nifti file voxels value range does not match with lookup table:{Environment.NewLine}" +
+                                                      $"prior min={priorMinVal}, prior max={priorMaxVal}{Environment.NewLine}" +
+                                                      $"lookup Table Y min={lookUpTable.Ymin}, lookup Table Y max={lookUpTable.Ymax}");
         }
 
         public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null)

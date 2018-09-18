@@ -10,13 +10,13 @@
         void Compare(
             string currentNii, string priorNii, string lookupTable, SliceType sliceType, string resultNiiFile);
         void ExtractBrainRegisterAndCompare(
-            string currentNii, string priorNii, string lookupTable, SliceType sliceType,
+            string currentNii, string priorNii, string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultNii, string outPriorReslicedNii);
+            string[] resultNiis, string outPriorReslicedNii);
 
         void CompareDicomInNiftiOut(
-            string currentDicomFolder, string priorDicomFolder, string lookupTable, SliceType sliceType,
+            string currentDicomFolder, string priorDicomFolder, string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultNii, string outPriorReslicedNii);
+            string[] resultNiis, string outPriorReslicedNii);
     }
 }
