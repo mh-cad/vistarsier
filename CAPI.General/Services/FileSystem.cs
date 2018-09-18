@@ -50,6 +50,11 @@ namespace CAPI.General.Services
                 File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
         }
 
+        /// <summary>
+        /// Returns true if folder exists and contains at least one file
+        /// </summary>
+        /// <param name="folderPath"></param>
+        /// <returns></returns>
         public bool DirectoryIsValidAndNotEmpty(string folderPath)
         {
             try

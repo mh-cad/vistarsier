@@ -77,7 +77,7 @@ namespace CAPI.Agent
             recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
 
             // Find Current Study (Fixed)
-            _log.Info("Finding current series using recipe prvided...");
+            _log.Info("Finding current series using recipe provided...");
             var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
@@ -94,7 +94,7 @@ namespace CAPI.Agent
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
             // Find Prior Study (Floating)
-            _log.Info("Finding prior series using recipe prvided...");
+            _log.Info("Finding prior series using recipe provided...");
             var priorDicomStudy =
                 GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 

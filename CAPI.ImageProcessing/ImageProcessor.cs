@@ -3,10 +3,12 @@ using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CAPI.ImageProcessing
@@ -79,15 +81,23 @@ namespace CAPI.ImageProcessing
         {
             var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}";
             var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}";
-            if (File.Exists(resultForm)) File.Delete(resultForm);
+
+            try
+            {
+                if (File.Exists(resultForm)) File.Delete(resultForm);
+            }
+            catch
+            {
+                // ignored
+            }
 
             var javaClasspath = _config.JavaClassPath;
 
-            var methodname = Properties.Settings.Default.javaClassConvertCmtkXform;
+            var methodName = Properties.Settings.Default.javaClassConvertCmtkXform;
 
-            var javaArgument = $"-classpath {javaClasspath} {methodname} {fixedNii} {floatingNii} {rawForm} {resultForm}";
+            var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
 
-            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodname, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
 
             File.Delete(rawForm);
         }
@@ -137,7 +147,10 @@ namespace CAPI.ImageProcessing
 
             var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir);
 
-            _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(resultNiiFile));
+            var resultFolderPath = Path.GetDirectoryName(resultNiiFile);
+            _filesystem.DirectoryExistsIfNotCreate(resultFolderPath);
+            if (!Directory.Exists(resultFolderPath)) throw new DirectoryNotFoundException($"Results folder was not created [{resultFolderPath}]");
+            File.Copy(lookupTableFile, Path.Combine(resultFolderPath, Path.GetFileName(lookupTableFile) ?? throw new InvalidOperationException()));
 
             result.WriteNifti(resultNiiFile);
         }
@@ -147,19 +160,20 @@ namespace CAPI.ImageProcessing
         /// </summary>
         /// <param name="currentNii">current series nifti file path</param>
         /// <param name="priorNii">prior series nifti file path</param>
-        /// <param name="lookupTable">bmp file mapping current and prior comparison result colors</param>
+        /// <param name="lookupTablePaths">bmp files mapping current and prior comparison result colors</param>
         /// <param name="sliceType">Sagittal, Axial or Coronal</param>
         /// <param name="extractBrain">to do skull stripping or not</param>
         /// <param name="register">to register or not</param>
         /// <param name="biasFieldCorrect">to perform bias field correction or not</param>
-        /// <param name="resultNii">end result output nifti file path</param>
+        /// <param name="resultNiis">end result output nifti files path</param>
         /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
         public void ExtractBrainRegisterAndCompare(
-            string currentNii, string priorNii, string lookupTable, SliceType sliceType,
+            string currentNii, string priorNii, string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultNii, string outPriorReslicedNii)
+            string[] resultNiis, string outPriorReslicedNii)
         {
-            _filesystem.FilesExist(new[] { currentNii, priorNii, lookupTable });
+            _filesystem.FilesExist(new[] { currentNii, priorNii });
+            _filesystem.FilesExist(lookupTablePaths);
 
             var fixedFile = currentNii;
             var floatingFile = priorNii;
@@ -282,48 +296,104 @@ namespace CAPI.ImageProcessing
                 task2.Wait();
             }
 
-            const bool normalize = true;
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (normalize && extractBrain)
+            foreach (var lookupTable in lookupTablePaths)
             {
-                var task1 = Task.Run(() =>
-                {
-                    _log.Info("Starting NORMALIZATION of current series...");
-                    Normalize(fixedFile, fixedMask, sliceType, lookupTable);
-                    _log.Info("Finished normalization of current series...");
-                });
+                const bool normalize = true;
+                var lookupTableName = Path.GetFileNameWithoutExtension(lookupTable);
+                var fixedPrenorm = fixedFile.EndsWith(".pre-norm.nii") ? fixedFile : fixedFile.Replace(".nii", ".pre-norm.nii");
+                var floatingPrenorm = floatingFile.EndsWith(".pre-norm.nii") ? floatingFile : floatingFile.Replace(".nii", ".pre-norm.nii");
 
-                var task2 = Task.Run(() =>
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                if (normalize && extractBrain)
                 {
-                    _log.Info("Starting NORMALIZATION of prior series...");
-                    Normalize(floatingFile, floatingMask, sliceType, lookupTable);
-                    _log.Info("Finished normalization of prior series...");
-                });
-                task1.Wait();
-                task2.Wait();
+                    var task1 = Task.Run(() =>
+                    {
+                        if (!File.Exists(fixedPrenorm)) File.Move(fixedFile, fixedPrenorm);
+                        if (fixedFile.ToLower().Contains(".pre-norm")) fixedFile = fixedFile.Replace(".pre-norm", "");
+                        fixedFile.Replace(".nii", $".norm-{lookupTableName}.nii");
+                        File.Copy(fixedPrenorm, fixedFile);
+                        _log.Info("Starting NORMALIZATION of current series...");
+                        stopwatch1.Restart();
+                        Normalize(fixedFile, fixedMask, sliceType, lookupTable);
+                        stopwatch1.Stop();
+                        _log.Info($"Finished normalization of current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+                    });
+
+                    var task2 = Task.Run(() =>
+                    {
+                        if (!File.Exists(floatingPrenorm)) File.Move(floatingFile, floatingPrenorm);
+                        if (floatingFile.ToLower().Contains(".pre-norm")) floatingFile = floatingFile.Replace(".pre-norm", "");
+                        floatingFile = floatingFile.Replace(".nii", $".norm-{lookupTableName}.nii");
+                        File.Copy(floatingPrenorm, floatingFile);
+                        _log.Info("Starting NORMALIZATION of prior series...");
+                        stopwatch2.Restart();
+                        Normalize(floatingFile, floatingMask, sliceType, lookupTable);
+                        stopwatch2.Stop();
+                        _log.Info($"Finished normalization of prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
+                    });
+                    task1.Wait();
+                    task2.Wait();
+                }
+
+                _log.Info($"Starting Comparison of Current and Resliced Prior Series using lookup table {lookupTableName} ...");
+                stopwatch1.Restart();
+
+                var resultNii = GetMatchingResultForLut(lookupTable, resultNiis);
+                Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
+
+                stopwatch1.Stop();
+                _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+
+                // prepare for next comparison
+                fixedFile = fixedPrenorm;
+                floatingFile = floatingPrenorm;
             }
-
-            _log.Info("Starting Comparison of Current and Resliced Prior Series...");
-            stopwatch1.Restart();
-
-            Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
-
-            stopwatch1.Stop();
-            _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+            File.Move(floatingFile, outPriorReslicedNii);
         }
+
+        private static string GetMatchingResultForLut(string lookupTablePath, IEnumerable<string> resultNiis)
+        {
+            var lutName = Path.GetFileNameWithoutExtension(lookupTablePath);
+            return resultNiis.FirstOrDefault(r => Directory.GetParent(r).Name
+                .Equals(lutName, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        //private void MoveResultsToSeparateFoldersForEachLookupTable(string dicomResultFolderPath, string lookUpTablePath, string newLutFolderName)
+        //{
+        //    if (!Directory.Exists(dicomResultFolderPath))
+        //        throw new DirectoryNotFoundException($"Results dicom folder does not exist [{dicomResultFolderPath}]");
+        //    var workingFolderPath = Directory.GetParent(dicomResultFolderPath).FullName;
+        //    var resultFiles = Directory.GetFiles(workingFolderPath, "Results*.*");
+        //    var resultsFolders = Directory.GetDirectories(workingFolderPath, "Results*.*");
+
+        //    var newLutFolderPath = Path.Combine(workingFolderPath, newLutFolderName);
+        //    Directory.CreateDirectory(newLutFolderPath);
+
+        //    _log.Info($"Moving files for LUT [{lookUpTablePath}] to folder [{newLutFolderPath}]");
+        //    foreach (var resultFile in resultFiles)
+        //        if (File.Exists(resultFile))
+        //            File.Move(resultFile, Path.Combine(newLutFolderPath, Path.GetFileName(resultFile)));
+
+        //    foreach (var resultsFolder in resultsFolders)
+        //        if (Directory.Exists(resultsFolder) && !string.IsNullOrEmpty(Path.GetFileName(resultsFolder)))
+        //            Directory.Move(resultsFolder, Path.Combine(newLutFolderPath, Path.GetFileName(resultsFolder)));
+        //}
+        //private void CopyResultsForFirstLutBackToWorkingDir(IReadOnlyList<string> lookupTablePaths)
+        //{
+        //    var firstLut = lookupTablePaths[0];
+        //    if (firstLut == null) throw new ArgumentNullException(nameof(firstLut), "Lookup Tables Paths contains no values!");
+        //}
 
         public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable)
         {
             var lut = new Bitmap(lookupTable);
             Normalize(niftiFilePath, maskFilePath, sliceType, lut.Width / 2, lut.Width / 8, lut.Width);
         }
-
         public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, int mean, int std, int widthRange)
         {
             var nim = new Nifti().ReadNifti(niftiFilePath);
             var mask = new Nifti().ReadNifti(maskFilePath);
             var normalizedNim = nim.NormalizeEachSlice(nim, sliceType, mean, std, widthRange, mask);
-            File.Move(niftiFilePath, niftiFilePath.Replace(".nii", ".preNormalization.nii"));
             normalizedNim.WriteNifti(niftiFilePath);
 
             // TODO3: Remove when done testing
@@ -335,12 +405,13 @@ namespace CAPI.ImageProcessing
         [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
         public void CompareDicomInNiftiOut(
             string currentDicomFolder, string priorDicomFolder,
-            string lookupTable, SliceType sliceType,
+            string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
-            string resultNii, string outPriorReslicedNii)
+            string[] resultNiis, string outPriorReslicedNii)
         {
-            if (!File.Exists(lookupTable))
-                throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTable}");
+            foreach (var lookupTablePath in lookupTablePaths)
+                if (!File.Exists(lookupTablePath))
+                    throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTablePath}");
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series
             if (!_filesystem.DirectoryIsValidAndNotEmpty(currentDicomFolder))
@@ -353,8 +424,6 @@ namespace CAPI.ImageProcessing
                 _log.Info("Start converting current series dicom files to Nii");
                 new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
                 _log.Info("Finished converting current series dicom files to Nii");
-
-
             });
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior series
@@ -373,9 +442,9 @@ namespace CAPI.ImageProcessing
             task1.Wait();
             task2.Wait();
 
-            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, lookupTable, sliceType,
-                                                             extractBrain, register, biasFieldCorrect,
-                                                             resultNii, outPriorReslicedNii);
+            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, lookupTablePaths, sliceType,
+                                           extractBrain, register, biasFieldCorrect,
+                                           resultNiis, outPriorReslicedNii);
         }
 
         private void OutputDataReceivedInProcess(object sender, DataReceivedEventArgs e)

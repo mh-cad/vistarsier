@@ -37,6 +37,6 @@ namespace CAPI.Dicom.Abstractions
         string GenerateNewSeriesUid();
         string GenerateNewImageUid();
 
-        void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomheadersFolder = "");
+        void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomHeadersFolder = "");
     }
 }
