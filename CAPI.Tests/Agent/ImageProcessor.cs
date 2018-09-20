@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using Unity;
 using IImageProcessor = CAPI.Agent.Abstractions.IImageProcessor;
+using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
 
 namespace CAPI.Tests.Agent
 {

@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
 
 namespace CAPI.Agent.Models
 {

@@ -12,6 +12,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
 
 namespace CAPI.Agent
 {
