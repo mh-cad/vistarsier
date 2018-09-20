@@ -173,7 +173,7 @@ namespace CAPI.Tests.Dicom
 
             var dicomTags = _dicomServices.GetDicomTags(testDicomFile);
 
-            _dicomServices.UpdateDicomHeaders(filePathToUpdate, new DicomTagCollection(), DicomNewObjectType.NewStudy);
+            _dicomServices.UpdateDicomHeaders(filePathToUpdate, new DicomTagCollection(), dicomNewObjectType: DicomNewObjectType.NewStudy);
 
             var updatedDicomTags = _dicomServices.GetDicomTags(filePathToUpdate);
 

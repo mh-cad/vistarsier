@@ -152,10 +152,10 @@ namespace CAPI.Agent
             }
             catch (Exception ex)
             {
-                var errorMesesage =
+                var errorMessage =
                     $"Source node AET [{sourceAet}] in Recipe was not found in config file list of remote nodes";
-                _log.Error(errorMesesage, ex);
-                throw new Exception(errorMesesage);
+                _log.Error(errorMessage, ex);
+                throw new Exception(errorMessage);
             }
 
             try
