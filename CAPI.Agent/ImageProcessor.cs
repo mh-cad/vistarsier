@@ -1,9 +1,11 @@
 ﻿using CAPI.Agent.Abstractions.Models;
+using CAPI.Agent.Models;
 using CAPI.Common.Abstractions.Config;
 using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -25,6 +27,10 @@ namespace CAPI.Agent
         private readonly ILog _log;
         private readonly IImgProcConfig _imgProcConfig;
 
+        private const string ResultsFolderName = "Results";
+        private const string ResultsFileName = "result.nii";
+        private const string ImagesFolderSuffix = "_Images";
+
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                               IFileSystem filesystem, IProcessBuilder processBuilder,
                               IImgProcConfig imgProcConfig, ILog log)
@@ -36,7 +42,7 @@ namespace CAPI.Agent
             _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
         }
 
-        public string[] CompareAndSaveLocally(
+        public IJobResult[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder,
             string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
@@ -48,9 +54,9 @@ namespace CAPI.Agent
             var outPriorReslicedNiiFile = outPriorReslicedDicom + ".nii";
 
             _imgProc.CompareDicomInNiftiOut(
-                currentDicomFolder, priorDicomFolder, lookupTablePaths, sliceType,
-                extractBrain, register, biasFieldCorrect,
-                resultNiis, outPriorReslicedNiiFile);
+                                            currentDicomFolder, priorDicomFolder, lookupTablePaths, sliceType,
+                                            extractBrain, register, biasFieldCorrect,
+                                            resultNiis, outPriorReslicedNiiFile);
 
             // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
             // prior study date will be added to the end of Series Description tag
@@ -76,6 +82,7 @@ namespace CAPI.Agent
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
 
+            var results = new List<IJobResult>();
             foreach (var resultNii in resultNiis)
             {
                 _log.Info("Start converting results back to Dicom");
@@ -88,25 +95,47 @@ namespace CAPI.Agent
                     : resultsDicomSeriesDescription;
 
                 var dicomFolderPath = resultNii.Replace(".nii", "");
-                ConvertToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, resultsSeriesDescription);
-
-                UpdateSeriesDescriptionForAllFiles(dicomFolderPath, resultsSeriesDescription);
+                var lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
+                var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
+                ConvertToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, $"{resultsSeriesDescription} {lutFileName}", lutFilePath);
 
                 stopwatch.Stop();
                 _log.Info("Finished converting results back to Dicom in " +
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
+
+                results.Add(new JobResult()
+                {
+                    DicomFolderPath = dicomFolderPath,
+                    NiftiFilePath = resultNii,
+                    ImagesFolderPath = dicomFolderPath + ImagesFolderSuffix,
+                    LutFilePath = lutFilePath
+                });
             }
 
             task.Wait();
             task.Dispose();
 
-            var resultDicomFolderPaths = resultNiis.Select(r => r.Replace(".nii", "")).ToArray();
-            return resultDicomFolderPaths;
+
+            //var resultDicomFolderPaths = resultNiis.Select(r => r.Replace(".nii", "")).ToArray();
+            return results.ToArray();
+        }
+
+        private static string GetLookupTableForResult(string resultNiiFilePath, IEnumerable<string> lookupTablePaths)
+        {
+            var resultFolderPath = Path.GetDirectoryName(resultNiiFilePath);
+            var resultFolderfiles = Directory.GetFiles(resultFolderPath ?? throw new InvalidOperationException($"Unable to get folder containing {resultNiiFilePath}"));
+            foreach (var lookupTablePath in lookupTablePaths)
+            {
+                var lookupTableFileName = Path.GetFileName(lookupTablePath);
+                if (resultFolderfiles.Any(f => Path.GetFileName(f).Equals(lookupTableFileName, StringComparison.CurrentCultureIgnoreCase)))
+                    return lookupTablePath;
+            }
+            throw new Exception($"Unable to find matching lookup table for result nifti file [{resultNiiFilePath}] in folder {resultFolderPath}");
         }
 
         private static IEnumerable<string> BuildResultNiftiPathsFromLuts(IReadOnlyList<string> lookupTablePaths, string workingDir)
         {
-            var allResultsFolder = Path.Combine(workingDir, "Results");
+            var allResultsFolder = Path.Combine(workingDir, ResultsFolderName);
             Directory.CreateDirectory(allResultsFolder);
             var resultPaths = new string[lookupTablePaths.Count];
             for (var i = 0; i < lookupTablePaths.Count; i++)
@@ -116,15 +145,15 @@ namespace CAPI.Agent
                 var lookupTableName = Path.GetFileNameWithoutExtension(lookupTablePaths[i]);
                 var resultFolder = Path.Combine(allResultsFolder, lookupTableName ?? "_");
                 Directory.CreateDirectory(resultFolder);
-                resultPaths[i] = Path.Combine(resultFolder, "result.nii");
+                resultPaths[i] = Path.Combine(resultFolder, ResultsFileName);
             }
 
             return resultPaths;
         }
 
-        public void CompareAndSaveLocally(IJob job, IRecipe recipe, SliceType sliceType)
+        public IJobResult[] CompareAndSaveLocally(IJob job, IRecipe recipe, SliceType sliceType)
         {
-            CompareAndSaveLocally(
+            return CompareAndSaveLocally(
                 job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
                 recipe.LookUpTablePaths, sliceType,
                 job.ExtractBrain, job.Register, job.BiasFieldCorrection,
@@ -156,13 +185,18 @@ namespace CAPI.Agent
 
         private void ConvertToDicom(string inNiftiFile, string outDicomFolder,
                                     SliceType sliceType, string dicomFolderForReadingHeaders,
-                                    string overlayText)
+                                    string overlayText, string lookupTableFilePath = "")
         {
-            var bmpFolder = outDicomFolder + "_Images";
+            var bmpFolder = outDicomFolder + ImagesFolderSuffix;
 
             ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
 
             _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders);
+
+            UpdateSeriesDescriptionForAllFiles(outDicomFolder, overlayText);
+
+            if (!string.IsNullOrEmpty(lookupTableFilePath) && File.Exists(lookupTableFilePath))
+                _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);
         }
 
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)

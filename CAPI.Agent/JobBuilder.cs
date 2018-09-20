@@ -172,13 +172,13 @@ namespace CAPI.Agent
 
         private string SaveDicomFilesToFilesystem(
                                                   IDicomStudy dicomStudy, string jobProcessingFolder,
-                                                  string studyName, IDicomNode locaNode, IDicomNode sourceNode)
+                                                  string studyName, IDicomNode localNode, IDicomNode sourceNode)
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
             var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
 
-            _dicomServices.SaveSeriesToLocalDisk(series, folderPath, locaNode, sourceNode);
+            _dicomServices.SaveSeriesToLocalDisk(series, folderPath, localNode, sourceNode);
 
             CopyDicomFilesToRootFolder(folderPath);
 

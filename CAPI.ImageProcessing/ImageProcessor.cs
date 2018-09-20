@@ -310,7 +310,7 @@ namespace CAPI.ImageProcessing
                     {
                         if (!File.Exists(fixedPrenorm)) File.Move(fixedFile, fixedPrenorm);
                         if (fixedFile.ToLower().Contains(".pre-norm")) fixedFile = fixedFile.Replace(".pre-norm", "");
-                        fixedFile.Replace(".nii", $".norm-{lookupTableName}.nii");
+                        fixedFile = fixedFile.Replace(".nii", $".norm-{lookupTableName}.nii");
                         File.Copy(fixedPrenorm, fixedFile);
                         _log.Info("Starting NORMALIZATION of current series...");
                         stopwatch1.Restart();
