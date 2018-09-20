@@ -231,6 +231,9 @@ namespace CAPI.Dicom
             if (!string.IsNullOrEmpty(dicomHeadersFolder))
             {
                 orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
+                if (!DicomFilesInRightOrder(dicomHeadersFolder, SliceType.Sagittal)) // TODO1: Testing
+                    orderedFiles = orderedFiles.ToArray().Reverse().ToList();
+
                 if (bmpFiles.Length != orderedFiles.Count)
                     throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedFiles.Count}");
             }
@@ -242,6 +245,31 @@ namespace CAPI.Dicom
                 var dicomFilePath = Path.Combine(dicomFolder, filenameNoExt ?? throw new InvalidOperationException("Failed to get bmp file name during converting bmp files to dicom"));
 
                 ConvertBmpToDicom(bmpFiles[i], dicomFilePath, orderedFiles[i]);
+            }
+        }
+
+        private bool DicomFilesInRightOrder(string dicomFolderPath, SliceType sliceType)
+        {
+            var dicomFileWithLowestInstanceNo = GetDicomFileWithLowestInstanceNumber(dicomFolderPath);
+            if (dicomFileWithLowestInstanceNo == null || string.IsNullOrEmpty(dicomFileWithLowestInstanceNo))
+                throw new Exception($"Failed to get the dicom file with lowest instance number in folder [{dicomFolderPath}]");
+            var headers = GetDicomTags(dicomFileWithLowestInstanceNo);
+            if (headers == null) throw new Exception($"Failed to get dicom headers for dicom file [{dicomFileWithLowestInstanceNo}]");
+            var imagePosition = headers.ImagePositionPatient.Values;
+            if (imagePosition.Length < 3) return true; // disregard
+
+            var slicesFromLeftToRight = float.Parse(imagePosition[0]) > 0;
+            var slicesFromBackToFront = float.Parse(imagePosition[1]) > 0;
+            var slicesFromBottomToTop = float.Parse(imagePosition[2]) < 0;
+
+            switch (sliceType)
+            {
+                case SliceType.Sagittal when !slicesFromLeftToRight:
+                case SliceType.Coronal when !slicesFromBackToFront:
+                case SliceType.Axial when !slicesFromBottomToTop:
+                    return false; // So later we reverse the order of files
+                default:
+                    return true;
             }
         }
 
@@ -281,6 +309,15 @@ namespace CAPI.Dicom
                         int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
                         : 0)
                     .FirstOrDefault();
+        }
+        private string GetDicomFileWithLowestInstanceNumber(string dicomFolderPath)
+        {
+            var dicomFiles = Directory.GetFiles(dicomFolderPath);
+            return dicomFiles.OrderBy(f =>
+                    GetDicomTags(f).InstanceNumber.Values != null ?
+                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                        : 0)
+                .FirstOrDefault();
         }
 
         private IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)
