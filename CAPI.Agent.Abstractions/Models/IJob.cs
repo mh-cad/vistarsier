@@ -23,6 +23,7 @@ namespace CAPI.Agent.Abstractions.Models
         string CurrentSeriesDicomFolder { get; set; }
         string PriorSeriesDicomFolder { get; set; }
         string ResultSeriesDicomFolder { get; set; }
+        IJobResult[] Results { get; set; }
         string PriorReslicedSeriesDicomFolder { get; set; }
         string ProcessingFolder { get; set; }
 
