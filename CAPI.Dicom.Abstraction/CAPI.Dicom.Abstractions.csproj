@@ -55,6 +55,7 @@
     <Compile Include="IDicomSeries.cs" />
     <Compile Include="IDicomStudy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SliceType.cs" />
     <Compile Include="TagType.cs" />
   </ItemGroup>
   <ItemGroup>
