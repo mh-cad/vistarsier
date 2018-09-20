@@ -237,17 +237,50 @@ namespace CAPI.Dicom
 
             for (var i = 0; i < bmpFiles.Length; i++)
             {
+
                 var filenameNoExt = Path.GetFileNameWithoutExtension(bmpFiles[i]);
-                var filepath = Path.Combine(dicomFolder, filenameNoExt);
+                var dicomFilePath = Path.Combine(dicomFolder, filenameNoExt ?? throw new InvalidOperationException("Failed to get bmp file name during converting bmp files to dicom"));
 
-                var arguments = string.Empty;
-                if (!string.IsNullOrEmpty(dicomHeadersFolder))
-                    arguments = $@"-df {orderedFiles[i]} "; // Copy dicom headers from dicom file: -df = dataset file
-
-                arguments += $"-i BMP {filenameNoExt}.bmp {filepath}";
-
-                _processBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, bmpFolder, OutputDataReceivedInProcess, ErrorOccuredInProcess);
+                ConvertBmpToDicom(bmpFiles[i], dicomFilePath, orderedFiles[i]);
             }
+        }
+
+        public void ConvertBmpToDicom(string bmpFilepath, string dicomFilePath, string dicomHeadersFilePath = "")
+        {
+            var arguments = string.Empty;
+            if (!string.IsNullOrEmpty(dicomHeadersFilePath))
+                arguments = $@"-df {dicomHeadersFilePath} "; // Copy dicom headers from dicom file: -df = dataset file
+
+            arguments += $"-i BMP {bmpFilepath} {dicomFilePath}";
+
+            _processBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        }
+
+        public void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")
+        {
+            if (string.IsNullOrEmpty(newFileName)) newFileName = Path.GetFileNameWithoutExtension(bmpFilePath);
+            if (Directory.GetFiles(dicomFolderPath)
+                .Any(f => Path.GetFileName(f).ToLower().Contains(newFileName ?? throw new ArgumentNullException(nameof(newFileName)))))
+                newFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+
+            var dicomFileHighestInstanceNo = GetDicomFileWithHighestInstanceNumber(dicomFolderPath);
+            var headers = GetDicomTags(dicomFileHighestInstanceNo);
+            var newFilePath = Path.Combine(dicomFolderPath, newFileName ?? throw new ArgumentNullException(nameof(newFileName)));
+
+            ConvertBmpToDicom(bmpFilePath, newFilePath, dicomFileHighestInstanceNo);
+            var newFileInstanceNumber = headers.InstanceNumber.Values == null ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
+            headers.InstanceNumber.Values = new[] { newFileInstanceNumber.ToString() };
+            UpdateDicomHeaders(newFilePath, headers, DicomNewObjectType.NewImage);
+        }
+
+        private string GetDicomFileWithHighestInstanceNumber(string dicomFolderPath)
+        {
+            var dicomFiles = Directory.GetFiles(dicomFolderPath);
+            return dicomFiles.OrderByDescending(f =>
+                    GetDicomTags(f).InstanceNumber.Values != null ?
+                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                        : 0)
+                    .FirstOrDefault();
         }
 
         private IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)
