@@ -1,6 +1,6 @@
 {
   "AgentDbConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;",
-  "RunInterval": "5",
+  "RunInterval": "1",
   "ManualProcessPath": "D:\\Capi-Files\\ManualProcess",
   "Hl7ProcessPath": "D:\\Capi-Files\\Hl7Process",
   "DefaultRecipePath": "D:\\Capi-Files\\DefaultRecipe.recipe.json",
