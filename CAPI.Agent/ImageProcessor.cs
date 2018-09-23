@@ -192,12 +192,29 @@ namespace CAPI.Agent
 
             ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
 
-            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders);
+            var dicomSliceType = GetDicomSliceType(sliceType);
+
+            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType, dicomFolderForReadingHeaders);
 
             UpdateSeriesDescriptionForAllFiles(outDicomFolder, overlayText);
 
             if (!string.IsNullOrEmpty(lookupTableFilePath) && File.Exists(lookupTableFilePath))
                 _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);
+        }
+
+        private Dicom.Abstractions.SliceType GetDicomSliceType(SliceType sliceType)
+        {
+            switch (sliceType)
+            {
+                case SliceType.Sagittal:
+                    return Dicom.Abstractions.SliceType.Sagittal;
+                case SliceType.Coronal:
+                    return Dicom.Abstractions.SliceType.Coronal;
+                case SliceType.Axial:
+                    return Dicom.Abstractions.SliceType.Axial;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sliceType), sliceType, null);
+            }
         }
 
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
