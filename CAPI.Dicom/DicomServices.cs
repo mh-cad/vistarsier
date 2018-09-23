@@ -223,7 +223,7 @@ namespace CAPI.Dicom
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
 
-        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, string dicomHeadersFolder = "")
+        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "")
         {
             _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
             var bmpFiles = Directory.GetFiles(bmpFolder);
@@ -231,7 +231,7 @@ namespace CAPI.Dicom
             if (!string.IsNullOrEmpty(dicomHeadersFolder))
             {
                 orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
-                if (!DicomFilesInRightOrder(dicomHeadersFolder, SliceType.Sagittal)) // TODO1: Testing
+                if (!DicomFilesInRightOrder(dicomHeadersFolder, sliceType)) // TODO1: Testing
                     orderedFiles = orderedFiles.ToArray().Reverse().ToList();
 
                 if (bmpFiles.Length != orderedFiles.Count)

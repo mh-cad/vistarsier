@@ -205,7 +205,7 @@ namespace CAPI.Tests.Dicom
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
             var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _filesystem, _processBuilder, _log);
-            dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, headersFolder);
+            dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
 
             var dicomTags = _dicomFactory.CreateDicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Modified Signal" };
