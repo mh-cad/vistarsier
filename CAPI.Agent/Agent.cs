@@ -161,7 +161,7 @@ namespace CAPI.Agent
             catch (Exception ex)
             {
                 var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
-                _log.Error($"{Environment.NewLine}Unable to get pending cases from database. {dbConnectionString}", ex);
+                _log.Error($"{Environment.NewLine}Failed to get pending cases from database. {dbConnectionString}", ex);
                 IsBusy = false;
                 throw;
             }
@@ -176,14 +176,26 @@ namespace CAPI.Agent
             var recipe = FindRecipe(@case);
             try
             {
-                _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
+                _log.Info(
+                    $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
                 SetCaseStatus(@case, "Processing");
 
                 Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
 
-                _log.Info($"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
+                _log.Info(
+                    $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
                 @case.Comment = string.Empty;
                 SetCaseStatus(@case, "Complete");
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                if (ex.Message.ToLower().Contains("workable series were found"))
+                {
+                    _log.Info($"{ex.Message} Accession: [{@case.Accession}]");
+                    SetCaseStatus(@case, "Failed");
+                    SetCaseComment(@case, ex.Message);
+                }
+                else throw;
             }
             catch (Exception ex)
             {

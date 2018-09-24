@@ -104,11 +104,11 @@ namespace CAPI.Tests.ImageProcessing
 
         private void ClearFilesAndFolders()
         {
-            var cmtkRaw = CAPI.ImageProcessing.ImgProcConfig.GetCmtkRawxformFile();
+            var cmtkRaw = _capiConfig.ImgProcConfig.CmtkRawxformFile; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkRawxformFile();
             if (File.Exists($@"{_testResourcesPath}\{cmtkRaw}")) File.Delete($@"{_testResourcesPath}\{cmtkRaw}");
-            var cmtkResult = CAPI.ImageProcessing.ImgProcConfig.GetCmtkResultxformFile();
+            var cmtkResult = _capiConfig.ImgProcConfig.CmtkResultxformFile; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkResultxformFile();
             if (File.Exists($@"{_testResourcesPath}\{cmtkResult}")) File.Delete($@"{_testResourcesPath}\{cmtkResult}");
-            var cmtkFolder = CAPI.ImageProcessing.ImgProcConfig.GetCmtkFolderName();
+            var cmtkFolder = _capiConfig.ImgProcConfig.CmtkFolderName; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkFolderName();
             if (Directory.Exists($@"{_testResourcesPath}\{cmtkFolder}")) Directory.Delete($@"{_testResourcesPath}\{cmtkFolder}", true);
         }
 
@@ -131,7 +131,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var brain = $@"{_outputFolder}\floating.brain.nii";
             var mask = $@"{_outputFolder}\floating.mask.nii";
-            var bseParams = CAPI.ImageProcessing.ImgProcConfig.GetBseParams();
+            var bseParams = _capiConfig.ImgProcConfig.BseParams; //CAPI.ImageProcessing.ImgProcConfig.GetBseParams();
             _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
