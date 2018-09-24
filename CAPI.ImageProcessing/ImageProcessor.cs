@@ -51,6 +51,8 @@ namespace CAPI.ImageProcessing
         public void Registration(string currentNii, string priorNii, string outPriorReslicedNii)
         {
             var outputPath = Directory.GetParent(Path.GetDirectoryName(currentNii)).FullName;
+            outputPath = Path.Combine(outputPath, "Registration");
+            _filesystem.DirectoryExistsIfNotCreate(outputPath);
 
             CreateRawXform(outputPath, currentNii, priorNii);
 
@@ -67,8 +69,9 @@ namespace CAPI.ImageProcessing
                 throw new FileNotFoundException($"Unable to find {nameof(registrationFile)} file: [{registrationFile}]");
 
             var registrationParams = _config.RegistrationParams;
-            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}";
-            var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}";
+            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
+            var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
 
             if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir, true);
             _filesystem.DirectoryExistsIfNotCreate(cmtkOutputDir);
@@ -79,8 +82,9 @@ namespace CAPI.ImageProcessing
         }
         private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
         {
-            var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}";
-            var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}";
+            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
+            var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
 
             try
             {
@@ -93,7 +97,7 @@ namespace CAPI.ImageProcessing
 
             var javaClasspath = _config.JavaClassPath;
 
-            var methodName = Properties.Settings.Default.javaClassConvertCmtkXform;
+            const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
 
             var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
 
@@ -103,7 +107,8 @@ namespace CAPI.ImageProcessing
         }
         private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced)
         {
-            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}";
+            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
 
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
 
