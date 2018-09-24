@@ -81,7 +81,7 @@ namespace CAPI.Agent
             var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
-                throw new Exception("No workable series were found for accession");
+                throw new DirectoryNotFoundException("No workable series were found for accession");
 
             var job = new Job(recipe,
                               _dicomServices, _imgProcFactory,
@@ -99,7 +99,7 @@ namespace CAPI.Agent
                 GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
 
             if (priorDicomStudy == null)
-                throw new Exception("No prior workable series were found");
+                throw new DirectoryNotFoundException("No prior workable series were found");
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
             job.PriorAccession = priorDicomStudy.AccessionNumber;
