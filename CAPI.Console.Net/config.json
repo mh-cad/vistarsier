@@ -6,9 +6,10 @@
   "DefaultRecipePath": "D:\\MehdiFiles\\DefaultRecipe.recipe.json",
   "LogPath:": "D:\\MehdiFiles\\Logs\\log.txt",
   "ProcessCasesAddedManually": true,
-  "ProcessCasesAddedByHL7": false,
+  "ProcessCasesAddedByHL7": true,
   "DicomConfig": {
-    "Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
+    //"Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
+    "Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\img2dcm.exe",
     "LocalNode": {
       "LogicalName": "CAPI Server",
       "AeTitle": "CAPI",
@@ -35,7 +36,7 @@
     "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
     "BseExeRelFilePath": "bse.exe",
     "BseParams": "--auto --trim --timer",
-    "RegistrationRelFilePath": "CMTK\\bin\\registration.exe",
+    "RegistrationRelFilePath": "registration\\registration.exe",
     "CmtkFolderName": "CMTK_Output",
     "CmtkRawxformFile": "CmtkRawxFormFile",
     "RegistrationParams": "--initxlate --dofs 6 --auto-multi-levels 4",
