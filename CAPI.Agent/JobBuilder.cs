@@ -333,9 +333,9 @@ namespace CAPI.Agent
         private static IEnumerable<IDicomStudy> GetStudiesMatchingOtherCriteria(
             IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria)
         {
-            var allStudies = studies as IDicomStudy[] ?? studies.ToArray();
+            var allEligibleStudies = studies as IDicomStudy[] ?? studies.ToArray();
 
-            return allStudies.Where(study =>
+            return allEligibleStudies.Where(study =>
             {
                 return criteria.All(criterion =>
                 {
@@ -344,10 +344,14 @@ namespace CAPI.Agent
                         throw new Exception("MostRecentPriorStudy and OldestPriorStudy should not be concurrently set to True");
 
                     if (criterion.MostRecentPriorStudy)
-                        return study.Equals(allStudies.FirstOrDefault());
+                        return study.Equals(allEligibleStudies.FirstOrDefault());
 
-                    // If OldestPriorStudy is true
-                    return criterion.OldestPriorStudy && study.Equals(allStudies.LastOrDefault());
+                    if (criterion.OldestPriorStudy)
+                        return study.Equals(allEligibleStudies.LastOrDefault());
+
+                    var priorStudyIndex = criterion.PriorStudyIndex;
+
+                    return study.Equals(allEligibleStudies[priorStudyIndex]);
                 });
             });
         }
