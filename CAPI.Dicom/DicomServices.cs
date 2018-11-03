@@ -223,20 +223,27 @@ namespace CAPI.Dicom
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
 
-        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "")
+        public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "", bool matchByFilename = false)
         {
             _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
-            var bmpFiles = Directory.GetFiles(bmpFolder);
-            var orderedFiles = new List<string>();
+
+
+            var orderedDicomFiles = new List<string>();
             if (!string.IsNullOrEmpty(dicomHeadersFolder))
             {
-                orderedFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
+                orderedDicomFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
                 if (!DicomFilesInRightOrder(dicomHeadersFolder, sliceType)) // TODO1: Testing
-                    orderedFiles = orderedFiles.ToArray().Reverse().ToList();
-
-                if (bmpFiles.Length != orderedFiles.Count)
-                    throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedFiles.Count}");
+                    orderedDicomFiles = orderedDicomFiles.ToArray().Reverse().ToList();
             }
+
+            var bmpFiles = Directory.GetFiles(bmpFolder);
+
+            if (matchByFilename)
+                bmpFiles = MatchBmpFilesWithDicomFiles(bmpFiles, orderedDicomFiles);
+
+            // check if number of dicom and bmp files match
+            if (bmpFiles.Length != orderedDicomFiles.Count)
+                throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedDicomFiles.Count}");
 
             for (var i = 0; i < bmpFiles.Length; i++)
             {
@@ -244,9 +251,29 @@ namespace CAPI.Dicom
                 var filenameNoExt = Path.GetFileNameWithoutExtension(bmpFiles[i]);
                 var dicomFilePath = Path.Combine(dicomFolder, filenameNoExt ?? throw new InvalidOperationException("Failed to get bmp file name during converting bmp files to dicom"));
 
-                ConvertBmpToDicom(bmpFiles[i], dicomFilePath, orderedFiles[i]);
+                ConvertBmpToDicom(bmpFiles[i], dicomFilePath, orderedDicomFiles[i]);
             }
         }
+
+        private static string[] MatchBmpFilesWithDicomFiles(string[] bmpFiles, IEnumerable<string> orderedDicomFiles)
+        {
+            var orderedBmpFiles = new List<string>();
+            foreach (var dicomFile in orderedDicomFiles)
+            {
+                var dicomFileName = Path.GetFileNameWithoutExtension(dicomFile);
+                if (dicomFileName == null) throw new Exception($"Failed to get filename for following path: [{dicomFile}]");
+                var matchingBmpFile = bmpFiles
+                    .FirstOrDefault(f =>
+                    {
+                        var bmpFileName = Path.GetFileNameWithoutExtension(f);
+                        if (bmpFileName == null) throw new Exception($"Failed to get filename for following path: [{f}]");
+                        return bmpFileName.Equals(dicomFileName, StringComparison.CurrentCultureIgnoreCase);
+                    });
+                orderedBmpFiles.Add(matchingBmpFile);
+            }
+            return orderedBmpFiles.ToArray();
+        }
+
 
         private bool DicomFilesInRightOrder(string dicomFolderPath, SliceType sliceType)
         {
@@ -519,6 +546,9 @@ namespace CAPI.Dicom
         }
         private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
         {
+            // Swallow log4j initialisation warnings
+            if (e?.Data == null || string.IsNullOrEmpty(e.Data) || string.IsNullOrWhiteSpace(e.Data) || e.Data.ToLower().Contains("log4j")) return;
+
             var consoleColor = Console.ForegroundColor;
             try
             {

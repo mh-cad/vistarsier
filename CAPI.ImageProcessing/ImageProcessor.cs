@@ -103,7 +103,7 @@ namespace CAPI.ImageProcessing
 
             _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
 
-            File.Delete(rawForm);
+            //File.Delete(rawForm);
         }
         private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced)
         {
@@ -353,8 +353,129 @@ namespace CAPI.ImageProcessing
                 fixedFile = fixedPrenorm;
                 floatingFile = floatingPrenorm;
             }
+
+            // TODO1: Remove when done experimenting
+            #region Experimental
+
+            if (false)
+            {
+                try
+                {
+                    const bool ignoreErrors = false;
+                    var nictaPosResultFilePath = resultNiis.FirstOrDefault(f => f.ToLower().Contains("nictapos"));
+                    var nictaNegResultFilePath = resultNiis.FirstOrDefault(f => f.ToLower().Contains("nictaneg"));
+                    var colormapConfigFilePath = "D:\\RAPPreprocess\\colormap.config";
+                    if (!File.Exists(colormapConfigFilePath)) colormapConfigFilePath = "D:\\Capi-Tests\\colormap.config";
+                    CompareUsingNictaCode(fixedFile, floatingFile, fixedMask,
+                        nictaPosResultFilePath, nictaNegResultFilePath, colormapConfigFilePath, ignoreErrors);
+                }
+                catch (Exception ex)
+                {
+                    // comment out "throw;" to ignore NICTA errors
+                    throw;
+                }
+            }
+
+            #endregion
+
             File.Move(floatingFile, outPriorReslicedNii);
         }
+
+        // TODO1: Remove when done experimenting
+        #region Experimental
+        public void CompareUsingNictaCode(string fixedBrainFile, string floatingBrainFile, string fixedMaskFile,
+                                          string nictaPosResultFilePath, string nictaNegResultFilePath, string colormapConfigFilePath,
+                                          bool ignoreErrors)
+        {
+            var javaClasspath = _config.JavaClassPath;
+            const string methodName = "au.com.nicta.preprocess.main.ColorMap";
+            var fixedDicom = Path.Combine(Path.GetDirectoryName(fixedBrainFile) ?? "FixedFileParent", "Dicom");
+
+            var outputDir = Directory.GetParent(Path.GetDirectoryName(fixedBrainFile)).FullName;
+            outputDir = Path.Combine(outputDir, "Experimental");
+            if (Directory.Exists(outputDir)) Directory.Delete(outputDir, true);
+            _filesystem.DirectoryExistsIfNotCreate(outputDir);
+
+            CreateSubtractFiles(fixedBrainFile, floatingBrainFile, fixedMaskFile, outputDir);
+
+            var subtractDarkToBrightFilePath = Path.Combine(outputDir, "diff_dark_in_floating_to_bright_in_fixed.nii");
+            var subtractBrightToDarkFilePath = Path.Combine(outputDir, "diff_bright_in_floating_to_dark_in_fixed.nii");
+
+            var fixedFile = Dicom2NiiUsingDcm2Nii(fixedDicom, fixedBrainFile);
+            fixedMaskFile = ReorderVoxelsLpi2Ail(fixedMaskFile);
+            subtractDarkToBrightFilePath = ReorderVoxelsLpi2Ail(subtractDarkToBrightFilePath);
+            subtractBrightToDarkFilePath = ReorderVoxelsLpi2Ail(subtractBrightToDarkFilePath);
+
+            var nictaPosResultImagesFolderPath = Path.Combine(Path.GetDirectoryName(nictaPosResultFilePath) ?? "ResultParentFolder", "NictaPos_Images");
+            var nictaNegResultImagesFolderPath = Path.Combine(Path.GetDirectoryName(nictaNegResultFilePath) ?? "ResultParentFolder", "NictaNeg_Images");
+
+            _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(nictaPosResultFilePath));
+            _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(nictaNegResultFilePath));
+
+            var javaArgument = $"-Xmx1g -classpath {javaClasspath} {methodName} \"{colormapConfigFilePath}\" \"{nictaNegResultImagesFolderPath}\" " +
+                               $"\"{fixedFile}\" \"{fixedDicom}\" \"{fixedMaskFile}\" " +
+                               $"\"{subtractDarkToBrightFilePath}\" \"{subtractBrightToDarkFilePath}\" negative";
+
+            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess);
+
+            javaArgument = javaArgument.Replace(" negative", " positive");
+            javaArgument = javaArgument.Replace(nictaNegResultImagesFolderPath, nictaPosResultImagesFolderPath);
+
+            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess);
+        }
+
+        private string Dicom2NiiUsingDcm2Nii(string fixedDicom, string dcm2NiixOutFilePath)
+        {
+            var dcm2NiixExe = Path.Combine(_config.ImgProcBinFolderPath, _config.Dcm2NiiExeRelFilePath);
+            var dcm2NiiExe = dcm2NiixExe.Replace("dcm2niix", "dcm2nii");
+
+            if (!File.Exists(dcm2NiiExe))
+                throw new FileNotFoundException($"Unable to find {nameof(dcm2NiiExe)} file: [{dcm2NiiExe}]");
+            if (!File.Exists(dcm2NiixOutFilePath))
+                throw new FileNotFoundException($"Unable to find {nameof(dcm2NiixOutFilePath)} file: [{dcm2NiixOutFilePath}]");
+
+            var tmpDir = $@"{Path.GetDirectoryName(dcm2NiixOutFilePath)}\tmp";
+            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+            _filesystem.DirectoryExistsIfNotCreate(tmpDir);
+
+            const string options = "-g N - n Y - r N";
+            var process = _processBuilder.CallExecutableFile(dcm2NiiExe, $"-o {tmpDir} {options} {fixedDicom}");
+            process.OutputDataReceived += OutputDataReceivedInProcess;
+            process.ErrorDataReceived += ErrorOccuredInProcess;
+            process.WaitForExit();
+
+            if (!Directory.Exists(tmpDir))
+                throw new DirectoryNotFoundException("dcm2nii output folder does not exist!");
+            var outFiles = Directory.GetFiles(tmpDir);
+            var nim = outFiles.Single(f => !Path.GetFileName(f).StartsWith("o"));
+            var dcm2niiOutFilePath = dcm2NiixOutFilePath.Replace(".nii", ".dcm2nii.nii");
+            dcm2niiOutFilePath = dcm2niiOutFilePath.Replace(".bfc", "");
+            File.Move(nim, dcm2niiOutFilePath);
+
+            Directory.Delete(tmpDir, true);
+
+            return dcm2niiOutFilePath;
+        }
+
+        private static string ReorderVoxelsLpi2Ail(string niftiFilePath)
+        {
+            var nim = new Nifti().ReadNifti(niftiFilePath);
+            nim.ReorderVoxelsLpi2Ail();
+            var reorientedFilepath = niftiFilePath.Replace(".nii", ".ail.nii");
+            nim.WriteNifti(reorientedFilepath);
+            return reorientedFilepath;
+        }
+
+        private void CreateSubtractFiles(string fixedFile, string floatingFile, string fixedMaskFile, string outputDir)
+        {
+            var javaClasspath = _config.JavaClassPath;
+            const string methodName = "au.com.nicta.preprocess.main.MsProgression";
+
+            var javaArgument = $"-Xmx1g -classpath {javaClasspath} {methodName} \"{outputDir}\" \"{fixedFile}\" \"{floatingFile}\" \"{fixedMaskFile}\" 0";
+
+            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess);
+        }
+        #endregion
 
         private static string GetMatchingResultForLut(string lookupTablePath, IEnumerable<string> resultNiis)
         {
@@ -362,32 +483,6 @@ namespace CAPI.ImageProcessing
             return resultNiis.FirstOrDefault(r => Directory.GetParent(r).Name
                 .Equals(lutName, StringComparison.CurrentCultureIgnoreCase));
         }
-
-        //private void MoveResultsToSeparateFoldersForEachLookupTable(string dicomResultFolderPath, string lookUpTablePath, string newLutFolderName)
-        //{
-        //    if (!Directory.Exists(dicomResultFolderPath))
-        //        throw new DirectoryNotFoundException($"Results dicom folder does not exist [{dicomResultFolderPath}]");
-        //    var workingFolderPath = Directory.GetParent(dicomResultFolderPath).FullName;
-        //    var resultFiles = Directory.GetFiles(workingFolderPath, "Results*.*");
-        //    var resultsFolders = Directory.GetDirectories(workingFolderPath, "Results*.*");
-
-        //    var newLutFolderPath = Path.Combine(workingFolderPath, newLutFolderName);
-        //    Directory.CreateDirectory(newLutFolderPath);
-
-        //    _log.Info($"Moving files for LUT [{lookUpTablePath}] to folder [{newLutFolderPath}]");
-        //    foreach (var resultFile in resultFiles)
-        //        if (File.Exists(resultFile))
-        //            File.Move(resultFile, Path.Combine(newLutFolderPath, Path.GetFileName(resultFile)));
-
-        //    foreach (var resultsFolder in resultsFolders)
-        //        if (Directory.Exists(resultsFolder) && !string.IsNullOrEmpty(Path.GetFileName(resultsFolder)))
-        //            Directory.Move(resultsFolder, Path.Combine(newLutFolderPath, Path.GetFileName(resultsFolder)));
-        //}
-        //private void CopyResultsForFirstLutBackToWorkingDir(IReadOnlyList<string> lookupTablePaths)
-        //{
-        //    var firstLut = lookupTablePaths[0];
-        //    if (firstLut == null) throw new ArgumentNullException(nameof(firstLut), "Lookup Tables Paths contains no values!");
-        //}
 
         public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable)
         {
@@ -401,9 +496,11 @@ namespace CAPI.ImageProcessing
             var normalizedNim = nim.NormalizeEachSlice(nim, sliceType, mean, std, widthRange, mask);
             normalizedNim.WriteNifti(niftiFilePath);
 
-            // TODO3: Remove when done testing
+            // TODO3: Remove when done experimenting
+            #region Experimental
             #region Generating bmp files for reverse-generating LUT
             normalizedNim.ExportSlicesToBmps(niftiFilePath.Replace(".nii", "_For_LUT"), sliceType);
+            #endregion
             #endregion
         }
 
@@ -464,10 +561,20 @@ namespace CAPI.ImageProcessing
         }
         private void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
-                _log.Error($"Process error:{Environment.NewLine}{e.Data}");
+            // Swallow log4j initialisation warnings
+            if (e?.Data == null || string.IsNullOrEmpty(e.Data) || string.IsNullOrWhiteSpace(e.Data) || e.Data.ToLower().Contains("log4j")) return;
 
-            //throw new Exception("Error occured while running a third-party process!");
+            var consoleColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                    _log.Error($"Process error:{Environment.NewLine}{e.Data}");
+            }
+            finally
+            {
+                Console.ForegroundColor = consoleColor;
+            }
         }
     }
 }

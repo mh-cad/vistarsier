@@ -13,6 +13,8 @@ namespace CAPI.ImageProcessing.Abstraction
         void ReadNiftiHeader(string filepath);
         void WriteNifti(string filepath);
         void Reorient(short width, short height, short slices);
+        void ReorderVoxelsLpi2Asr();
+        void ReorderVoxelsLpi2Ail();
         void ConvertHeaderToRgb();
         void ConvertHeaderToRgba();
         void SetPixelRgb(int x, int y, int z, SliceType sliceType, int r, int g, int b);

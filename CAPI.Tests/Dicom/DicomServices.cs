@@ -226,6 +226,44 @@ namespace CAPI.Tests.Dicom
                                                $"Count:{dicomStudies.Length }");
         }
 
+        // To Be Removed After Building Recipes
+        [TestMethod]
+        public void BuildRecipes()
+        {
+            var defaultRecipeText = File.ReadAllText(@"D:\temp\tst3\DefaultRecipe.recipe.json");
+            var allRows = File.ReadAllLines(@"D:\temp\tst3\cases.csv");
+            for (var i = 0; i < allRows.Length; i = i + 2)
+            {
+                var recipeText = defaultRecipeText;
+                var currentPatient = allRows[i].Split('\"')[1];
+                var currentAccession = allRows[i].Split('\"')[2].Replace(",", "");
+                var priorPatient = allRows[i + 1].Split('\"')[1];
+                var priorAccession = allRows[i + 1].Split('\"')[2].Replace(",", "");
+                if (!currentPatient.Equals(priorPatient, StringComparison.CurrentCultureIgnoreCase))
+                    throw new Exception("Patients don't match!");
+
+                for (var j = 1; j < 10; j++)
+                {
+                    var fullCurrentAccession = currentAccession + $"-{j}";
+                    var currentStudy = _dicomServices.GetStudyForAccession(fullCurrentAccession, _localNode, _remoteNode);
+                    if (currentStudy == null) continue;
+                    currentAccession = fullCurrentAccession;
+                    break;
+                }
+                for (var j = 1; j < 10; j++)
+                {
+                    var fullPriorAccession = priorAccession + $"-{j}";
+                    var priorStudy = _dicomServices.GetStudyForAccession(fullPriorAccession, _localNode, _remoteNode);
+                    if (priorStudy == null) continue;
+                    priorAccession = fullPriorAccession;
+                    break;
+                }
+
+                recipeText = recipeText.Replace("\"PriorAccession\": \"\"", $"\"PriorAccession\": \"{priorAccession}\"");
+                File.WriteAllText($@"D:\Capi-Files\ManualProcess\TBP\{currentAccession}.recipe.json", recipeText);
+            }
+        }
+
         private static IUnityContainer CreateContainerCore()
         {
             var container = (UnityContainer)new UnityContainer()

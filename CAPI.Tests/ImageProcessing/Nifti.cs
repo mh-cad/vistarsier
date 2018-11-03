@@ -257,8 +257,46 @@ namespace CAPI.Tests.ImageProcessing
         public void Reorient()
         {
             var nifti = _unity.Resolve<INifti>();
-            nifti.ReadNifti(_fixed);
-            nifti.Reorient(256, 256, 160);
+            //nifti.ReadNifti(_fixed);
+            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\fixed.bfc.nii");
+            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
+            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\fixed.bfc.ro.nii");
+
+            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\fixed_brain_surface.nii");
+            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
+            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\fixed_brain_surface.ro.nii");
+
+            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\floating_resliced.bfc.nii");
+            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
+            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\floating_resliced.bfc.ro.nii");
+
+            nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\current.mod.nii");
+            nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
+            nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\current.mod.ro.nii");
+        }
+
+        [TestMethod]
+        public void ReorderVoxelsLpi2Ail()
+        {
+            var nim = _unity.Resolve<INifti>();
+            //nim.ReadNifti(@"D:\temp\tst1\output\fixed.nii");
+            //nim.ReorderVoxelsLPI2ASL();
+            //nim.WriteNifti(@"D:\temp\tst1\output\fixed.roASR.nii");
+
+            //nim = _unity.Resolve<INifti>();
+            //nim.ReadNifti(@"D:\temp\tst1\output\current.mask.nii");
+            //nim.ReorderVoxelsLpi2Ail();
+            //nim.WriteNifti(@"D:\temp\tst1\output\current.mask.roAIL.nii");
+
+            nim = _unity.Resolve<INifti>();
+            nim.ReadNifti(@"D:\temp\tst1\output\diff_dark_in_floating_to_bright_in_fixed.nii");
+            nim.ReorderVoxelsLpi2Ail();
+            nim.WriteNifti(@"D:\temp\tst1\output\diff_dark_in_floating_to_bright_in_fixed.roAIL.nii");
+
+            nim = _unity.Resolve<INifti>();
+            nim.ReadNifti(@"D:\temp\tst1\output\diff_bright_in_floating_to_dark_in_fixed.nii");
+            nim.ReorderVoxelsLpi2Ail();
+            nim.WriteNifti(@"D:\temp\tst1\output\diff_bright_in_floating_to_dark_in_fixed.roAIL.nii");
         }
 
         [TestCleanup]

@@ -196,6 +196,22 @@ namespace CAPI.Agent.Models
                         var resultDestinationFolder = Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException());
                         _filesystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
                     }
+                    // TODO1: Remove after done experimenting
+                    #region Experimental
+
+                    if (false)
+                    {
+                        var jobFolderPath = Directory.GetParent(PriorReslicedSeriesDicomFolder).FullName;
+                        var currentDicomFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom");
+                        var currentDicomDestinationFolder = Path.Combine(destJobFolderPath, "CurrentBfcedDicom");
+                        _filesystem.CopyDirectory(currentDicomFolderPath, currentDicomDestinationFolder);
+
+                        var currentImagesFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom_Images");
+                        var currentImagesDestinationFolder = Path.Combine(destJobFolderPath, "CurrentBfcedDicom_Images");
+                        _filesystem.CopyDirectory(currentImagesFolderPath, currentImagesDestinationFolder);
+                    }
+                    #endregion
+
                     var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
                     var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
                     _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
@@ -243,6 +259,17 @@ namespace CAPI.Agent.Models
                 foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
                     _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
                 _log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
+
+                // TODO1: Remove after done experimenting
+                #region Experimental
+                _log.Info($"Sending current BFC'ed series to AET [{remoteNode.AeTitle}]...");
+                var jobFolderPath = Directory.GetParent(PriorReslicedSeriesDicomFolder).FullName;
+                var currentDicomFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom");
+                var currentBfcedDicomFiles = Directory.GetFiles(currentDicomFolderPath);
+                foreach (var currentBfcedDicomFile in currentBfcedDicomFiles)
+                    _dicomServices.SendDicomFile(currentBfcedDicomFile, localNode.AeTitle, remoteNode);
+                _log.Info($"Finished sending current BFC'ed series to AET [{remoteNode.AeTitle}]");
+                #endregion
             }
         }
 
