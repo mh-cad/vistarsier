@@ -74,7 +74,7 @@ namespace CAPI.Agent
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder, priorStudyDescription);
+                ConvertNiftiToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder, priorStudyDescription);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
 
@@ -82,6 +82,11 @@ namespace CAPI.Agent
                 _log.Info("Finished Converting resliced prior series back to Dicom in " +
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
+
+            // TODO1: Remove when done experimenting
+            #region "Experimental"
+            ConvertCurrentBfcedToDicom(outPriorReslicedNiiFile, currentDicomFolder, sliceType);
+            #endregion
 
             var results = new List<IJobResult>();
             foreach (var resultNii in resultNiis)
@@ -95,16 +100,33 @@ namespace CAPI.Agent
                     ? _imgProcConfig.ResultsDicomSeriesDescription
                     : resultsDicomSeriesDescription;
 
-                var dicomFolderPath = resultNii.Replace(".nii", "");
-                var lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
-                var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
-                ConvertToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, $"{resultsSeriesDescription} {lutFileName}", lutFilePath);
+                string dicomFolderPath;
+                var lutFilePath = string.Empty;
+
+                if (resultNii.ToLower().Contains("nicta"))
+                {
+                    var resultFolder = Path.GetDirectoryName(resultNii);
+                    dicomFolderPath = Path.Combine(resultFolder ?? throw new InvalidOperationException($"unable to get folder [{resultNii}] resides in."),
+                        "Result_Dicom");
+                    var imagesFolder = Directory.GetDirectories(resultFolder)
+                        .FirstOrDefault(d => d.ToLower().Contains("images"));
+
+                    var seriesDescription = resultNii.ToLower().Contains("nictapos") ? "Nicta Increased Signal" : "Nicta Decreased Signal";
+                    ConvertBmpsToDicom(imagesFolder, dicomFolderPath, currentDicomFolder, sliceType, seriesDescription, true);
+                }
+                else
+                {
+                    dicomFolderPath = resultNii.Replace(".nii", "");
+                    lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
+                    var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
+                    ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, $"{resultsSeriesDescription} {lutFileName}", lutFilePath);
+                }
 
                 stopwatch.Stop();
                 _log.Info("Finished converting results back to Dicom in " +
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
 
-                results.Add(new JobResult()
+                results.Add(new JobResult
                 {
                     DicomFolderPath = dicomFolderPath,
                     NiftiFilePath = resultNii,
@@ -116,10 +138,26 @@ namespace CAPI.Agent
             task.Wait();
             task.Dispose();
 
-
             //var resultDicomFolderPaths = resultNiis.Select(r => r.Replace(".nii", "")).ToArray();
             return results.ToArray();
         }
+
+        // TODO1: Remove when done experimenting
+        #region "Experimental"
+        private void ConvertCurrentBfcedToDicom(string outPriorReslicedNiiFile, string currentDicomFolder,
+                                                SliceType sliceType)
+        {
+            var jobFolder = Directory.GetParent(outPriorReslicedNiiFile).FullName;
+            var currentBfcedFilePath = Path.Combine(jobFolder, "Current", "fixed.bfc.pre-norm.nii");
+            var destCurrentBfcedDicomFolder = Path.Combine(jobFolder, "CurrentBfcedDicom");
+            const string currentBfcedSeriesDescription = "CAPI Current Series BFC";
+
+            ConvertNiftiToDicom(currentBfcedFilePath, destCurrentBfcedDicomFolder, sliceType,
+                currentDicomFolder, currentBfcedSeriesDescription);
+
+            UpdateSeriesDescriptionForAllFiles(destCurrentBfcedDicomFolder, currentBfcedSeriesDescription);
+        }
+        #endregion
 
         private static string GetLookupTableForResult(string resultNiiFilePath, IEnumerable<string> lookupTablePaths)
         {
@@ -137,6 +175,7 @@ namespace CAPI.Agent
         private static IEnumerable<string> BuildResultNiftiPathsFromLuts(IReadOnlyList<string> lookupTablePaths, string workingDir)
         {
             var allResultsFolder = Path.Combine(workingDir, ResultsFolderName);
+
             Directory.CreateDirectory(allResultsFolder);
             var resultPaths = new string[lookupTablePaths.Count];
             for (var i = 0; i < lookupTablePaths.Count; i++)
@@ -148,6 +187,20 @@ namespace CAPI.Agent
                 Directory.CreateDirectory(resultFolder);
                 resultPaths[i] = Path.Combine(resultFolder, ResultsFileName);
             }
+
+            // TODO1: Remove when done experimenting
+            #region Experimental
+
+            if (false)
+            {
+                var newList = resultPaths.ToList();
+                var nictaPosResultFolder = Path.Combine(allResultsFolder, "NictaPos");
+                newList.Add(Path.Combine(nictaPosResultFolder, "result.nii"));
+                var nictaNegResultFolder = Path.Combine(allResultsFolder, "NictaNeg");
+                newList.Add(Path.Combine(nictaNegResultFolder, "result.nii"));
+                resultPaths = newList.ToArray();
+            }
+            #endregion
 
             return resultPaths;
         }
@@ -184,7 +237,16 @@ namespace CAPI.Agent
             return $"{year}-{month}-{day}";
         }
 
-        private void ConvertToDicom(string inNiftiFile, string outDicomFolder,
+        private void ConvertBmpsToDicom(string bmpFolder, string outDicomFolder, string sourceDicomFolder,
+                                        SliceType sliceType, string seriesDescription, bool matchWithFileNames = false)
+        {
+            var dicomSliceType = GetDicomSliceType(sliceType);
+
+            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType, sourceDicomFolder, matchWithFileNames);
+
+            UpdateSeriesDescriptionForAllFiles(outDicomFolder, seriesDescription);
+        }
+        private void ConvertNiftiToDicom(string inNiftiFile, string outDicomFolder,
                                     SliceType sliceType, string dicomFolderForReadingHeaders,
                                     string overlayText, string lookupTableFilePath = "")
         {
@@ -192,11 +254,7 @@ namespace CAPI.Agent
 
             ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
 
-            var dicomSliceType = GetDicomSliceType(sliceType);
-
-            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType, dicomFolderForReadingHeaders);
-
-            UpdateSeriesDescriptionForAllFiles(outDicomFolder, overlayText);
+            ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders, sliceType, overlayText);
 
             if (!string.IsNullOrEmpty(lookupTableFilePath) && File.Exists(lookupTableFilePath))
                 _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);

@@ -49,9 +49,11 @@ namespace CAPI.ImageProcessing
         /// <param name="filepath"></param>
         public INifti ReadNifti(string filepath)
         {
-            var fileReader = new FileStream(filepath, FileMode.Open);
-            if (!fileReader.CanRead) throw new IOException($"Unable to access file: {filepath}");
-            var reader = new BinaryReader(fileReader);
+            var fileStream = new FileStream(filepath, FileMode.Open);
+            if (!fileStream.CanRead) throw new IOException($"Unable to access file: {filepath}");
+
+            var isBigEndian = IsBigEndian(fileStream);
+            var reader = new BinaryReaderBigAndLittleEndian(fileStream, isBigEndian);
 
             ReadNiftiHeader(reader);
 
@@ -63,6 +65,24 @@ namespace CAPI.ImageProcessing
 
             return this;
         }
+
+        private static bool IsBigEndian(Stream fileStream)
+        {
+            var reader = new BinaryReader(fileStream);
+            var headerSize = reader.ReadInt32();
+            if (headerSize != 348) // this means it might be big endian, but let's make sure it is
+            {
+                fileStream.Position = 0;
+                var beReader = new BinaryReaderBigAndLittleEndian(fileStream, true);
+                headerSize = beReader.ReadInt32();
+                if (headerSize != 348) throw new Exception("Either not a nifti File or type not supported! sizeof_hdr should be 348 for a nifti-1 file.");
+                fileStream.Position = 0;
+                return true;
+            }
+            fileStream.Position = 0;
+            return false;
+        }
+
         /// <summary>
         /// Reads only the header of a nifti-1 file
         /// </summary>
@@ -77,9 +97,10 @@ namespace CAPI.ImageProcessing
         }
         private void ReadNiftiHeader(BinaryReader reader)
         {
+
             Header.sizeof_hdr = reader.ReadInt32();
             if (Header.sizeof_hdr != 348)
-                throw new Exception("Either not a nifti File or type not supported! siezof_hdr should be 348 for a nifti-1 file.");
+                throw new Exception("Either not a nifti File or type not supported! sizeof_hdr should be 348 for a nifti-1 file.");
 
             for (var i = 0; i < 35; i++) reader.ReadByte();
 
@@ -332,7 +353,6 @@ namespace CAPI.ImageProcessing
             return arr;
         }
 
-
         public IEnumerable<float[]> GetSlices(SliceType sliceType)
         {
             GetDimensions(sliceType, out var width, out var height, out var nSlices);
@@ -503,6 +523,10 @@ namespace CAPI.ImageProcessing
             Header.dim[2] = height;
             Header.dim[3] = slices;
 
+            //Header.dim[1] = slices;
+            //Header.dim[2] = width;
+            //Header.dim[3] = height;
+
             var oldVoxels = voxels;
             voxels = new float[voxels.Length];
             for (var z = 0; z < slices; z++)
@@ -510,11 +534,71 @@ namespace CAPI.ImageProcessing
                     for (var x = 0; x < width; x++)
                     {
                         var op = z + (width - 1 - x) * slices + (height - 1 - y) * slices * width;
-                        //var op = z + x * slices + y * slices * width;
-                        //var op = z + x * slices + y * slices * width;
                         var np = x + y * width + z * width * height;
                         voxels[np] = oldVoxels[op];
                     }
+        }
+
+        public void ReorderVoxelsLpi2Asr()
+        {
+            Header.dim[0] = 3;
+            var d1 = Header.dim[1];
+            var d2 = Header.dim[2];
+            var d3 = Header.dim[3];
+
+            if (d2 * d3 * d1 != voxels.Length)
+                throw new Exception("number of voxels and new dimensions don't match. " +
+                                    $"[Assuming Sagittal] Width: {d2} Height: {d3} Slices: {d1} No. of voxels: {voxels.Length}");
+
+            var oldVoxels = voxels;
+            voxels = new float[voxels.Length];
+            for (var z = 0; z < d3; z++)
+                for (var y = 0; y < d2; y++)
+                    for (var x = 0; x < d1; x++)
+                    {
+                        var currentPixelIndex = x + y * d1 + z * d1 * d2;
+                        var newI1 = d2 - 1 - y;
+                        var newI2 = d3 - 1 - z;
+                        var newI3 = d1 - 1 - x;
+                        var newPixelIndex = newI1 + newI2 * d2 + newI3 * d2 * d3;
+
+                        voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
+                    }
+
+            Header.dim[1] = d2;
+            Header.dim[2] = d3;
+            Header.dim[3] = d1;
+        }
+
+        public void ReorderVoxelsLpi2Ail()
+        {
+            Header.dim[0] = 3;
+            var d1 = Header.dim[1];
+            var d2 = Header.dim[2];
+            var d3 = Header.dim[3];
+
+            if (d2 * d3 * d1 != voxels.Length)
+                throw new Exception("number of voxels and new dimensions don't match. " +
+                                    $"dim1: {d1} / dim2: {d2} / dim3: {d3} | No. of voxels: {voxels.Length}");
+
+            var oldVoxels = voxels;
+            voxels = new float[voxels.Length];
+            for (var z = 0; z < d3; z++)
+                for (var y = 0; y < d2; y++)
+                    for (var x = 0; x < d1; x++)
+                    {
+                        var currentPixelIndex = x + y * d1 + z * d1 * d2;
+                        var newI1 = d2 - 1 - y;
+                        var newI2 = z;
+                        var newI3 = x;
+                        var newPixelIndex = newI1 + newI2 * d2 + newI3 * d2 * d3;
+
+                        voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
+                    }
+
+            Header.dim[1] = d2;
+            Header.dim[2] = d3;
+            Header.dim[3] = d1;
         }
 
         /// <summary>
@@ -564,7 +648,7 @@ namespace CAPI.ImageProcessing
                     {
                         voxels = new float[bytesLength / 4];
                         for (var i = 0; i < bytesLength / 4; i++)
-                            voxels[i] = Convert.ToInt32(reader.ReadSingle());
+                            voxels[i] = reader.ReadSingle();
                         break;
                     }
                 case 128: // RGB (24 bit)
@@ -581,7 +665,7 @@ namespace CAPI.ImageProcessing
                     }
 
                 default:
-                    throw new ArgumentException($"Datatype [{Header.datatype}] not supported.");
+                    throw new ArgumentException($"Nifti datatype [{Header.datatype}] not supported.");
             }
             return voxels;
         }
@@ -599,6 +683,7 @@ namespace CAPI.ImageProcessing
             var str = new string(chars).Replace('\0', ' ').TrimEnd();
             return str;
         }
+
         private byte[] WriteNiftiHeaderBytes()
         {
             var bufferSize = GetTotalSize();
@@ -667,12 +752,6 @@ namespace CAPI.ImageProcessing
 
             return buffer;
         }
-        private int GetTotalSize()
-        {
-            if (voxelsBytes != null && voxelsBytes.Length > 0) return (int)Header.vox_offset + voxelsBytes.Length;
-            if (voxels == null || voxels.Length == 0) throw new Exception("Both voxels and voxelsBytes are empty!");
-            return (int)Header.vox_offset + voxels.Length * Header.bitpix / 8;
-        }
         private byte[] WriteVoxelsBytes(byte[] buffer)
         {
             if (voxelsBytes == null || voxelsBytes.Length == 0) // If voxelsBytes is empty
@@ -681,6 +760,82 @@ namespace CAPI.ImageProcessing
             voxelsBytes.CopyTo(buffer, (int)Header.vox_offset);
 
             return buffer;
+        }
+
+        private byte[] WriteNiftiHeaderBytesBigEndian()
+        {
+            var bufferSize = GetTotalSize();
+            var buffer = new byte[bufferSize];
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.sizeof_hdr).Reverse().ToArray()[i], i); // sizeof_hdr
+
+            if (!string.IsNullOrEmpty(Header.dim_info)) buffer.SetValue(BitConverter.GetBytes(Header.dim_info[0])[0], 39); // dim_info
+            for (var i = 0; i < 8; i++) // dim[8]
+            {
+                buffer.SetValue(BitConverter.GetBytes(Header.dim[i])[1], 40 + i * 2); // 0 and 1 indices swapped for big endian
+                buffer.SetValue(BitConverter.GetBytes(Header.dim[i])[0], 41 + i * 2);
+            }
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.intent_p1).Reverse().ToArray()[i], 56 + i); // intent_p1
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.intent_p2).Reverse().ToArray()[i], 60 + i); // intent_p2
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.intent_p3).Reverse().ToArray()[i], 64 + i); // intent_p3
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.intent_code).Reverse().ToArray()[i], 68 + i); // intent_code
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.datatype).Reverse().ToArray()[i], 70 + i); // datatype
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.bitpix).Reverse().ToArray()[i], 72 + i); // bitpix
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.slice_start).Reverse().ToArray()[i], 74 + i); // slice_start
+
+            for (var i = 0; i < 8; i++)
+                for (var j = 0; j < 4; j++)
+                    buffer.SetValue(BitConverter.GetBytes(Header.pix_dim[i]).Reverse().ToArray()[j], 76 + i * 4 + j); // pixdim
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.vox_offset).Reverse().ToArray()[i], 108 + i); // vox_offset
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.scl_slope).Reverse().ToArray()[i], 112 + i); // scl_slope
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.scl_inter).Reverse().ToArray()[i], 116 + i); // scl_inter
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.slice_end).Reverse().ToArray()[i], 120 + i); // slice_end
+
+            if (!string.IsNullOrEmpty(Header.slice_code)) buffer.SetValue(BitConverter.GetBytes(Convert.ToByte(Header.slice_code))[0], 122); // slice_code
+
+            if (!string.IsNullOrEmpty(Header.xyzt_units)) buffer.SetValue(BitConverter.GetBytes(Convert.ToByte(Header.xyzt_units))[0], 123); // xyzt_units
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.cal_max).Reverse().ToArray()[i], 124 + i); // cal_max
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.cal_min).Reverse().ToArray()[i], 128 + i); // cal_min
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.slice_duration).Reverse().ToArray()[i], 132 + i); // slice_duration
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.toffset).Reverse().ToArray()[i], 136 + i); // toffset
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(Convert.ToByte(0), 140 + i); // glmax | not used in nifti
+            for (var i = 0; i < 4; i++) buffer.SetValue(Convert.ToByte(0), 144 + i); // glmin | not used in nifti
+
+            for (var i = 0; i < Header.descrip.Length; i++) buffer.SetValue(BitConverter.GetBytes(Header.descrip[i])[0], 148 + i); // description
+            for (var i = 0; i < Header.aux_file.Length; i++) buffer.SetValue(BitConverter.GetBytes(Header.aux_file[i])[0], 228 + i); // aux_file
+
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.qform_code).Reverse().ToArray()[i], 252 + i); // qform_code
+            for (var i = 0; i < 2; i++) buffer.SetValue(BitConverter.GetBytes(Header.sform_code).Reverse().ToArray()[i], 254 + i); // sform_code
+
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.quatern_b).Reverse().ToArray()[i], 256 + i); // quatern_b
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.quatern_c).Reverse().ToArray()[i], 260 + i); // quatern_c
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.quatern_d).Reverse().ToArray()[i], 264 + i); // quatern_d
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.qoffset_x).Reverse().ToArray()[i], 268 + i); // qoffset_x
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.qoffset_y).Reverse().ToArray()[i], 272 + i); // qoffset_y
+            for (var i = 0; i < 4; i++) buffer.SetValue(BitConverter.GetBytes(Header.qoffset_z).Reverse().ToArray()[i], 276 + i); // qoffset_z
+
+            for (var i = 0; i < 4; i++)
+                for (var j = 0; j < 4; j++) buffer.SetValue(BitConverter.GetBytes(Header.srow_x[i]).Reverse().ToArray()[j], 280 + i * 4 + j); // srow_x
+            for (var i = 0; i < 4; i++)
+                for (var j = 0; j < 4; j++) buffer.SetValue(BitConverter.GetBytes(Header.srow_y[i]).Reverse().ToArray()[j], 296 + i * 4 + j); // srow_y
+            for (var i = 0; i < 4; i++)
+                for (var j = 0; j < 4; j++) buffer.SetValue(BitConverter.GetBytes(Header.srow_z[i]).Reverse().ToArray()[j], 312 + i * 4 + j); // srow_z
+
+            for (var i = 0; i < Header.intent_name.Length; i++) buffer.SetValue(BitConverter.GetBytes(Header.intent_name[i])[0], 328 + i); // intent_name
+            for (var i = 0; i < Header.magic.Length; i++) buffer.SetValue(BitConverter.GetBytes(Header.magic[i])[0], 344 + i); // magic
+
+            return buffer;
+        }
+
+        private int GetTotalSize()
+        {
+            if (voxelsBytes != null && voxelsBytes.Length > 0) return (int)Header.vox_offset + voxelsBytes.Length;
+            if (voxels == null || voxels.Length == 0) throw new Exception("Both voxels and voxelsBytes are empty!");
+            return (int)Header.vox_offset + voxels.Length * Header.bitpix / 8;
         }
         private void GetVoxelsBytes()
         {
@@ -706,11 +861,14 @@ namespace CAPI.ImageProcessing
                             // RGB is 24bit so needs three bytes for each pixel (bytePix=3) hence .Take(3)
                             voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).Take(3).ToArray()[j], position);
                             break;
-                        case 4 when Header.cal_min >= 0:
+                        case 4 when Header.cal_min >= 0 && (Header.datatype == 8 || Header.datatype == 768): // signed (8) or unsigned (768) int
                             voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).ToArray()[j], position);
                             break;
-                        case 4 when Header.cal_min < 0:
+                        case 4 when Header.cal_min < 0 && (Header.datatype == 8 || Header.datatype == 768): // signed (8) or unsigned (768) int
                             voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i])).ToArray()[j], position);
+                            break;
+                        case 4 when Header.datatype == 16: // float
+                            voxelsBytes.SetValue(BitConverter.GetBytes(voxels[i]).ToArray()[j], position);
                             break;
                         default:
                             throw new Exception($"Bitpix {Header.bitpix} not supported!");

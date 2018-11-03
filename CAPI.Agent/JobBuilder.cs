@@ -11,6 +11,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CAPI.Agent
 {
@@ -88,7 +89,10 @@ namespace CAPI.Agent
                               _fileSystem, _processBuilder, _capiConfig, _log);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
-            var jobFolderName = $"{patientName}-{DateTime.Now:yyyyMMdd_HHmmssfff}";
+            var accession = job.CurrentAccession;
+            var accessionInJobName = string.Empty;
+            if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = accession.Substring(2, 10);
+            var jobFolderName = $"{patientName.Substring(0, 5)}{accessionInJobName}{DateTime.Now:yyMMdd_HHmmssfff}";
             job.ProcessingFolder = Path.Combine(_capiConfig.ImgProcConfig.ImageRepositoryPath, jobFolderName);
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
