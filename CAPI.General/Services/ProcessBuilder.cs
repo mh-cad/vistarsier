@@ -30,8 +30,9 @@ namespace CAPI.General.Services
             return proc;
         }
 
-        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "", DataReceivedEventHandler outputDataReceived = null,
-            DataReceivedEventHandler errorOccuredInProcess = null)
+        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "",
+                                          DataReceivedEventHandler outputDataReceived = null,
+                                          DataReceivedEventHandler errorOccuredInProcess = null)
         {
             if (!File.Exists(fileFullPath))
                 throw new FileNotFoundException($"Executable file not found at location [{fileFullPath}]");
@@ -46,8 +47,9 @@ namespace CAPI.General.Services
             return process;
         }
 
-        public Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "", DataReceivedEventHandler outputDataReceived = null,
-            DataReceivedEventHandler errorOccuredInProcess = null)
+        public Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "",
+                                DataReceivedEventHandler outputDataReceived = null,
+                                DataReceivedEventHandler errorOccuredInProcess = null)
         {
             if (!File.Exists(javaFullPath))
                 throw new FileNotFoundException($"Java.exe file not found at location [{javaFullPath}]");

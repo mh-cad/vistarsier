@@ -28,7 +28,7 @@ namespace CAPI.Agent
         public CapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
         public bool IsHealthy { get; set; }
-        private readonly AgentRepository _context;
+        private AgentRepository _context;
         private readonly string[] _args;
         private Timer _timer;
 
@@ -54,19 +54,19 @@ namespace CAPI.Agent
             _imgProcFactory = imgProcFactory;
             _args = args;
             Config = GetCapiConfig(args);
-            _context = GetAgentRepository();
+            _context = GetAgentRepository(true);
         }
 
-        private AgentRepository GetAgentRepository()
+        private AgentRepository GetAgentRepository(bool firstUse = false)
         {
             try
             {
-                _log.Info("Connecting to database...");
+                if (firstUse) _log.Info("Connecting to database...");
                 var repo = Config?.AgentDbConnectionString != null ?
                     new AgentRepository(Config.AgentDbConnectionString) :
                     new AgentRepository();
                 repo.Database.EnsureCreated();
-                _log.Info($"Database connection established{Environment.NewLine}ConnectionString " +
+                if (firstUse) _log.Info($"Database connection established{Environment.NewLine}ConnectionString " +
                           $"[{repo.Database.GetDbConnection().ConnectionString}]");
                 return repo;
             }
@@ -77,6 +77,7 @@ namespace CAPI.Agent
             }
             return null;
         }
+
         private CapiConfig GetCapiConfig(string[] args)
         {
             try
@@ -116,6 +117,7 @@ namespace CAPI.Agent
         private void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
             Console.ForegroundColor = ConsoleColor.Gray;
+            _context = GetAgentRepository();
             CheckForNewCasesAndProcessPendings();
         }
         /// <summary>
@@ -216,11 +218,27 @@ namespace CAPI.Agent
         }
         private void CleanupProcessFolder(string folderPath, string accession)
         {
-            var file = Directory.GetFiles(folderPath)
-                .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
-                    .Contains(accession.ToLower()));
-            File.Delete(file);
-            _log.Info($"File deleted from process folder [{folderPath}] for Accession: [{accession}]");
+            if (!Directory.Exists(folderPath))
+            {
+                _log.Error($"Folder does not exist in the following path: [{folderPath}]");
+                return;
+            }
+
+            var files = Directory.GetFiles(folderPath);
+            if (!files.Any()) return;
+            try
+            {
+                var file = files
+                    .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
+                        .Contains(accession.ToLower()));
+                File.Delete(file);
+                _log.Info($"File deleted from process folder [{folderPath}] for accession: [{accession}]");
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to delete file in process folder [{folderPath}] for accession [{accession}]", ex);
+                throw;
+            }
         }
         private void HandleFailedCasesAndJobs()
         {
@@ -270,15 +288,40 @@ namespace CAPI.Agent
             {
                 recipe = GetDefaultRecipe();
                 recipe.CurrentAccession = @case.Accession;
+                // Delete file in HL7 Folder after it was added to DB
+                CleanupProcessFolder(Config.Hl7ProcessPath, @case.Accession);
             }
             else
             {
-                // TODO1: Find recipe in manually processing folder
-                recipe = GetDefaultRecipe();
+                recipe = GetRecipeForManualCase(@case);
                 recipe.CurrentAccession = @case.Accession;
+                // Delete file in Manual Folder after it was added to DB
+                CleanupProcessFolder(Config.ManualProcessPath, @case.Accession);
             }
             return recipe;
         }
+
+        private Recipe GetRecipeForManualCase(ICase @case)
+        {
+            var recipeFilePath = Directory.GetFiles(Config.ManualProcessPath)
+                .FirstOrDefault(f => Path.GetFileName(f).ToLower()
+                    .StartsWith(@case.Accession, StringComparison.CurrentCultureIgnoreCase));
+
+            if (recipeFilePath == null || string.IsNullOrEmpty(recipeFilePath) || !File.Exists(recipeFilePath))
+                return GetDefaultRecipe();
+
+            var recipeText = File.ReadAllText(recipeFilePath);
+            try
+            {
+                return JsonConvert.DeserializeObject<Recipe>(recipeText);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to convert from json to recipe object.", ex);
+                throw;
+            }
+        }
+
         private Recipe GetDefaultRecipe()
         {
             if (!File.Exists(Config.DefaultRecipePath))
@@ -312,59 +355,61 @@ namespace CAPI.Agent
         #region "Handle Manually Added Cases"
         private static IEnumerable<ICase> GetManuallyAddedCases(string manualFolder)
         {
-            return (
+            var cases = (
                 from file in Directory.GetFiles(manualFolder)
-                let accession = Path.GetFileNameWithoutExtension(file)
-                where !file.EndsWith(".recipe.json", StringComparison.InvariantCultureIgnoreCase) // Exclude Recipe Files
-
+                let accession =
+                    file.EndsWith(".recipe.json", StringComparison.CurrentCultureIgnoreCase) ?
+                        Path.GetFileName(file.ToLower()).Replace(".recipe.json", "") : // recipe file
+                        Path.GetFileNameWithoutExtension(file) // non-recipe file
+                //where !file.EndsWith(".recipe.json", StringComparison.InvariantCultureIgnoreCase) // Exclude Recipe Files
                 select new Case { Accession = accession, AdditionMethod = AdditionMethod.Manually }
             ).ToList();
+            return cases;
+
         }
         private void HandleManuallyAddedCases()
         {
-            var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath);
-            manuallyAddedCases.ToList().ForEach(mc =>
-            {
-                var inDb = _context.Cases.Select(c => c.Accession)
-                    .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
-                if (inDb)
-                { // If already in database, set status to Pending
-                    var inDbCase = _context.Cases
-                        .Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
-                    inDbCase.Status = "Pending";
-                    inDbCase.AdditionMethod = AdditionMethod.Manually;
-                    try
-                    {
-                        _context.Cases.Update(inDbCase);
-                        _context.SaveChanges();
-                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
-                        return;
-                    }
-                }
-                else // if not in database, add to database
+            var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath).ToList();
+            if (!manuallyAddedCases.Any()) return;
+            var firstCase = manuallyAddedCases.ToList().First();
+            //manuallyAddedCases.ToList().First(firstCase =>
+            //{
+            var inDb = _context.Cases.Select(c => c.Accession)
+                .Any(ac => ac.ToLower().Contains(firstCase.Accession.ToLower()));
+            if (inDb)
+            { // If already in database, set status to Pending
+                var inDbCase = _context.Cases
+                    .Single(c => c.Accession.Equals(firstCase.Accession, StringComparison.InvariantCultureIgnoreCase));
+                inDbCase.Status = "Pending";
+                inDbCase.AdditionMethod = AdditionMethod.Manually;
+                try
                 {
-                    var newCase = new Case { Accession = mc.Accession, Status = "Pending", AdditionMethod = AdditionMethod.Manually };
-                    try
-                    {
-                        _context.Cases.Add(newCase);
-                        _context.SaveChanges();
-                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
-                        return;
-                    }
+                    _context.Cases.Update(inDbCase);
+                    _context.SaveChanges();
+                    _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
                 }
-                // Delete file in Manual Folder after it was added to DB
-                CleanupProcessFolder(Config.ManualProcessPath, mc.Accession);
-            });
+                catch (Exception ex)
+                {
+                    _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                               $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
+                }
+            }
+            else // if not in database, add to database
+            {
+                var newCase = new Case { Accession = firstCase.Accession.ToUpper(), Status = "Pending", AdditionMethod = AdditionMethod.Manually };
+                try
+                {
+                    _context.Cases.Add(newCase);
+                    _context.SaveChanges();
+                    _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                               $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
+                }
+            }
+            //});
         }
         #endregion
 
@@ -401,8 +446,6 @@ namespace CAPI.Agent
                 {
                     _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.Accession}]", ex);
                 }
-                // Delete file in HL7 Folder after it was added to DB
-                CleanupProcessFolder(Config.Hl7ProcessPath, mc.Accession);
                 // if already in database, disregard
             });
         }
