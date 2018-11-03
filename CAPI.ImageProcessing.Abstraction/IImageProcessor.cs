@@ -18,5 +18,12 @@
             string currentDicomFolder, string priorDicomFolder, string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii);
+
+        // TODO1: Remove when done experimenting
+        #region Experimental
+        void CompareUsingNictaCode(string fixedFile, string floatingFile, string fixedMaskFile,
+                                   string nictaPosResultFilePath, string nictaNegResultFilePath,
+                                   string colormapConfigFilePath, bool ignoreErrors);
+        #endregion
     }
 }

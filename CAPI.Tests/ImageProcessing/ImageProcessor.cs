@@ -104,11 +104,11 @@ namespace CAPI.Tests.ImageProcessing
 
         private void ClearFilesAndFolders()
         {
-            var cmtkRaw = _capiConfig.ImgProcConfig.CmtkRawxformFile; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkRawxformFile();
+            var cmtkRaw = _capiConfig.ImgProcConfig.CmtkRawxformFile;
             if (File.Exists($@"{_testResourcesPath}\{cmtkRaw}")) File.Delete($@"{_testResourcesPath}\{cmtkRaw}");
-            var cmtkResult = _capiConfig.ImgProcConfig.CmtkResultxformFile; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkResultxformFile();
+            var cmtkResult = _capiConfig.ImgProcConfig.CmtkResultxformFile;
             if (File.Exists($@"{_testResourcesPath}\{cmtkResult}")) File.Delete($@"{_testResourcesPath}\{cmtkResult}");
-            var cmtkFolder = _capiConfig.ImgProcConfig.CmtkFolderName; //CAPI.ImageProcessing.ImgProcConfig.GetCmtkFolderName();
+            var cmtkFolder = _capiConfig.ImgProcConfig.CmtkFolderName;
             if (Directory.Exists($@"{_testResourcesPath}\{cmtkFolder}")) Directory.Delete($@"{_testResourcesPath}\{cmtkFolder}", true);
         }
 
@@ -131,7 +131,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var brain = $@"{_outputFolder}\floating.brain.nii";
             var mask = $@"{_outputFolder}\floating.mask.nii";
-            var bseParams = _capiConfig.ImgProcConfig.BseParams; //CAPI.ImageProcessing.ImgProcConfig.GetBseParams();
+            var bseParams = _capiConfig.ImgProcConfig.BseParams;
             _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
@@ -218,6 +218,22 @@ namespace CAPI.Tests.ImageProcessing
             var resultNii = _compareResult;
 
             _imageProcessor.Compare(currentNii, priorNii, lookupTable, SliceType.Sagittal, resultNii);
+        }
+
+        //CompareUsingNictaCode
+        [TestMethod]
+        public void CompareUsingNictaCode()
+        {
+            var currentBfc = @"C:\temp\Capi-out\Normalization\fixed.bfc.nii";
+            var currentMask = @"C:\temp\Capi-out\Normalization\fixed.mask.nii";
+            var priorBfc = @"C:\temp\Capi-out\Normalization\PriorResliced.bfc.nii";
+            var nictaPosResultsFilePath = @"C:\temp\Capi-out\Normalization\NictaPosResult.nii";
+            var nictaNegResultsFilePath = @"C:\temp\Capi-out\Normalization\NictaNegResult.nii";
+            var colorMapConfigFilePath = @"D:\Capi-Tests\colormap.config";
+
+            _imageProcessor.CompareUsingNictaCode(currentBfc, priorBfc, currentMask,
+                                                  nictaPosResultsFilePath, nictaNegResultsFilePath,
+                                                  colorMapConfigFilePath, false);
         }
     }
 }
