@@ -5,6 +5,7 @@ namespace CAPI.Agent.Models
     // ReSharper disable once ClassNeverInstantiated.Global
     public class SeriesSelectionCriteria : ISeriesSelectionCriteria
     {
+        public byte PriorStudyIndex { get; set; }
         public bool MostRecentPriorStudy { get; set; }
         public bool OldestPriorStudy { get; set; }
         public string CutOffPeriodValueInMonths { get; set; }

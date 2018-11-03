@@ -2,6 +2,7 @@
 {
     public interface ISeriesSelectionCriteria
     {
+        byte PriorStudyIndex { get; set; }
         bool MostRecentPriorStudy { get; set; }
         bool OldestPriorStudy { get; set; }
         string CutOffPeriodValueInMonths { get; set; }
