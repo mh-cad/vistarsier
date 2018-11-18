@@ -50,6 +50,7 @@ namespace CAPI.General.Services
                 File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Returns true if folder exists and contains at least one file
         /// </summary>

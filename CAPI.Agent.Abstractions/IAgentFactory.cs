@@ -14,6 +14,6 @@ namespace CAPI.Agent.Abstractions
 
         IImageProcessor CreateAgentImageProcessor(
             IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log);
+            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log, IAgentRepository context);
     }
 }
