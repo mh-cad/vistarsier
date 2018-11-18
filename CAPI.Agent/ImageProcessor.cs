@@ -12,6 +12,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
 
 namespace CAPI.Agent
@@ -27,6 +28,7 @@ namespace CAPI.Agent
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly ILog _log;
         private readonly IImgProcConfig _imgProcConfig;
+        private readonly AgentRepository _context;
 
         private const string ResultsFolderName = "Results";
         private const string ResultsFileName = "result.nii";
@@ -34,17 +36,18 @@ namespace CAPI.Agent
 
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
                               IFileSystem filesystem, IProcessBuilder processBuilder,
-                              IImgProcConfig imgProcConfig, ILog log)
+                              IImgProcConfig imgProcConfig, ILog log, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _log = log;
             _imgProcConfig = imgProcConfig;
             _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
+            _context = context;
         }
 
         public IJobResult[] CompareAndSaveLocally(
-            string currentDicomFolder, string priorDicomFolder,
+            string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
             string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string outPriorReslicedDicom,
@@ -54,10 +57,27 @@ namespace CAPI.Agent
             var resultNiis = BuildResultNiftiPathsFromLuts(lookupTablePaths, workingDir).ToArray();
             var outPriorReslicedNiiFile = outPriorReslicedDicom + ".nii";
 
+            var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
+            var patientId = _dicomServices.GetPatientIdFromDicomFile(dicomFilePath);
+            var job = _context.Jobs.LastOrDefault(j => j.PatientId == patientId);
+
             _imgProc.CompareDicomInNiftiOut(
-                                            currentDicomFolder, priorDicomFolder, lookupTablePaths, sliceType,
+                                            currentDicomFolder, priorDicomFolder, referenceDicomFolder,
+                                            lookupTablePaths, sliceType,
                                             extractBrain, register, biasFieldCorrect,
                                             resultNiis, outPriorReslicedNiiFile);
+
+            if (job != null)
+            {
+                var jobToUpdate = _context.Jobs.FirstOrDefault(j => j.Id == job.Id);
+                if (jobToUpdate == null) throw new Exception($"No job was found in database with id: [{job.Id}]");
+
+                // Check if there is a reference series from last processes for the patient, if not set the current series as reference for future
+                GetReferenceSeries(referenceDicomFolder, currentDicomFolder, out var refStudyUid, out var refSeriesUid);
+                jobToUpdate.WriteStudyAndSeriesIdsToReferenceSeries(refStudyUid, refSeriesUid);
+                _context.Jobs.Update(jobToUpdate);
+                _context.SaveChanges();
+            }
 
             // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
             // prior study date will be added to the end of Series Description tag
@@ -74,7 +94,8 @@ namespace CAPI.Agent
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertNiftiToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType, currentDicomFolder, priorStudyDescription);
+                ConvertNiftiToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
+                                    currentDicomFolder, priorStudyDescription, "", referenceDicomFolder);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
 
@@ -85,7 +106,7 @@ namespace CAPI.Agent
 
             // TODO1: Remove when done experimenting
             #region "Experimental"
-            ConvertCurrentBfcedToDicom(outPriorReslicedNiiFile, currentDicomFolder, sliceType);
+            ConvertCurrentBfcedToDicom(outPriorReslicedNiiFile, currentDicomFolder, sliceType, referenceDicomFolder);
             #endregion
 
             var results = new List<IJobResult>();
@@ -119,7 +140,8 @@ namespace CAPI.Agent
                     dicomFolderPath = resultNii.Replace(".nii", "");
                     lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
                     var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
-                    ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder, $"{resultsSeriesDescription} {lutFileName}", lutFilePath);
+                    ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
+                                        $"{resultsSeriesDescription} {lutFileName}", lutFilePath, referenceDicomFolder);
                 }
 
                 stopwatch.Stop();
@@ -138,14 +160,46 @@ namespace CAPI.Agent
             task.Wait();
             task.Dispose();
 
-            //var resultDicomFolderPaths = resultNiis.Select(r => r.Replace(".nii", "")).ToArray();
             return results.ToArray();
         }
+
+        private void GetReferenceSeries(string referenceDicomFolder, string currentDicomFolder,
+                                        out string refStudyUId, out string refSeriesUid)
+        {
+            // Check if a reference series exists from previous process(es)
+            var refStudyExists =
+                (!string.IsNullOrEmpty(referenceDicomFolder) && Directory.Exists(referenceDicomFolder) &&
+                 Directory.GetFiles(referenceDicomFolder).Length > 0);
+
+            var referenceForFutureProcessesDicomFolder = refStudyExists ? referenceDicomFolder : currentDicomFolder;
+
+            var dicomFilePath = Directory.GetFiles(referenceForFutureProcessesDicomFolder).FirstOrDefault();
+            var dicomFileHeaders = _dicomServices.GetDicomTags(dicomFilePath);
+            refStudyUId = dicomFileHeaders.StudyInstanceUid.Values[0];
+            refSeriesUid = dicomFileHeaders.SeriesInstanceUid.Values[0];
+        }
+
+        //private IRegistrationData GetRegistrationDataForPatientIfExists(IJob job)
+        //{
+        //    var registrationData = new RegistrationData();
+        //    if (job == null) return registrationData;
+
+        //    var patientId = job.PatientId;
+        //    var patientJobs = _context.Jobs.Where(j => j.PatientId == patientId);
+
+        //    var jobContainingRegistrationData =
+        //        patientJobs.FirstOrDefault(j => !string.IsNullOrEmpty(j.RegistrationData));
+
+        //    if (jobContainingRegistrationData == null) return registrationData;
+        //    var registrationDataBase64 = jobContainingRegistrationData.RegistrationData;
+        //    registrationData.FromBase64(registrationDataBase64);
+        //    return registrationData;
+        //}
 
         // TODO1: Remove when done experimenting
         #region "Experimental"
         private void ConvertCurrentBfcedToDicom(string outPriorReslicedNiiFile, string currentDicomFolder,
-                                                SliceType sliceType)
+                                                SliceType sliceType, string referenceDicomFolder = "")
         {
             var jobFolder = Directory.GetParent(outPriorReslicedNiiFile).FullName;
             var currentBfcedFilePath = Path.Combine(jobFolder, "Current", "fixed.bfc.pre-norm.nii");
@@ -153,7 +207,7 @@ namespace CAPI.Agent
             const string currentBfcedSeriesDescription = "CAPI Current Series BFC";
 
             ConvertNiftiToDicom(currentBfcedFilePath, destCurrentBfcedDicomFolder, sliceType,
-                currentDicomFolder, currentBfcedSeriesDescription);
+                                currentDicomFolder, currentBfcedSeriesDescription, "", referenceDicomFolder);
 
             UpdateSeriesDescriptionForAllFiles(destCurrentBfcedDicomFolder, currentBfcedSeriesDescription);
         }
@@ -208,7 +262,7 @@ namespace CAPI.Agent
         public IJobResult[] CompareAndSaveLocally(IJob job, IRecipe recipe, SliceType sliceType)
         {
             return CompareAndSaveLocally(
-                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder,
+                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder, job.ReferenceSeriesDicomFolder,
                 recipe.LookUpTablePaths, sliceType,
                 job.ExtractBrain, job.Register, job.BiasFieldCorrection,
                 job.PriorReslicedSeriesDicomFolder,
@@ -216,15 +270,24 @@ namespace CAPI.Agent
             );
         }
 
-        private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription)
+        private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription,
+                                                        string orientationDicomFolder = "")
         {
             var dicomFiles = Directory.GetFiles(dicomFolder);
             if (dicomFiles.FirstOrDefault() == null)
                 throw new FileNotFoundException($"Dicom folder contains no files: [{dicomFolder}]");
 
+            var orientationDicomFiles = string.IsNullOrEmpty(orientationDicomFolder) ? null : Directory.GetFiles(orientationDicomFolder);
+            if (!string.IsNullOrEmpty(orientationDicomFolder) &&
+                (!Directory.Exists(orientationDicomFolder) || Directory.GetFiles(orientationDicomFolder).Length == 0))
+                throw new FileNotFoundException($"Orientation dicom folder contains no files: [{orientationDicomFolder}]");
+
             var dicomTags = _dicomServices.GetDicomTags(dicomFiles.FirstOrDefault());
             dicomTags.SeriesDescription.Values = new[] { seriesDescription };
+
             _dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles.ToArray(), dicomTags);
+            if (!string.IsNullOrEmpty(orientationDicomFolder))
+                _dicomServices.UpdateImagePositionFromReferenceSeries(dicomFiles.ToArray(), orientationDicomFiles);
         }
 
         private string GetStudyDateFromDicomFile(string dicomFile)
@@ -242,13 +305,14 @@ namespace CAPI.Agent
         {
             var dicomSliceType = GetDicomSliceType(sliceType);
 
-            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType, sourceDicomFolder, matchWithFileNames);
+            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType,
+                                              sourceDicomFolder, matchWithFileNames);
 
             UpdateSeriesDescriptionForAllFiles(outDicomFolder, seriesDescription);
         }
         private void ConvertNiftiToDicom(string inNiftiFile, string outDicomFolder,
-                                    SliceType sliceType, string dicomFolderForReadingHeaders,
-                                    string overlayText, string lookupTableFilePath = "")
+                                         SliceType sliceType, string dicomFolderForReadingHeaders,
+                                         string overlayText, string lookupTableFilePath = "", string referenceDicomFolder = "")
         {
             var bmpFolder = outDicomFolder + ImagesFolderSuffix;
 
@@ -256,7 +320,11 @@ namespace CAPI.Agent
 
             ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders, sliceType, overlayText);
 
-            if (!string.IsNullOrEmpty(lookupTableFilePath) && File.Exists(lookupTableFilePath))
+            if (!string.IsNullOrEmpty(referenceDicomFolder) && Directory.Exists(referenceDicomFolder) && Directory.GetFiles(referenceDicomFolder).Length > 0)
+                _dicomServices.UpdateImagePositionFromReferenceSeries(Directory.GetFiles(outDicomFolder), Directory.GetFiles(referenceDicomFolder));
+
+            if (!string.IsNullOrEmpty(lookupTableFilePath) &&
+                File.Exists(lookupTableFilePath))
                 _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);
         }
 
