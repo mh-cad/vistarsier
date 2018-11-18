@@ -68,6 +68,7 @@ namespace CAPI.Agent
                 repo.Database.EnsureCreated();
                 if (firstUse) _log.Info($"Database connection established{Environment.NewLine}ConnectionString " +
                           $"[{repo.Database.GetDbConnection().ConnectionString}]");
+
                 return repo;
             }
             catch (Exception ex)
@@ -182,10 +183,11 @@ namespace CAPI.Agent
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
                 SetCaseStatus(@case, "Processing");
 
-                Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log);
+                Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _fileSystem, _processBuilder, _log, _context);
 
                 _log.Info(
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
+                _log.Info("-------------------------");
                 @case.Comment = string.Empty;
                 SetCaseStatus(@case, "Complete");
             }
@@ -229,10 +231,15 @@ namespace CAPI.Agent
             try
             {
                 var file = files
-                    .Single(f => Path.GetFileNameWithoutExtension(f).ToLower()
+                    .OrderBy(f => f)
+                    .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).ToLower()
                         .Contains(accession.ToLower()));
-                File.Delete(file);
-                _log.Info($"File deleted from process folder [{folderPath}] for accession: [{accession}]");
+                if (!string.IsNullOrEmpty(file) && File.Exists(file))
+                {
+                    File.Delete(file);
+                    _log.Info($"File deleted from process folder [{folderPath}] for accession: [{accession}]");
+                }
+                else _log.Warn($"Corresponding file for accession [{accession}] in folder [{folderPath}] was NOT found to be deleted!");
             }
             catch (Exception ex)
             {
@@ -248,6 +255,7 @@ namespace CAPI.Agent
                 var tmp = c;
                 tmp.Status = "Pending";
                 _context.Cases.Update(tmp);
+                _context.SaveChanges();
             });
             var failedJobs = _context.GetJobByStatus("Processing");
             failedJobs.ToList().ForEach(j =>
@@ -255,6 +263,7 @@ namespace CAPI.Agent
                 var tmp = j;
                 tmp.Status = "Failed";
                 _context.Jobs.Update(tmp);
+                _context.SaveChanges();
             });
         }
         private void HandleNewlyAddedCases()
@@ -304,6 +313,7 @@ namespace CAPI.Agent
         private Recipe GetRecipeForManualCase(ICase @case)
         {
             var recipeFilePath = Directory.GetFiles(Config.ManualProcessPath)
+                .OrderBy(f => f)
                 .FirstOrDefault(f => Path.GetFileName(f).ToLower()
                     .StartsWith(@case.Accession, StringComparison.CurrentCultureIgnoreCase));
 
@@ -359,9 +369,8 @@ namespace CAPI.Agent
                 from file in Directory.GetFiles(manualFolder)
                 let accession =
                     file.EndsWith(".recipe.json", StringComparison.CurrentCultureIgnoreCase) ?
-                        Path.GetFileName(file.ToLower()).Replace(".recipe.json", "") : // recipe file
+                        Path.GetFileName(file.ToLower()).Replace(".recipe.json", "").Split('.')[0] : // recipe file
                         Path.GetFileNameWithoutExtension(file) // non-recipe file
-                //where !file.EndsWith(".recipe.json", StringComparison.InvariantCultureIgnoreCase) // Exclude Recipe Files
                 select new Case { Accession = accession, AdditionMethod = AdditionMethod.Manually }
             ).ToList();
             return cases;
@@ -372,8 +381,7 @@ namespace CAPI.Agent
             var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath).ToList();
             if (!manuallyAddedCases.Any()) return;
             var firstCase = manuallyAddedCases.ToList().First();
-            //manuallyAddedCases.ToList().First(firstCase =>
-            //{
+
             var inDb = _context.Cases.Select(c => c.Accession)
                 .Any(ac => ac.ToLower().Contains(firstCase.Accession.ToLower()));
             if (inDb)

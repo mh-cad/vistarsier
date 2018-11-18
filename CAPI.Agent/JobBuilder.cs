@@ -20,6 +20,7 @@ namespace CAPI.Agent
     {
         private const string Current = "Current";
         private const string Prior = "Prior";
+        private const string Reference = "Reference";
         private const string Dicom = "Dicom";
         private const string Results = "Results";
         private const string PriorResliced = "PriorResliced";
@@ -31,6 +32,7 @@ namespace CAPI.Agent
         private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
+        private AgentRepository _context;
 
         /// <summary>
         /// Constructor
@@ -42,10 +44,11 @@ namespace CAPI.Agent
         /// <param name="processBuilder">Builds exe or java processes and executes them</param>
         /// <param name="capiConfig">CAPI configuration</param>
         /// <param name="log">Log4Net logger</param>
+        /// <param name="context">Agent Repository (DbContext) to communicate data with database</param>
         public JobBuilder(IDicomServices dicomServices,
                           IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
                           IFileSystem fileSystem, IProcessBuilder processBuilder,
-                          CapiConfig capiConfig, ILog log)
+                          CapiConfig capiConfig, ILog log, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
@@ -54,6 +57,7 @@ namespace CAPI.Agent
             _processBuilder = processBuilder;
             _capiConfig = capiConfig;
             _log = log;
+            _context = context;
         }
 
         /// <summary>
@@ -91,8 +95,9 @@ namespace CAPI.Agent
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;
             var accessionInJobName = string.Empty;
-            if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = accession.Substring(2, 10);
-            var jobFolderName = $"{patientName.Substring(0, 5)}{accessionInJobName}{DateTime.Now:yyMMdd_HHmmssfff}";
+            if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = $"-{accession.Substring(2, 10)}-";
+            var patientNameSubstring = patientName.Length > 4 ? patientName.Substring(0, 5) : patientName.Substring(0, patientName.Length);
+            var jobFolderName = $"{patientNameSubstring}{accessionInJobName}{DateTime.Now:yyMMdd_HHmmssfff}";
             job.ProcessingFolder = Path.Combine(_capiConfig.ImgProcConfig.ImageRepositoryPath, jobFolderName);
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
@@ -117,17 +122,87 @@ namespace CAPI.Agent
 
             // If both current and prior are found, save them to disk for processing
             _log.Info("Saving current series to disk...");
-            job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
+            try
+            {
+                job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
+                                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to save current series dicom files to disk.", ex);
+                throw;
+            }
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             _log.Info("Saving prior series to disk...");
-            job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                priorDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
-            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
+            try
+            {
+                job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
+                    priorDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to save prior series dicom files to disk.", ex);
+                throw;
+            }
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
+            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
+
+            // Get Registration Data for patient if exists in database
+            job.ReferenceSeriesDicomFolder =
+                GetReferenceSeriesForRegistration(job, allStudiesForPatient, localNode, sourceNode);
+
             return job;
+        }
+
+        private string GetReferenceSeriesForRegistration(IJob job, IEnumerable<IDicomStudy> allStudiesForPatient,
+                                                         IDicomNode localNode, IDicomNode sourceNode)
+        {
+            var studiesForPatient = allStudiesForPatient.ToList();
+
+            if (string.IsNullOrEmpty(job.ReferenceSeries))
+                job.ReferenceSeries = FindReferenceSeriesInPreviousJobs(job.PatientId);
+
+            if (string.IsNullOrEmpty(job.ReferenceSeries)) return string.Empty;
+
+            var studyId = job.GetStudyIdFromReferenceSeries();
+            var seriesId = job.GetSeriesIdFromReferenceSeries();
+            var study = studiesForPatient.FirstOrDefault(s => s.StudyInstanceUid == studyId);
+            if (study == null)
+            {
+                _log.Error($"Failed to find reference study to register series against StudyInstanceUid: [{studyId}]");
+                return string.Empty;
+            }
+            var allSeries = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid, localNode, sourceNode);
+            var matchingSeries = allSeries.FirstOrDefault(s => s.SeriesInstanceUid == seriesId);
+            if (matchingSeries == null)
+            {
+                _log.Error($"Failed to find reference study with matching series to register series against StudyInstanceUid: [{studyId}] SeriesInstanceUid: [{seriesId}]");
+                return string.Empty;
+            }
+            study.Series.Add(matchingSeries);
+            _log.Info("Saving reference series to disk...");
+            string referenceFolderPath;
+            try
+            {
+                referenceFolderPath = SaveDicomFilesToFilesystem(study, job.ProcessingFolder, Reference, localNode, sourceNode);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to save reference series dicom files to disk.", ex);
+                throw;
+            }
+            return referenceFolderPath;
+        }
+
+        private string FindReferenceSeriesInPreviousJobs(string patientId)
+        {
+            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.PatientId == patientId &&
+                                                                    !string.IsNullOrEmpty(j.ReferenceSeries));
+
+            return jobWithRefSeries != null ? jobWithRefSeries.ReferenceSeries :
+                                              string.Empty;
         }
 
         private static Recipe UpdateRecipeWithPatientDetails(Recipe recipe, IReadOnlyCollection<IDicomStudy> studies)

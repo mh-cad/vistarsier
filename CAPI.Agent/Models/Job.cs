@@ -34,12 +34,29 @@ namespace CAPI.Agent.Models
         public bool ExtractBrain { get; set; }
         public string ExtractBrainParams { get; set; }
         public bool Register { get; set; }
+        //public string RegistrationData { get; set; }
+        public string ReferenceSeries { get; set; }
         public bool BiasFieldCorrection { get; set; }
         public string BiasFieldCorrectionParams { get; set; }
 
         public string Status { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
+
+        [NotMapped]
+        public string CurrentSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string PriorSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string ReferenceSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public IJobResult[] Results { get; set; }
+        [NotMapped]
+        public string ResultSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string PriorReslicedSeriesDicomFolder { get; set; }
+        [NotMapped]
+        public string ProcessingFolder { get; set; }
 
         // Needed for EntityFramework
         public Job() { }
@@ -76,19 +93,6 @@ namespace CAPI.Agent.Models
                 recipe.FilesystemDestinations.FirstOrDefault();
         }
 
-        [NotMapped]
-        public string CurrentSeriesDicomFolder { get; set; }
-        [NotMapped]
-        public string PriorSeriesDicomFolder { get; set; }
-        [NotMapped]
-        public IJobResult[] Results { get; set; }
-        [NotMapped]
-        public string ResultSeriesDicomFolder { get; set; }
-        [NotMapped]
-        public string PriorReslicedSeriesDicomFolder { get; set; }
-        [NotMapped]
-        public string ProcessingFolder { get; set; }
-
         public void Process()
         {
             var job = this;
@@ -113,7 +117,7 @@ namespace CAPI.Agent.Models
             _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
                                                     _filesystem, _processBuilder,
-                                                    _capiConfig.ImgProcConfig, _log);
+                                                    _capiConfig.ImgProcConfig, _log, context);
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
@@ -132,7 +136,22 @@ namespace CAPI.Agent.Models
 
             stopwatch.Stop();
             _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
-            _log.Info("-------------------------");
+        }
+
+        public string GetStudyIdFromReferenceSeries()
+        {
+            return ReferenceSeries.Split('|')[0];
+        }
+
+        public string GetSeriesIdFromReferenceSeries()
+        {
+            return ReferenceSeries.Split('|').Length < 2 ? string.Empty :
+                                                           ReferenceSeries.Split('|')[1];
+        }
+
+        public void WriteStudyAndSeriesIdsToReferenceSeries(string studyId, string seriesId)
+        {
+            ReferenceSeries = string.Join("|", studyId, seriesId);
         }
 
         private ImgProcConfig UpdateImgProcConfig(IRecipe recipe)

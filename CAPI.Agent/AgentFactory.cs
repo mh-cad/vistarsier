@@ -21,9 +21,9 @@ namespace CAPI.Agent
 
         public IImageProcessor CreateAgentImageProcessor(
             IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log)
+            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log, IAgentRepository context)
         {
-            return new ImageProcessor(dicomServices, imgProcFactory, fileSystem, processBuilder, imfProcConfig, log);
+            return new ImageProcessor(dicomServices, imgProcFactory, fileSystem, processBuilder, imfProcConfig, log, context as AgentRepository);
         }
     }
 }
