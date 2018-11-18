@@ -58,7 +58,7 @@ namespace CAPI.Tests.Agent
             // Arrange
             var agentFactory = _unity.Resolve<IAgentFactory>();
             var agentImgProc = agentFactory.CreateAgentImageProcessor(
-                _dicomServices, _imgProcFactory, _fileSystem, _processBuilder, _capiConfig.ImgProcConfig, _log);
+                _dicomServices, _imgProcFactory, _fileSystem, _processBuilder, _capiConfig.ImgProcConfig, _log, null);
 
             var testFolders = new[] { "01_1323314" };
 
@@ -74,7 +74,7 @@ namespace CAPI.Tests.Agent
                 _destinationPriorResliced = Path.Combine(_tmpFolder, "Resliced");
 
                 agentImgProc.CompareAndSaveLocally(
-                    _currentStudyDicomFolder, _priorStudyDicomFolder, new[] { _lookupTableFile }, SliceType.Sagittal
+                    _currentStudyDicomFolder, _priorStudyDicomFolder, "", new[] { _lookupTableFile }, SliceType.Sagittal
                     , true, true, true, _destinationPriorResliced, "Results", "Prior Resliced");
 
                 // Assert
