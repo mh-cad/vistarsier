@@ -15,6 +15,8 @@ namespace CAPI.Agent.Abstractions.Models
         bool ExtractBrain { get; set; }
         string ExtractBrainParams { get; set; }
         bool Register { get; set; }
+        //string RegistrationData { get; set; }
+        string ReferenceSeries { get; set; }
         bool BiasFieldCorrection { get; set; }
         string BiasFieldCorrectionParams { get; set; }
         string Status { get; set; }
@@ -22,11 +24,15 @@ namespace CAPI.Agent.Abstractions.Models
         DateTime End { get; set; }
         string CurrentSeriesDicomFolder { get; set; }
         string PriorSeriesDicomFolder { get; set; }
+        string ReferenceSeriesDicomFolder { get; set; }
         string ResultSeriesDicomFolder { get; set; }
         IJobResult[] Results { get; set; }
         string PriorReslicedSeriesDicomFolder { get; set; }
         string ProcessingFolder { get; set; }
 
         void Process();
+        string GetStudyIdFromReferenceSeries();
+        string GetSeriesIdFromReferenceSeries();
+        void WriteStudyAndSeriesIdsToReferenceSeries(string studyId, string seriesId);
     }
 }

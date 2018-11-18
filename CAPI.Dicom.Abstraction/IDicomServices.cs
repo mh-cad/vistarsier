@@ -40,5 +40,7 @@ namespace CAPI.Dicom.Abstractions
         void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "", bool matchByFilename = false);
         void ConvertBmpToDicom(string bmpFilepath, string dicomFilePath, string dicomHeadersFilePath = "");
         void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "");
+        string GetPatientIdFromDicomFile(string dicomFilePath);
+        void UpdateImagePositionFromReferenceSeries(string[] dicomFilesToUpdate, string[] orientationDicomFiles);
     }
 }

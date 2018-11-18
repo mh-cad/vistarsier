@@ -48,7 +48,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>\\rad-vtnew\d%24\MehdiFiles\Capi-Agent\</PublishUrl>
+    <PublishUrl>\\***REMOVED***\d%24\MehdiFiles\Capi-Agent\</PublishUrl>
     <Install>false</Install>
     <InstallFrom>Unc</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -62,9 +62,10 @@
     <ProductName>Computer-Assisted Precision Imaging</ProductName>
     <PublisherName>Mehdi N Tehrani</PublisherName>
     <SuiteName>CAPI Agent</SuiteName>
+    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>52</ApplicationRevision>
+    <ApplicationRevision>53</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -253,9 +254,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <Content Include="brain.ico" />
-    <Content Include="config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="config.json" />
     <Content Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -302,6 +301,10 @@
     <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
       <Project>{bf71c555-cfc8-43e8-8615-44619adc91cd}</Project>
       <Name>CAPI.ImageProcessing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.UAT\CAPI.UAT.csproj">
+      <Project>{5a6d1403-1f31-4ada-a350-e1969378a0df}</Project>
+      <Name>CAPI.UAT</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

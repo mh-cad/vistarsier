@@ -1,4 +1,5 @@
-﻿using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Common;
+using CAPI.Common.Abstractions.Config;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -20,6 +21,7 @@ namespace CAPI.ImageProcessing
         private readonly IProcessBuilder _processBuilder;
         private readonly IImgProcConfig _config;
         private readonly ILog _log;
+        private string _referenceSeriesDicomFolder;
 
         public ImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
                               IImgProcConfig config, ILog log)
@@ -30,141 +32,93 @@ namespace CAPI.ImageProcessing
             _log = log;
         }
 
-        public void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii)
+
+        /// <summary>
+        /// Entry point to this class
+        /// </summary>
+        /// <param name="currentDicomFolder">Directory path to current series dicom folder</param>
+        /// <param name="priorDicomFolder">Directory path to prior series dicom folder</param>
+        /// <param name="lookupTablePaths">array containing filepath to each lookup table used to compare current and prior series</param>
+        /// <param name="sliceType">Input set of series can be in either Sagittal, Axial or Coronal plane</param>
+        /// <param name="referenceSeriesDicomFolder">Patient has previous processed cases and this series was as reference frame of reference</param>
+        /// <param name="extractBrain">true if brain extraction required</param>
+        /// <param name="register">true if current and prior are not registered yet and need to be registered</param>
+        /// <param name="biasFieldCorrect">true if Bias Field Correction is required</param>
+        /// <param name="resultNiis">array including filepath to each result nifti file (Not yet created)</param>
+        /// <param name="outPriorReslicedNii">registered prior series which has been resliced to align with current series</param>
+        /// <returns></returns>
+        [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+        public void CompareDicomInNiftiOut(
+            string currentDicomFolder, string priorDicomFolder, string referenceSeriesDicomFolder,
+            string[] lookupTablePaths, SliceType sliceType,
+            bool extractBrain, bool register, bool biasFieldCorrect,
+            string[] resultNiis, string outPriorReslicedNii)
         {
-            var bseExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BseExeRelFilePath);
+            _referenceSeriesDicomFolder = referenceSeriesDicomFolder ?? string.Empty;
 
-            if (!File.Exists(bseExe))
-                throw new FileNotFoundException($"Unable to find {nameof(bseExe)} file: [{bseExe}]");
+            foreach (var lookupTablePath in lookupTablePaths)
+                if (!File.Exists(lookupTablePath))
+                    throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTablePath}");
 
-            var arguments = $"-i {inNii} --mask {outMaskNii} -o {outBrainNii} {bseParams}";
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series
+            if (!_filesystem.DirectoryIsValidAndNotEmpty(currentDicomFolder))
+                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {currentDicomFolder}");
 
-            if (!Directory.Exists(Path.GetDirectoryName(outBrainNii))) throw new DirectoryNotFoundException();
-            if (!Directory.Exists(Path.GetDirectoryName(outMaskNii))) throw new DirectoryNotFoundException();
+            var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
 
-            _processBuilder.CallExecutableFile(bseExe, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
-
-            if (!File.Exists(outBrainNii) || !File.Exists(outMaskNii))
-                throw new FileNotFoundException("Brain surface removal failed to create brain/mask.");
-        }
-
-        public void Registration(string currentNii, string priorNii, string outPriorReslicedNii)
-        {
-            var outputPath = Directory.GetParent(Path.GetDirectoryName(currentNii)).FullName;
-            outputPath = Path.Combine(outputPath, "Registration");
-            _filesystem.DirectoryExistsIfNotCreate(outputPath);
-
-            CreateRawXform(outputPath, currentNii, priorNii);
-
-            CreateResultXform(outputPath, currentNii, priorNii);
-
-            ResliceFloatingImages(outputPath, currentNii, priorNii, outPriorReslicedNii);
-        }
-
-        private void CreateRawXform(string outputPath, string fixedNii, string floatingNii)
-        {
-            var registrationFile = Path.Combine(_config.ImgProcBinFolderPath, _config.RegistrationRelFilePath);
-
-            if (!File.Exists(registrationFile))
-                throw new FileNotFoundException($"Unable to find {nameof(registrationFile)} file: [{registrationFile}]");
-
-            var registrationParams = _config.RegistrationParams;
-            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
-            var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
-
-            if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir, true);
-            _filesystem.DirectoryExistsIfNotCreate(cmtkOutputDir);
-
-            var arguments = $@"{registrationParams} --out-matrix {rawForm} -o . {fixedNii} {floatingNii}";
-
-            _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir, OutputDataReceivedInProcess, ErrorOccuredInProcess);
-        }
-        private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
-        {
-            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
-            var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
-
-            try
+            var task1 = Task.Run(() =>
             {
-                if (File.Exists(resultForm)) File.Delete(resultForm);
-            }
-            catch
+                _log.Info("Start converting current series dicom files to Nii");
+                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
+                _log.Info("Finished converting current series dicom files to Nii");
+            });
+
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior series
+            if (!_filesystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
+                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {priorDicomFolder}");
+
+            var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
+
+            var task2 = Task.Run(() =>
             {
-                // ignored
-            }
+                _log.Info("Start converting prior series dicom files to Nii");
+                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(priorDicomFolder, priorNifti);
+                _log.Info("Finished converting prior series dicom files to Nii");
+            });
 
-            var javaClasspath = _config.JavaClassPath;
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for reference series
+            var referenceNifti = _filesystem.DirectoryIsValidAndNotEmpty(referenceSeriesDicomFolder) ?
+                                 Path.Combine(Path.GetDirectoryName(_referenceSeriesDicomFolder), "reference.nii") : string.Empty;
 
-            const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
+            var task3 = Task.Run(() =>
+            {
+                if (!_filesystem.DirectoryIsValidAndNotEmpty(referenceSeriesDicomFolder))
+                {
+                    _log.Info("No reference series dicom files exist to convert to Nii");
+                    return;
+                }
+                _log.Info("Start converting reference series dicom files to Nii");
+                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(referenceSeriesDicomFolder, referenceNifti);
+                _log.Info("Finished converting reference series dicom files to Nii");
+            });
 
-            var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
+            task1.Wait();
+            task2.Wait();
+            task3.Wait();
 
-            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
-
-            //File.Delete(rawForm);
-        }
-        private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced)
-        {
-            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
-
-            Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
-
-            var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
-
-            var reformatxFilePath = Path.Combine(_config.ImgProcBinFolderPath, _config.ReformatXRelFilePath);
-
-            if (!File.Exists(reformatxFilePath)) throw new
-                FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
-
-            _processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
-        }
-
-        public void BiasFieldCorrection(string inNii, string mask, string bfcParams, string outNii)
-        {
-            var bfcExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BfcExeRelFilePath);
-
-            if (!File.Exists(inNii))
-                throw new FileNotFoundException($"Unable to find {nameof(inNii)} file: [{inNii}]");
-            if (!File.Exists(bfcExe))
-                throw new FileNotFoundException($"Unable to find {nameof(bfcExe)} file: [{bfcExe}]");
-
-            var arguments = $"-i \"{inNii}\" -o \"{outNii}\" {bfcParams}";
-            if (!string.IsNullOrEmpty(mask) && File.Exists(mask))
-                arguments += $" -m \"{mask}\"";
-
-            _processBuilder.CallExecutableFile(bfcExe, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+            // When dicom files are converted into nifti files they are passed to do the actual processing
+            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, referenceNifti, lookupTablePaths, sliceType,
+                                           extractBrain, register, biasFieldCorrect,
+                                           resultNiis, outPriorReslicedNii);
         }
 
-        public void Compare(
-            string currentNiiFile, string priorNiiFile, string lookupTableFile,
-            SliceType sliceType, string resultNiiFile)
-        {
-            var currentNii = new Nifti().ReadNifti(currentNiiFile);
-            var priorNii = new Nifti().ReadNifti(priorNiiFile);
-
-            var lookupTable = new SubtractionLookUpTable();
-            lookupTable.LoadImage(lookupTableFile);
-
-            var workingDir = Directory.GetParent(currentNiiFile).FullName;
-
-            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir);
-
-            var resultFolderPath = Path.GetDirectoryName(resultNiiFile);
-            _filesystem.DirectoryExistsIfNotCreate(resultFolderPath);
-            if (!Directory.Exists(resultFolderPath)) throw new DirectoryNotFoundException($"Results folder was not created [{resultFolderPath}]");
-            File.Copy(lookupTableFile, Path.Combine(resultFolderPath, Path.GetFileName(lookupTableFile) ?? throw new InvalidOperationException()));
-
-            result.WriteNifti(resultNiiFile);
-        }
 
         /// <summary>
         /// Main method responsible for calling other methods to Extract Brain from current and prior series, Register the two, BFC and Normalize and then compare using a lookup table
         /// </summary>
         /// <param name="currentNii">current series nifti file path</param>
         /// <param name="priorNii">prior series nifti file path</param>
+        /// <param name="referenceNii">reference series nifti file path (If exists, used for universal frame of reference)</param>
         /// <param name="lookupTablePaths">bmp files mapping current and prior comparison result colors</param>
         /// <param name="sliceType">Sagittal, Axial or Coronal</param>
         /// <param name="extractBrain">to do skull stripping or not</param>
@@ -173,7 +127,7 @@ namespace CAPI.ImageProcessing
         /// <param name="resultNiis">end result output nifti files path</param>
         /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
         public void ExtractBrainRegisterAndCompare(
-            string currentNii, string priorNii, string[] lookupTablePaths, SliceType sliceType,
+            string currentNii, string priorNii, string referenceNii, string[] lookupTablePaths, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
         {
@@ -182,11 +136,14 @@ namespace CAPI.ImageProcessing
 
             var fixedFile = currentNii;
             var floatingFile = priorNii;
-            var fixedMask = ""; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
-            var floatingMask = ""; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
+            var fixedMask = string.Empty; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
+            var floatingMask = string.Empty; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
+            var referenceBrain = string.Empty;
+            var referenceMask = string.Empty;
 
             var stopwatch1 = new Stopwatch();
             var stopwatch2 = new Stopwatch();
+            var stopwatch3 = new Stopwatch();
 
             if (extractBrain)
             {
@@ -199,6 +156,7 @@ namespace CAPI.ImageProcessing
                     _log.Info("Starting EXTRACTING BRAIN for Current series...");
                     stopwatch1.Start();
 
+                    // ReSharper disable once AccessToModifiedClosure
                     ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
 
                     stopwatch1.Stop();
@@ -213,6 +171,7 @@ namespace CAPI.ImageProcessing
                     _log.Info("Starting EXTRACTING BRAIN for Prior series...");
 
                     stopwatch2.Start();
+                    // ReSharper disable once AccessToModifiedClosure
                     ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
                     stopwatch2.Stop();
 
@@ -220,48 +179,110 @@ namespace CAPI.ImageProcessing
                     floatingFile = floatingBrain;
                 });
 
+                var task3 = Task.Run(() =>
+                {
+                    if (string.IsNullOrEmpty(referenceNii) || !File.Exists(referenceNii)) return;
+                    referenceBrain = referenceNii.Replace(".nii", ".brain.nii");
+                    referenceMask = referenceNii.Replace(".nii", ".mask.nii");
+                    _log.Info("Starting EXTRACTING BRAIN for Reference series...");
+
+                    stopwatch3.Start();
+                    // ReSharper disable once AccessToModifiedClosure
+                    ExtractBrainMask(referenceNii, bseParams, referenceBrain, referenceMask);
+                    stopwatch3.Stop();
+
+                    _log.Info($"Finished extracting brain for Reference series in {stopwatch3.Elapsed.Minutes}:{stopwatch3.Elapsed.Seconds:D2} minutes.");
+                });
+
                 task1.Wait();
                 task2.Wait();
+                task3.Wait();
             }
 
             if (register)
             {
-                _log.Info("Starting REGISTRATION of current and prior series...");
+                var refBrain = string.IsNullOrEmpty(referenceBrain) && File.Exists(referenceBrain) ? referenceBrain : fixedFile;
+                var refMask = string.IsNullOrEmpty(referenceMask) && File.Exists(referenceMask) ? referenceMask : fixedMask;
 
                 var task1 = Task.Run(() =>
                 {
-                    var resliced = priorNii.Replace(".nii", ".resliced.nii");
+                    if (string.IsNullOrEmpty(_referenceSeriesDicomFolder)) return;
+                    _log.Info("Starting REGISTRATION of current series against reference series...");
+                    var reslicedCurrentBrain = fixedFile.Replace(".nii", ".resliced.nii");
                     stopwatch1.Restart();
-                    // Registering current and prior nifti files
-                    Registration(fixedFile, floatingFile, resliced);
+
+                    Registration(refBrain, fixedFile, reslicedCurrentBrain, "brain");
+
                     stopwatch1.Stop();
-                    if (!File.Exists(resliced))
+
+                    if (!File.Exists(reslicedCurrentBrain))
                         throw new FileNotFoundException(
                             $"Registration process failed to created resliced file {outPriorReslicedNii}");
-                    _log.Info(
-                        $"Finished registration of current and prior series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
-                    // Move resliced prior to desired out file
-                    _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
-                    File.Move(resliced, outPriorReslicedNii);
-                    floatingFile = outPriorReslicedNii;
+
+                    _log.Info($"Finished registration of current series against reference series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+
+                    fixedFile = reslicedCurrentBrain;
                 });
 
                 var task2 = Task.Run(() =>
                 {
-                    _log.Info("Starting REGISTRATION of current and prior MASKS...");
-                    var reslicedMask = floatingMask.Replace(".mask.nii", ".resliced.mask.nii");
+                    if (string.IsNullOrEmpty(_referenceSeriesDicomFolder)) return;
+                    _log.Info("Starting REGISTRATION of current MASK against reference MASK...");
+                    var reslicedCurrentMask = fixedMask.Replace(".mask.nii", ".resliced.mask.nii");
                     stopwatch2.Restart();
-                    // Registering current and prior nifti mask files
-                    Registration(fixedMask, floatingMask, reslicedMask);
-                    stopwatch2.Stop();
-                    if (!File.Exists(reslicedMask))
-                        throw new FileNotFoundException($"Registration process failed to created resliced mask file {reslicedMask}");
-                    _log.Info($"Finished registration of current and prior MASKS in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
 
-                    floatingMask = reslicedMask;
+                    Registration(refMask, fixedMask, reslicedCurrentMask, "mask");
+
+                    stopwatch2.Stop();
+
+                    if (!File.Exists(reslicedCurrentMask))
+                        throw new FileNotFoundException($"Registration process failed to created resliced mask file {reslicedCurrentMask}");
+
+                    _log.Info($"Finished registration of current MASK against reference MASK in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
+
+                    fixedMask = reslicedCurrentMask;
                 });
+
+                var task3 = Task.Run(() =>
+                {
+                    _log.Info("Starting REGISTRATION of prior series against reference series...");
+                    var reslicedPriorBrain = priorNii.Replace(".nii", ".resliced.nii");
+                    stopwatch1.Restart();
+
+                    Registration(refBrain, floatingFile, reslicedPriorBrain, "brain");
+
+                    stopwatch1.Stop();
+                    if (!File.Exists(reslicedPriorBrain))
+                        throw new FileNotFoundException(
+                            $"Registration process failed to created resliced file {outPriorReslicedNii}");
+                    _log.Info(
+                        $"Finished registration of prior series against reference series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+                    // Move resliced prior to desired out file
+                    _filesystem.DirectoryExistsIfNotCreate(Path.GetDirectoryName(outPriorReslicedNii));
+                    File.Move(reslicedPriorBrain, outPriorReslicedNii);
+                    floatingFile = outPriorReslicedNii;
+                });
+
+                var task4 = Task.Run(() =>
+                {
+                    _log.Info("Starting REGISTRATION of prior MASK against reference MASK...");
+                    var reslicedPriorMask = floatingMask.Replace(".mask.nii", ".resliced.mask.nii");
+                    stopwatch2.Restart();
+
+                    Registration(refMask, floatingMask, reslicedPriorMask, "mask");
+
+                    stopwatch2.Stop();
+                    if (!File.Exists(reslicedPriorMask))
+                        throw new FileNotFoundException($"Registration process failed to created resliced mask file {reslicedPriorMask}");
+                    _log.Info($"Finished registration of prior MASK against reference MASK in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
+
+                    floatingMask = reslicedPriorMask;
+                });
+
                 task1.Wait();
                 task2.Wait();
+                task3.Wait();
+                task4.Wait();
             }
 
             if (biasFieldCorrect)
@@ -379,6 +400,161 @@ namespace CAPI.ImageProcessing
             #endregion
 
             File.Move(floatingFile, outPriorReslicedNii);
+        }
+
+
+        public void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii)
+        {
+            var bseExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BseExeRelFilePath);
+
+            if (!File.Exists(bseExe))
+                throw new FileNotFoundException($"Unable to find {nameof(bseExe)} file: [{bseExe}]");
+
+            var arguments = $"-i {inNii} --mask {outMaskNii} -o {outBrainNii} {bseParams}";
+
+            if (!Directory.Exists(Path.GetDirectoryName(outBrainNii))) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(Path.GetDirectoryName(outMaskNii))) throw new DirectoryNotFoundException();
+
+            _processBuilder.CallExecutableFile(bseExe, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+
+            if (!File.Exists(outBrainNii) || !File.Exists(outMaskNii))
+                throw new FileNotFoundException("Brain surface removal failed to create brain/mask.");
+        }
+
+        public void Registration(string refNii, string priorNii, string outPriorReslicedNii, string seriesType)
+        {
+            var outputPath = Directory.GetParent(Path.GetDirectoryName(refNii)).FullName;
+            outputPath = Path.Combine(outputPath, "Registration");
+            _filesystem.DirectoryExistsIfNotCreate(outputPath);
+
+            var fixedNiiFileName = Path.GetFileNameWithoutExtension(refNii);
+            var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
+
+            CreateRawXform(refNii, priorNii, cmtkOutputDir);
+
+            //CreateResultXform(outputPath, refNii, priorNii);
+
+            ResliceFloatingImages(outputPath, refNii, priorNii, outPriorReslicedNii, cmtkOutputDir);
+        }
+
+        private static IRegistrationData GetRegistrationData(IRegistrationData registrationData, string cmtkOutputDir, string seriesType)
+        {
+            var isBrain = seriesType.Equals("brain", StringComparison.CurrentCultureIgnoreCase);
+            if (isBrain)
+            {
+                registrationData.BrainRegistration = File.ReadAllText(Path.Combine(cmtkOutputDir, "registration"));
+                registrationData.BrainSettings = File.ReadAllText(Path.Combine(cmtkOutputDir, "settings"));
+                registrationData.BrainStatistics = File.ReadAllText(Path.Combine(cmtkOutputDir, "statistics"));
+                registrationData.BrainStudyList = File.ReadAllText(Path.Combine(cmtkOutputDir, "studylist"));
+            }
+            else
+            {
+                registrationData.MaskRegistration = File.ReadAllText(Path.Combine(cmtkOutputDir, "registration"));
+                registrationData.MaskSettings = File.ReadAllText(Path.Combine(cmtkOutputDir, "settings"));
+                registrationData.MaskStatistics = File.ReadAllText(Path.Combine(cmtkOutputDir, "statistics"));
+                registrationData.MaskStudyList = File.ReadAllText(Path.Combine(cmtkOutputDir, "studylist"));
+            }
+            return registrationData;
+        }
+
+        private void CreateRawXform(string fixedNii, string floatingNii, string cmtkOutputDir)
+        {
+            var registrationFile = Path.Combine(_config.ImgProcBinFolderPath, _config.RegistrationRelFilePath);
+
+            if (!File.Exists(registrationFile))
+                throw new FileNotFoundException($"Unable to find {nameof(registrationFile)} file: [{registrationFile}]");
+
+            var registrationParams = _config.RegistrationParams;
+            //var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            //var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
+            //var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
+
+            if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir, true);
+            _filesystem.DirectoryExistsIfNotCreate(cmtkOutputDir);
+
+            //var arguments = $@"{registrationParams} --out-matrix {rawForm} -o . {fixedNii} {floatingNii}";
+            var arguments = $@"{registrationParams} -o . {fixedNii} {floatingNii}";
+
+            _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir, OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        }
+        private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
+        {
+            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
+            var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
+
+            try
+            {
+                if (File.Exists(resultForm)) File.Delete(resultForm);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            var javaClasspath = _config.JavaClassPath;
+
+            const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
+
+            var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
+
+            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+
+            //File.Delete(rawForm);
+        }
+        private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced, string cmtkOutputDir)
+        {
+            //var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+            //var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
+
+            Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
+
+            var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
+
+            var reformatxFilePath = Path.Combine(_config.ImgProcBinFolderPath, _config.ReformatXRelFilePath);
+
+            if (!File.Exists(reformatxFilePath)) throw new
+                FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
+
+            _processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        }
+
+        public void BiasFieldCorrection(string inNii, string mask, string bfcParams, string outNii)
+        {
+            var bfcExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BfcExeRelFilePath);
+
+            if (!File.Exists(inNii))
+                throw new FileNotFoundException($"Unable to find {nameof(inNii)} file: [{inNii}]");
+            if (!File.Exists(bfcExe))
+                throw new FileNotFoundException($"Unable to find {nameof(bfcExe)} file: [{bfcExe}]");
+
+            var arguments = $"-i \"{inNii}\" -o \"{outNii}\" {bfcParams}";
+            if (!string.IsNullOrEmpty(mask) && File.Exists(mask))
+                arguments += $" -m \"{mask}\"";
+
+            _processBuilder.CallExecutableFile(bfcExe, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        }
+
+        public void Compare(
+            string currentNiiFile, string priorNiiFile, string lookupTableFile,
+            SliceType sliceType, string resultNiiFile)
+        {
+            var currentNii = new Nifti().ReadNifti(currentNiiFile);
+            var priorNii = new Nifti().ReadNifti(priorNiiFile);
+
+            var lookupTable = new SubtractionLookUpTable();
+            lookupTable.LoadImage(lookupTableFile);
+
+            var workingDir = Directory.GetParent(currentNiiFile).FullName;
+
+            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir);
+
+            var resultFolderPath = Path.GetDirectoryName(resultNiiFile);
+            _filesystem.DirectoryExistsIfNotCreate(resultFolderPath);
+            if (!Directory.Exists(resultFolderPath)) throw new DirectoryNotFoundException($"Results folder was not created [{resultFolderPath}]");
+            File.Copy(lookupTableFile, Path.Combine(resultFolderPath, Path.GetFileName(lookupTableFile) ?? throw new InvalidOperationException()));
+
+            result.WriteNifti(resultNiiFile);
         }
 
         // TODO1: Remove when done experimenting
@@ -502,51 +678,6 @@ namespace CAPI.ImageProcessing
             normalizedNim.ExportSlicesToBmps(niftiFilePath.Replace(".nii", "_For_LUT"), sliceType);
             #endregion
             #endregion
-        }
-
-        [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
-        public void CompareDicomInNiftiOut(
-            string currentDicomFolder, string priorDicomFolder,
-            string[] lookupTablePaths, SliceType sliceType,
-            bool extractBrain, bool register, bool biasFieldCorrect,
-            string[] resultNiis, string outPriorReslicedNii)
-        {
-            foreach (var lookupTablePath in lookupTablePaths)
-                if (!File.Exists(lookupTablePath))
-                    throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTablePath}");
-
-            // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series
-            if (!_filesystem.DirectoryIsValidAndNotEmpty(currentDicomFolder))
-                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {currentDicomFolder}");
-
-            var currentNifti = Path.Combine(Path.GetDirectoryName(currentDicomFolder), "fixed.nii");
-
-            var task1 = Task.Run(() =>
-            {
-                _log.Info("Start converting current series dicom files to Nii");
-                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(currentDicomFolder, currentNifti);
-                _log.Info("Finished converting current series dicom files to Nii");
-            });
-
-            // Generate Nifti file from Dicom and pass to ProcessNifti Method for prior series
-            if (!_filesystem.DirectoryIsValidAndNotEmpty(priorDicomFolder))
-                throw new DirectoryNotFoundException($"Dicom folder either does not exist or contains no files: {priorDicomFolder}");
-
-            var priorNifti = Path.Combine(Path.GetDirectoryName(priorDicomFolder), "floating.nii");
-
-            var task2 = Task.Run(() =>
-            {
-                _log.Info("Start converting prior series dicom files to Nii");
-                new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(priorDicomFolder, priorNifti);
-                _log.Info("Finished converting prior series dicom files to Nii");
-            });
-
-            task1.Wait();
-            task2.Wait();
-
-            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, lookupTablePaths, sliceType,
-                                           extractBrain, register, biasFieldCorrect,
-                                           resultNiis, outPriorReslicedNii);
         }
 
         private void OutputDataReceivedInProcess(object sender, DataReceivedEventArgs e)

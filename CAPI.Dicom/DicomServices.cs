@@ -7,6 +7,7 @@ using ClearCanvas.Dicom.Iod.Iods;
 using ClearCanvas.Dicom.Network.Scu;
 using log4net;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -127,6 +128,7 @@ namespace CAPI.Dicom
         {
             if (newTag.Values == null && !overwriteIfNotProvided) return dcmFile;
             var value = newTag.Values != null ? newTag.Values[0] : "";
+
             return UpdateTag(dcmFile, newTag, value);
         }
         private static DicomFile UpdateTag(
@@ -134,6 +136,12 @@ namespace CAPI.Dicom
         {
             if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new[] { value };
             else if (newTag.GetValueType() == typeof(string)) dcmFile.DataSet[newTag.GetTagValue()].Values = value;
+            return dcmFile;
+        }
+        private static DicomFile UpdateArrayTag(
+            DicomFile dcmFile, IDicomTag newTag, IEnumerable value)
+        {
+            dcmFile.DataSet[newTag.GetTagValue()].Values = value;
             return dcmFile;
         }
 
@@ -227,12 +235,11 @@ namespace CAPI.Dicom
         {
             _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
 
-
             var orderedDicomFiles = new List<string>();
             if (!string.IsNullOrEmpty(dicomHeadersFolder))
             {
                 orderedDicomFiles = GetFilesOrderedByInstanceNumber(Directory.GetFiles(dicomHeadersFolder)).ToList();
-                if (!DicomFilesInRightOrder(dicomHeadersFolder, sliceType)) // TODO1: Testing
+                if (!DicomFilesInRightOrder(dicomHeadersFolder, sliceType))
                     orderedDicomFiles = orderedDicomFiles.ToArray().Reverse().ToList();
             }
 
@@ -273,7 +280,6 @@ namespace CAPI.Dicom
             }
             return orderedBmpFiles.ToArray();
         }
-
 
         private bool DicomFilesInRightOrder(string dicomFolderPath, SliceType sliceType)
         {
@@ -326,6 +332,48 @@ namespace CAPI.Dicom
             var newFileInstanceNumber = headers.InstanceNumber.Values == null ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
             headers.InstanceNumber.Values = new[] { newFileInstanceNumber.ToString() };
             UpdateDicomHeaders(newFilePath, headers, DicomNewObjectType.NewImage);
+        }
+
+        public string GetPatientIdFromDicomFile(string dicomFilePath)
+        {
+            var dcmFile = new DicomFile(dicomFilePath);
+            dcmFile.Load(dicomFilePath);
+            var patientIdTag = dcmFile.DataSet[1048608].Values as string[];
+            return patientIdTag?[0];
+        }
+
+        public void UpdateImagePositionFromReferenceSeries(string[] dicomFilesToUpdate, string[] orientationDicomFiles)
+        {
+            if (dicomFilesToUpdate == null || dicomFilesToUpdate.Length == 0) throw new ArgumentNullException("Orientation Dicom files not available to read from");
+            if (orientationDicomFiles == null || orientationDicomFiles.Length == 0) throw new ArgumentNullException("Dicom files to copy orientation data to not available");
+
+            if (dicomFilesToUpdate.Length != orientationDicomFiles.Length)
+                throw new Exception("Number of files in \"Orientation dicom\" folder and \"Dicom Files to Update\" do not match");
+
+            var orderedFilesToUpdate = dicomFilesToUpdate
+                .OrderBy(f => GetDicomTags(f).InstanceNumber.Values[0]).ToArray();
+
+            var orderedOrientationFiles = orientationDicomFiles
+                .OrderBy(f => GetDicomTags(f).InstanceNumber.Values[0]).ToArray();
+
+            for (var i = 0; i < orderedFilesToUpdate.Count(); i++)
+            {
+                var fileToUpdate = orderedFilesToUpdate[i];
+                var orientationFile = orderedOrientationFiles[i];
+
+                var imagePatientOrientation = GetDicomTags(orientationFile).ImagePositionPatient;
+                var imageOrientation = GetDicomTags(orientationFile).ImageOrientation;
+                var frameOfReferenceUid = GetDicomTags(orientationFile).FrameOfReferenceUid;
+                var sliceLocation = GetDicomTags(orientationFile).SliceLocation;
+
+                var dcmFile = new DicomFile();
+                dcmFile.Load(fileToUpdate);
+                dcmFile = UpdateArrayTag(dcmFile, imagePatientOrientation, imagePatientOrientation.Values);
+                dcmFile = UpdateArrayTag(dcmFile, imageOrientation, imageOrientation.Values);
+                dcmFile = UpdateArrayTag(dcmFile, frameOfReferenceUid, frameOfReferenceUid.Values);
+                dcmFile = UpdateArrayTag(dcmFile, sliceLocation, sliceLocation.Values);
+                dcmFile.Save(fileToUpdate);
+            }
         }
 
         private string GetDicomFileWithHighestInstanceNumber(string dicomFolderPath)
@@ -383,7 +431,7 @@ namespace CAPI.Dicom
                 PatientBirthDate = study.PatientsBirthDate,
                 PatientId = study.PatientId,
                 PatientsName = study.PatientsName,
-                PatientsSex = study.PatientsSex
+                PatientsSex = study.PatientsSex,
             };
         }
 
@@ -402,7 +450,7 @@ namespace CAPI.Dicom
                 {
                     SeriesInstanceUid = s.SeriesInstanceUid,
                     SeriesDescription = s.SeriesDescription,
-                    StudyInstanceUid = s.StudyInstanceUid
+                    StudyInstanceUid = s.StudyInstanceUid,
                 });
         }
 
