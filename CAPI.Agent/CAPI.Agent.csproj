@@ -141,6 +141,14 @@
     <Compile Include="Migrations\20180829010411_CaseCommentPropAdded.designer.cs">
       <DependentUpon>20180829010411_CaseCommentPropAdded.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20181109235257_AddRegistrationDataToJobClass.cs" />
+    <Compile Include="Migrations\20181109235257_AddRegistrationDataToJobClass.designer.cs">
+      <DependentUpon>20181109235257_AddRegistrationDataToJobClass.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20181111092825_AddReferenceSeriesToJobRemoveRegistraionData.cs" />
+    <Compile Include="Migrations\20181111092825_AddReferenceSeriesToJobRemoveRegistraionData.designer.cs">
+      <DependentUpon>20181111092825_AddReferenceSeriesToJobRemoveRegistraionData.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\AgentRepositoryModelSnapshot.cs" />
     <Compile Include="Models\Case.cs" />
     <Compile Include="ImageProcessor.cs" />

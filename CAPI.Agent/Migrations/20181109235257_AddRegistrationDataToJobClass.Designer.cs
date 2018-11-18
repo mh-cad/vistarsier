@@ -4,14 +4,16 @@ using CAPI.Agent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CAPI.Agent.Migrations
 {
     [DbContext(typeof(AgentRepository))]
-    partial class AgentRepositoryModelSnapshot : ModelSnapshot
+    [Migration("20181109235257_AddRegistrationDataToJobClass")]
+    partial class AddRegistrationDataToJobClass
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,9 +68,9 @@ namespace CAPI.Agent.Migrations
 
                     b.Property<string>("PriorAccession");
 
-                    b.Property<string>("ReferenceSeries");
-
                     b.Property<bool>("Register");
+
+                    b.Property<string>("RegistrationData");
 
                     b.Property<string>("SourceAet");
 

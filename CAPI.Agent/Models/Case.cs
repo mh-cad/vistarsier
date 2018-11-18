@@ -16,7 +16,7 @@ namespace CAPI.Agent.Models
         public AdditionMethod AdditionMethod { get; set; }
 
         public static void Process(Recipe recipe, IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
-                            CapiConfig capiConfig, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
+                                   CapiConfig capiConfig, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log, AgentRepository context)
         {
             var dicomConfig = GetDicomConfigFromCapiConfig(capiConfig, dicomFactory);
             var dicomServices = dicomFactory.CreateDicomServices(dicomConfig, fileSystem, processBuilder, log);
@@ -24,7 +24,7 @@ namespace CAPI.Agent.Models
                                      imgProcFactory,
                                      new ValueComparer(),
                                      fileSystem, processBuilder,
-                                     capiConfig, log)
+                                     capiConfig, log, context)
                       .Build(recipe);
             job.Process();
         }
