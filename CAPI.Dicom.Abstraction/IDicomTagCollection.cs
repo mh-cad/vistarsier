@@ -17,6 +17,9 @@ namespace CAPI.Dicom.Abstractions
         IDicomTag ImageUid { get; }
         IDicomTag InstanceNumber { get; }
         IDicomTag ImagePositionPatient { get; }
+        IDicomTag ImageOrientation { get; }
+        IDicomTag FrameOfReferenceUid { get; }
+        IDicomTag SliceLocation { get; }
         IDicomTag RequestingService { get; }
         IDicomTag InstitutionName { get; }
         IDicomTag InstitutionAddress { get; }

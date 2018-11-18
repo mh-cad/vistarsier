@@ -20,6 +20,9 @@ namespace CAPI.Dicom.Model
         public IDicomTag ImageUid { get; }
         public IDicomTag InstanceNumber { get; }
         public IDicomTag ImagePositionPatient { get; }
+        public IDicomTag ImageOrientation { get; }
+        public IDicomTag FrameOfReferenceUid { get; }
+        public IDicomTag SliceLocation { get; }
         public IDicomTag RequestingService { get; }
         public IDicomTag InstitutionName { get; }
         public IDicomTag InstitutionAddress { get; }
@@ -44,6 +47,9 @@ namespace CAPI.Dicom.Model
             ImageUid = new DicomTag("Sop Instance Id", 524312, TagType.Image, typeof(string[]));
             InstanceNumber = new DicomTag("Instance Number", 2097171, TagType.Image, typeof(string[]));
             ImagePositionPatient = new DicomTag("Image Position (Patient)", 2097202, TagType.Image, typeof(string[]));
+            ImageOrientation = new DicomTag("Image Orientation", 2097207, TagType.Image, typeof(string[]));
+            FrameOfReferenceUid = new DicomTag("Frame Of Reference Uid", 2097234, TagType.Image, typeof(string[]));
+            SliceLocation = new DicomTag("Slice Location", 2101313, TagType.Image, typeof(string[]));
             RequestingService = new DicomTag("Requesting Service", 3280947, TagType.Site, typeof(string[])); // e.g. RMH
             InstitutionName = new DicomTag("Institution Description", 524416, TagType.Site, typeof(string[]));
             InstitutionAddress = new DicomTag("Institution Address", 524417, TagType.Site, typeof(string));

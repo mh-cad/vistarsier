@@ -28,12 +28,17 @@ namespace CAPI.Tests.Dicom
         private string _testObjectsPath;
         private static string _testResources;
         private ILog _log;
+        private string _tempOutputFolder;
+        private string _orientationReferenceDicomFolder;
+        private string _testingDicomFolderForOrientation;
 
         private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
         private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
         private const string OutDicomRelPath = @"OutDicom";
         private const string TestDicomRelativePath = "Dicom\\DicomFile1";
         private const string TestDicomUpdatedTagsRelativePath = "Dicom\\DicomFile1_UpdatedTags";
+        private const string OrientationReferenceDicomFolder = @"D:\Capi-Tests\TestsResources\Orientation-Series\P1-S1";
+        private const string TestingDicomFolderForOrientation = @"D:\Capi-Tests\TestsResources\Orientation-Series\P1-S2";
 
         [TestInitialize]
         public void TestInit()
@@ -51,6 +56,17 @@ namespace CAPI.Tests.Dicom
             var capiConfig = new CapiConfig().GetConfig(new[] { "-dev" }); //CapiConfigGetter.GetCapiConfig();
 
             //_dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
+
+            _tempOutputFolder = Path.Combine(capiConfig.TestsConfig.TestResourcesPath, "tempOutput");
+            if (Directory.Exists(_tempOutputFolder)) Directory.Delete(_tempOutputFolder, true);
+            Directory.CreateDirectory(_tempOutputFolder);
+
+            _orientationReferenceDicomFolder =
+                Path.Combine(_tempOutputFolder, Path.GetFileName(OrientationReferenceDicomFolder));
+            _filesystem.CopyDirectory(OrientationReferenceDicomFolder, _orientationReferenceDicomFolder);
+
+            _testingDicomFolderForOrientation = Path.Combine(_tempOutputFolder, Path.GetFileName(TestingDicomFolderForOrientation));
+            _filesystem.CopyDirectory(TestingDicomFolderForOrientation, _testingDicomFolderForOrientation);
 
             _localNode = GetLocalDicomNode();
             _remoteNode = GetRemoteDicomNode();
@@ -71,6 +87,9 @@ namespace CAPI.Tests.Dicom
             // Delete Updated Tag File
             var updatedTagFile = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
             if (File.Exists(updatedTagFile)) File.Delete(updatedTagFile);
+
+            // Delete temp output folder
+            if (Directory.Exists(_tempOutputFolder)) Directory.Delete(_tempOutputFolder, true);
         }
 
         [TestMethod]
@@ -225,6 +244,17 @@ namespace CAPI.Tests.Dicom
             Assert.IsTrue(dicomStudies.Length > 9, $"Less than 9 studies found for patient id: {testPatientId}{Environment.NewLine}" +
                                                $"Count:{dicomStudies.Length }");
         }
+
+        [TestMethod]
+        public void UpdateImagePositionFromReferenceSeries()
+        {
+            var refDicomFiles = Directory.GetFiles(_orientationReferenceDicomFolder);
+            var targetDicomFiles = Directory.GetFiles(_testingDicomFolderForOrientation);
+
+            _dicomServices.UpdateImagePositionFromReferenceSeries(targetDicomFiles, refDicomFiles);
+
+        }
+
 
         // To Be Removed After Building Recipes
         [TestMethod]

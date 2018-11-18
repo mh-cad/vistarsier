@@ -151,8 +151,8 @@ namespace CAPI.Tests.ImageProcessing
             _filesystem.DirectoryExistsIfNotCreate(_resultsFolder);
 
             // Act
-            _imageProcessor.Registration(_fixedBrainFile, _floatingBrainFile, floatingResliced);
-            _imageProcessor.Registration(_fixedMaskFile, _floatingMaskFile, maskResliced);
+            _imageProcessor.Registration(_fixedBrainFile, _floatingBrainFile, floatingResliced, "brain");
+            _imageProcessor.Registration(_fixedMaskFile, _floatingMaskFile, maskResliced, "mask");
 
             // Assert
             Assert.IsTrue(File.Exists(floatingResliced), $"Resliced floating file does not exist [{floatingResliced}]");
