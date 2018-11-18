@@ -1,0 +1,57 @@
+{
+  "AgentDbConnectionString": "Server=<Server address>;Database=<DB name>;User Id=<username>;Password=<password>;Connection Timeout=120",
+  "RunInterval": "30",
+  "ManualProcessPath": "", //Path to manual process folder
+  "Hl7ProcessPath": "", // Path to HL7 process folder
+  "DefaultRecipePath": "", // Path to default recipe file path
+  "LogPath:": "D:\\MehdiFiles\\Logs\\log.txt", // TO BE REMOVED
+  "ProcessCasesAddedManually": true, // true/false
+  "ProcessCasesAddedByHL7": true, // true/false
+  "DicomConfig": {
+    "Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\img2dcm.exe", // Path to dcmtk img2dcm.exe file v3.6.0
+    "LocalNode": { // Dicom and network details of this node
+      "LogicalName": "CAPI Server",
+      "AeTitle": "CAPI",
+      "IpAddress": "172.28.43.65",
+      "Port": 4104
+    },
+    "RemoteNodes": [ // Dicom and network details of remote nodes
+      {
+        "LogicalName": "Synapse Live",
+        "AeTitle": "RMHSYNSCP",
+        "IpAddress": "172.28.40.151",
+        "Port": 104
+      },
+      {
+        "LogicalName": "Syn-mini",
+        "AeTitle": "RMHSYNMINISCP",
+        "IpAddress": "172.28.40.152",
+        "Port": 104
+      }
+    ]
+  },
+  "ImgProcConfig": {
+    "ImgProcBinFolderPath": "D:\\MehdiFiles\\RAPPreprocess\\bin",
+    "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
+    "BseExeRelFilePath": "bse.exe",
+    "BseParams": "--auto --trim --timer",
+    "RegistrationRelFilePath": "registration\\registration.exe",
+    "CmtkFolderName": "CMTK_Output",
+    "CmtkRawxformFile": "CmtkRawxFormFile",
+    "RegistrationParams": "--initxlate --dofs 6 --auto-multi-levels 4",
+    "CmtkResultxformFile": "CmtkResultxFormFile",
+    "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
+    "BfcExeRelFilePath": "bfc.exe",
+    "BfcParams": "--iterate --ellipse --timer",
+
+    "JavaExeFilePath": "C:\\Program Files\\Java\\jre1.8.0_121\\bin\\java.exe", // TO BE REMOVED
+    "JavaClasspath": "D:\\MehdiFiles\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*", // TO BE REMOVED
+    "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log", // TO BE REMOVED
+    "ImageRepositoryPath": "D:\\MehdiFiles\\ImageRepository", // Path to folder were processing of files is done
+    "ResultsDicomSeriesDescription": "CAPI Modified Signal",
+    "PriorReslicedDicomSeriesDescription": "Prior Resliced"
+  },
+  "TestsConfig": {
+    "TestResourcesPath": "D:\\Capi-Tests\\TestsResources"
+  }
+}
