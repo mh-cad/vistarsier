@@ -477,31 +477,31 @@ namespace CAPI.ImageProcessing
 
             _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir, OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
-        private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
-        {
-            var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
-            var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
+        //private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
+        //{
+        //    var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
+        //    var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
+        //    var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
 
-            try
-            {
-                if (File.Exists(resultForm)) File.Delete(resultForm);
-            }
-            catch
-            {
-                // ignored
-            }
+        //    try
+        //    {
+        //        if (File.Exists(resultForm)) File.Delete(resultForm);
+        //    }
+        //    catch
+        //    {
+        //        // ignored
+        //    }
 
-            var javaClasspath = _config.JavaClassPath;
+        //    var javaClasspath = _config.JavaClassPath;
 
-            const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
+        //    const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
 
-            var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
+        //    var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
 
-            _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        //    _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
 
-            //File.Delete(rawForm);
-        }
+        //    //File.Delete(rawForm);
+        //}
         private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced, string cmtkOutputDir)
         {
             //var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
