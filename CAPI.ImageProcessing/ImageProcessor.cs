@@ -1,5 +1,4 @@
-﻿using CAPI.Common;
-using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Common.Abstractions.Config;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -22,6 +21,7 @@ namespace CAPI.ImageProcessing
         private readonly IImgProcConfig _config;
         private readonly ILog _log;
         private string _referenceSeriesDicomFolder;
+        private bool _referenceSeriesExists;
 
         public ImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
                               IImgProcConfig config, ILog log)
@@ -55,6 +55,7 @@ namespace CAPI.ImageProcessing
             string[] resultNiis, string outPriorReslicedNii)
         {
             _referenceSeriesDicomFolder = referenceSeriesDicomFolder ?? string.Empty;
+            _referenceSeriesExists = _filesystem.DirectoryIsValidAndNotEmpty(_referenceSeriesDicomFolder);
 
             foreach (var lookupTablePath in lookupTablePaths)
                 if (!File.Exists(lookupTablePath))
@@ -145,6 +146,7 @@ namespace CAPI.ImageProcessing
             var stopwatch2 = new Stopwatch();
             var stopwatch3 = new Stopwatch();
 
+            // Brain Extraction
             if (extractBrain)
             {
                 var bseParams = _config.BseParams;
@@ -155,8 +157,8 @@ namespace CAPI.ImageProcessing
                     fixedMask = currentNii.Replace(".nii", ".mask.nii");
                     _log.Info("Starting EXTRACTING BRAIN for Current series...");
                     stopwatch1.Start();
-
                     // ReSharper disable once AccessToModifiedClosure
+
                     ExtractBrainMask(fixedFile, bseParams, fixedBrain, fixedMask);
 
                     stopwatch1.Stop();
@@ -169,12 +171,12 @@ namespace CAPI.ImageProcessing
                     var floatingBrain = priorNii.Replace(".nii", ".brain.nii");
                     floatingMask = priorNii.Replace(".nii", ".mask.nii");
                     _log.Info("Starting EXTRACTING BRAIN for Prior series...");
-
                     stopwatch2.Start();
                     // ReSharper disable once AccessToModifiedClosure
-                    ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
-                    stopwatch2.Stop();
 
+                    ExtractBrainMask(floatingFile, bseParams, floatingBrain, floatingMask);
+
+                    stopwatch2.Stop();
                     _log.Info($"Finished extracting brain for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
                     floatingFile = floatingBrain;
                 });
@@ -185,12 +187,12 @@ namespace CAPI.ImageProcessing
                     referenceBrain = referenceNii.Replace(".nii", ".brain.nii");
                     referenceMask = referenceNii.Replace(".nii", ".mask.nii");
                     _log.Info("Starting EXTRACTING BRAIN for Reference series...");
-
                     stopwatch3.Start();
                     // ReSharper disable once AccessToModifiedClosure
-                    ExtractBrainMask(referenceNii, bseParams, referenceBrain, referenceMask);
-                    stopwatch3.Stop();
 
+                    ExtractBrainMask(referenceNii, bseParams, referenceBrain, referenceMask);
+
+                    stopwatch3.Stop();
                     _log.Info($"Finished extracting brain for Reference series in {stopwatch3.Elapsed.Minutes}:{stopwatch3.Elapsed.Seconds:D2} minutes.");
                 });
 
@@ -199,6 +201,7 @@ namespace CAPI.ImageProcessing
                 task3.Wait();
             }
 
+            // Registration
             if (register)
             {
                 var refBrain = string.IsNullOrEmpty(referenceBrain) && File.Exists(referenceBrain) ? referenceBrain : fixedFile;
@@ -206,7 +209,11 @@ namespace CAPI.ImageProcessing
 
                 var task1 = Task.Run(() =>
                 {
-                    if (string.IsNullOrEmpty(_referenceSeriesDicomFolder)) return;
+                    if (_referenceSeriesExists)
+                    {
+                        _log.Info("No reference studies exist for patient to register current series against.");
+                        return;
+                    };
                     _log.Info("Starting REGISTRATION of current series against reference series...");
                     var reslicedCurrentBrain = fixedFile.Replace(".nii", ".resliced.nii");
                     stopwatch1.Restart();
@@ -226,7 +233,7 @@ namespace CAPI.ImageProcessing
 
                 var task2 = Task.Run(() =>
                 {
-                    if (string.IsNullOrEmpty(_referenceSeriesDicomFolder)) return;
+                    if (!_referenceSeriesExists) return;
                     _log.Info("Starting REGISTRATION of current MASK against reference MASK...");
                     var reslicedCurrentMask = fixedMask.Replace(".mask.nii", ".resliced.mask.nii");
                     stopwatch2.Restart();
@@ -285,6 +292,7 @@ namespace CAPI.ImageProcessing
                 task4.Wait();
             }
 
+            // Bias Field Correction
             if (biasFieldCorrect)
             {
                 var bfcParams = _config.BfcParams;
@@ -322,6 +330,7 @@ namespace CAPI.ImageProcessing
                 task2.Wait();
             }
 
+            // Normalize
             foreach (var lookupTable in lookupTablePaths)
             {
                 const bool normalize = true;
@@ -365,7 +374,10 @@ namespace CAPI.ImageProcessing
                 stopwatch1.Restart();
 
                 var resultNii = GetMatchingResultForLut(lookupTable, resultNiis);
+
                 Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
+                //Compare(currentNii, fixedFile, fixedMask, floatingFile, lookupTable, sliceType, resultNii);
+
 
                 stopwatch1.Stop();
                 _log.Info($"Finished Comparison of Current and Resliced Prior Series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
@@ -430,34 +442,12 @@ namespace CAPI.ImageProcessing
             var fixedNiiFileName = Path.GetFileNameWithoutExtension(refNii);
             var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
 
-            CreateRawXform(refNii, priorNii, cmtkOutputDir);
+            Register(refNii, priorNii, cmtkOutputDir);
 
-            //CreateResultXform(outputPath, refNii, priorNii);
-
-            ResliceFloatingImages(outputPath, refNii, priorNii, outPriorReslicedNii, cmtkOutputDir);
+            Reslice(refNii, priorNii, outPriorReslicedNii, cmtkOutputDir);
         }
 
-        private static IRegistrationData GetRegistrationData(IRegistrationData registrationData, string cmtkOutputDir, string seriesType)
-        {
-            var isBrain = seriesType.Equals("brain", StringComparison.CurrentCultureIgnoreCase);
-            if (isBrain)
-            {
-                registrationData.BrainRegistration = File.ReadAllText(Path.Combine(cmtkOutputDir, "registration"));
-                registrationData.BrainSettings = File.ReadAllText(Path.Combine(cmtkOutputDir, "settings"));
-                registrationData.BrainStatistics = File.ReadAllText(Path.Combine(cmtkOutputDir, "statistics"));
-                registrationData.BrainStudyList = File.ReadAllText(Path.Combine(cmtkOutputDir, "studylist"));
-            }
-            else
-            {
-                registrationData.MaskRegistration = File.ReadAllText(Path.Combine(cmtkOutputDir, "registration"));
-                registrationData.MaskSettings = File.ReadAllText(Path.Combine(cmtkOutputDir, "settings"));
-                registrationData.MaskStatistics = File.ReadAllText(Path.Combine(cmtkOutputDir, "statistics"));
-                registrationData.MaskStudyList = File.ReadAllText(Path.Combine(cmtkOutputDir, "studylist"));
-            }
-            return registrationData;
-        }
-
-        private void CreateRawXform(string fixedNii, string floatingNii, string cmtkOutputDir)
+        private void Register(string fixedNii, string floatingNii, string cmtkOutputDir)
         {
             var registrationFile = Path.Combine(_config.ImgProcBinFolderPath, _config.RegistrationRelFilePath);
 
@@ -465,48 +455,16 @@ namespace CAPI.ImageProcessing
                 throw new FileNotFoundException($"Unable to find {nameof(registrationFile)} file: [{registrationFile}]");
 
             var registrationParams = _config.RegistrationParams;
-            //var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            //var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
-            //var rawForm = $@"{outputPath}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
 
             if (Directory.Exists(cmtkOutputDir)) Directory.Delete(cmtkOutputDir, true);
             _filesystem.DirectoryExistsIfNotCreate(cmtkOutputDir);
 
-            //var arguments = $@"{registrationParams} --out-matrix {rawForm} -o . {fixedNii} {floatingNii}";
             var arguments = $@"{registrationParams} -o . {fixedNii} {floatingNii}";
 
             _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir, OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
-        //private void CreateResultXform(string workingDir, string fixedNii, string floatingNii) // Outputs to the same folder as fixed series
-        //{
-        //    var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-        //    var rawForm = $@"{workingDir}\{_config.CmtkRawxformFile}-{fixedNiiFileName}";
-        //    var resultForm = $@"{workingDir}\{_config.CmtkResultxformFile}-{fixedNiiFileName}";
-
-        //    try
-        //    {
-        //        if (File.Exists(resultForm)) File.Delete(resultForm);
-        //    }
-        //    catch
-        //    {
-        //        // ignored
-        //    }
-
-        //    var javaClasspath = _config.JavaClassPath;
-
-        //    const string methodName = "au.com.nicta.preprocess.main.ConvertCmtkXform";
-
-        //    var javaArgument = $"-classpath {javaClasspath} {methodName} {fixedNii} {floatingNii} {rawForm} {resultForm}";
-
-        //    _processBuilder.CallJava(_config.JavaExeFilePath, javaArgument, methodName, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
-
-        //    //File.Delete(rawForm);
-        //}
-        private void ResliceFloatingImages(string outputPath, string fixedNii, string floatingNii, string floatingResliced, string cmtkOutputDir)
+        private void Reslice(string fixedNii, string floatingNii, string floatingResliced, string cmtkOutputDir)
         {
-            //var fixedNiiFileName = Path.GetFileNameWithoutExtension(fixedNii);
-            //var cmtkOutputDir = $@"{outputPath}\{_config.CmtkFolderName}-{fixedNiiFileName}";
-
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
 
             var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
