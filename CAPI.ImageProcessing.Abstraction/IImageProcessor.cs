@@ -3,7 +3,7 @@
     public interface IImageProcessor
     {
         void ExtractBrainMask(string inNii, string bseParams, string outBrainNii, string outMaskNii);
-        void Registration(string refNii, string priorNii, string outPriorReslicedNii, string seriesType);
+        string Registration(string refNii, string priorNii, string outPriorReslicedNii, string seriesType);
         void BiasFieldCorrection(string inNii, string mask, string bfcParams, string outNii);
         void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable);
         void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, int mean, int std, int widthRange);

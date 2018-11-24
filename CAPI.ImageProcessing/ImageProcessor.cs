@@ -22,6 +22,7 @@ namespace CAPI.ImageProcessing
         private readonly ILog _log;
         private string _referenceSeriesDicomFolder;
         private bool _referenceSeriesExists;
+        private string _currentResliced;
 
         public ImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
                               IImgProcConfig config, ILog log)
@@ -209,7 +210,7 @@ namespace CAPI.ImageProcessing
 
                 var task1 = Task.Run(() =>
                 {
-                    if (_referenceSeriesExists)
+                    if (!_referenceSeriesExists)
                     {
                         _log.Info("No reference studies exist for patient to register current series against.");
                         return;
@@ -218,7 +219,12 @@ namespace CAPI.ImageProcessing
                     var reslicedCurrentBrain = fixedFile.Replace(".nii", ".resliced.nii");
                     stopwatch1.Restart();
 
-                    Registration(refBrain, fixedFile, reslicedCurrentBrain, "brain");
+                    var cmtkOutDir = Registration(refBrain, fixedFile, reslicedCurrentBrain, "brain");
+
+                    // Reslice whole image (brain + non-brain) using registered series info in cmtkOutDir folder
+                    //_currentResliced = currentNii.Replace(".nii", ".resliced.nii");
+                    //Register(currentNii, _currentResliced, cmtkOutDir + ".trial");
+                    //Reslice(refBrain, currentNii, _currentResliced, cmtkOutDir);
 
                     stopwatch1.Stop();
 
@@ -433,7 +439,7 @@ namespace CAPI.ImageProcessing
                 throw new FileNotFoundException("Brain surface removal failed to create brain/mask.");
         }
 
-        public void Registration(string refNii, string priorNii, string outPriorReslicedNii, string seriesType)
+        public string Registration(string refNii, string priorNii, string outPriorReslicedNii, string seriesType)
         {
             var outputPath = Directory.GetParent(Path.GetDirectoryName(refNii)).FullName;
             outputPath = Path.Combine(outputPath, "Registration");
@@ -445,9 +451,11 @@ namespace CAPI.ImageProcessing
             Register(refNii, priorNii, cmtkOutputDir);
 
             Reslice(refNii, priorNii, outPriorReslicedNii, cmtkOutputDir);
+
+            return cmtkOutputDir;
         }
 
-        private void Register(string fixedNii, string floatingNii, string cmtkOutputDir)
+        private string Register(string fixedNii, string floatingNii, string cmtkOutputDir)
         {
             var registrationFile = Path.Combine(_config.ImgProcBinFolderPath, _config.RegistrationRelFilePath);
 
@@ -462,6 +470,8 @@ namespace CAPI.ImageProcessing
             var arguments = $@"{registrationParams} -o . {fixedNii} {floatingNii}";
 
             _processBuilder.CallExecutableFile(registrationFile, arguments, cmtkOutputDir, OutputDataReceivedInProcess, ErrorOccuredInProcess);
+
+            return cmtkOutputDir;
         }
         private void Reslice(string fixedNii, string floatingNii, string floatingResliced, string cmtkOutputDir)
         {
@@ -475,6 +485,20 @@ namespace CAPI.ImageProcessing
                 FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
 
             _processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+        }
+
+        private void Reslice(string floatingNii, string floatingResliced, string cmtkOutputDir)
+        {
+            //Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
+
+            //var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
+
+            //var reformatxFilePath = Path.Combine(_config.ImgProcBinFolderPath, _config.ReformatXRelFilePath);
+
+            //if (!File.Exists(reformatxFilePath)) throw new
+            //    FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
+
+            //_processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
 
         public void BiasFieldCorrection(string inNii, string mask, string bfcParams, string outNii)
