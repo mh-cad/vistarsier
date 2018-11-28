@@ -222,8 +222,8 @@ namespace CAPI.ImageProcessing
                     var cmtkOutDir = Registration(refBrain, fixedFile, reslicedCurrentBrain, "brain");
 
                     // Reslice whole image (brain + non-brain) using registered series info in cmtkOutDir folder
-                    //_currentResliced = currentNii.Replace(".nii", ".resliced.nii");
-                    //Register(currentNii, _currentResliced, cmtkOutDir + ".trial");
+                    _currentResliced = currentNii.Replace(".nii", ".resliced.nii");
+                    Registration(currentNii, priorNii, _currentResliced, cmtkOutDir + ".trial");
                     //Reslice(refBrain, currentNii, _currentResliced, cmtkOutDir);
 
                     stopwatch1.Stop();
@@ -312,7 +312,8 @@ namespace CAPI.ImageProcessing
                     BiasFieldCorrection(fixedFile, fixedMask, bfcParams, fixedBfc);
 
                     stopwatch1.Stop();
-                    _log.Info($"Finished Bias Field Correction of Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
+                    _log.Info(
+                        $"Finished Bias Field Correction of Current series in {stopwatch1.Elapsed.Minutes}:{stopwatch1.Elapsed.Seconds:D2} minutes.");
                     fixedFile = fixedBfc;
                 });
 
@@ -325,12 +326,14 @@ namespace CAPI.ImageProcessing
                     BiasFieldCorrection(floatingFile, floatingMask, bfcParams, floatingBfc);
 
                     stopwatch2.Stop();
-                    if (File.Exists(outPriorReslicedNii)) File.Move(outPriorReslicedNii, outPriorReslicedNii.Replace(".nii", ".preBfc.nii"));
+                    if (File.Exists(outPriorReslicedNii))
+                        File.Move(outPriorReslicedNii, outPriorReslicedNii.Replace(".nii", ".preBfc.nii"));
                     if (File.Exists(floatingBfc) && !File.Exists(outPriorReslicedNii))
                         File.Move(floatingBfc, outPriorReslicedNii);
                     floatingFile = outPriorReslicedNii;
 
-                    _log.Info($"Finished Bias Field Correction for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
+                    _log.Info(
+                        $"Finished Bias Field Correction for Prior series in {stopwatch2.Elapsed.Minutes}:{stopwatch2.Elapsed.Seconds:D2} minutes.");
                 });
                 task1.Wait();
                 task2.Wait();
@@ -381,7 +384,7 @@ namespace CAPI.ImageProcessing
 
                 var resultNii = GetMatchingResultForLut(lookupTable, resultNiis);
 
-                Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii);
+                Compare(fixedFile, floatingFile, lookupTable, sliceType, resultNii, _currentResliced, fixedMask);
                 //Compare(currentNii, fixedFile, fixedMask, floatingFile, lookupTable, sliceType, resultNii);
 
 
@@ -487,20 +490,6 @@ namespace CAPI.ImageProcessing
             _processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
 
-        private void Reslice(string floatingNii, string floatingResliced, string cmtkOutputDir)
-        {
-            //Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1"); // So that output is in nii format instead of nii.gz
-
-            //var arguments = $@"-o {floatingResliced} --floating {floatingNii} {fixedNii} {cmtkOutputDir}";
-
-            //var reformatxFilePath = Path.Combine(_config.ImgProcBinFolderPath, _config.ReformatXRelFilePath);
-
-            //if (!File.Exists(reformatxFilePath)) throw new
-            //    FileNotFoundException($"Unable to find {nameof(reformatxFilePath)} file: [{reformatxFilePath}]");
-
-            //_processBuilder.CallExecutableFile(reformatxFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
-        }
-
         public void BiasFieldCorrection(string inNii, string mask, string bfcParams, string outNii)
         {
             var bfcExe = Path.Combine(_config.ImgProcBinFolderPath, _config.BfcExeRelFilePath);
@@ -518,10 +507,18 @@ namespace CAPI.ImageProcessing
         }
 
         public void Compare(
-            string currentNiiFile, string priorNiiFile, string lookupTableFile,
-            SliceType sliceType, string resultNiiFile)
+            string currentNiiFile, string priorNiiFile, string lookupTableFile, SliceType sliceType,
+            string resultNiiFile, string currentResliced = "", string currentReslicedMask = "")
         {
             var currentNii = new Nifti().ReadNifti(currentNiiFile);
+
+            var currentReslicedNii =
+                string.IsNullOrEmpty(currentResliced) || !File.Exists(currentResliced) ?
+                    null : new Nifti().ReadNifti(currentResliced);
+
+            var mask = string.IsNullOrEmpty(currentReslicedMask) || !File.Exists(currentReslicedMask) ?
+                null : new Nifti().ReadNifti(currentReslicedMask);
+
             var priorNii = new Nifti().ReadNifti(priorNiiFile);
 
             var lookupTable = new SubtractionLookUpTable();
@@ -529,7 +526,7 @@ namespace CAPI.ImageProcessing
 
             var workingDir = Directory.GetParent(currentNiiFile).FullName;
 
-            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir);
+            var result = new Nifti().Compare(currentNii, priorNii, sliceType, lookupTable, workingDir, currentReslicedNii, mask);
 
             var resultFolderPath = Path.GetDirectoryName(resultNiiFile);
             _filesystem.DirectoryExistsIfNotCreate(resultFolderPath);
@@ -647,7 +644,8 @@ namespace CAPI.ImageProcessing
             var lut = new Bitmap(lookupTable);
             Normalize(niftiFilePath, maskFilePath, sliceType, lut.Width / 2, lut.Width / 8, lut.Width);
         }
-        public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, int mean, int std, int widthRange)
+        public void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType,
+                              int mean, int std, int widthRange)
         {
             var nim = new Nifti().ReadNifti(niftiFilePath);
             var mask = new Nifti().ReadNifti(maskFilePath);
