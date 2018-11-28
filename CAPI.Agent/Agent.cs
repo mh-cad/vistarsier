@@ -317,7 +317,7 @@ namespace CAPI.Agent
                 .FirstOrDefault(f => Path.GetFileName(f).ToLower()
                     .StartsWith(@case.Accession, StringComparison.CurrentCultureIgnoreCase));
 
-            if (recipeFilePath == null || string.IsNullOrEmpty(recipeFilePath) || !File.Exists(recipeFilePath))
+            if (recipeFilePath == null || string.IsNullOrEmpty(recipeFilePath) || !File.Exists(recipeFilePath) || !recipeFilePath.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase))
                 return GetDefaultRecipe();
 
             var recipeText = File.ReadAllText(recipeFilePath);
