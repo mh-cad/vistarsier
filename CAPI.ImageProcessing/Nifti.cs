@@ -235,20 +235,41 @@ namespace CAPI.ImageProcessing
         }
 
         public INifti Compare(INifti current, INifti prior, SliceType sliceType,
-                              ISubtractionLookUpTable lookUpTable, string workingDir)
+                              ISubtractionLookUpTable lookUpTable, string workingDir,
+                              INifti currentResliced = null, INifti mask = null)
         {
+            mask?.InvertMask();
+            currentResliced = currentResliced?.NormalizeNonBrainComponents(currentResliced,
+                                  lookUpTable.Width / 2, lookUpTable.Width / 8, mask, 0, lookUpTable.Width - 1);
+            mask?.InvertMask();
+
+            var outNifti = currentResliced ?? current;
+
             EnsureNormalization(current, prior, lookUpTable);
+            if (currentResliced != null)
+                EnsureNormalization(currentResliced, prior, lookUpTable);
+
 
             for (var i = 0; i < current.voxels.Length; i++)
-                current.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
-                    (int)prior.voxels[i]].ToArgb().ToBgr();
+                if (currentResliced != null && mask != null)
+                {
+                    if (mask.voxels[i] > 0) // brain
+                        outNifti.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
+                            (int)prior.voxels[i]].ToArgb().ToBgr();
+                    else if (mask.voxels[i] < 1) // non-brain
+                        outNifti.voxels[i] = Color.FromArgb((int)outNifti.voxels[i], (int)outNifti.voxels[i],
+                            (int)outNifti.voxels[i]).ToArgb().ToBgr();
+                }
+                else
+                    outNifti.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
+                        (int)prior.voxels[i]].ToArgb().ToBgr();
 
-            current.Header.cal_min = current.voxels.Min();
-            current.Header.cal_max = current.voxels.Max();
+            outNifti.Header.cal_min = outNifti.voxels.Min();
+            outNifti.Header.cal_max = outNifti.voxels.Max();
 
-            current.ConvertHeaderToRgb();
+            outNifti.ConvertHeaderToRgb();
 
-            return current;
+            return outNifti;
         }
 
         private static void EnsureNormalization(INifti current, INifti prior, ISubtractionLookUpTable lookUpTable)
@@ -292,6 +313,13 @@ namespace CAPI.ImageProcessing
             return lut;
         }
 
+        public void InvertMask()
+        {
+            var median = (voxels.Max() - voxels.Min()) / 2 + voxels.Min();
+            for (var i = 0; i < voxels.Length; i++)
+                voxels[i] = 2 * median - voxels[i];
+        }
+
         private static bool IsColor(Color color, int rgbValueGap)
         {
             return Math.Abs(color.R - color.G) > rgbValueGap ||
@@ -324,12 +352,10 @@ namespace CAPI.ImageProcessing
         public INifti NormalizeEachSlice(INifti nifti, SliceType sliceType,
                                                         int mean, int std, int rangeWidth, INifti mask)
         {
-            //nifti.GetDimensions(sliceType, out var width, out var height, out var nSlices);
             var slices = nifti.GetSlices(sliceType).ToArray();
             if (slices == null) throw new Exception("No slices found in file being compared");
             var maskArray = GetArrayFromMask(mask, sliceType);
 
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < slices.Length; i++)
             {
                 if (nifti.Header.datatype == 128) slices[i].RgbValToGrayscale();
@@ -342,6 +368,22 @@ namespace CAPI.ImageProcessing
             nifti.voxels.Trim(0, rangeWidth - 1);
 
             return nifti;
+        }
+
+        public INifti NormalizeNonBrainComponents(INifti nim, int targetMean, int targetStdDev, INifti mask, int start, int end)
+        {
+            var nonBrainNonBlackMask = new bool[nim.voxels.Length];
+            for (var i = 0; i < nim.voxels.Length; i++) // Create mask for non-brain non-black voxels
+                if (mask.voxels[i] < 1 && nim.voxels[i] > 0) nonBrainNonBlackMask[i] = true;
+
+            nim.voxels.Normalize(targetMean, targetStdDev, nonBrainNonBlackMask);
+
+            nim.voxels.Trim(start, end);
+
+            nim.Header.cal_max = nim.voxels.Max();
+            nim.Header.cal_min = nim.voxels.Min();
+
+            return nim;
         }
 
         private static bool[][] GetArrayFromMask(INifti mask, SliceType sliceType)

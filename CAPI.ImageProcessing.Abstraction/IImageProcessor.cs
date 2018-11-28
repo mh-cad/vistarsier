@@ -8,7 +8,8 @@
         void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, string lookupTable);
         void Normalize(string niftiFilePath, string maskFilePath, SliceType sliceType, int mean, int std, int widthRange);
         void Compare(
-            string currentNii, string priorNii, string lookupTable, SliceType sliceType, string resultNiiFile);
+            string currentNiiFile, string priorNiiFile, string lookupTableFile, SliceType sliceType,
+            string resultNiiFile, string currentResliced = "", string currentReslicedMask = "");
 
         void ExtractBrainRegisterAndCompare(
             string currentNii, string priorNii, string referenceNii, string[] lookupTablePaths, SliceType sliceType,
