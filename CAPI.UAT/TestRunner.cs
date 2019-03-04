@@ -3,6 +3,8 @@ using CAPI.Common.Config;
 using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
+using CAPI.UAT.Tests;
+using log4net;
 using System;
 using System.Collections.Generic;
 
@@ -12,30 +14,32 @@ namespace CAPI.UAT
     {
         private static UatTests _testsToRun;
         private static readonly string Nl = Environment.NewLine;
-        private IDicomFactory _dicomFactory;
+        private readonly IDicomFactory _dicomFactory;
         private IImageProcessingFactory _imgProcFactory;
-        private IFileSystem _fileSystem;
-        private IProcessBuilder _processBuilder;
+        private readonly IFileSystem _fileSystem;
+        private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
+        private readonly ILog _log;
 
         public TestRunner(IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
-                          IFileSystem fileSystem, IProcessBuilder processBuilder)
+                          IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
         {
             _dicomFactory = dicomFactory;
             _imgProcFactory = imgProcFactory;
             _fileSystem = fileSystem;
             _processBuilder = processBuilder;
+            _log = log;
             _capiConfig = new CapiConfig().GetConfig();
         }
 
         public void Run()
         {
-            Console.WriteLine($"UAT (User Acceptance Testing) for CAPI project...");
+            Logger.Write("UAT (User Acceptance Testing) for CAPI project...", true, Logger.TextType.Content, false, 0, 0);
 
             _testsToRun = GetAllTestsToRun();
 
-            Console.WriteLine($"Running {_testsToRun.Tests.Count} test(s) to ensure all features function properly.");
-            Console.WriteLine($"{Nl}Enter \"quit\" to exit the UAT.");
+            Logger.Write($"Running {_testsToRun.Tests.Count} test(s) to ensure all features function properly.", true, Logger.TextType.Content, false, 0, 0);
+            Logger.Write("Enter \"quit\" at anytime to exit.", true, Logger.TextType.Content, false, 0, 0);
 
             _testsToRun.RunAll();
 
@@ -46,8 +50,10 @@ namespace CAPI.UAT
         private UatTests GetAllTestsToRun()
         {
             var tests = new UatTests();
-            tests.Tests.Add(new Tests.ConfigFilesExists());
-            tests.Tests.Add(new Tests.DbConnectionString { CapiConfig = _capiConfig });
+            tests.Tests.Add(new ConfigFilesExists());
+            //tests.Tests.Add(new DbConnectionString { CapiConfig = _capiConfig });
+            tests.Tests.Add(new DicomConnectivity(_dicomFactory, _fileSystem, _processBuilder, _log) { CapiConfig = _capiConfig });
+            tests.Tests.Add(new BinFilesExist { CapiConfig = _capiConfig });
             // Add Tests Here!
             return tests;
         }
@@ -82,9 +88,9 @@ namespace CAPI.UAT
                 catch (Exception ex)
                 {
                     Logger.Write("Test failed due to following exception:", true, Logger.TextType.Fail, false, 1);
-                    Logger.Write($"[Message]:{ex.Message})", true, Logger.TextType.Fail, false, 1);
-                    Logger.Write($"[Data]:{ex.Data}", true, Logger.TextType.Fail, false, 1);
-                    Logger.Write($"[Stack]:{ex.StackTrace}", true, Logger.TextType.Fail, false, 1);
+                    Logger.Write($"[Message]: {ex.Message}", true, Logger.TextType.Fail, false, 1);
+                    Logger.Write($"[Data]: {ex.Data}", true, Logger.TextType.Fail, false, 1);
+                    Logger.Write($"[Stack]: {ex.StackTrace}", true, Logger.TextType.Fail, false, 1);
                     anyTestsFailed = true;
                     Tests[i].FailureResolution();
                     break;
@@ -118,6 +124,9 @@ namespace CAPI.UAT
                 Logger.Write(failureMessage, true, Logger.TextType.Fail, true, 0, 0);
             }
 
+            Logger.Write("Press any key to exit.", true, Logger.TextType.Content, false, 1, 0);
+            Console.ReadKey();
+            Environment.Exit(0);
         }
     }
 

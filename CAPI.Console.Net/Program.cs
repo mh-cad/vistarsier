@@ -24,13 +24,13 @@ namespace CAPI.Console.Net
             var fileSystem = container.Resolve<IFileSystem>();
             var processBuilder = container.Resolve<IProcessBuilder>();
 
+            InitialiseLog4Net();
+
             if (args.Length > 0 && args[0].ToLower() == "uat")
             {
-                var uatTestRunner = new TestRunner(dicomFactory, imgProcFactory, fileSystem, processBuilder);
+                var uatTestRunner = new TestRunner(dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
                 uatTestRunner.Run(); return;
             }
-
-            InitialiseLog4Net();
 
             System.Console.ForegroundColor = ConsoleColor.Gray;
             _log.Info("App Started...");

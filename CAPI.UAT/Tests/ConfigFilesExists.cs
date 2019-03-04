@@ -1,9 +1,9 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Agent;
+using CAPI.Common.Config;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CAPI.Agent;
 
 namespace CAPI.UAT.Tests
 {
@@ -37,7 +37,13 @@ namespace CAPI.UAT.Tests
             if (files == null || files.Length == 0)
                 throw new Exception($"No files were found in application root folder [{folder}]");
 
-            return files.Select(f => Path.GetFileName(f.ToLower())).Contains("config.json");
+            var configFile = files.FirstOrDefault(f => f.ToLower().EndsWith("config.json"));
+
+            var configFileExists = !string.IsNullOrEmpty(configFile) && File.Exists(configFile);
+
+            if (configFileExists) Logger.Write($"Found config.json file at {configFile}", true, Logger.TextType.Success);
+
+            return configFileExists;
         }
 
         public void FailureResolution()
