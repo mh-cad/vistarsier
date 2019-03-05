@@ -1,25 +1,25 @@
 # Modules used in project
 #### _Table of contents_
 ## CAPI Modules
-+ [CAPI.Agent](#CAPIAgent_23)
-+ [CAPI.Agent.Abstractions](#CAPIAgentAbstractions_24)
-+ [CAPI.Common](#CAPICommon_25)
-+ [CAPI.Common.Abstractions](#CAPICommonAbstractions_26)
-+ [CAPI.Console.Net](#CAPIConsoleNet_27)
-+ [CAPI.Dicom](#CAPIDicom_28)
-+ [CAPI.Dicom.Abstractions](#CAPIDicomAbstractions_29)
-+ [CAPI.Extensions](#CAPIExtensions_30)
-+ [CAPI.General](#CAPIGeneral_31)
-+ [CAPI.General.Abstractions](#CAPIGeneralAbstractions_32)
-+ [CAPI.ImageProcessing](#CAPIImageProcessing_33)
-+ [CAPI.ImageProcessing.Abstractions](#CAPIImageProcessingAbstractions_34)
-+ [CAPI.LookUpTableGenerator](#CAPILookUpTableGenerator_35)
-+ [CAPI.Tests](#CAPITests_36)
-+ [CAPI.UAT](#CAPIUAT_37)
++ [CAPI.Agent](#CAPIAgent)
++ [CAPI.Agent.Abstractions](#CAPIAgentAbstractions)
++ [CAPI.Common](#CAPICommon)
++ [CAPI.Common.Abstractions](#CAPICommonAbstractions)
++ [CAPI.Console.Net](#CAPIConsoleNet)
++ [CAPI.Dicom](#CAPIDicom)
++ [CAPI.Dicom.Abstractions](#CAPIDicomAbstractions)
++ [CAPI.Extensions](#CAPIExtensions)
++ [CAPI.General](#CAPIGeneral)
++ [CAPI.General.Abstractions](#CAPIGeneralAbstractions)
++ [CAPI.ImageProcessing](#CAPIImageProcessing)
++ [CAPI.ImageProcessing.Abstractions](#CAPIImageProcessingAbstractions)
++ [CAPI.LookUpTableGenerator](#CAPILookUpTableGenerator)
++ [CAPI.Tests](#CAPITests)
++ [CAPI.UAT](#CAPIUAT)
 
 ## CAPI Dependencies
-+ [ClearCanvas.Common](#ClearCanvasCommon_39)
-+ [ClearCanvas.Dicom](#ClearCanvasDicom_40)
++ [ClearCanvas.Common](#ClearCanvasCommon)
++ [ClearCanvas.Dicom](#ClearCanvasDicom)
 ---
 ## CAPI.Agent
 ## CAPI.Agent.Abstractions
