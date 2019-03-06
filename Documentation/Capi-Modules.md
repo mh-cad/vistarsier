@@ -22,13 +22,21 @@
 + [ClearCanvas.Dicom](#ClearCanvasDicom)
 ---
 ## CAPI.Agent
+
+
+
 ## CAPI.Agent.Abstractions
 ## CAPI.Common
 ## CAPI.Common.Abstractions
 ## CAPI.Console.Net
-## CAPI.Dicom
-[TOC]
 
+Entry point for the project. It is recommended for this to be used only for testing. In production settings `CAPI.Service` is to be used. 
+
+if run with parameter "uat" i.e. `capi.console.net.exe uat` it will call `CAPI.UAT.TestRunner`
+
+if no parameters are passed to `capi.console.net.exe` file, `CAPI.Agent` is called.
+
+## CAPI.Dicom
 ## CAPI.Dicom.Abstractions
 ## CAPI.Extensions
 ## CAPI.General
@@ -42,3 +50,6 @@
 # CAPI Dependencies
 ## ClearCanvas.Common
 ## ClearCanvas.Dicom
+
+
+
