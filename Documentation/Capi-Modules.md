@@ -27,6 +27,8 @@
 ## CAPI.Common.Abstractions
 ## CAPI.Console.Net
 ## CAPI.Dicom
+[TOC]
+
 ## CAPI.Dicom.Abstractions
 ## CAPI.Extensions
 ## CAPI.General
