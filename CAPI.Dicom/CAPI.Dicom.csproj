@@ -31,11 +31,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ClearCanvas.Common">
+      <HintPath>..\lib\ClearCanvas.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ClearCanvas.Dicom">
+      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -60,12 +66,9 @@
     <Compile Include="Model\DicomTag.cs" />
     <Compile Include="Model\DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StorageScp.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ExtLib\Dicom\ClearCanvas.Dicom.csproj">
-      <Project>{ad9ece2b-8268-4115-8dc8-860fbd011fff}</Project>
-      <Name>ClearCanvas.Dicom</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
       <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
       <Name>CAPI.Common.Abstractions</Name>
@@ -80,6 +83,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
