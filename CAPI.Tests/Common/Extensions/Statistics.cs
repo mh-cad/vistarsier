@@ -24,13 +24,11 @@ namespace CAPI.Tests.Common.Extensions
             // Normalise
             array.Normalize(targetMean, targetStd);
 
-            // We expect some floating point errors, but we want them to be less than 10^-5
-            var meanError = System.Math.Abs(array.Mean() - targetMean);
-            var stdError = System.Math.Abs(array.StandardDeviation() - targetStd);
+            // We expect some floating point errors, but we want them to be less that 10^-4
             const double maxError = 0.00001; 
 
-            Assert.IsTrue(meanError < maxError);
-            Assert.IsTrue(stdError < maxError);
+            Assert.AreEqual(array.Mean(), targetMean, maxError);
+            Assert.AreEqual(array.StandardDeviation(), targetStd, maxError);
         }
 
         [TestMethod]
