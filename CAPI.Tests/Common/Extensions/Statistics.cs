@@ -15,15 +15,22 @@ namespace CAPI.Tests.Common.Extensions
         [TestMethod]
         public void Normalize()
         {
-            // Arrange
+            // Create a test array
             var array = new float[] { 130, 110, 70, 100, 59, 104, 109, 101, 118, 101 };
 
-            // Act
-            array.Normalize(100 / 2, 100 / 8);
+            // Set our target mean and standard deviation
+            const int targetMean = 50;
+            const int targetStd = 12;
+            // Normalise
+            array.Normalize(targetMean, targetStd);
 
-            // Assert
-            Assert.AreEqual(array.Mean(), 50.000001335144042);
-            Assert.AreEqual(array.StandardDeviation(), 12.000000628233449);
+            // We expect some floating point errors, but we want them to be less that 10^-4
+            var meanError = System.Math.Abs(array.Mean() - targetMean);
+            var stdError = System.Math.Abs(array.StandardDeviation() - targetStd);
+            const double maxError = 0.00001; 
+
+            Assert.IsTrue(meanError < maxError);
+            Assert.IsTrue(stdError < maxError);
         }
 
         [TestMethod]
