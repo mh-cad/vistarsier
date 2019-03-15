@@ -49,19 +49,21 @@ namespace CAPI.ImageProcessing
         /// <param name="filepath"></param>
         public INifti ReadNifti(string filepath)
         {
-            var fileStream = new FileStream(filepath, FileMode.Open);
-            if (!fileStream.CanRead) throw new IOException($"Unable to access file: {filepath}");
+            using (var fileStream = new FileStream(filepath, FileMode.Open))
+            {
+                if (!fileStream.CanRead) throw new IOException($"Unable to access file: {filepath}");
 
-            var isBigEndian = IsBigEndian(fileStream);
-            var reader = new BinaryReaderBigAndLittleEndian(fileStream, isBigEndian);
+                var isBigEndian = IsBigEndian(fileStream);
+                var reader = new BinaryReaderBigAndLittleEndian(fileStream, isBigEndian);
 
-            ReadNiftiHeader(reader);
+                ReadNiftiHeader(reader);
 
-            var bytesLength = Convert.ToInt32(reader.BaseStream.Length) - Convert.ToInt32(Header.vox_offset);
-            voxels = ReadVoxels(reader, bytesLength);
+                var bytesLength = Convert.ToInt32(reader.BaseStream.Length) - Convert.ToInt32(Header.vox_offset);
+                voxels = ReadVoxels(reader, bytesLength);
 
-            if (reader.BaseStream.Position != reader.BaseStream.Length)
-                throw new Exception("Not all bytes in the stream were read!");
+                if (reader.BaseStream.Position != reader.BaseStream.Length)
+                    throw new Exception("Not all bytes in the stream were read!");
+            }
 
             return this;
         }
@@ -71,6 +73,7 @@ namespace CAPI.ImageProcessing
             var reader = new BinaryReader(fileStream);
             var headerSize = reader.ReadInt32();
             if (headerSize != 348) // this means it might be big endian, but let's make sure it is
+                                   // (we should be able to check if we're reading 1543569408 and skip the extra read, but this way is less brittle)
             {
                 fileStream.Position = 0;
                 var beReader = new BinaryReaderBigAndLittleEndian(fileStream, true);
@@ -89,12 +92,17 @@ namespace CAPI.ImageProcessing
         /// <param name="filepath"></param>
         public void ReadNiftiHeader(string filepath)
         {
-            var fileReader = new FileStream(filepath, FileMode.Open);
-            if (!fileReader.CanRead) throw new IOException($"Unable to access file: {filepath}");
-            var reader = new BinaryReader(fileReader);
+            using (var fileStream = new FileStream(filepath, FileMode.Open))
+            {
+                if (!fileStream.CanRead) throw new IOException($"Unable to access file: {filepath}");
 
-            ReadNiftiHeader(reader);
+                var isBigEndian = IsBigEndian(fileStream);
+                var reader = new BinaryReaderBigAndLittleEndian(fileStream, isBigEndian);
+
+                ReadNiftiHeader(reader);
+            }
         }
+
         private void ReadNiftiHeader(BinaryReader reader)
         {
 
@@ -102,6 +110,7 @@ namespace CAPI.ImageProcessing
             if (Header.sizeof_hdr != 348)
                 throw new Exception("Either not a nifti File or type not supported! sizeof_hdr should be 348 for a nifti-1 file.");
 
+            // TODO: Add a bit of explaination about header format.
             for (var i = 0; i < 35; i++) reader.ReadByte();
 
             Header.dim_info = ReadString(reader, 1);
@@ -151,7 +160,14 @@ namespace CAPI.ImageProcessing
             Header.intent_name = ReadString(reader, 16);
             Header.magic = ReadString(reader, 4);
 
-            for (var i = 0; i < 4; i++) reader.ReadByte(); // 4 bytes gap between header and voxels
+            try
+            {
+                for (var i = 0; i < 4; i++) reader.ReadByte(); // 4 bytes gap between header and voxels
+            }
+            catch(EndOfStreamException)
+            {
+                // There will not be the 4 byte gap if we're just reading the .hdr, which is fine.
+            }
         }
         public INiftiHeader ReadHeaderFromFile(string filepath)
         {
@@ -911,6 +927,10 @@ namespace CAPI.ImageProcessing
                             break;
                         case 4 when Header.datatype == 16: // float
                             voxelsBytes.SetValue(BitConverter.GetBytes(voxels[i]).ToArray()[j], position);
+                            break;
+                        case 4 when Header.datatype == 2304:
+                            // This should be RGBA, TODO: Make sure this makes sense (I think it does, but will need a test if it's being used).
+                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i])).ToArray()[j], position); 
                             break;
                         default:
                             throw new Exception($"Bitpix {Header.bitpix} not supported!");
