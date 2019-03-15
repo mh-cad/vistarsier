@@ -28,10 +28,11 @@ namespace CAPI.Common.Config
 
         public static string GetTestResourcesPath()
         {
-            var exeAppConfig = GetExeAppConfig();
-            var folderPath = exeAppConfig["TestResources"].Value;
-            if (Directory.Exists(folderPath)) return folderPath;
-            throw new DirectoryNotFoundException($"Test Resources folder does not exist: [{folderPath}]");
+            return "../../../resources";
+            //var exeAppConfig = GetExeAppConfig();
+            //var folderPath = exeAppConfig["TestResources"].Value;
+            //if (Directory.Exists(folderPath)) return folderPath;
+            //throw new DirectoryNotFoundException($"Test Resources folder does not exist: [{folderPath}]");
         }
 
         public string GetProcessLogPath()
