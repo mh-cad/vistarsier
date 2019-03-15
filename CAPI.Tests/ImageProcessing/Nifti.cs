@@ -14,6 +14,8 @@ namespace CAPI.Tests.ImageProcessing
         private IUnityContainer _unity;
         private string _testResourcesPath;
         private string _fixed;
+        private string _minimalNifti; // The stadard minimal nifti test image.
+        private string _minimalNiftiHdr; // The stadard minimal nifti test image.
         private string _outfile;
         private string _rgbafile;
         private string _rgbfile;
@@ -33,51 +35,76 @@ namespace CAPI.Tests.ImageProcessing
         {
 
             _unity = Helpers.Unity.CreateContainerCore();
-            _testResourcesPath = Helper.GetTestResourcesPath();
+            //TODO: This should be using Helper.GetTestResourcesPath(), but for the moment this should work out the box.
+            _testResourcesPath = "../../../resources/nifti";
 
-            _fixed = $@"{_testResourcesPath}\SeriesToTest\01_1323314\Fixed\fixed.bfc.nii";
-            _outfile = $@"{_testResourcesPath}\Fixed\fixed.noro.nii";
-            _fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
-            _rgbafile = $@"{_testResourcesPath}\rgba-test.nii";
-            _rgbfile = $@"{_testResourcesPath}\rgb-test.nii";
-            _rgbBmpsFolder = $@"{_testResourcesPath}\RgbBmps";
+            //_fixed = $@"{_testResourcesPath}/nifti/prior.nii";
+            _minimalNifti = $@"{_testResourcesPath}/minimal.nii";
+            _minimalNiftiHdr = $@"{_testResourcesPath}/minimal.hdr";
+            _outfile = $@"{_testResourcesPath}/out.nii";
+            //_fixedBrain = $@"{_testResourcesPath}\Fixed\fixed.brain.bfc.nii";
+            _rgbafile = $@"{_testResourcesPath}/rgba-test.nii";
+            _rgbfile = $@"{_testResourcesPath}/rgb-test.nii";
+            //_rgbBmpsFolder = $@"{_testResourcesPath}\RgbBmps";
             _lookUpTable = _unity.Resolve<ISubtractionLookUpTable>();
-            _lookUpTable.LoadImage($@"{_testResourcesPath}\LookupTable.bmp");
-            _sampleRgbBitmapsFolder = $@"{_testResourcesPath}\SampleBmps";
-            _fixedShades = $@"{_testResourcesPath}\fixedShades.nii";
-            _floatingShades = $@"{_testResourcesPath}\floatingShades.nii";
+            _lookUpTable.LoadImage($@"{_testResourcesPath}/lut.bmp");
+            //_sampleRgbBitmapsFolder = $@"{_testResourcesPath}\SampleBmps";
+            _fixedShades = $@"{_testResourcesPath}/avg152T1_LR_nifti.nii";
+            _floatingShades = $@"{_testResourcesPath}/avg152T1_LR_nifti_mask.nii";
 
-            _lutGeneratorCurrent = $@"{_testResourcesPath}\LookupTableGenerator\01\Current_with_xtra_lesions.bmp";
-            _lutGeneratorPrior = $@"{_testResourcesPath}\LookupTableGenerator\01\Prior_with_xtra_lesions.bmp";
-            _lutGeneratorResult = $@"{_testResourcesPath}\LookupTableGenerator\01\Comparison_with_xtra_lesions.bmp";
+            //_lutGeneratorCurrent = $@"{_testResourcesPath}\LookupTableGenerator\01\Current_with_xtra_lesions.bmp";
+            //_lutGeneratorPrior = $@"{_testResourcesPath}\LookupTableGenerator\01\Prior_with_xtra_lesions.bmp";
+            //_lutGeneratorResult = $@"{_testResourcesPath}\LookupTableGenerator\01\Comparison_with_xtra_lesions.bmp";
 
-            _tmpFolder = $@"{_testResourcesPath}\TempFolder";
-            if (Directory.Exists(_tmpFolder)) Directory.Delete(_tmpFolder, true);
-            Directory.CreateDirectory(_tmpFolder);
+            //_tmpFolder = $@"{_testResourcesPath}\TempFolder";
+            //if (Directory.Exists(_tmpFolder)) Directory.Delete(_tmpFolder, true);
+            //Directory.CreateDirectory(_tmpFolder);
         }
 
         [TestMethod]
         public void Read()
         {
+            // Read the minimal nifti file.
             var nifti = _unity.Resolve<INifti>();
-            nifti.ReadNifti(_fixed);
-
-            Assert.Fail(); //TODO3: Not Implemented
+            nifti.ReadNifti(_minimalNifti);
+            
+            // Check that the dimensions are correct.
+            nifti.GetDimensions(SliceType.Axial, out var width, out var height, out var nSlices);
+            Assert.AreEqual(height, 64);
+            Assert.AreEqual(width, 64);
+            Assert.AreEqual(nSlices, 10);
         }
 
         [TestMethod]
-        public void Write()
+        public void Write() // TODO: This is currently failing (I'm assuming we're not releasing the lock on the file when we write)
         {
+            // Read our minimal Nifti file
             var nifti = _unity.Resolve<INifti>();
-            nifti.ReadNifti(_fixed);
-            //nifti.Reorient(256, 256, 160);
-            nifti.WriteNifti(_outfile);
+            nifti.ReadNifti(_minimalNifti);
 
-            Assert.Fail(); //TODO3: Not Implemented
+            // Write the minimal Nifti file.
+            nifti.WriteNifti(_outfile);
+            // Check that we've written something.
+            Assert.IsTrue(File.Exists(_outfile), "Nifti file does not exist");
+
+            // Read our nifti file back in.
+            var nifti2 = _unity.Resolve<INifti>();
+            nifti2.ReadNifti(_outfile);
+            // Delete the old file.
+            File.Delete(_outfile);
+            Assert.IsFalse(File.Exists(_outfile), "Nifti file could not be deleted.");
+
+            // Check that the dimensions match the expected Nifti file.
+            nifti.GetDimensions(SliceType.Axial, out var width, out var height, out var nSlices);
+            Assert.AreEqual(height, 64);
+            Assert.AreEqual(width, 64);
+            Assert.AreEqual(nSlices, 10);   
         }
 
         [TestMethod]
-        public void WriteRgba()
+        public void WriteRgba() 
+            // TODO: This is currently unsupported (technically RGBA doesn't seem to be part
+            // of the NifTI 1.1 format, so it will throw an error on the datatype
         {
             var nifti = _unity.Resolve<INifti>();
             nifti.ConvertHeaderToRgba();
@@ -98,9 +125,10 @@ namespace CAPI.Tests.ImageProcessing
             for (var i = 0; i < voxelsSize; i++)
                 nifti.voxels[i] = 255;
 
+            if (File.Exists(_rgbafile)) File.Delete(_rgbafile);
             nifti.WriteNifti(_rgbafile);
-
-            Assert.Fail(); //TODO3: Not Implemented
+            Assert.IsTrue(File.Exists(_rgbafile)); //TODO more meaningful asserts.
+            File.Delete(_rgbafile);
         }
 
         [TestMethod]
@@ -110,7 +138,7 @@ namespace CAPI.Tests.ImageProcessing
             var nifti = _unity.Resolve<INifti>();
 
             // Read pixdim from sample file
-            var header = nifti.ReadHeaderFromFile(_fixedBrain);
+            var header = nifti.ReadHeaderFromFile(_minimalNiftiHdr);
             nifti.Header = header;
 
             // set dimensions for new file
@@ -138,14 +166,17 @@ namespace CAPI.Tests.ImageProcessing
                         if ((x - 128) * (x - 128) + (y - 128) * (y - 128) + (z) * (z) < 60 * 60) // Sphere
                             nifti.SetPixelRgb(x, y, z, SliceType.Axial, r, g, b);
 
+            if (File.Exists(_rgbfile)) File.Delete(_rgbfile);
             nifti.WriteNifti(_rgbfile);
 
-            //Assert.Fail(); //TODO3: Not Implemented
+            Assert.IsTrue(File.Exists(_rgbfile)); //TODO: More meaningful asserts
+            File.Delete(_rgbfile);
         }
 
         [TestMethod]
         public void ExportToBmps()
         {
+            Assert.Inconclusive("Currently no test data to support this test.");
             var nim = _unity.Resolve<INifti>();
             nim.ReadNifti(_fixed);
             if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
@@ -154,9 +185,12 @@ namespace CAPI.Tests.ImageProcessing
             //Assert.Fail(); //TODO3: Not Implemented
         }
 
+        // TODO: This method is only referenced here, the definition and the implementation.
+        //       Not sure if we can get away with trimming this test.
         [TestMethod]
         public void ReadVoxelsFromRgbBmps()
         {
+            Assert.Inconclusive("Currently no test data to support this test.");
             // Arrange
             if (File.Exists($@"{_sampleRgbBitmapsFolder}\nim.nii")) File.Delete($@"{_sampleRgbBitmapsFolder}\nim.nii");
             var files = Directory.GetFiles(_sampleRgbBitmapsFolder)
@@ -176,19 +210,25 @@ namespace CAPI.Tests.ImageProcessing
             var fixedBrain = _unity.Resolve<INifti>().ReadNifti(_fixedShades);
             var floatingResliced = _unity.Resolve<INifti>().ReadNifti(_floatingShades);
             var result = _unity.Resolve<INifti>()
-                .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, "C:\\temp\\Capi-out\\tmp");
-            if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
+                .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, null);
 
-            // Act
-            result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);
+            result.WriteNifti(_outfile);
 
-            // Assert
-            Assert.IsTrue(Directory.GetFiles(_rgbBmpsFolder).Length > 0, "No bmp files were found exported from result");
+
+            //if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
+
+            //// Act
+            //result.ExportSlicesToBmps(_rgbBmpsFolder, SliceType.Sagittal);
+
+            //// Assert
+            //Assert.IsTrue(Directory.GetFiles(_rgbBmpsFolder).Length > 0, "No bmp files were found exported from result");
         }
 
+        // TODO: This could probably be moved out of the Nifti class all together. Revisit this test.
         [TestMethod]
         public void GenerateLookupTable()
         {
+            Assert.Inconclusive("At the moment we don't have data for this operation in the test folder");
             // Arrange
             var current = Image.FromFile(_lutGeneratorCurrent) as Bitmap;
             var prior = Image.FromFile(_lutGeneratorPrior) as Bitmap;
@@ -257,46 +297,28 @@ namespace CAPI.Tests.ImageProcessing
         public void Reorient()
         {
             var nifti = _unity.Resolve<INifti>();
-            //nifti.ReadNifti(_fixed);
-            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\fixed.bfc.nii");
-            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
-            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\fixed.bfc.ro.nii");
 
-            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\fixed_brain_surface.nii");
-            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
-            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\fixed_brain_surface.ro.nii");
-
-            //nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\floating_resliced.bfc.nii");
-            //nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
-            //nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\floating_resliced.bfc.ro.nii");
-
-            nifti.ReadNifti(@"D:\Capi-Files\Experimental\output\current.mod.nii");
+            nifti.ReadNifti(_minimalNifti);
             nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
-            nifti.WriteNifti(@"D:\Capi-Files\Experimental\output\current.mod.ro.nii");
+            nifti.GetDimensions(SliceType.Axial, out var width, out var height, out var nSlices);
+
+            // TODO: Check that this is the expected result.
+            Assert.AreEqual(height, 10);
+            Assert.AreEqual(width, 64);
+            Assert.AreEqual(nSlices, 64);
         }
 
         [TestMethod]
         public void ReorderVoxelsLpi2Ail()
         {
             var nim = _unity.Resolve<INifti>();
-            //nim.ReadNifti(@"D:\temp\tst1\output\fixed.nii");
-            //nim.ReorderVoxelsLPI2ASL();
-            //nim.WriteNifti(@"D:\temp\tst1\output\fixed.roASR.nii");
-
-            //nim = _unity.Resolve<INifti>();
-            //nim.ReadNifti(@"D:\temp\tst1\output\current.mask.nii");
-            //nim.ReorderVoxelsLpi2Ail();
-            //nim.WriteNifti(@"D:\temp\tst1\output\current.mask.roAIL.nii");
-
+            
             nim = _unity.Resolve<INifti>();
-            nim.ReadNifti(@"D:\temp\tst1\output\diff_dark_in_floating_to_bright_in_fixed.nii");
+            nim.ReadNifti(_minimalNifti);
             nim.ReorderVoxelsLpi2Ail();
-            nim.WriteNifti(@"D:\temp\tst1\output\diff_dark_in_floating_to_bright_in_fixed.roAIL.nii");
 
-            nim = _unity.Resolve<INifti>();
-            nim.ReadNifti(@"D:\temp\tst1\output\diff_bright_in_floating_to_dark_in_fixed.nii");
-            nim.ReorderVoxelsLpi2Ail();
-            nim.WriteNifti(@"D:\temp\tst1\output\diff_bright_in_floating_to_dark_in_fixed.roAIL.nii");
+            // TODO: check that this is doing what it's meant to.
+            Assert.Inconclusive();
         }
 
         [TestCleanup]
