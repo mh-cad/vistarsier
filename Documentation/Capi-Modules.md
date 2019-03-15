@@ -18,9 +18,19 @@
 + [CAPI.UAT](#CAPIUAT)
 
 ## CAPI Dependencies
+
 + [ClearCanvas.Common](#ClearCanvasCommon)
 + [ClearCanvas.Dicom](#ClearCanvasDicom)
 ---
+## Third Party Tools
+
+- [Dicom to Nifti Convertor](DicomtoNiftiConvertor)
+- [Brain Suite](BrainSuite)
+- [Registration and Reslicing](RegistrationandReslicing)
+- [Image to Dicom Convertor](ImagetoDicomConvertor)
+
+
+
 ## CAPI.Agent
 
 This module gets called by project entry point e.g. `CAPI.Console.Net` or `CAPI.Service`, controls the whole process of monitoring HL7 and manual folders where **recipes** or **files with accession numbers as their filenames** are dumped. Agent will collect files and check against the database and will either add the accession number to pending cases if new or will update the accession in database to pending if already existing.
@@ -72,5 +82,47 @@ Interfaces for `CAPI.ImageProcessing` module
 ## ClearCanvas.Common
 ## ClearCanvas.Dicom
 
+# Third Party Tools
 
+## Dicom to Nifti Convertor
+
+CMTK dcm2niix tool
+
+- dcm2niix.exe
+- version 1.0.20180328
+- Link ?
+
+## Brain Suite
+
+http://forums.brainsuite.org/download/
+
+Brain Surface Extractor
+
+- bse.exe
+- version 18a
+- Compiled at 22:42:52 on Feb 28 2018 (build #:3115)
+
+Bias Field Corrector
+
+- bfc.exe
+- version 18a
+- Compiled at 22:42:52 on Feb 28 2018 (build #:3115)
+
+## Registration and Reslicing
+
+- Link ?
+- Version 3, 29 June 2007
+
+- Registration
+  - registration.exe
+- Reslicing
+  - reformatx.exe
+
+## Image to Dicom Convertor
+
+- img2dcm.exe
+- Version ?
+- Link ?
+
+## 
 
