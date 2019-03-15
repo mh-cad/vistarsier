@@ -35,8 +35,7 @@ namespace CAPI.Tests.ImageProcessing
         {
 
             _unity = Helpers.Unity.CreateContainerCore();
-            //TODO: This should be using Helper.GetTestResourcesPath(), but for the moment this should work out the box.
-            _testResourcesPath = "../../../resources/nifti";
+            _testResourcesPath = $@"{Helper.GetTestResourcesPath()}/nifti";
 
             //_fixed = $@"{_testResourcesPath}/nifti/prior.nii";
             _minimalNifti = $@"{_testResourcesPath}/minimal.nii";

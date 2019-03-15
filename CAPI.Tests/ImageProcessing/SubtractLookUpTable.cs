@@ -17,8 +17,8 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _testResourcesPath = Helper.GetTestResourcesPath();
-            _lookupTableFile = $@"{_testResourcesPath}\lut-lg-test.png";
+            _testResourcesPath = $@"{Helper.GetTestResourcesPath()}/nifti";
+            _lookupTableFile = $@"{_testResourcesPath}/lut.bmp";
         }
 
         [TestMethod]
