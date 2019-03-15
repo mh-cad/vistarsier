@@ -39,7 +39,7 @@
     "CmtkFolderName": "CMTK_Output",
     "CmtkRawxformFile": "CmtkRawxFormFile",
     "RegistrationParams": "--initxlate --dofs 6 --auto-multi-levels 4",
-    "CmtkResultxformFile": "CmtkResultxFormFile",
+    "CmtkResultxformFile": "CmtkResultxFormFile", // TO BE REMOVED
     "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
     "BfcExeRelFilePath": "bfc.exe",
     "BfcParams": "--iterate --ellipse --timer",
@@ -47,6 +47,7 @@
     "JavaExeFilePath": "C:\\Program Files\\Java\\jre1.8.0_121\\bin\\java.exe", // TO BE REMOVED
     "JavaClasspath": "D:\\MehdiFiles\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*", // TO BE REMOVED
     "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log", // TO BE REMOVED
+
     "ImageRepositoryPath": "D:\\MehdiFiles\\ImageRepository", // Path to folder were processing of files is done
     "ResultsDicomSeriesDescription": "CAPI Modified Signal",
     "PriorReslicedDicomSeriesDescription": "Prior Resliced"
