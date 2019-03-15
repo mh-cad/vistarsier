@@ -24,10 +24,10 @@
 ---
 ## Third Party Tools
 
-- [Dicom to Nifti Convertor](DicomtoNiftiConvertor)
-- [Brain Suite](BrainSuite)
-- [Registration and Reslicing](RegistrationandReslicing)
-- [Image to Dicom Convertor](ImagetoDicomConvertor)
+- [Dicom to Nifti Convertor](#Dicom-to-Nifti-Convertor)
+- [Brain Suite](#Brain-Suite)
+- [Registration and Reslicing](#Registration-and-Reslicing)
+- [Image to Dicom Convertor](#Image-to-Dicom-Convertor)
 
 
 
@@ -90,7 +90,7 @@ CMTK dcm2niix tool
 
 - dcm2niix.exe
 - version 1.0.20180328
-- Link ?
+- https://www.nitrc.org/frs/download.php/10900/mricrogl_windows.zip
 
 ## Brain Suite
 
@@ -110,13 +110,14 @@ Bias Field Corrector
 
 ## Registration and Reslicing
 
-- Link ?
-- Version 3, 29 June 2007
-
-- Registration
-  - registration.exe
-- Reslicing
-  - reformatx.exe
+- NITRC
+  - https://www.nitrc.org/projects/cmtk
+  - https://www.nitrc.org/frs/download.php/8212/CMTK-3.3.1-Windows-AMD64.zip
+  - Version 3.3.1 (24-1-2016)
+  - Registration
+    - registration.exe
+  - Reslicing
+    - reformatx.exe
 
 ## Image to Dicom Convertor
 
