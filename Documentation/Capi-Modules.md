@@ -86,11 +86,11 @@ Interfaces for `CAPI.ImageProcessing` module
 
 ## Dicom to Nifti Convertor
 
-CMTK dcm2niix tool
+CMTK dcm2niix tool - part of MRIcroGL package
 
 - dcm2niix.exe
-- version 1.0.20180328
 - https://www.nitrc.org/frs/download.php/10900/mricrogl_windows.zip
+- version 1.0.20180328
 
 ## Brain Suite
 
@@ -110,7 +110,7 @@ Bias Field Corrector
 
 ## Registration and Reslicing
 
-- NITRC
+- NITRC Computational Morphometry Toolkit (CMTK)
   - https://www.nitrc.org/projects/cmtk
   - https://www.nitrc.org/frs/download.php/8212/CMTK-3.3.1-Windows-AMD64.zip
   - Version 3.3.1 (24-1-2016)
