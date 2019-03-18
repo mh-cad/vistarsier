@@ -46,7 +46,7 @@ namespace CAPI.Tests.ImageProcessing
             _filesystem = _unity.Resolve<IFileSystem>();
             _processBuilder = _unity.Resolve<IProcessBuilder>();
             _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
-            _testResourcesPath = _capiConfig.TestsConfig.TestResourcesPath;  //Helper.GetTestResourcesPath();
+            _testResourcesPath = $@"{Helper.GetTestResourcesPath()}/nifti";//_capiConfig.TestsConfig.TestResourcesPath
             var imgProcFactory = _unity.Resolve<IImageProcessingFactory>();
             _imageProcessor = imgProcFactory.CreateImageProcessor(_filesystem, _processBuilder, _capiConfig.ImgProcConfig, _log);
 
@@ -160,7 +160,7 @@ namespace CAPI.Tests.ImageProcessing
         }
 
         [TestMethod]
-        public void BiasFieldCorrection()
+         public void BiasFieldCorrection()
         {
             // Arrange
             var outNii = $@"{_resultsFolder}\prior.brain.bfc.nii";
