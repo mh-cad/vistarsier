@@ -476,6 +476,7 @@ namespace CAPI.ImageProcessing
 
             switch (Header.datatype)
             {
+                case 2: // Standard intensity TODO: Make good. 
                 case 4: // GrayScale 16bit
                     if (Math.Abs(Header.cal_min - Header.cal_max) < .1)
                     {
@@ -493,6 +494,12 @@ namespace CAPI.ImageProcessing
                 default:
                     throw new NotImplementedException($"datatype {Header.datatype} not suported!");
             }
+        }
+
+        public float GetValue(int x, int y, int z, SliceType sliceType)
+        {
+            var voxelIndex = GetVoxelIndex(x, y, z, sliceType);
+            return voxels[voxelIndex];
         }
 
         public void GetDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
