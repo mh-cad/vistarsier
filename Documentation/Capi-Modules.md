@@ -94,7 +94,7 @@ CMTK dcm2niix tool - part of MRIcroGL package
 
 ## Brain Suite
 
-http://forums.brainsuite.org/download/
+Download: http://forums.brainsuite.org/download/
 
 Brain Surface Extractor
 
@@ -110,20 +110,19 @@ Bias Field Corrector
 
 ## Registration and Reslicing
 
-- NITRC Computational Morphometry Toolkit (CMTK)
-  - https://www.nitrc.org/projects/cmtk
-  - https://www.nitrc.org/frs/download.php/8212/CMTK-3.3.1-Windows-AMD64.zip
-  - Version 3.3.1 (24-1-2016)
-  - Registration
-    - registration.exe
-  - Reslicing
-    - reformatx.exe
+NITRC Computational Morphometry Toolkit (CMTK)
+- Support: https://www.nitrc.org/projects/cmtk
+- Download: https://www.nitrc.org/frs/download.php/8212/CMTK-3.3.1-Windows-AMD64.zip
+- Version 3.3.1 (24-1-2016)
+- Registration
+  - registration.exe
+- Reslicing
+  - reformatx.exe
 
 ## Image to Dicom Convertor
 
 - img2dcm.exe
-- Version ?
-- Link ?
-
-## 
+- Version 3.6.0 2011-01-06
+- Support: https://support.dcmtk.org/docs/img2dcm.html
+- Download: https://dicom.offis.de/download/dcmtk/dcmtk360/bin/
 
