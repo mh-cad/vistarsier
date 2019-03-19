@@ -19,6 +19,7 @@ namespace CAPI.ImageProcessing.Abstraction
         void ConvertHeaderToRgba();
         void SetPixelRgb(int x, int y, int z, SliceType sliceType, int r, int g, int b);
         int GetPixelColor(int x, int y, int z, SliceType sliceType);
+        float GetValue(int x, int y, int z, SliceType sliceType);
         INiftiHeader ReadHeaderFromFile(string filepath);
         void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType);
         Bitmap GetSlice(int sliceIndex, SliceType sliceType);
