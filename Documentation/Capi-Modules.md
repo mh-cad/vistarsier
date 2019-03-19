@@ -126,5 +126,3 @@ NITRC Computational Morphometry Toolkit (CMTK)
 - Support: https://support.dcmtk.org/docs/img2dcm.html
 - Download: https://dicom.offis.de/download/dcmtk/dcmtk360/bin/
 
-## 
-
