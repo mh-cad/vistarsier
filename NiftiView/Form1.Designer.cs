@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.axialToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,14 +38,27 @@
             this.sagittalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.lblMouseA = new System.Windows.Forms.Label();
+            this.lblAFileName = new System.Windows.Forms.Label();
             this.pictureBoxA = new System.Windows.Forms.PictureBox();
             this.menuStripA = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileOpenA = new System.Windows.Forms.ToolStripMenuItem();
+            this.processToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.brainSuiteBrainExtractionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cMTKRegistrationResliceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.subtractBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lblMouseB = new System.Windows.Forms.Label();
+            this.lblFileNameB = new System.Windows.Forms.Label();
             this.pictureBoxB = new System.Windows.Forms.PictureBox();
             this.menuStripB = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFileOpenB = new System.Windows.Forms.ToolStripMenuItem();
+            this.processToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.brainSuiteBrainExtractionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.cMTKRegistrationResliceToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.lblcurrentPoint = new System.Windows.Forms.Label();
@@ -53,6 +66,9 @@
             this.lblSor = new System.Windows.Forms.Label();
             this.eor = new System.Windows.Forms.NumericUpDown();
             this.sor = new System.Windows.Forms.NumericUpDown();
+            this.compareBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.normalizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compareDecreaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -143,16 +159,44 @@
             // 
             // splitContainer3.Panel1
             // 
+            this.splitContainer3.Panel1.Controls.Add(this.lblMouseA);
+            this.splitContainer3.Panel1.Controls.Add(this.lblAFileName);
             this.splitContainer3.Panel1.Controls.Add(this.pictureBoxA);
             this.splitContainer3.Panel1.Controls.Add(this.menuStripA);
             // 
             // splitContainer3.Panel2
             // 
+            this.splitContainer3.Panel2.Controls.Add(this.lblMouseB);
+            this.splitContainer3.Panel2.Controls.Add(this.lblFileNameB);
             this.splitContainer3.Panel2.Controls.Add(this.pictureBoxB);
             this.splitContainer3.Panel2.Controls.Add(this.menuStripB);
             this.splitContainer3.Size = new System.Drawing.Size(800, 349);
             this.splitContainer3.SplitterDistance = 387;
             this.splitContainer3.TabIndex = 0;
+            // 
+            // lblMouseA
+            // 
+            this.lblMouseA.AutoSize = true;
+            this.lblMouseA.BackColor = System.Drawing.Color.Transparent;
+            this.lblMouseA.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblMouseA.Location = new System.Drawing.Point(3, 24);
+            this.lblMouseA.Name = "lblMouseA";
+            this.lblMouseA.Size = new System.Drawing.Size(56, 13);
+            this.lblMouseA.TabIndex = 6;
+            this.lblMouseA.Text = "lblMouseA";
+            this.lblMouseA.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblAFileName
+            // 
+            this.lblAFileName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblAFileName.AutoSize = true;
+            this.lblAFileName.BackColor = System.Drawing.Color.Black;
+            this.lblAFileName.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblAFileName.Location = new System.Drawing.Point(3, 336);
+            this.lblAFileName.Name = "lblAFileName";
+            this.lblAFileName.Size = new System.Drawing.Size(30, 13);
+            this.lblAFileName.TabIndex = 5;
+            this.lblAFileName.Text = "file A";
             // 
             // pictureBoxA
             // 
@@ -169,7 +213,8 @@
             // 
             this.menuStripA.BackColor = System.Drawing.Color.Black;
             this.menuStripA.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem1});
+            this.fileToolStripMenuItem1,
+            this.processToolStripMenuItem});
             this.menuStripA.Location = new System.Drawing.Point(0, 0);
             this.menuStripA.Name = "menuStripA";
             this.menuStripA.Size = new System.Drawing.Size(387, 24);
@@ -193,6 +238,73 @@
             this.mnuFileOpenA.Text = "Open...";
             this.mnuFileOpenA.Click += new System.EventHandler(this.mnuFileOpenA_Click);
             // 
+            // processToolStripMenuItem
+            // 
+            this.processToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem,
+            this.brainSuiteBrainExtractionToolStripMenuItem,
+            this.cMTKRegistrationResliceToolStripMenuItem,
+            this.subtractBToolStripMenuItem,
+            this.normalizeToolStripMenuItem,
+            this.compareBToolStripMenuItem,
+            this.compareDecreaseToolStripMenuItem});
+            this.processToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.processToolStripMenuItem.Name = "processToolStripMenuItem";
+            this.processToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.processToolStripMenuItem.Text = "Process";
+            // 
+            // aNTSN4BiasFieldCorrectionToolStripMenuItem
+            // 
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem.Name = "aNTSN4BiasFieldCorrectionToolStripMenuItem";
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem.Text = "(ANTS) N4BiasFieldCorrection";
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem.Click += new System.EventHandler(this.aNTSN4BiasFieldCorrectionToolStripMenuItem_Click);
+            // 
+            // brainSuiteBrainExtractionToolStripMenuItem
+            // 
+            this.brainSuiteBrainExtractionToolStripMenuItem.Name = "brainSuiteBrainExtractionToolStripMenuItem";
+            this.brainSuiteBrainExtractionToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.brainSuiteBrainExtractionToolStripMenuItem.Text = "(BrainSuite) BrainExtraction";
+            this.brainSuiteBrainExtractionToolStripMenuItem.Click += new System.EventHandler(this.brainSuiteBrainExtractionToolStripMenuItem_Click);
+            // 
+            // cMTKRegistrationResliceToolStripMenuItem
+            // 
+            this.cMTKRegistrationResliceToolStripMenuItem.Name = "cMTKRegistrationResliceToolStripMenuItem";
+            this.cMTKRegistrationResliceToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.cMTKRegistrationResliceToolStripMenuItem.Text = "(CMTK) Registration + Reslice";
+            this.cMTKRegistrationResliceToolStripMenuItem.Click += new System.EventHandler(this.cMTKRegistrationResliceToolStripMenuItem_Click);
+            // 
+            // subtractBToolStripMenuItem
+            // 
+            this.subtractBToolStripMenuItem.Name = "subtractBToolStripMenuItem";
+            this.subtractBToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.subtractBToolStripMenuItem.Text = "Subtract B";
+            this.subtractBToolStripMenuItem.Click += new System.EventHandler(this.subtractBToolStripMenuItem_Click);
+            // 
+            // lblMouseB
+            // 
+            this.lblMouseB.AutoSize = true;
+            this.lblMouseB.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblMouseB.Location = new System.Drawing.Point(3, 24);
+            this.lblMouseB.Name = "lblMouseB";
+            this.lblMouseB.Size = new System.Drawing.Size(45, 13);
+            this.lblMouseB.TabIndex = 3;
+            this.lblMouseB.Text = "mouseB";
+            this.lblMouseB.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // lblFileNameB
+            // 
+            this.lblFileNameB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblFileNameB.AutoSize = true;
+            this.lblFileNameB.BackColor = System.Drawing.Color.Black;
+            this.lblFileNameB.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblFileNameB.Location = new System.Drawing.Point(2, 336);
+            this.lblFileNameB.Name = "lblFileNameB";
+            this.lblFileNameB.Size = new System.Drawing.Size(30, 13);
+            this.lblFileNameB.TabIndex = 2;
+            this.lblFileNameB.Text = "file B";
+            // 
             // pictureBoxB
             // 
             this.pictureBoxB.BackColor = System.Drawing.Color.Black;
@@ -208,7 +320,8 @@
             // 
             this.menuStripB.BackColor = System.Drawing.Color.Black;
             this.menuStripB.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem2});
+            this.fileToolStripMenuItem2,
+            this.processToolStripMenuItem1});
             this.menuStripB.Location = new System.Drawing.Point(0, 0);
             this.menuStripB.Name = "menuStripB";
             this.menuStripB.Size = new System.Drawing.Size(409, 24);
@@ -231,6 +344,38 @@
             this.mnuFileOpenB.Size = new System.Drawing.Size(128, 22);
             this.mnuFileOpenB.Text = "Open...";
             this.mnuFileOpenB.Click += new System.EventHandler(this.mnuFileOpenB_Click);
+            // 
+            // processToolStripMenuItem1
+            // 
+            this.processToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1,
+            this.brainSuiteBrainExtractionToolStripMenuItem1,
+            this.cMTKRegistrationResliceToolStripMenuItem1});
+            this.processToolStripMenuItem1.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.processToolStripMenuItem1.Name = "processToolStripMenuItem1";
+            this.processToolStripMenuItem1.Size = new System.Drawing.Size(59, 20);
+            this.processToolStripMenuItem1.Text = "Process";
+            // 
+            // aNTSN4BiasFieldCorrectionToolStripMenuItem1
+            // 
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1.Name = "aNTSN4BiasFieldCorrectionToolStripMenuItem1";
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1.Size = new System.Drawing.Size(232, 22);
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1.Text = "(ANTS) N4BiasFieldCorrection";
+            this.aNTSN4BiasFieldCorrectionToolStripMenuItem1.Click += new System.EventHandler(this.aNTSN4BiasFieldCorrectionToolStripMenuItem1_Click);
+            // 
+            // brainSuiteBrainExtractionToolStripMenuItem1
+            // 
+            this.brainSuiteBrainExtractionToolStripMenuItem1.Name = "brainSuiteBrainExtractionToolStripMenuItem1";
+            this.brainSuiteBrainExtractionToolStripMenuItem1.Size = new System.Drawing.Size(232, 22);
+            this.brainSuiteBrainExtractionToolStripMenuItem1.Text = "(BrainSuite) BrainExtraction";
+            this.brainSuiteBrainExtractionToolStripMenuItem1.Click += new System.EventHandler(this.brainSuiteBrainExtractionToolStripMenuItem1_Click);
+            // 
+            // cMTKRegistrationResliceToolStripMenuItem1
+            // 
+            this.cMTKRegistrationResliceToolStripMenuItem1.Name = "cMTKRegistrationResliceToolStripMenuItem1";
+            this.cMTKRegistrationResliceToolStripMenuItem1.Size = new System.Drawing.Size(232, 22);
+            this.cMTKRegistrationResliceToolStripMenuItem1.Text = "(CMTK) Registration + Reslice";
+            this.cMTKRegistrationResliceToolStripMenuItem1.Click += new System.EventHandler(this.cMTKRegistrationResliceToolStripMenuItem1_Click);
             // 
             // splitContainer2
             // 
@@ -256,22 +401,22 @@
             // chart1
             // 
             this.chart1.BorderlineWidth = 0;
-            chartArea1.AxisX.ScaleBreakStyle.Spacing = 0D;
-            chartArea1.AxisX2.ScaleBreakStyle.Spacing = 0D;
-            chartArea1.BorderWidth = 0;
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
+            chartArea4.AxisX.ScaleBreakStyle.Spacing = 0D;
+            chartArea4.AxisX2.ScaleBreakStyle.Spacing = 0D;
+            chartArea4.BorderWidth = 0;
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
             this.chart1.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
+            legend4.Name = "Legend1";
+            this.chart1.Legends.Add(legend4);
             this.chart1.Location = new System.Drawing.Point(0, 0);
             this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.IsVisibleInLegend = false;
-            series1.Legend = "Legend1";
-            series1.MarkerBorderWidth = 0;
-            series1.Name = "Series1";
-            this.chart1.Series.Add(series1);
+            series4.ChartArea = "ChartArea1";
+            series4.IsVisibleInLegend = false;
+            series4.Legend = "Legend1";
+            series4.MarkerBorderWidth = 0;
+            series4.Name = "Series1";
+            this.chart1.Series.Add(series4);
             this.chart1.Size = new System.Drawing.Size(589, 172);
             this.chart1.TabIndex = 1;
             this.chart1.Text = "chart1";
@@ -321,6 +466,28 @@
             this.sor.Name = "sor";
             this.sor.Size = new System.Drawing.Size(120, 20);
             this.sor.TabIndex = 0;
+            // 
+            // compareBToolStripMenuItem
+            // 
+            this.compareBToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.compareBToolStripMenuItem.Name = "compareBToolStripMenuItem";
+            this.compareBToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.compareBToolStripMenuItem.Text = "Compare Increase";
+            this.compareBToolStripMenuItem.Click += new System.EventHandler(this.compareBToolStripMenuItem_Click);
+            // 
+            // normalizeToolStripMenuItem
+            // 
+            this.normalizeToolStripMenuItem.Name = "normalizeToolStripMenuItem";
+            this.normalizeToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.normalizeToolStripMenuItem.Text = "Normalize";
+            this.normalizeToolStripMenuItem.Click += new System.EventHandler(this.normalizeToolStripMenuItem_Click);
+            // 
+            // compareDecreaseToolStripMenuItem
+            // 
+            this.compareDecreaseToolStripMenuItem.Name = "compareDecreaseToolStripMenuItem";
+            this.compareDecreaseToolStripMenuItem.Size = new System.Drawing.Size(232, 22);
+            this.compareDecreaseToolStripMenuItem.Text = "Compare Decrease";
+            this.compareDecreaseToolStripMenuItem.Click += new System.EventHandler(this.compareDecreaseToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -388,6 +555,22 @@
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem mnuFileOpenA;
         private System.Windows.Forms.ToolStripMenuItem mnuFileOpenB;
+        private System.Windows.Forms.Label lblAFileName;
+        private System.Windows.Forms.Label lblFileNameB;
+        private System.Windows.Forms.Label lblMouseA;
+        private System.Windows.Forms.Label lblMouseB;
+        private System.Windows.Forms.ToolStripMenuItem processToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aNTSN4BiasFieldCorrectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem processToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem aNTSN4BiasFieldCorrectionToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem brainSuiteBrainExtractionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cMTKRegistrationResliceToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem brainSuiteBrainExtractionToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem cMTKRegistrationResliceToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem subtractBToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem compareBToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem normalizeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem compareDecreaseToolStripMenuItem;
     }
 }
 
