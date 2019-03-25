@@ -8,6 +8,7 @@ namespace CAPI.ImageProcessing.Abstraction
         INiftiHeader Header { get; set; }
         float[] voxels { get; set; }
         byte[] voxelsBytes { get; set; }
+        Color[] ColorMap { get; set; }
 
         INifti ReadNifti(string filepath);
         void ReadNiftiHeader(string filepath);
@@ -39,6 +40,8 @@ namespace CAPI.ImageProcessing.Abstraction
 
         Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null);
         void InvertMask();
+
+        INifti DeepCopy();
 
     }
 }
