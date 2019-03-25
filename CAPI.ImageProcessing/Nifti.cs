@@ -16,8 +16,12 @@ namespace CAPI.ImageProcessing
     public class Nifti : INifti
     {
         public INiftiHeader Header { get; set; }
-        public float[] voxels { get; set; }
+        public float[] voxels { get { return _voxels; } set { _voxels = value; Header.cal_min = voxels.Min(); Header.cal_max = voxels.Max(); } }
         public byte[] voxelsBytes { get; set; }
+        public Color[] ColorMap { get; set; }
+
+        private float[] _voxels;
+
 
         /// <summary>
         /// Constructor
@@ -41,6 +45,8 @@ namespace CAPI.ImageProcessing
                 intent_name = string.Empty,
                 magic = "n+1"
             };
+
+            ColorMap = ColorMaps.GreyScale();
         }
 
         /// <summary>
@@ -63,6 +69,12 @@ namespace CAPI.ImageProcessing
 
                 if (reader.BaseStream.Position != reader.BaseStream.Length)
                     throw new Exception("Not all bytes in the stream were read!");
+            }
+
+            if (Header.cal_min == 0 && Header.cal_max == 0)
+            {
+                Header.cal_min = voxels.Min();
+                Header.cal_max = voxels.Max();
             }
 
             return this;
@@ -458,12 +470,20 @@ namespace CAPI.ImageProcessing
             if (sliceIndex >= nSlices) throw new ArgumentOutOfRangeException($"Slice index out of range. No of slices = {nSlices}");
 
             var slice = new Bitmap(width, height);
+            
+            var range = Header.cal_max - Header.cal_min;
+            var scale = ColorMap.Length / range;
+            var bias = -(Header.cal_min);
+
 
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
-                    var color = Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)).SwapRedBlue();
-                    slice.SetPixel(x, y, color);
+                    //var color = Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)).SwapRedBlue();
+                    int idx = (int)((GetValue(x, y, sliceIndex, sliceType) + bias) * scale);
+                    if (idx < 0) idx = 0;
+                    else if (idx > ColorMap.Length - 1) idx = ColorMap.Length - 1;
+                    slice.SetPixel(x, y, ColorMap[idx]);
                 }
 
             return slice;
@@ -476,6 +496,7 @@ namespace CAPI.ImageProcessing
 
             switch (Header.datatype)
             {
+                case 16:
                 case 2: // Standard intensity TODO: Make good. 
                 case 4: // GrayScale 16bit
                     if (Math.Abs(Header.cal_min - Header.cal_max) < .1)
@@ -962,6 +983,23 @@ namespace CAPI.ImageProcessing
                 default:
                     throw new Exception("Slice Type not supported");
             }
+        }
+
+        public INifti DeepCopy()
+        {
+            Nifti copy = new Nifti();
+            copy.Header = Header.DeepCopy();
+            copy._voxels = new float[_voxels.Length];
+            _voxels.CopyTo(copy._voxels, 0);
+            if (voxelsBytes != null)
+            {
+                copy.voxelsBytes = new byte[voxelsBytes.Length];
+                voxelsBytes.CopyTo(copy.voxelsBytes, 0);
+            }
+            copy.ColorMap = new Color[ColorMap.Length];
+            ColorMap.CopyTo(copy.ColorMap, 0);
+
+            return copy;
         }
     }
 }
