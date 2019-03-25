@@ -24,16 +24,49 @@ namespace NiftiView
         public int CurrentSlice
         {
             get { return _currentSlice; }
-            set { _currentSlice = value; DrawSlice(_currentSlice, Nifti); }
+            set { _currentSlice = Math.Max(0, value); DrawSlice(_currentSlice, Nifti); }
         }
         public HistogramController HistogramController { get; set; }
 
-        public INifti Nifti { get; private set; }
+        public event EventHandler FileLoad;
+        public class FileLoadEventArgs : EventArgs { public string FileName; }
+
+        public INifti Nifti
+        {
+            get
+            {
+                return _nifti;
+            }
+            set
+            {
+                _nifti = value;
+                Nifti.GetDimensions(_sliceType, out int width, out int height, out int nSlices);
+
+                DrawSlice(_currentSlice, Nifti);
+
+                //_chartSeries.Points.Clear();
+                ////chart1.Series.Remove(chart1.Series.First());
+                //var s = chart1.Series.Add("Distribution");
+
+                // Add picture listener
+                _picBox.MouseMove += MouseOverImage;
+                _picBox.Resize += PictureRezided;
+
+                HistogramController?.UpdateData();
+                _picBox.Refresh();
+                RecalculateScale();
+
+            }
+        }
+
+        public INifti Overlay;
+
+        private INifti _nifti;
 
         // Main contols
         private PictureBox _picBox;
         private SliceType _sliceType = SliceType.Axial;
-        private int _currentSlice;
+        private int _currentSlice = 0;
 
         // Scale data
         private decimal _scaleFactor = 1;
@@ -58,32 +91,30 @@ namespace NiftiView
 
         public void LoadNiftiFile(string fileName)
         {
-            Nifti = InitNifti();
-            Nifti.ReadNifti(fileName);
+            INifti nifti = InitNifti();
+            nifti.ReadNifti(fileName);
 
-            Nifti.GetDimensions(_sliceType, out int width, out int height, out int nSlices);
-            _currentSlice = nSlices / 2 + 1;
+            Nifti = nifti;
 
-            DrawSlice(_currentSlice, Nifti);
-
-            //_chartSeries.Points.Clear();
-            ////chart1.Series.Remove(chart1.Series.First());
-            //var s = chart1.Series.Add("Distribution");
-
-            // Add picture listener
-            _picBox.MouseMove += MouseOverImage;
-            _picBox.Resize += PictureRezided;
-
-            HistogramController?.UpdateData();
-            _picBox.Refresh();
-            RecalculateScale();
+            var e = new FileLoadEventArgs();
+            e.FileName = fileName;
+            FileLoad.Invoke(this, e);
         }
+
 
         private void DrawSlice(int slice, INifti nifti)
         {
             if (nifti == null) return;
 
             Bitmap bmp = nifti.GetSlice(slice, _sliceType);
+            Bitmap overlay = Overlay?.GetSlice(slice, _sliceType);
+            if (overlay != null)
+            {
+                Graphics g = Graphics.FromImage((Image)bmp);
+                g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
+                g.DrawImage(overlay, new Point(0, 0));
+                g.Save();
+            }
 
             _picBox.Image = bmp;
             _picBox.Refresh();
