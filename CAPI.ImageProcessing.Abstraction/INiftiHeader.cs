@@ -41,5 +41,7 @@
         float[] srow_z { get; set; }
         string intent_name { get; set; }
         string magic { get; set; }
+
+        INiftiHeader DeepCopy();
     }
 }
