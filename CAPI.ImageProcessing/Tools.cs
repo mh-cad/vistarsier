@@ -1,16 +1,11 @@
 ﻿using CAPI.ImageProcessing.Abstraction;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CAPI.ImageProcessing
 {
     public class Tools
     {
-        public const string TEMPDIR = "./temp";
+        public const string TEMPDIR = "temp";
 
         public static void ExecProcess(string filename, string args, DataReceivedEventHandler updates = null)
         { 
@@ -28,11 +23,24 @@ namespace CAPI.ImageProcessing
                 }
             };
 
+            process.OutputDataReceived += updates;
+            process.ErrorDataReceived += updates;
             process.Start();
             process.BeginOutputReadLine();
-            process.OutputDataReceived += updates;
+            
 
             process.WaitForExit();
+        }
+
+        public static INifti Dcm2Nii(string dicomPath, DataReceivedEventHandler updates = null)
+        {
+            var outFile = TEMPDIR + dicomPath.GetHashCode() + ".dcm2nii";
+            var args = $@" -o {outFile} {dicomPath}";
+            ExecProcess("../../../ThirdPartyTools/dcm2niix.exe", args, updates);
+            INifti nifti = new Nifti();
+            nifti.ReadNifti(outFile);
+
+            return nifti;
         }
     }
 }
