@@ -47,10 +47,21 @@ namespace CAPI.ImageProcessing
 
             Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
 
-            INifti output = input.DeepCopy();
-            output.ReadNifti(niftiOutPath);
+            //INifti output = input.DeepCopy();
+            input.ReadNifti(niftiOutPath);
+            input.voxels = input.voxels;
 
-            return output;
+            return input;
+        }
+
+        public static string AntsN4(string inputFile, DataReceivedEventHandler updates = null)
+        {
+            string niftiInPath = inputFile;
+            string niftiOutPath = Tools.TEMPDIR + inputFile + ".antsN4.out.nii";
+            var args = $"-i {niftiInPath} -o {niftiOutPath}";
+
+            Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
+            return niftiOutPath;
         }
     }
 }
