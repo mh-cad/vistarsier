@@ -27,5 +27,17 @@ namespace CAPI.ImageProcessing
 
             return input;
         }
+
+        public static string BrainSuiteBSE(string inputFile, DataReceivedEventHandler updates = null)
+        {
+            string niftiInPath = inputFile;
+            string niftiOutPath = inputFile + ".bse.out.nii";
+
+            var args = $"-i {niftiInPath} -o {niftiOutPath}";
+
+            Tools.ExecProcess("../../../ThirdPartyTools/brain_suite/bse.exe", args, updates);
+
+            return niftiOutPath;
+        }
     }
 }
