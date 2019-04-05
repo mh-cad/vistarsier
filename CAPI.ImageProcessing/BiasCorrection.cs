@@ -10,31 +10,13 @@ using System.Threading.Tasks;
 namespace CAPI.ImageProcessing
 {
     public class BiasCorrection
-    { 
-        //public static INifti BrainSuiteBFC(INifti input, string args, DataReceivedEventHandler updates = null)
-        //{
-
-        //    // Setup our temp file names.
-        //    string niftiInPath = TEMPDIR + input.GetHashCode() + ".bsbfc.in.nii";
-        //    string niftiOutPath = TEMPDIR + input.GetHashCode() + ".bsbfc.out.nii";
-        //    // Write nifti to temp directory.
-        //    input.WriteNifti(niftiInPath);
-
-        //    args += $"-i {niftiInPath} -o {niftiOutPath}";
-
-        //    Tools.ExecProcess("../../../ThirdPartyTools/bfc.exe", args, updates);
-
-        //    INifti output = new Nifti();
-        //    output.ReadNifti(niftiOutPath);
-
-        //    return output;
-        //}
-
-        //public static INifti BrainSuiteBFC(INifti input, INifti mask, string args, DataReceivedEventHandler updates = null)
-        //{
-        //    return null;
-        //}
-
+    {
+        /// <summary>
+        /// Uses the ANTS implementation of the N4 bias correction algorithm.
+        /// </summary>
+        /// <param name="input">The input nifti to be corrected</param>
+        /// <param name="updates">Event handler for updates from the process</param>
+        /// <returns>New, corrected nifti</returns>
         public static INifti AntsN4(INifti input, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
@@ -47,17 +29,23 @@ namespace CAPI.ImageProcessing
 
             Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
 
-            //INifti output = input.DeepCopy();
-            input.ReadNifti(niftiOutPath);
-            input.voxels = input.voxels;
+            INifti output = input.DeepCopy();
+            output.ReadNifti(niftiOutPath);
+            output.voxels = output.voxels;
 
-            return input;
+            return output;
         }
 
+        /// <summary>
+        /// Uses the ANTS implementation of the N4 bias correction algorithm to correct the given file.
+        /// </summary>
+        /// <param name="inputFile">Path to input nifti file.</param>
+        /// <param name="updates">Event handler for updates from the process</param>
+        /// <returns>Path for output nifti file.</returns>
         public static string AntsN4(string inputFile, DataReceivedEventHandler updates = null)
         {
             string niftiInPath = inputFile;
-            string niftiOutPath = Tools.TEMPDIR + inputFile + ".antsN4.out.nii";
+            string niftiOutPath = inputFile + ".antsN4.out.nii";
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
             Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
