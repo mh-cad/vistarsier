@@ -9,6 +9,10 @@ namespace CAPI.ImageProcessing
 {
     public class ColorMaps
     {
+        /// <summary>
+        /// Standard 256 shade greyscale from dark to light.
+        /// </summary>
+        /// <returns></returns>
         public static Color[] GreyScale()
         {
             Color[] colors = new Color[256];
@@ -20,6 +24,10 @@ namespace CAPI.ImageProcessing
             return colors;
         }
 
+        /// <summary>
+        /// 256 Shade redscale from 0 alpha to bright red.
+        /// </summary>
+        /// <returns></returns>
         public static Color[] RedScale()
         {
             Color[] colors = new Color[256];
@@ -38,18 +46,10 @@ namespace CAPI.ImageProcessing
             return colors;
         }
 
-        public static Color[] GreenScale()
-        {
-            Color[] colors = new Color[256];
-
-            for (int i = 0; i < colors.Length; ++i)
-            {
-                colors[i] = Color.FromArgb(0, i, 0);
-            }
-
-            return colors;
-        }
-
+        /// <summary>
+        /// 256 Shade greenscale with lower alpha value as scale increases.
+        /// </summary>
+        /// <returns></returns>
         public static Color[] ReverseGreenScale()
         {
             Color[] colors = new Color[256];
@@ -65,12 +65,6 @@ namespace CAPI.ImageProcessing
                 colors[i] = Color.FromArgb(255 - (int)val, 128 - (int)logval/2, 255, 0);
             }
 
-            return colors;
-        }
-
-        public static Color[] GreenMask()
-        {
-            Color[] colors = { Color.Black, Color.FromArgb(55, 255, 0) };
             return colors;
         }
     }

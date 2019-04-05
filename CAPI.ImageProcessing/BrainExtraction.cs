@@ -10,6 +10,12 @@ namespace CAPI.ImageProcessing
 {
     public class BrainExtraction
     {
+        /// <summary>
+        /// Uses the BrainSuite BSE tool to extract the brain from a given INifti.
+        /// </summary>
+        /// <param name="input">Nifti which contains the brain to be extracted</param>
+        /// <param name="updates">Data handler for updates from the BSE tool.</param>
+        /// <returns>The INifti containing the extracted brain.</returns>
         public static INifti BrainSuiteBSE(INifti input, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
@@ -22,12 +28,18 @@ namespace CAPI.ImageProcessing
 
             Tools.ExecProcess("../../../ThirdPartyTools/brain_suite/bse.exe", args, updates);
 
-           // INifti output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
-            input.ReadNifti(niftiOutPath);
+            INifti output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
+            output.ReadNifti(niftiOutPath);
 
-            return input;
+            return output;
         }
 
+        /// <summary>
+        /// Uses the BrainSuite BSE tool to extract the brain from the given Nifti file path.
+        /// </summary>
+        /// <param name="inputFile">Path to .nii file which needs a brain extractin'</param>
+        /// <param name="updates">Event handler to accept progress updates from the tool.</param>
+        /// <returns>The path of the output file.</returns>
         public static string BrainSuiteBSE(string inputFile, DataReceivedEventHandler updates = null)
         {
             string niftiInPath = inputFile;

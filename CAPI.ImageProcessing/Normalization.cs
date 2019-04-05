@@ -8,11 +8,16 @@ using System.Threading.Tasks;
 
 namespace CAPI.ImageProcessing
 {
-    public delegate INifti NormalizeDelegate(INifti input, INifti reference, float backgroundThreshold);
-
     public class Normalization
     {
-        public static INifti Normalize(INifti input, INifti reference, float backgroundThreshold = 10)
+        /// <summary>
+        /// This method converts the input values to their Z-Scores, which are then multiplied by the reference standard deviation and added to the referenced mean. 
+        /// </summary>
+        /// <param name="input">Input nifti value</param>
+        /// <param name="reference">Reference nifti value</param>
+        /// <param name="backgroundThreshold">Any values below this threashold will be ignored when calculating the mean and standard deviation.</param>
+        /// <returns>Input nifti, now normalised to the reference nifti distribution.</returns>
+        public static INifti ZNormalize(INifti input, INifti reference, float backgroundThreshold = 10)
         {
             INifti output = input.DeepCopy();
 
