@@ -48,9 +48,9 @@
     </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
-    <PublishUrl>\\172.28.43.65\d%24\MehdiFiles\Capi-Agent\</PublishUrl>
+    <PublishUrl>D:\capi-temp\</PublishUrl>
     <Install>false</Install>
-    <InstallFrom>Unc</InstallFrom>
+    <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateMode>Foreground</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
@@ -62,10 +62,9 @@
     <ProductName>Computer-Assisted Precision Imaging</ProductName>
     <PublisherName>Mehdi N Tehrani</PublisherName>
     <SuiteName>CAPI Agent</SuiteName>
-    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>53</ApplicationRevision>
+    <ApplicationRevision>61</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -110,6 +109,7 @@
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
+  <PropertyGroup />
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
@@ -138,6 +138,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ThirdPartyTools\ants\N4BiasFieldCorrection.exe" />
+    <Content Include="ThirdPartyTools\brain_suite\bfc.exe" />
+    <Content Include="ThirdPartyTools\brain_suite\bse.exe" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3f-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3l-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\reformatx.exe" />
+    <Content Include="ThirdPartyTools\CMTK\registration.exe" />
+    <Content Include="ThirdPartyTools\dcm2niix.exe" />
+    <Content Include="ThirdPartyTools\img2dcm.exe" />
+    <Content Include="ThirdPartyTools\zlib1.dll" />
     <None Include="App.config" />
     <Content Include="brain.ico" />
     <Content Include="config.json" />
@@ -145,6 +156,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Properties\app.manifest" />
+    <None Include="ThirdPartyTools\ants\.vs\N4BiasFieldCorrection\v15\.suo" />
+    <None Include="ThirdPartyTools\CMTK\fixed.nii" />
+    <None Include="ThirdPartyTools\CMTK\floating.nii" />
+    <None Include="ThirdPartyTools\floating.nii" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Agent.Abstractions\CAPI.Agent.Abstractions.csproj">
@@ -202,6 +217,16 @@
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Visual.C++.14.0.x64">
+      <Visible>False</Visible>
+      <ProductName>Visual C++ "14" Runtime Libraries %28x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Visual.C++.14.0.x86">
+      <Visible>False</Visible>
+      <ProductName>Visual C++ "14" Runtime Libraries %28x86%29</ProductName>
+      <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
