@@ -27,7 +27,7 @@ namespace CAPI.ImageProcessing
 
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
 
             INifti output = input.DeepCopy();
             output.ReadNifti(niftiOutPath);
@@ -48,7 +48,7 @@ namespace CAPI.ImageProcessing
             string niftiOutPath = inputFile + ".antsN4.out.nii";
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("../../../ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
             return niftiOutPath;
         }
     }
