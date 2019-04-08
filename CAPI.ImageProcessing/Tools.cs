@@ -51,7 +51,7 @@ namespace CAPI.ImageProcessing
         {
             var outFile = TEMPDIR + dicomPath.GetHashCode() + ".dcm2nii";
             var args = $@" -o {outFile} {dicomPath}";
-            ExecProcess("../../../ThirdPartyTools/dcm2niix.exe", args, updates);
+            ExecProcess("ThirdPartyTools/dcm2niix.exe", args, updates);
             INifti nifti = new Nifti();
             nifti.ReadNifti(outFile);
 
