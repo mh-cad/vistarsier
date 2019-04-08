@@ -26,7 +26,7 @@ namespace CAPI.ImageProcessing
 
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("../../../ThirdPartyTools/brain_suite/bse.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
 
             INifti output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
             output.ReadNifti(niftiOutPath);
@@ -47,7 +47,7 @@ namespace CAPI.ImageProcessing
 
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("../../../ThirdPartyTools/brain_suite/bse.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
 
             return niftiOutPath;
         }

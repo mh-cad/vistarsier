@@ -62,7 +62,6 @@
     <Compile Include="ImageConverter.cs" />
     <Compile Include="NiftiHeader.cs" />
     <Compile Include="Nifti.cs" />
-    <Compile Include="Pipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Registration.cs" />
     <Compile Include="SubtractionLookUpTable.cs" />
