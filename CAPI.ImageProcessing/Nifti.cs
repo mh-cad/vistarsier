@@ -471,19 +471,11 @@ namespace CAPI.ImageProcessing
 
             var slice = new Bitmap(width, height);
             
-            var range = Header.cal_max - Header.cal_min;
-            var scale = ColorMap.Length / range;
-            var bias = -(Header.cal_min);
-
-
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
                     //var color = Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)).SwapRedBlue();
-                    int idx = (int)((GetValue(x, y, sliceIndex, sliceType) + bias) * scale);
-                    if (idx < 0) idx = 0;
-                    else if (idx > ColorMap.Length - 1) idx = ColorMap.Length - 1;
-                    slice.SetPixel(x, y, ColorMap[idx]);
+                    slice.SetPixel(x, y, Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)));
                 }
 
             return slice;
@@ -504,11 +496,17 @@ namespace CAPI.ImageProcessing
                         Header.cal_min = voxels.Min();
                         Header.cal_max = voxels.Max();
                     }
-                    // Scale voxel value to 0-255 range
-                    if (voxelValue < Header.cal_min) voxelValue = (int)Header.cal_min;
-                    if (voxelValue > Header.cal_max) voxelValue = (int)Header.cal_max;
-                    var val = (int)((voxelValue - Header.cal_min) * 255 / (Header.cal_max - Header.cal_min));
-                    return Color.FromArgb(val, val, val).ToArgb();
+
+                    var range = Header.cal_max - Header.cal_min;
+                    var scale = ColorMap.Length / range;
+                    var bias = -(Header.cal_min);
+
+                    int idx = (int)((GetValue(x, y, z, sliceType) + bias) * scale);
+                    if (idx < 0) idx = 0;
+                    else if (idx > ColorMap.Length - 1) idx = ColorMap.Length - 1;
+
+                    return ColorMap[idx].ToArgb();
+
                 case 128: // RGB 24bit
                 case 2304: // ARGB 32bit
                     return voxelValue;
@@ -1000,6 +998,45 @@ namespace CAPI.ImageProcessing
             ColorMap.CopyTo(copy.ColorMap, 0);
 
             return copy;
+        }
+
+        public INifti AddOverlay(INifti overlay)
+        {
+            INifti output = this.DeepCopy();
+
+            // Caclulate conversion to colour map.
+            var range = Header.cal_max - Header.cal_min;
+            var scale = ColorMap.Length / range;
+            var bias = -(Header.cal_min);
+
+            // Caclulate conversion to colour map.
+            var rangeOverlay = overlay.Header.cal_max - overlay.Header.cal_min;
+            var scaleOverlay = overlay.ColorMap.Length / rangeOverlay;
+            var biasOverlay = -(overlay.Header.cal_min);
+
+            for (int i = 0; i < voxels.Length; ++i)
+            {
+                // Get the colour map index for our value.
+                int idx = (int)((voxels[i] + bias) * scale);
+                if (idx < 0) idx = 0;
+                else if (idx > ColorMap.Length - 1) idx = ColorMap.Length - 1;
+
+                // Get the colour map value for the overlay
+                int idxOverlay = (int)((overlay.voxels[i] + biasOverlay) * scaleOverlay);
+                if (idxOverlay < 0) idxOverlay = 0;
+                else if (idxOverlay > overlay.ColorMap.Length - 1) idxOverlay = overlay.ColorMap.Length - 1;
+
+                int red = (overlay.ColorMap[idxOverlay].R * overlay.ColorMap[idxOverlay].A + ColorMap[idx].R * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+                int green = (overlay.ColorMap[idxOverlay].G * overlay.ColorMap[idxOverlay].A + ColorMap[idx].G * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+                int blue = (overlay.ColorMap[idxOverlay].B * overlay.ColorMap[idxOverlay].A + ColorMap[idx].B * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+
+                output.voxels[i] = Color.FromArgb(red, green, blue).ToArgb().ToBgr();
+            }
+
+            output.ConvertHeaderToRgb();
+            output.voxels = output.voxels;
+
+            return output;
         }
     }
 }
