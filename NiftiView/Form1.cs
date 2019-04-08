@@ -381,7 +381,7 @@ namespace NiftiView
 
         private void normalizeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _niftiControllerA.Nifti = Normalization.Normalize(_niftiControllerA.Nifti, _niftiControllerB.Nifti);
+            _niftiControllerA.Nifti = Normalization.ZNormalize(_niftiControllerA.Nifti, _niftiControllerB.Nifti);
         }
 
         private void compareDecreaseToolStripMenuItem_Click(object sender, EventArgs e)
