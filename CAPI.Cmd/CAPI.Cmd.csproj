@@ -12,6 +12,22 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>false</MapFileExtensions>
+    <ApplicationRevision>4</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,9 +48,23 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>F44E83BA4304025487D708A7D436B1EF0C8FB473</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>CAPI.Cmd_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,8 +78,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="CAPI.Cmd_TemporaryKey.pfx" />
+    <None Include="ThirdPartyTools\ants\.vs\N4BiasFieldCorrection\v15\.suo" />
+    <None Include="ThirdPartyTools\CMTK\fixed.nii" />
+    <None Include="ThirdPartyTools\CMTK\floating.nii" />
+    <None Include="ThirdPartyTools\floating.nii" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
+      <Project>{33ACFCF5-6147-407C-BA09-993FC6A16CC3}</Project>
+      <Name>CAPI.Common.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
+      <Project>{644E77B3-A14A-4A11-9F4B-FADA5D67D839}</Project>
+      <Name>CAPI.General.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
+      <Project>{B4385310-57A2-4A56-AC62-58311D9C0C65}</Project>
+      <Name>CAPI.General</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>
@@ -58,6 +105,31 @@
       <Project>{BF71C555-CFC8-43E8-8615-44619ADC91CD}</Project>
       <Name>CAPI.ImageProcessing</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ThirdPartyTools\ants\N4BiasFieldCorrection.exe" />
+    <Content Include="ThirdPartyTools\brain_suite\bfc.exe" />
+    <Content Include="ThirdPartyTools\brain_suite\bse.exe" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3f-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\libfftw3l-3.dll" />
+    <Content Include="ThirdPartyTools\CMTK\reformatx.exe" />
+    <Content Include="ThirdPartyTools\CMTK\registration.exe" />
+    <Content Include="ThirdPartyTools\dcm2niix.exe" />
+    <Content Include="ThirdPartyTools\img2dcm.exe" />
+    <Content Include="ThirdPartyTools\zlib1.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
