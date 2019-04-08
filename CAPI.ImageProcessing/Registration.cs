@@ -35,10 +35,10 @@ namespace CAPI.ImageProcessing
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
 
             var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
-            Tools.ExecProcess("../../../ThirdPartyTools/CMTK/registration.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/CMTK/registration.exe", args, updates);
 
             args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
-            Tools.ExecProcess("../../../ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
 
             //INifti output = floating.DeepCopy();
             floating.ReadNifti(niftiOutPath);
@@ -63,10 +63,10 @@ namespace CAPI.ImageProcessing
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
 
             var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
-            Tools.ExecProcess("../../../ThirdPartyTools/CMTK/registration.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/CMTK/registration.exe", args, updates);
 
             args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
-            Tools.ExecProcess("../../../ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
 
             return niftiOutPath;
         }
