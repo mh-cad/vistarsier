@@ -838,9 +838,7 @@ namespace CAPI.ImageProcessing
         }
         private byte[] WriteVoxelsBytes(byte[] buffer)
         {
-            if (voxelsBytes == null || voxelsBytes.Length == 0) // If voxelsBytes is empty
-                GetVoxelsBytes();
-
+            GetVoxelsBytes();
             voxelsBytes.CopyTo(buffer, (int)Header.vox_offset);
 
             return buffer;
