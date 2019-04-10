@@ -46,6 +46,7 @@ namespace CAPI.ImageProcessing
             return floating;
         }
 
+       
         /// <summary>
         /// Uses the CMTK registration and reformatx tools to register and reslice the floating nifti file to match the reference nifti file.
         /// </summary>
@@ -70,5 +71,19 @@ namespace CAPI.ImageProcessing
 
             return niftiOutPath;
         }
+
+        public static string CMTKResliceUsingPrevious(string floatingFile, string niftiRefPath, DataReceivedEventHandler updates = null)
+        {
+            Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
+            string niftiOutPath = floatingFile + ".cmtkrego.out.nii";
+
+            string regOutPath = "reg";
+
+            var args = $"-o {niftiOutPath} --floating {floatingFile} {niftiRefPath} {regOutPath}";
+            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+
+            return niftiOutPath;
+        }
+
     }
 }
