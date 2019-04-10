@@ -153,11 +153,15 @@ namespace CAPI.Agent
             try
             {
                 var pendingCases = _context.GetCaseByStatus("Pending").ToList();
-                if (pendingCases.ToArray().Any())
+                while (pendingCases.Count > 0)
                 {
                     _log.Info("Processing next pending case...");
                     var firstCase = pendingCases.OrderBy(c => c.Id).First();
-                    if (firstCase != null) ProcessCase(firstCase);
+                    if (firstCase != null)
+                    {
+                        pendingCases.Remove(firstCase);
+                        ProcessCase(firstCase);
+                    }
                 }
                 IsBusy = false;
             }
