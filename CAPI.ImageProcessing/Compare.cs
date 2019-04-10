@@ -56,7 +56,7 @@ namespace CAPI.ImageProcessing
         /// <param name="minChange">Minimum difference to be considered significant (e.g. noise threshold). Value is given in multiples of the standard deviation for the input voxels (ignoring background).</param>
         /// <param name="maxChange">Maximum difference to be considered significant. Value is given in multiples of the standard deviation for the input voxels (ignoring background).</param>
         /// <returns>INifti object which contains the relevant difference between the reference nifti and the input nifti.</returns>
-        public static INifti CompareMSLesion(INifti input, INifti reference, float backgroundThreshold = 10, float minRelevantStd = -1, float maxRelevantStd = 3, float minChange = 1, float maxChange = 3)
+        public static INifti CompareMSLesion(INifti input, INifti reference, float backgroundThreshold = 10, float minRelevantStd = -1, float maxRelevantStd = 3, float minChange = 0.9f, float maxChange = 3)
         {
             INifti output = input.DeepCopy();
 
