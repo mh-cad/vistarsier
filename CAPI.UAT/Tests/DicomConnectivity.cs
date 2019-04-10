@@ -79,7 +79,7 @@ namespace CAPI.UAT.Tests
                     return false;
 
                 // Retrieve
-                if (!RetrieveFromDicomNode(patientId, studies, out var retrievedSeries, dicomServices, localNode, sourceNode))
+               // if (!RetrieveFromDicomNode(patientId, studies, out var retrievedSeries, dicomServices, localNode, sourceNode))
                     return false;
 
                 // Storage
