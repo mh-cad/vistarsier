@@ -1024,11 +1024,11 @@ namespace CAPI.ImageProcessing
                 if (idxOverlay < 0) idxOverlay = 0;
                 else if (idxOverlay > overlay.ColorMap.Length - 1) idxOverlay = overlay.ColorMap.Length - 1;
 
-                int red = (overlay.ColorMap[idxOverlay].R * overlay.ColorMap[idxOverlay].A + ColorMap[idx].R * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
-                int green = (overlay.ColorMap[idxOverlay].G * overlay.ColorMap[idxOverlay].A + ColorMap[idx].G * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
-                int blue = (overlay.ColorMap[idxOverlay].B * overlay.ColorMap[idxOverlay].A + ColorMap[idx].B * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+                var red = (overlay.ColorMap[idxOverlay].R * overlay.ColorMap[idxOverlay].A + ColorMap[idx].R * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+                var green = (overlay.ColorMap[idxOverlay].G * overlay.ColorMap[idxOverlay].A + ColorMap[idx].G * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
+                var blue = (overlay.ColorMap[idxOverlay].B * overlay.ColorMap[idxOverlay].A + ColorMap[idx].B * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
 
-                output.voxels[i] = Color.FromArgb(red, green, blue).ToArgb().ToBgr();
+                output.voxels[i] = Convert.ToUInt32((byte)red << 16 | (byte)green << 8 | (byte)blue);
             }
 
             output.ConvertHeaderToRgb();
