@@ -48,7 +48,7 @@ namespace CAPI.Agent
 
         public IJobResult[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
-            string[] lookupTablePaths, SliceType sliceType,
+            SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string outPriorReslicedDicom,
             string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription)
@@ -71,7 +71,7 @@ namespace CAPI.Agent
 
             _imgProc.CompareDicomInNiftiOut(
                                             currentDicomFolder, priorDicomFolder, referenceDicomFolder,
-                                            lookupTablePaths, sliceType,
+                                            sliceType,
                                             extractBrain, register, biasFieldCorrect,
                                             resultNiis, outPriorReslicedNiiFile);
 
@@ -251,20 +251,6 @@ namespace CAPI.Agent
                 resultPaths[i] = Path.Combine(resultFolder, ResultsFileName);
             }
 
-            // TODO1: Remove when done experimenting
-            #region Experimental
-
-            if (false)
-            {
-                var newList = resultPaths.ToList();
-                var nictaPosResultFolder = Path.Combine(allResultsFolder, "NictaPos");
-                newList.Add(Path.Combine(nictaPosResultFolder, "result.nii"));
-                var nictaNegResultFolder = Path.Combine(allResultsFolder, "NictaNeg");
-                newList.Add(Path.Combine(nictaNegResultFolder, "result.nii"));
-                resultPaths = newList.ToArray();
-            }
-            #endregion
-
             return resultPaths;
         }
 
@@ -272,7 +258,7 @@ namespace CAPI.Agent
         {
             return CompareAndSaveLocally(
                 job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder, job.ReferenceSeriesDicomFolder,
-                recipe.LookUpTablePaths, sliceType,
+                sliceType,
                 job.ExtractBrain, job.Register, job.BiasFieldCorrection,
                 job.PriorReslicedSeriesDicomFolder,
                 recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription

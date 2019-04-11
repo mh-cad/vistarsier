@@ -7,7 +7,7 @@ namespace CAPI.Agent.Abstractions
     {
         IJobResult[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
-            string[] lookupTablePaths, SliceType sliceType,
+            SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string outPriorReslicedDicom,
             string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription);
