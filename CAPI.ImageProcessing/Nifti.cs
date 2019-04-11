@@ -16,12 +16,9 @@ namespace CAPI.ImageProcessing
     public class Nifti : INifti
     {
         public INiftiHeader Header { get; set; }
-        public float[] voxels { get { return _voxels; } set { _voxels = value; Header.cal_min = voxels.Min(); Header.cal_max = voxels.Max(); } }
+        public float[] voxels { get; set; }
         public byte[] voxelsBytes { get; set; }
         public Color[] ColorMap { get; set; }
-
-        private float[] _voxels;
-
 
         /// <summary>
         /// Constructor
@@ -985,8 +982,8 @@ namespace CAPI.ImageProcessing
         {
             Nifti copy = new Nifti();
             copy.Header = Header.DeepCopy();
-            copy._voxels = new float[_voxels.Length];
-            _voxels.CopyTo(copy._voxels, 0);
+            copy.voxels = new float[voxels.Length];
+            voxels.CopyTo(copy.voxels, 0);
             if (voxelsBytes != null)
             {
                 copy.voxelsBytes = new byte[voxelsBytes.Length];
@@ -1032,9 +1029,15 @@ namespace CAPI.ImageProcessing
             }
 
             output.ConvertHeaderToRgb();
-            output.voxels = output.voxels;
+            output.RecalcHeaderMinMax();
 
             return output;
+        }
+
+        public void RecalcHeaderMinMax()
+        {
+            Header.cal_max = voxels.Max();
+            Header.cal_min = voxels.Min();
         }
     }
 }
