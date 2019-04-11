@@ -225,5 +225,10 @@ namespace CAPI.ImageProcessing.Abstraction
         /// <returns></returns>
         INifti AddOverlay(INifti overlay);
 
+        /// <summary>
+        /// Recalculate the minimum and maximum value to be displayed based on current voxels.
+        /// </summary>
+        void RecalcHeaderMinMax();
+
     }
 }

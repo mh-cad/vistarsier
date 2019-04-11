@@ -31,7 +31,7 @@ namespace CAPI.ImageProcessing
 
             INifti output = input.DeepCopy();
             output.ReadNifti(niftiOutPath);
-            output.voxels = output.voxels;
+            output.RecalcHeaderMinMax();
 
             return output;
         }

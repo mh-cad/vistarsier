@@ -287,6 +287,7 @@ namespace NiftiView
             }
 
             niftiA.voxels = subMap;
+            niftiA.RecalcHeaderMinMax();
             // Apply
             _niftiControllerA.Nifti = niftiA;
         }
@@ -338,7 +339,7 @@ namespace NiftiView
                 niftiC.voxels[i] = (float)sub[i];
             }
 
-            niftiC.voxels = niftiC.voxels;
+            niftiC.RecalcHeaderMinMax();
 
             return niftiC;
         }
@@ -376,6 +377,7 @@ namespace NiftiView
             }
 
             nifti.voxels = vox;
+            nifti.RecalcHeaderMinMax();
             return nifti;
         }
 

@@ -34,7 +34,7 @@ namespace CAPI.ImageProcessing
                 output.voxels[i] = (float)((output.voxels[i] - currentMean) / currentStdDev) * stdDev + mean;
             }
 
-            output.voxels = output.voxels; //update display range
+            output.RecalcHeaderMinMax(); //update display range
 
             return output;
         }
