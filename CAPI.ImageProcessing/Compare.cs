@@ -21,7 +21,7 @@ namespace CAPI.ImageProcessing
         {
             INifti output = CompareMSLesion(input, reference);
             for (int i = 0; i < output.voxels.Length; ++i) if (output.voxels[i] < 0) output.voxels[i] = 0;
-            output.voxels = output.voxels; // This will update the header range.
+            output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.RedScale();
 
             return output;
@@ -38,7 +38,7 @@ namespace CAPI.ImageProcessing
         {
             INifti output = CompareMSLesion(input, reference);
             for (int i = 0; i < output.voxels.Length; ++i) if (output.voxels[i] > 0) output.voxels[i] = 0;
-            output.voxels = output.voxels; // This will update the header range.
+            output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.ReverseGreenScale();
 
             return output;
@@ -94,7 +94,7 @@ namespace CAPI.ImageProcessing
                 }
             }
 
-            output.voxels = output.voxels; // Update header range.
+            output.RecalcHeaderMinMax(); // Update header range.
 
             var stdDv = output.voxels.StandardDeviation();
             var mean2 = output.voxels.Where(val => val > 0).Mean();
