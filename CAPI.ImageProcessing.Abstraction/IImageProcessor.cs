@@ -3,13 +3,13 @@
     public interface IImageProcessor
     {
         void ExtractBrainRegisterAndCompare(
-            string currentNii, string priorNii, string referenceNii, string[] lookupTablePaths, SliceType sliceType,
+            string currentNii, string priorNii, string referenceNii, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii);
 
         void CompareDicomInNiftiOut(
             string currentDicomFolder, string priorDicomFolder, string referenceSeriesDicomFolder,
-            string[] lookupTablePaths, SliceType sliceType,
+            SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii);
     }
