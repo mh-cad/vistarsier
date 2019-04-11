@@ -215,21 +215,6 @@ namespace CAPI.Agent.Models
                         var resultDestinationFolder = Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException());
                         _filesystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
                     }
-                    // TODO1: Remove after done experimenting
-                    #region Experimental
-
-                    if (false)
-                    {
-                        var jobFolderPath = Directory.GetParent(PriorReslicedSeriesDicomFolder).FullName;
-                        var currentDicomFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom");
-                        var currentDicomDestinationFolder = Path.Combine(destJobFolderPath, "CurrentBfcedDicom");
-                        _filesystem.CopyDirectory(currentDicomFolderPath, currentDicomDestinationFolder);
-
-                        var currentImagesFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom_Images");
-                        var currentImagesDestinationFolder = Path.Combine(destJobFolderPath, "CurrentBfcedDicom_Images");
-                        _filesystem.CopyDirectory(currentImagesFolderPath, currentImagesDestinationFolder);
-                    }
-                    #endregion
 
                     var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
                     var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
