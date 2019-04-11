@@ -22,7 +22,6 @@ namespace CAPI.ImageProcessing
         private readonly ILog _log;
         private string _referenceSeriesDicomFolder;
         private bool _referenceSeriesExists;
-        private string _currentResliced;
 
         public ImageProcessor(IFileSystem filesystem, IProcessBuilder processBuilder,
                               IImgProcConfig config, ILog log)
@@ -39,7 +38,6 @@ namespace CAPI.ImageProcessing
         /// </summary>
         /// <param name="currentDicomFolder">Directory path to current series dicom folder</param>
         /// <param name="priorDicomFolder">Directory path to prior series dicom folder</param>
-        /// <param name="lookupTablePaths">array containing filepath to each lookup table used to compare current and prior series</param>
         /// <param name="sliceType">Input set of series can be in either Sagittal, Axial or Coronal plane</param>
         /// <param name="referenceSeriesDicomFolder">Patient has previous processed cases and this series was as reference frame of reference</param>
         /// <param name="extractBrain">true if brain extraction required</param>
@@ -51,16 +49,12 @@ namespace CAPI.ImageProcessing
         [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
         public void CompareDicomInNiftiOut(
             string currentDicomFolder, string priorDicomFolder, string referenceSeriesDicomFolder,
-            string[] lookupTablePaths, SliceType sliceType,
+            SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
         {
             _referenceSeriesDicomFolder = referenceSeriesDicomFolder ?? string.Empty;
             _referenceSeriesExists = _filesystem.DirectoryIsValidAndNotEmpty(_referenceSeriesDicomFolder);
-
-            foreach (var lookupTablePath in lookupTablePaths)
-                if (!File.Exists(lookupTablePath))
-                    throw new FileNotFoundException($"Unable to locate Lookup Table in the following path: {lookupTablePath}");
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series
             if (!_filesystem.DirectoryIsValidAndNotEmpty(currentDicomFolder))
@@ -109,7 +103,7 @@ namespace CAPI.ImageProcessing
             task3.Wait();
 
             // When dicom files are converted into nifti files they are passed to do the actual processing
-            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, referenceNifti, lookupTablePaths, sliceType,
+            ExtractBrainRegisterAndCompare(currentNifti, priorNifti, referenceNifti, sliceType,
                                            extractBrain, register, biasFieldCorrect,
                                            resultNiis, outPriorReslicedNii);
         }
@@ -121,7 +115,6 @@ namespace CAPI.ImageProcessing
         /// <param name="currentNii">current series nifti file path</param>
         /// <param name="priorNii">prior series nifti file path</param>
         /// <param name="referenceNii">reference series nifti file path (If exists, used for universal frame of reference)</param>
-        /// <param name="lookupTablePaths">bmp files mapping current and prior comparison result colors</param>
         /// <param name="sliceType">Sagittal, Axial or Coronal</param>
         /// <param name="extractBrain">to do skull stripping or not</param>
         /// <param name="register">to register or not</param>
@@ -129,7 +122,7 @@ namespace CAPI.ImageProcessing
         /// <param name="resultNiis">end result output nifti files path</param>
         /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
         public void ExtractBrainRegisterAndCompare(
-            string currentNii, string priorNii, string referenceNii, string[] lookupTablePaths, SliceType sliceType,
+            string currentNii, string priorNii, string referenceNii, SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
         {
@@ -205,6 +198,10 @@ namespace CAPI.ImageProcessing
             INifti currentNiftiWithSkull = new Nifti().ReadNifti(currentWithSkull);
             INifti priorNiftiWithSkull = new Nifti().ReadNifti(priorWithSkull);
 
+            // In theory this should stop the skull highlights darkening the output images...
+            priorNiftiWithSkull.Header.cal_max = priorNifti.Header.cal_max;
+            currentNiftiWithSkull.Header.cal_max = currentNifti.Header.cal_max;
+
             // Normalize
             stopwatch1.Restart();
             _log.Info("Starting normalization...");
@@ -222,6 +219,7 @@ namespace CAPI.ImageProcessing
             var decreaseNifti = decreaseTask.Result;
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
             stopwatch1.Restart();
+
 
             // Write the prior resliced file.
             priorNiftiWithSkull.WriteNifti(outPriorReslicedNii);
