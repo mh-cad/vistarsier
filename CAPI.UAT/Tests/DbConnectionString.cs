@@ -46,7 +46,7 @@ namespace CAPI.UAT.Tests
                     return false;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.Write("Error occured while trying to connect to database using provided connection string", true, Logger.TextType.Fail, false, 1, 0);
                 Logger.Write(connectionString, true, Logger.TextType.Fail);

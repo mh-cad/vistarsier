@@ -72,8 +72,8 @@ namespace NiftiView
             }
 
 
-            try { _histA = new Histogram(dataA, HIST_BINS, lower, upper); } catch (Exception e) { }
-            try { _histB = new Histogram(dataB, HIST_BINS, lower, upper); } catch (Exception e) { }
+            try { _histA = new Histogram(dataA, HIST_BINS, lower, upper); } catch (Exception) { }
+            try { _histB = new Histogram(dataB, HIST_BINS, lower, upper); } catch (Exception) { }
 
             // Set range box values.
             _startOfRange.Minimum = 0;
