@@ -47,7 +47,7 @@ namespace CAPI.Cmd
             IFileSystem fs = new FileSystem();
             IImageProcessor ip = new ImageProcessor(fs, null, null, LogManager.GetLogger("logjammin"));
             string[] outputs = { "out1.nii", "out2.nii" };
-            ip.ExtractBrainRegisterAndCompare(floatingPath, fixedPath, floatingPath, new string[0], SliceType.Sagittal, true, true, true, outputs, "prior-resliced.nii");
+            ip.ExtractBrainRegisterAndCompare(floatingPath, fixedPath, floatingPath, SliceType.Sagittal, true, true, true, outputs, "prior-resliced.nii");
 
             var out1nifti = new Nifti().ReadNifti("out1.nii");
             out1nifti.GetSlice(114, SliceType.Sagittal).Save("somthing.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
