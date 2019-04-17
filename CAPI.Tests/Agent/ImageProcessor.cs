@@ -74,7 +74,7 @@ namespace CAPI.Tests.Agent
                 _destinationPriorResliced = Path.Combine(_tmpFolder, "Resliced");
 
                 agentImgProc.CompareAndSaveLocally(
-                    _currentStudyDicomFolder, _priorStudyDicomFolder, "", new[] { _lookupTableFile }, SliceType.Sagittal
+                    _currentStudyDicomFolder, _priorStudyDicomFolder, "", SliceType.Sagittal
                     , true, true, true, _destinationPriorResliced, "Results", "Prior Resliced");
 
                 // Assert
