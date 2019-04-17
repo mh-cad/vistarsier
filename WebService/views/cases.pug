@@ -1,0 +1,38 @@
+extends template.pug
+block content
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						h4(class="card-title") Cases
+					div(class="card-body")
+						div(class="table-responsive")
+							table(class="table")
+								thead(class="text-primary")
+									th Case Id
+									th Accession
+									th Status
+									th Comment
+									
+								tbody
+									each val in casedata
+										tr
+											td #{val.id}
+											td #{val.accession}
+											td #{val.status}
+											td #{val.comment}
+										
+					table(class="table")
+						tr
+							td
+								a(href="/cases/" + lastid)
+										i(class="now-ui-icons arrows-1_minimal-left a")
+										p Previous 50
+							td(class="text-right")
+								a(href="/cases/" + (parseInt(lastid) + 100))
+									i(class="now-ui-icons arrows-1_minimal-right a")
+									p Next 50
+										
+						
+					
