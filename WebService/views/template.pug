@@ -1,0 +1,37 @@
+doctype html
+html
+	head
+		title CAPI
+		link(rel='stylesheet', href='../css/bootstrap.min.css')
+		link(rel='stylesheet', href='../css/now-ui-dashboard.css')
+		meta(name="viewport" content="width=device-width, initial-scale=1")
+	body
+		div(class="wrapper ")
+			div(class="sidebar" data-color="orange")
+				div(class="logo")
+					p CAPI
+				div(class="sidebar-wrapper" id="sidebar-wrapper")
+					ul(class="nav")
+									
+						li
+							a(href="/jobs/")
+								i(class="now-ui-icons design_bullet-list-67")
+								p Jobs
+						li
+							a(href="/cases/")
+								i(class="now-ui-icons business_briefcase-24")
+								p Cases
+									
+						li
+							a(href="/log/")
+								i(class="now-ui-icons files_paper")
+								p Log
+						
+			div(class="main-panel" id="main-panel")
+				nav(class="navbar navbar-expand-lg navbar-transparent  bg-primary  navbar-absolute")
+					div(class="container-fluid")
+						div(class="navbar-wrapper")
+						a(class="navbar-brand" href="#pablo") 
+				
+				div(class="panel-header panel-header-sm")
+				block content

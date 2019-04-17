@@ -1,0 +1,52 @@
+extends template.pug
+block content
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						h4(class="card-title") Jobs
+					div(class="card-body")
+						div(class="table-responsive")
+							table(class="table")
+								thead(class="text-primary")
+									th Job Id
+									th Patient Name
+									th Patient DOB
+									th Patient ID
+									th Current Accession
+									th Prior Accession
+									th Source
+									th Destination
+									th Status
+									th Complete
+									th Processing Time
+								tbody
+									each job in jobs
+										tr
+											td #{job.id}
+											td #{job.name}
+											td #{job.dob}
+											td #{job.patientid}
+											td #{job.current}
+											td #{job.prior}
+											td #{job.source}
+											td #{job.dest}
+											td #{job.status}
+											td #{job.complete}
+											td(class="text-right") #{job.time}
+					
+					
+					table(class="table")
+						tr
+							td
+								a(href="/jobs/" + lastid)
+										i(class="now-ui-icons arrows-1_minimal-left a")
+										p Previous 50
+							td(class="text-right")
+								a(href="/jobs/" + (parseInt(lastid) + 100))
+									i(class="now-ui-icons arrows-1_minimal-right a")
+									p Next 50
+										
+						
+					
