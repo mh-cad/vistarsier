@@ -40,7 +40,7 @@ namespace CAPI.ImageProcessing
                 var logval = 255 * (Math.Log(i) / Math.Log(255));
                 logval = Math.Min(255, logval);
                 if (logval < 0) logval = 0;
-                colors[i] = Color.FromArgb((int)logval, 255, (int)val/2, 0);
+                colors[i] = Color.FromArgb((int)logval, 255, (int)val, 0);
             }
 
             return colors;
