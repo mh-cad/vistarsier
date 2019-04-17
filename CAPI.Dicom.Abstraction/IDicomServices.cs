@@ -5,6 +5,7 @@ namespace CAPI.Dicom.Abstractions
     public interface IDicomServices
     {
         void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode);
+        void SendDicomFiles(string[] filepaths, string localAe, IDicomNode destinationDicomNode);
         void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType);
         void UpdateSeriesHeadersForAllFiles(string[] filesPath, IDicomTagCollection tags);
         //void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,

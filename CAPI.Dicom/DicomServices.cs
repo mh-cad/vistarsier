@@ -42,6 +42,19 @@ namespace CAPI.Dicom
             }
         }
 
+        public void SendDicomFiles(string[] filepaths, string localAe, IDicomNode destinationDicomNode)
+        {
+            using (var scu = new StorageScu(localAe, destinationDicomNode.AeTitle, destinationDicomNode.IpAddress, destinationDicomNode.Port))
+            {
+                scu.ImageStoreCompleted += ScuOnImageStorageCompleted;
+                foreach (var filepath in filepaths)
+                { 
+                    scu.AddFile(filepath);
+                }
+                scu.Send();
+            }
+        }
+
         private static void ScuOnImageStorageCompleted(object sender, ImageStoreEventArgs eventArgs)
         {
         }
@@ -475,6 +488,7 @@ namespace CAPI.Dicom
         {
             var verificationScu = new VerificationScu();
             //var result = verificationScu.Verify(localNode.AeTitle, remoteNode.AeTitle, remoteNode.IpAddress, remoteNode.Port);
+            // TODO remove hardcoded noes.
             var result = verificationScu.Verify("KPSB", "***REMOVED***", "***REMOVED***", 104);
             if (result != VerificationResult.Success)
                 throw new Exception($"Remote Dicom node not reachable. AET: [{remoteNode.AeTitle}] IP: [{remoteNode.IpAddress}]");
