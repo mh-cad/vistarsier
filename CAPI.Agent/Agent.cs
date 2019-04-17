@@ -297,6 +297,8 @@ namespace CAPI.Agent
         private Recipe FindRecipe(ICase @case)
         {
             Recipe recipe;
+
+            
             if (@case.AdditionMethod == AdditionMethod.Hl7)
             {
                 recipe = GetDefaultRecipe();
@@ -384,44 +386,47 @@ namespace CAPI.Agent
         {
             var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath).ToList();
             if (!manuallyAddedCases.Any()) return;
-            var firstCase = manuallyAddedCases.ToList().First();
 
-            var inDb = _context.Cases.Select(c => c.Accession)
-                .Any(ac => ac.ToLower().Contains(firstCase.Accession.ToLower()));
-            if (inDb)
-            { // If already in database, set status to Pending
-                var inDbCase = _context.Cases
-                    .Single(c => c.Accession.Equals(firstCase.Accession, StringComparison.InvariantCultureIgnoreCase));
-                inDbCase.Status = "Pending";
-                inDbCase.AdditionMethod = AdditionMethod.Manually;
-                try
-                {
-                    _context.Cases.Update(inDbCase);
-                    _context.SaveChanges();
-                    _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
-                }
-                catch (Exception ex)
-                {
-                    _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                               $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
-                }
-            }
-            else // if not in database, add to database
+            manuallyAddedCases.ToList().ForEach(mc =>
             {
-                var newCase = new Case { Accession = firstCase.Accession.ToUpper(), Status = "Pending", AdditionMethod = AdditionMethod.Manually };
-                try
-                {
-                    _context.Cases.Add(newCase);
-                    _context.SaveChanges();
-                    _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
+                var inDb = _context.Cases.Select(c => c.Accession)
+                        .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
+
+                if (inDb)
+                { // If already in database, set status to Pending
+                    var inDbCase = _context.Cases
+                        .Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
+                    inDbCase.Status = "Pending";
+                    inDbCase.AdditionMethod = AdditionMethod.Manually;
+                    try
+                    {
+                        _context.Cases.Update(inDbCase);
+                        _context.SaveChanges();
+                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                                   $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
+                    }
                 }
-                catch (Exception ex)
+                else // if not in database, add to database
                 {
-                    _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                               $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
+                    var newCase = new Case { Accession = mc.Accession.ToUpper(), Status = "Pending", AdditionMethod = AdditionMethod.Manually };
+                    try
+                    {
+                        _context.Cases.Add(newCase);
+                        _context.SaveChanges();
+                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                                   $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
+                    }
                 }
-            }
-            //});
+            });
+
         }
         #endregion
 
