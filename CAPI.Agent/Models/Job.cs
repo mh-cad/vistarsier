@@ -253,27 +253,14 @@ namespace CAPI.Agent.Models
                 foreach (var result in Results)
                 {
                     var resultDicomFiles = Directory.GetFiles(result.DicomFolderPath);
-                    foreach (var resultDicomFile in resultDicomFiles)
-                        _dicomServices.SendDicomFile(resultDicomFile, localNode.AeTitle, remoteNode);
+                    _dicomServices.SendDicomFiles(resultDicomFiles, localNode.AeTitle, remoteNode);
                 }
                 _log.Info($"Finished sending results to AET [{remoteNode.AeTitle}]");
 
                 _log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
                 var priorReslicedDicomFiles = Directory.GetFiles(PriorReslicedSeriesDicomFolder);
-                foreach (var priorReslicedDicomFile in priorReslicedDicomFiles)
-                    _dicomServices.SendDicomFile(priorReslicedDicomFile, localNode.AeTitle, remoteNode);
+                _dicomServices.SendDicomFiles(priorReslicedDicomFiles, localNode.AeTitle, remoteNode);
                 _log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
-
-                //// TODO1: Remove after done experimenting
-                //#region Experimental
-                //_log.Info($"Sending current BFC'ed series to AET [{remoteNode.AeTitle}]...");
-                //var jobFolderPath = Directory.GetParent(PriorReslicedSeriesDicomFolder).FullName;
-                //var currentDicomFolderPath = Path.Combine(jobFolderPath, "CurrentBfcedDicom");
-                //var currentBfcedDicomFiles = Directory.GetFiles(currentDicomFolderPath);
-                //foreach (var currentBfcedDicomFile in currentBfcedDicomFiles)
-                //    _dicomServices.SendDicomFile(currentBfcedDicomFile, localNode.AeTitle, remoteNode);
-                //_log.Info($"Finished sending current BFC'ed series to AET [{remoteNode.AeTitle}]");
-                //#endregion
             }
         }
 
