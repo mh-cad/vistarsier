@@ -24,7 +24,7 @@ namespace CAPI.ImageProcessing
             // Write nifti to temp directory.
             input.WriteNifti(niftiInPath);
 
-            var args = $"-i {niftiInPath} -o {niftiOutPath}";
+            var args = $"-i {niftiInPath} -o {niftiOutPath} --trim";
 
             Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
 
@@ -45,7 +45,7 @@ namespace CAPI.ImageProcessing
             string niftiInPath = inputFile;
             string niftiOutPath = inputFile + ".bse.out.nii";
 
-            var args = $"-i {niftiInPath} -o {niftiOutPath}";
+            var args = $"-i {niftiInPath} -o {niftiOutPath} --trim";
 
             Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
 
