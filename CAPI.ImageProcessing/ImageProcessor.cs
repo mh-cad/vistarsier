@@ -198,9 +198,72 @@ namespace CAPI.ImageProcessing
             INifti currentNiftiWithSkull = new Nifti().ReadNifti(currentWithSkull);
             INifti priorNiftiWithSkull = new Nifti().ReadNifti(priorWithSkull);
 
+            // Check brain extraction match...
+            stopwatch1.Restart();
+            _log.Info($@"Checking brain extraction...");
+            var volCurrent = 0d;
+            var volPrior = 0d;
+            var volWSkullCurrent = 0;
+            var volWSkullPrior = 0;
+            for (int i = 0; i < currentNifti.voxels.Length; ++i)
+            {
+                if (currentNifti.voxels[i] > 0) volCurrent++;
+                if (currentNiftiWithSkull.voxels[i] > 30) volWSkullCurrent++;
+                if (priorNifti.voxels[i] > 0) volPrior++;
+                if (priorNiftiWithSkull.voxels[i] > 30) volWSkullPrior++;
+            }
+            var match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
+            _log.Info($@"Percentage of current volume that's brain: {(int)(volCurrent/volWSkullCurrent * 100d)}%");
+            _log.Info($@"Percentage of prior volume that's brain: {(int)(volPrior/volWSkullPrior * 100d)}%");
+            _log.Info($@"Brain extraction match: {(int)(match * 100)}%");
+
+
+            // If the match is sub-80% it's probably because one of the brains didn't extract so 
+            // the compare operation will automatically use the intersection of the two. On the 
+            // other hand if we're above 80% but less than 95% one of the extractions probably cut
+            // out a chunk of brain. So we'll make a mask of the union and apply it to both sides.
+            if (match > 0.8 && match < 0.95)
+            {
+                _log.Info($@"Brain extraction match not good enough, taking the union...");
+                // Let's try to make the brain mask an OR of the two.
+                var mask = currentNifti.DeepCopy();
+                for (int i = 0; i < mask.voxels.Length; ++i)
+                {
+                    if (currentNifti.voxels[i] != 0 || priorNifti.voxels[i] != 0) mask.voxels[i] = 1;
+                    else mask.voxels[i] = 0;
+                }
+
+                currentNifti = currentNiftiWithSkull.DeepCopy();
+                priorNifti = priorNiftiWithSkull.DeepCopy();
+
+                for (int i = 0; i < currentNifti.voxels.Length; ++i)
+                {
+                    currentNifti.voxels[i] = currentNifti.voxels[i] * mask.voxels[i];
+                    priorNifti.voxels[i] = priorNifti.voxels[i] * mask.voxels[i];
+                }
+
+                currentNifti.RecalcHeaderMinMax();
+                priorNifti.RecalcHeaderMinMax();
+
+                // Check brain extraction match again...
+                volCurrent = 0d;
+                volPrior = 0d;
+                for (int i = 0; i < currentNifti.voxels.Length; ++i)
+                {
+                    if (currentNifti.voxels[i] > 0) volCurrent++;
+                    if (priorNifti.voxels[i] > 0) volPrior++;
+                }
+                match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
+                _log.Info($@"Brain extraction match after mask: {(int)(match * 100)}%");
+            }
+
             // In theory this should stop the skull highlights darkening the output images...
+            priorNifti.RecalcHeaderMinMax();
+            currentNifti.RecalcHeaderMinMax();
             priorNiftiWithSkull.Header.cal_max = priorNifti.Header.cal_max;
             currentNiftiWithSkull.Header.cal_max = currentNifti.Header.cal_max;
+
+            _log.Info($@"...done [{stopwatch1.Elapsed}]");
 
             // Normalize
             stopwatch1.Restart();
@@ -220,6 +283,32 @@ namespace CAPI.ImageProcessing
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
             stopwatch1.Restart();
 
+            // Estimate edge ratio. The edge ratio is the ratio of change which is an edge vs. the change which is bounded.
+            // A lower ratio implies that there are larger connected areas of change, which may be more clinically significant.
+            // This is an estimate as the check is only over one dimension (to save time).
+            _log.Info($@"Estimating edge ratio (lower implies more meaningful change)");
+            var varianceIncrease = 0d;
+            var totalIncrease = 0d;
+            var varianceDecrease = 0d;
+            var totalDecrease = 0d;
+            for (int i = 0; i < increaseNifti.voxels.Length - 1; ++i)
+            {
+                if ((increaseNifti.voxels[i] > 0 != increaseNifti.voxels[i + 1] > 0)) varianceIncrease++;
+                if (increaseNifti.voxels[i] > 0) totalIncrease++; // Note, we'll miss the last voxel but it's just a rough estimate.
+                if ((decreaseNifti.voxels[i] < 0 != decreaseNifti.voxels[i + 1] < 0)) varianceDecrease++;
+                if (decreaseNifti.voxels[i] < 0) totalDecrease++;
+
+                if (i == increaseNifti.voxels.Length - 2)
+                {
+                    if (increaseNifti.voxels[i+1] > 0) totalIncrease++;
+                    if (decreaseNifti.voxels[i+1] < 0) totalDecrease++;
+                }
+            }
+
+            _log.Info($@"Edge ratio for increase: {varianceIncrease / totalIncrease}");
+            _log.Info($@"Edge ratio for decrease: {varianceDecrease / totalDecrease}");
+            _log.Info($@"..done. [{stopwatch1.Elapsed}]");
+            stopwatch1.Reset();
 
             // Write the prior resliced file.
             priorNiftiWithSkull.WriteNifti(outPriorReslicedNii);
@@ -261,6 +350,5 @@ namespace CAPI.ImageProcessing
             }
             return output;
         }
-
     }
 }
