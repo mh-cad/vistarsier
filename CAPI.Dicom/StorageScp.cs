@@ -373,7 +373,7 @@ namespace ClearCanvas.Dicom.Samples
 
             if (Bitbucket)
             {
-                Platform.Log(LogLevel.Info, "Received SOP Instance: {0} for patient {1} in syntax {2}", sopInstanceUid,
+                Platform.Log(LogLevel.Debug, "Received SOP Instance: {0} for patient {1} in syntax {2}", sopInstanceUid,
                              patientName, syntax.Name);
 
                 server.SendCStoreResponse(presentationID, message.MessageId,
@@ -405,8 +405,8 @@ namespace ClearCanvas.Dicom.Samples
 
 
             dicomFile.Save(DicomWriteOptions.None);
-
-            Platform.Log(LogLevel.Info, "Received SOP Instance: {0} for patient {1} in syntax {2}", sopInstanceUid,
+            
+            Platform.Log(LogLevel.Debug, "Received SOP Instance: {0} for patient {1} in syntax {2}", sopInstanceUid,
                          patientName, syntax.Name);
 
             server.SendCStoreResponse(presentationID, message.MessageId,
