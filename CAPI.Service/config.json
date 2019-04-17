@@ -1,0 +1,57 @@
+{
+  "AgentDbConnectionString": "Server=server;Database=Capi;User Id=user;Password=password;Connection Timeout=120",
+  "RunInterval": "30",
+  "ManualProcessPath": "path-to\\ManualProcess",
+  "Hl7ProcessPath": "path-to\\CompletedMRIs",
+  "DefaultRecipePath": "path-to\\DefaultRecipe.recipe.json",
+  "LogPath:": "path-to\\Logs\\log.txt",
+  "ProcessCasesAddedManually": true,
+  "ProcessCasesAddedByHL7": true,
+  "DicomConfig": {
+    "Img2DcmFilePath": "path-to\\img2dcm.exe",
+    "LocalNode": {
+      "LogicalName": "CAPI Server",
+      "AeTitle": "CAPI",
+      "IpAddress": "ip-address",
+      "Port": 4104
+    },
+    "RemoteNodes": [
+      {
+        "LogicalName": "PACS Name",
+        "AeTitle": "PACS AE",
+        "IpAddress": "ip address",
+        "Port": port#
+      },
+      {
+        "LogicalName": "PACS Name",
+        "AeTitle": "PACS AE",
+        "IpAddress": "ip address",
+        "Port": port#
+      }
+    ]
+  },
+  "ImgProcConfig": {
+    "ImgProcBinFolderPath": "path-to",
+    "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
+    "BseExeRelFilePath": "bse.exe",
+    "BseParams": "--auto --trim --timer",
+    "RegistrationRelFilePath": "registration\\registration.exe",
+    "CmtkFolderName": "CMTK_Output",
+    "CmtkRawxformFile": "CmtkRawxFormFile",
+    "RegistrationParams": "--initxlate --dofs 6 --auto-multi-levels 4",
+    "CmtkResultxformFile": "CmtkResultxFormFile",
+    "ReformatXRelFilePath": "CMTK\\bin\\reformatx.exe",
+    "BfcExeRelFilePath": "bfc.exe",
+    "BfcParams": "--iterate --ellipse --timer",
+
+    "JavaExeFilePath": "C:\\Program Files\\Java\\jre1.8.0_121\\bin\\java.exe",
+    "JavaClasspath": "path-to\\dist\\*",
+    "ProcessesLogPath": "path-to\\CAPI_Processes_Log",
+    "ImageRepositoryPath": "path-to\\ImageRepository",
+    "ResultsDicomSeriesDescription": "CAPI Modified Signal",
+    "PriorReslicedDicomSeriesDescription": "Prior Resliced"
+  },
+  "TestsConfig": {
+    "TestResourcesPath": "path-to\\TestsResources"
+  }
+}
