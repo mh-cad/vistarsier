@@ -14,9 +14,9 @@ const logPath = 'path to capi logs\\CAPI.Service\\logs\\log.txt';
 
 const sqlconfig = 
 {
-	user: 'sa',
-	password: '***REMOVED***',
-	server:'rad-vtnew',
+	user: '',
+	password: '',
+	server:'',
 	database: 'Capi',
 	parseJSON: true,
 };
