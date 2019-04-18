@@ -234,16 +234,6 @@ namespace CAPI.Tests.Dicom
             throw new NotImplementedException("Assert to be implemented");
         }
 
-        [TestMethod]
-        public void GetDicomStudiesForPatientId()
-        {
-            if (_remoteNode.AeTitle != "RMHSYNSCP") return;
-            const string testPatientId = "1200633";
-            var studies = _dicomServices.GetStudiesForPatientId(testPatientId, _localNode, _remoteNode);
-            var dicomStudies = studies as IDicomStudy[] ?? studies.ToArray();
-            Assert.IsTrue(dicomStudies.Length > 9, $"Less than 9 studies found for patient id: {testPatientId}{Environment.NewLine}" +
-                                               $"Count:{dicomStudies.Length }");
-        }
 
         [TestMethod]
         public void UpdateImagePositionFromReferenceSeries()
