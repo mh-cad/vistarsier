@@ -1,5 +1,5 @@
 {
-  "AgentDbConnectionString": "Server=***REMOVED***;Database=Capi;User Id=sa;Password=***REMOVED***;Connection Timeout=120",
+  "AgentDbConnectionString": "Server=RAD-VTNEW;Database=Capi;User Id=sa;Password=radsysadmin;Connection Timeout=120",
   "RunInterval": "30",
   "ManualProcessPath": "D:\\MehdiFiles\\ManualProcess",
   "Hl7ProcessPath": "D:\\Mirth_data\\Capi\\CompletedMRIs",
@@ -13,20 +13,20 @@
     "LocalNode": {
       "LogicalName": "CAPI Server",
       "AeTitle": "CAPI",
-      "IpAddress": "***REMOVED***",
+      "IpAddress": "172.28.43.65",
       "Port": 4104
     },
     "RemoteNodes": [
       {
         "LogicalName": "Synapse Live",
-        "AeTitle": "***REMOVED***",
-        "IpAddress": "***REMOVED***",
+        "AeTitle": "RMHSYNSCP",
+        "IpAddress": "172.28.40.151",
         "Port": 104
       },
       {
         "LogicalName": "Syn-mini",
-        "AeTitle": "***REMOVED***",
-        "IpAddress": "***REMOVED***",
+        "AeTitle": "RMHSYNMINISCP",
+        "IpAddress": "172.28.40.152",
         "Port": 104
       }
     ]

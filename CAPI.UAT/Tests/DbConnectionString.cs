@@ -25,8 +25,8 @@ namespace CAPI.UAT.Tests
 
         public bool Run()
         {
-            var connectionString = //CapiConfig.AgentDbConnectionString;
-                "Server=***REMOVED***;Database=Capi;User Id=sa;Password=***REMOVED***;Connection Timeout=120";
+            var connectionString = CapiConfig.AgentDbConnectionString;
+
             try
             {
                 Context = new AgentRepository(connectionString);
