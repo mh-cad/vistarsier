@@ -218,7 +218,7 @@ namespace CAPI.ImageProcessing
             // the compare operation will automatically use the intersection of the two. On the 
             // other hand if we're above 80% but less than 95% one of the extractions probably cut
             // out a chunk of brain. So we'll make a mask of the union and apply it to both sides.
-            if (match > 0.8 && match < 0.95)
+            if (match > 0.7 && match < 0.95)
             {
                 _log.Info($@"Brain extraction match not good enough, taking the union...");
                 // Let's try to make the brain mask an OR of the two.
