@@ -156,23 +156,19 @@ namespace CAPI.ImageProcessing
             var currentWithSkull = currentNii;
             var priorWithSkull = priorNii;
 
-            // Brain extraction
-            if (extractBrain)
-            {
-                // Brain Extraction
-                _log.Info("Starting brain extraction...");
-                var brain1 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(currentNii); });
-                var brain2 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(priorNii); });
-                var brain3 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(referenceNii); }); // TODO: This can be null.
-                brain1.Wait();
-                brain2.Wait();
-                brain3.Wait();
-                currentNii = brain1.Result;
-                priorNii = brain2.Result;
-                referenceNii = brain3.Result;
-                _log.Info($@"..done. [{stopwatch1.Elapsed}]");
-                stopwatch1.Restart();
-            }
+            // Brain Extraction
+            _log.Info("Starting brain extraction...");
+            var brain1 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(currentNii); });
+            var brain2 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(priorNii); });
+            var brain3 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(referenceNii); }); // TODO: This can be null.
+            brain1.Wait();
+            brain2.Wait();
+            brain3.Wait();
+            currentNii = brain1.Result;
+            priorNii = brain2.Result;
+            referenceNii = brain3.Result;
+            _log.Info($@"..done. [{stopwatch1.Elapsed}]");
+            stopwatch1.Restart();
 
             // Registration
             if (register)
@@ -311,12 +307,14 @@ namespace CAPI.ImageProcessing
             stopwatch1.Reset();
 
             // Write the prior resliced file.
-            priorNiftiWithSkull.WriteNifti(outPriorReslicedNii);
+            var priorToExport = extractBrain ? priorNifti : priorNiftiWithSkull;
+            priorToExport.WriteNifti(outPriorReslicedNii);
 
             //Overlay increase and decrease values:
             _log.Info("Generating RGB overlays...");
-            var overlayTask1 = Task.Run(() => { return currentNiftiWithSkull.AddOverlay(increaseNifti); });
-            var overlayTask2 = Task.Run(() => { return currentNiftiWithSkull.AddOverlay(decreaseNifti); });
+            var currentToExport = extractBrain ? currentNifti : currentNiftiWithSkull;
+            var overlayTask1 = Task.Run(() => { return currentToExport.AddOverlay(increaseNifti); });
+            var overlayTask2 = Task.Run(() => { return currentToExport.AddOverlay(decreaseNifti); });
             overlayTask1.Wait();
             overlayTask2.Wait();
             var increaseNiftiRGB = overlayTask1.Result;
