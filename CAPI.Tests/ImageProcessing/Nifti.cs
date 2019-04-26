@@ -206,12 +206,12 @@ namespace CAPI.Tests.ImageProcessing
         public void Compare()
         {
             // Arrange
-            var fixedBrain = _unity.Resolve<INifti>().ReadNifti(_fixedShades);
-            var floatingResliced = _unity.Resolve<INifti>().ReadNifti(_floatingShades);
-            var result = _unity.Resolve<INifti>()
-                .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, null);
+            //var fixedBrain = _unity.Resolve<INifti>().ReadNifti(_fixedShades);
+            //var floatingResliced = _unity.Resolve<INifti>().ReadNifti(_floatingShades);
+            //var result = _unity.Resolve<INifti>()
+            //    .Compare(fixedBrain, floatingResliced, SliceType.Sagittal, _lookUpTable, null);
 
-            result.WriteNifti(_outfile);
+            //result.WriteNifti(_outfile);
 
 
             //if (Directory.Exists(_rgbBmpsFolder)) Directory.Delete(_rgbBmpsFolder, true);
