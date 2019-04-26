@@ -36,6 +36,7 @@ namespace CAPI.ImageProcessing
             {
                 double val = i / 16.0;
                 val *= val;
+                val += 100;
                 val = Math.Min(255, val);
                 var logval = 255 * (Math.Log(i) / Math.Log(255));
                 logval = Math.Min(255, logval);
