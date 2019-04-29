@@ -12,14 +12,12 @@ namespace CAPI.Tests.FileSystem
         private string _workingDir;
         private string _sourcePath;
         private string _targetPath;
-        private IFileSystem _filesystem;
         private IUnityContainer _unity;
 
         [TestInitialize]
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _filesystem = _unity.Resolve<IFileSystem>();
 
             _workingDir = Environment.CurrentDirectory;
             _sourcePath = $@"{_workingDir}\source-test";
@@ -41,7 +39,7 @@ namespace CAPI.Tests.FileSystem
             File.AppendAllText(filePath, fileContent);
 
             // Act
-            _filesystem.CopyDirectory(_sourcePath, _targetPath);
+            General.FileSystem.CopyDirectory(_sourcePath, _targetPath);
 
             // Assert
             Assert.IsTrue(File.Exists(filePath));

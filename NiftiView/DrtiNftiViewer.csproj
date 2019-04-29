@@ -98,6 +98,10 @@
       <Project>{BF71C555-CFC8-43E8-8615-44619ADC91CD}</Project>
       <Name>CAPI.ImageProcessing</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics">

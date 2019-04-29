@@ -39,10 +39,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CAPI.DAL.Abstraction, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\CAPI.DAL\bin\Debug\CAPI.DAL.Abstraction.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
@@ -147,6 +143,10 @@
     <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
       <Project>{bf71c555-cfc8-43e8-8615-44619adc91cd}</Project>
       <Name>CAPI.ImageProcessing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

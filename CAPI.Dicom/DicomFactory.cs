@@ -25,10 +25,10 @@ namespace CAPI.Dicom
         {
             return new DicomTagCollection();
         }
-        public IDicomServices CreateDicomServices(IDicomConfig config, IFileSystem fileSystem,
-            IProcessBuilder processBuilder, ILog log)
+        public IDicomServices CreateDicomServices(IDicomConfig config, 
+            IProcessBuilder processBuilder)
         {
-            return new DicomServices(config, fileSystem, processBuilder, log);
+            return new DicomServices(config, processBuilder);
         }
         public IDicomStudy CreateStudy()
         {

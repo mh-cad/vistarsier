@@ -1,5 +1,5 @@
-﻿using CAPI.Agent.Abstractions.Models;
-using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.NiftiLib;
+using CAPI.Agent.Abstractions.Models;
 
 namespace CAPI.Agent.Abstractions
 {

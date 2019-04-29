@@ -1,7 +1,7 @@
 ﻿using CAPI.Agent.Abstractions;
-using CAPI.Agent;
 using CAPI.Common.Abstractions.Config;
 using CAPI.Common.Config;
+using CAPI.NiftiLib;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
@@ -12,17 +12,10 @@ using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using log4net.Config;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
 using Unity;
 using Unity.log4net;
 
@@ -44,11 +37,10 @@ namespace CAPI.Service
             var agentFactory = container.Resolve<IAgentFactory>();
             var dicomFactory = container.Resolve<IDicomFactory>();
             var imgProcFactory = container.Resolve<IImageProcessingFactory>();
-            var fileSystem = container.Resolve<IFileSystem>();
             var processBuilder = container.Resolve<IProcessBuilder>();
 
             var log = GetLogger();
-            _agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, fileSystem, processBuilder, log);
+            _agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, processBuilder);
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 
@@ -87,13 +79,12 @@ namespace CAPI.Service
             container.RegisterType<Agent.Abstractions.Models.IValueComparer, Agent.Models.ValueComparer>();
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
-            container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
+            //container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
             container.RegisterType<IAgent, Agent.Agent>();
             container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
             container.RegisterType<IAgentFactory, Agent.AgentFactory>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IFileSystem, FileSystem>();
             container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;

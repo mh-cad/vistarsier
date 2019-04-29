@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
-    <ApplicationRevision>30</ApplicationRevision>
+    <ApplicationRevision>31</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -228,6 +228,10 @@
     <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
       <Project>{BF71C555-CFC8-43E8-8615-44619ADC91CD}</Project>
       <Name>CAPI.ImageProcessing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

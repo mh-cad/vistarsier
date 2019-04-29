@@ -1,4 +1,5 @@
-﻿using CAPI.General.Abstractions.Services;
+﻿using CAPI.General;
+using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
@@ -10,19 +11,17 @@ namespace CAPI.ImageProcessing
 {
     public class ImageConverter : IImageConverter
     {
-        private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly Common.Abstractions.Config.IImgProcConfig _config;
         private readonly ILog _log;
 
         public ImageConverter(
-            IFileSystem filesystem, IProcessBuilder processBuilder,
-            Common.Abstractions.Config.IImgProcConfig config, ILog log)
+            IProcessBuilder processBuilder,
+            Common.Abstractions.Config.IImgProcConfig config)
         {
-            _filesystem = filesystem;
             _processBuilder = processBuilder;
             _config = config;
-            _log = log;
+            _log = Log.GetLogger();
         }
 
         public void DicomToNiix(string dicomDir, string outfile, string @params = "")
@@ -34,7 +33,7 @@ namespace CAPI.ImageProcessing
 
             var tmpDir = $@"{Path.GetDirectoryName(outfile)}\tmp";
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
-            _filesystem.DirectoryExistsIfNotCreate(tmpDir);
+            FileSystem.DirectoryExistsIfNotCreate(tmpDir);
 
             var process = _processBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
             process.OutputDataReceived += OutputDataReceivedInProcess;

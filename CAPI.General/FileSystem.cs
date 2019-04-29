@@ -1,14 +1,13 @@
-﻿using CAPI.General.Abstractions.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CAPI.General.Services
+namespace CAPI.General
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class FileSystem : IFileSystem
+    public static class FileSystem
     {
-        public bool DirectoryExistsIfNotCreate(string directoryPath)
+        public static bool DirectoryExistsIfNotCreate(string directoryPath)
         {
             var pathSections = directoryPath.Split('\\');
             if (pathSections.Length < 1) return false;
@@ -31,7 +30,7 @@ namespace CAPI.General.Services
             }
         }
 
-        public void CopyDirectory(string source, string target)
+        public static void CopyDirectory(string source, string target)
         {
 
             if (Directory.Exists(target))
@@ -56,7 +55,7 @@ namespace CAPI.General.Services
         /// </summary>
         /// <param name="folderPath"></param>
         /// <returns></returns>
-        public bool DirectoryIsValidAndNotEmpty(string folderPath)
+        public static bool DirectoryIsValidAndNotEmpty(string folderPath)
         {
             try
             {
@@ -71,7 +70,7 @@ namespace CAPI.General.Services
             }
         }
 
-        public void FilesExist(IEnumerable<string> files)
+        public static void FilesExist(IEnumerable<string> files)
         {
             foreach (var file in files)
             {

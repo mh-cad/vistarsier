@@ -2,6 +2,7 @@
 using CAPI.Agent.Models;
 using CAPI.Common.Abstractions.Config;
 using CAPI.Dicom.Abstractions;
+using CAPI.General;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -13,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
-using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
+using SliceType = CAPI.NiftiLib.SliceType;
 
 namespace CAPI.Agent
 {
@@ -35,14 +36,14 @@ namespace CAPI.Agent
         private const string ImagesFolderSuffix = "_Images";
 
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-                              IFileSystem filesystem, IProcessBuilder processBuilder,
-                              IImgProcConfig imgProcConfig, ILog log, AgentRepository context)
+                              IProcessBuilder processBuilder,
+                              IImgProcConfig imgProcConfig, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
-            _log = log;
+            _log = Log.GetLogger();
             _imgProcConfig = imgProcConfig;
-            _imgProc = imgProcFactory.CreateImageProcessor(filesystem, processBuilder, imgProcConfig, log);
+            _imgProc = imgProcFactory.CreateImageProcessor(processBuilder, imgProcConfig);
             _context = context;
         }
 
@@ -63,18 +64,34 @@ namespace CAPI.Agent
             string[] resultNiis = { Path.Combine(allResultsFolder, "increase.nii"), Path.Combine(allResultsFolder, "decrease.nii") };
 
 
-            var outPriorReslicedNiiFile = outPriorReslicedDicom + ".nii";
+            var outPriorReslicedNii = outPriorReslicedDicom + ".nii";
 
             var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
             var patientId = _dicomServices.GetPatientIdFromDicomFile(dicomFilePath);
             var job = _context.Jobs.LastOrDefault(j => j.PatientId == patientId);
 
-            _imgProc.CompareDicomInNiftiOut(
-                                            currentDicomFolder, priorDicomFolder, referenceDicomFolder,
-                                            sliceType,
-                                            extractBrain, register, biasFieldCorrect,
-                                            resultNiis, outPriorReslicedNiiFile);
 
+            // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
+            _log.Info($@"Start converting series dicom files to Nii");
+            var task1 = Task.Run(() => { return _imgProc.DicomToNifti(currentDicomFolder); });
+            var task2 = Task.Run(() => { return _imgProc.DicomToNifti(priorDicomFolder); });
+            var task3 = Task.Run(() => { return _imgProc.DicomToNifti(referenceDicomFolder); });
+            task1.Wait();
+            task2.Wait();
+            task3.Wait();
+
+            var currentNifti = task1.Result;
+            var priorNifti = task1.Result;
+            var referenceNifti = task1.Result;
+            _log.Info($@"Finished converting series dicom files to Nii");
+
+            // Process Nifti files.
+            _imgProc.MSLesionCompare(
+                currentNifti, priorNifti, referenceNifti,
+                extractBrain, register, biasFieldCorrect,
+                resultNiis, outPriorReslicedNii);
+
+            
             if (job != null)
             {
                 var jobToUpdate = _context.Jobs.FirstOrDefault(j => j.Id == job.Id);
@@ -102,7 +119,7 @@ namespace CAPI.Agent
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertNiftiToDicom(outPriorReslicedNiiFile, outPriorReslicedDicom, sliceType,
+                ConvertNiftiToDicom(referenceNifti, outPriorReslicedDicom, sliceType,
                                     currentDicomFolder, priorStudyDescription, "", referenceDicomFolder);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);

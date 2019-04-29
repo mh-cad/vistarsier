@@ -1,12 +1,12 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.IO;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.NiftiLib.Processing
 {
     /// <summary>
     /// Helper tools for the Image processing library.
     /// </summary>
-    public class Tools
+    public static class Tools
     {
         public const string TEMPDIR = "temp";
 
@@ -47,15 +47,17 @@ namespace CAPI.ImageProcessing
         /// <param name="dicomPath">Path to the DICOM</param>
         /// <param name="updates">Event handler to handle updates.</param>
         /// <returns></returns>
-        public static INifti Dcm2Nii(string dicomPath, DataReceivedEventHandler updates = null)
+        public static string Dcm2Nii(string dicomPath, DataReceivedEventHandler updates = null)
         {
-            var outFile = TEMPDIR + dicomPath.GetHashCode() + ".dcm2nii";
-            var args = $@" -o {outFile} {dicomPath}";
-            ExecProcess("ThirdPartyTools/dcm2niix.exe", args, updates);
-            INifti nifti = new Nifti();
-            nifti.ReadNifti(outFile);
+            var name = Path.GetDirectoryName(dicomPath);
+            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomPath), $@"{name}.nii");
 
-            return nifti;
+            var args = $@" -o {niftiPath} {dicomPath}";
+            ExecProcess("ThirdPartyTools/dcm2niix.exe", args, updates);
+
+            return niftiPath;
         }
+
+
     }
 }

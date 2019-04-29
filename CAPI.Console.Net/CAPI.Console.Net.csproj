@@ -133,7 +133,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\Unity.cs" />
-    <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -201,6 +200,10 @@
     <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
       <Project>{bf71c555-cfc8-43e8-8615-44619adc91cd}</Project>
       <Name>CAPI.ImageProcessing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.UAT\CAPI.UAT.csproj">
       <Project>{5a6d1403-1f31-4ada-a350-e1969378a0df}</Project>

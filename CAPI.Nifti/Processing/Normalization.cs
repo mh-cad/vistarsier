@@ -1,14 +1,10 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-using MathNet.Numerics.Statistics;
+﻿using MathNet.Numerics.Statistics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.NiftiLib.Processing
 {
-    public class Normalization
+    public static class Normalization
     {
         /// <summary>
         /// This method converts the input values to their Z-Scores, which are then multiplied by the reference standard deviation and added to the referenced mean. 

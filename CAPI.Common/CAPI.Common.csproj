@@ -86,6 +86,10 @@
       <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
       <Name>CAPI.General.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
+      <Project>{b4385310-57a2-4a56-ac62-58311d9c0c65}</Project>
+      <Name>CAPI.General</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

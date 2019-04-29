@@ -44,15 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IFrameOfReference.cs" />
     <Compile Include="IImageProcessingFactory.cs" />
     <Compile Include="IImageProcessor.cs" />
     <Compile Include="IImageConverter.cs" />
-    <Compile Include="INiftiHeader.cs" />
-    <Compile Include="INifti.cs" />
-    <Compile Include="ISubtractionLookUpTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SliceType.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
@@ -67,10 +62,13 @@
       <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
       <Name>CAPI.General.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

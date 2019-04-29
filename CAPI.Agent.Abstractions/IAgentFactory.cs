@@ -20,7 +20,7 @@ namespace CAPI.Agent.Abstractions
         /// <returns></returns>
         IAgent CreateAgent(string[] args, IDicomFactory dicomFactory,
             IImageProcessingFactory imgProcFactory,
-            IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log);
+            IProcessBuilder processBuilder);
 
         /// <summary>
         /// Creates a new Agent.Abstractions.IImageProcessor
@@ -35,6 +35,6 @@ namespace CAPI.Agent.Abstractions
         /// <returns></returns>
         IImageProcessor CreateAgentImageProcessor(
             IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log, IAgentRepository context);
+            IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, IAgentRepository context);
     }
 }
