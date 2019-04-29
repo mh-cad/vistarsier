@@ -4,9 +4,10 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace CAPI.Console.Net.Helpers
+
+namespace CAPI.General
 {
-    internal static class LogHelper
+    public static class Log
     {
         public static ILog GetLogger([CallerFilePath] string filename = "")
         {

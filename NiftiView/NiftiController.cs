@@ -1,4 +1,4 @@
-﻿using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.NiftiLib;
 using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
@@ -177,7 +177,7 @@ namespace NiftiView
         {
             var container = (UnityContainer)new UnityContainer()
                 .AddNewExtension<Log4NetExtension>();
-            container.RegisterType<INifti, CAPI.ImageProcessing.Nifti>();
+            container.RegisterType<INifti, Nifti>();
 
             return container.Resolve<INifti>();
             

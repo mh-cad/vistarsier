@@ -22,11 +22,10 @@ namespace CAPI.UAT.Tests
         public AgentRepository Context { get; set; }
 
         private readonly IDicomFactory _dicomFactory;
-        private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly ILog _log;
 
-        public DicomConnectivity(IDicomFactory dicomFactory, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
+        public DicomConnectivity(IDicomFactory dicomFactory, IProcessBuilder processBuilder, ILog log)
         {
             Name = "Dicom Connectivity";
             Description = "Check whether Dicom association can be made with details entailed in config.json file and Query Retrieve and Storage are successfully done";
@@ -35,7 +34,6 @@ namespace CAPI.UAT.Tests
             TestGroup = "Dicom";
 
             _dicomFactory = dicomFactory;
-            _filesystem = fileSystem;
             _processBuilder = processBuilder;
             _log = log;
         }
@@ -45,7 +43,7 @@ namespace CAPI.UAT.Tests
             var dicomConfig = _dicomFactory.CreateDicomConfig();
             dicomConfig.Img2DcmFilePath = CapiConfig.DicomConfig.Img2DcmFilePath;
 
-            var dicomServices = _dicomFactory.CreateDicomServices(dicomConfig, _filesystem, _processBuilder, _log);
+            var dicomServices = _dicomFactory.CreateDicomServices(dicomConfig, _processBuilder);
 
             var localNode = CapiConfig.DicomConfig.LocalNode;
 

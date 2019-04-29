@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace CAPI.ImageProcessing.Abstraction
+namespace CAPI.NiftiLib
 {
     public interface INifti
     {
@@ -156,20 +156,6 @@ namespace CAPI.ImageProcessing.Abstraction
         /// <param name="folderPath"></param>
         /// <param name="sliceType"></param>
         void ExportSlicesToBmps(string folderPath, SliceType sliceType);
-        
-        /// <summary>
-        /// Compares the given current and prior Nifti objects using the given lookuptable. 
-        /// </summary>
-        /// <param name="current"></param>
-        /// <param name="prior"></param>
-        /// <param name="sliceType"></param>
-        /// <param name="lookUpTable"></param>
-        /// <param name="workingDir"></param>
-        /// <param name="currentResliced"></param>
-        /// <param name="mask"></param>
-        /// <returns></returns>
-        INifti Compare(INifti current, INifti prior, SliceType sliceType,
-            ISubtractionLookUpTable lookUpTable, string workingDir, INifti currentResliced = null, INifti mask = null);
         
         /// <summary>
         /// Normalises each slice individually to the given mean, standard deviation, and range. Ignoring values where the mask is false.

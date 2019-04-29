@@ -1,6 +1,7 @@
 ﻿using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
 using CAPI.General.Abstractions.Services;
+using CAPI.General;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;
@@ -19,16 +20,14 @@ namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly ILog _log;
         private readonly IDicomConfig _config;
 
-        public DicomServices(IDicomConfig config, IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
+        public DicomServices(IDicomConfig config, IProcessBuilder processBuilder)
         {
-            _fileSystem = fileSystem;
             _processBuilder = processBuilder;
-            _log = log;
+            _log = Log.GetLogger();
             _config = config;
         }
 
@@ -246,7 +245,7 @@ namespace CAPI.Dicom
 
         public void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "", bool matchByFilename = false)
         {
-            _fileSystem.DirectoryExistsIfNotCreate(dicomFolder);
+            FileSystem.DirectoryExistsIfNotCreate(dicomFolder);
 
             var orderedDicomFiles = new List<string>();
             if (!string.IsNullOrEmpty(dicomHeadersFolder))

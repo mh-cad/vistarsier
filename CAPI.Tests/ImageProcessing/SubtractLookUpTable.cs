@@ -20,12 +20,5 @@ namespace CAPI.Tests.ImageProcessing
             _testResourcesPath = $@"{Helper.GetTestResourcesPath()}/nifti";
             _lookupTableFile = $@"{_testResourcesPath}/lut.bmp";
         }
-
-        [TestMethod]
-        public void ReadLookUpTable()
-        {
-            var lut = _unity.Resolve<ISubtractionLookUpTable>();
-            lut.LoadImage(_lookupTableFile);
-        }
     }
 }

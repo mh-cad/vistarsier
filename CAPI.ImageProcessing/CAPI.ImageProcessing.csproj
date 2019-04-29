@@ -51,21 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BiasCorrection.cs" />
-    <Compile Include="BrainExtraction.cs" />
-    <Compile Include="Compare.cs" />
-    <Compile Include="Normalization.cs" />
-    <Compile Include="ColorMaps.cs" />
     <Compile Include="ImageProcessingFactory.cs" />
     <Compile Include="ImageProcessor.cs" />
-    <Compile Include="FrameOfReference.cs" />
     <Compile Include="ImageConverter.cs" />
-    <Compile Include="NiftiHeader.cs" />
-    <Compile Include="Nifti.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Registration.cs" />
-    <Compile Include="SubtractionLookUpTable.cs" />
-    <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
@@ -84,9 +73,17 @@
       <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
       <Name>CAPI.General.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
+      <Project>{b4385310-57a2-4a56-ac62-58311d9c0c65}</Project>
+      <Name>CAPI.General</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

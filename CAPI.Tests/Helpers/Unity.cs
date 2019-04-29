@@ -36,7 +36,6 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<CAPI.Agent.Abstractions.Models.IValueComparer, CAPI.Agent.Models.ValueComparer>();
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
-            container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
             container.RegisterType<IAgent, CAPI.Agent.Agent>();
             container.RegisterType<CAPI.Agent.Abstractions.IImageProcessor, CAPI.Agent.ImageProcessor>();
             container.RegisterType<IAgentFactory, AgentFactory>();

@@ -1,6 +1,4 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-
-namespace CAPI.ImageProcessing
+﻿namespace CAPI.NiftiLib
 {
     /// <summary>
     /// Nifti-1 header

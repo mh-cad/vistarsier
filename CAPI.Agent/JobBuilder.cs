@@ -2,6 +2,7 @@
 using CAPI.Agent.Models;
 using CAPI.Common.Config;
 using CAPI.Dicom.Abstractions;
+using CAPI.General.Services;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -28,7 +29,6 @@ namespace CAPI.Agent
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IValueComparer _valueComparer;
-        private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
@@ -47,13 +47,12 @@ namespace CAPI.Agent
         /// <param name="context">Agent Repository (DbContext) to communicate data with database</param>
         public JobBuilder(IDicomServices dicomServices,
                           IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
-                          IFileSystem fileSystem, IProcessBuilder processBuilder,
+                          IProcessBuilder processBuilder,
                           CapiConfig capiConfig, ILog log, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _valueComparer = valueComparer;
-            _fileSystem = fileSystem;
             _processBuilder = processBuilder;
             _capiConfig = capiConfig;
             _log = log;
@@ -90,7 +89,7 @@ namespace CAPI.Agent
 
             var job = new Job(recipe,
                               _dicomServices, _imgProcFactory,
-                              _fileSystem, _processBuilder, _capiConfig, _log);
+                              _processBuilder, _capiConfig);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;

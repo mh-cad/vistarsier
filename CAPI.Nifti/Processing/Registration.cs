@@ -1,15 +1,9 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.NiftiLib.Processing
 {
-    public class Registration
+    public static class Registration
     {
         /// <summary>
         /// Uses the CMTK registration and reformatx tools to register and reslice the floating nifti to match the reference nifti.

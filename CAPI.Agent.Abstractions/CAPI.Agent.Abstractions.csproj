@@ -142,6 +142,10 @@
       <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Name>CAPI.NiftiLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

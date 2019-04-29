@@ -8,6 +8,7 @@ using CAPI.General.Abstractions.Services;
 using CAPI.General.Services;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
+using CAPI.NiftiLib;
 using Unity;
 using Unity.log4net;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
@@ -35,13 +36,12 @@ namespace CAPI.Console.Net.Helpers
             container.RegisterType<Agent.Abstractions.Models.IValueComparer, Agent.Models.ValueComparer>();
             container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
             container.RegisterType<INifti, Nifti>();
-            container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
+            //container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
             container.RegisterType<IAgent, Agent.Agent>();
             container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
             container.RegisterType<IAgentFactory, Agent.AgentFactory>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IFileSystem, FileSystem>();
             container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;

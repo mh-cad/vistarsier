@@ -10,7 +10,7 @@ namespace CAPI.Dicom.Abstractions
         IDicomNode CreateDicomNode(string logicalName, string aeTitle, string ipAddress, int port);
         IDicomTag CreateDicomTag(string name, uint tagValue, TagType dicomTagType, Type valueType);
         IDicomTagCollection CreateDicomTagCollection();
-        IDicomServices CreateDicomServices(IDicomConfig config, IFileSystem filesystem, IProcessBuilder processBuilder, ILog log);
+        IDicomServices CreateDicomServices(IDicomConfig config, IProcessBuilder processBuilder);
         IDicomStudy CreateStudy();
         IDicomSeries CreateDicomSeries();
         IDicomImage CreateDicomImage();

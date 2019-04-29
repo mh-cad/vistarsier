@@ -1,14 +1,10 @@
-﻿using CAPI.ImageProcessing.Abstraction;
-using MathNet.Numerics.Statistics;
+﻿using MathNet.Numerics.Statistics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.NiftiLib.Processing
 {
-    public class Compare
+    public static class Compare
     {
         /// <summary>
         /// Compares the increase in values from the reference Nifti (prior) to the input Nifti (current).

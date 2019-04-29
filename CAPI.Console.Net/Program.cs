@@ -1,6 +1,7 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Console.Net.Helpers;
 using CAPI.Dicom.Abstractions;
+using CAPI.General;
 using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.UAT;
@@ -21,21 +22,20 @@ namespace CAPI.Console.Net
             var agentFactory = container.Resolve<IAgentFactory>();
             var dicomFactory = container.Resolve<IDicomFactory>();
             var imgProcFactory = container.Resolve<IImageProcessingFactory>();
-            var fileSystem = container.Resolve<IFileSystem>();
             var processBuilder = container.Resolve<IProcessBuilder>();
 
             InitialiseLog4Net();
 
             if (args.Length > 0 && args[0].ToLower() == "uat")
             {
-                var uatTestRunner = new TestRunner(dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
+                var uatTestRunner = new TestRunner(dicomFactory, imgProcFactory, processBuilder, _log);
                 uatTestRunner.Run(); return;
             }
 
             System.Console.ForegroundColor = ConsoleColor.Gray;
             _log.Info("App Started...");
 
-            var agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, fileSystem, processBuilder, _log);
+            var agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, processBuilder);
 
             agent.Run();
 
@@ -44,7 +44,7 @@ namespace CAPI.Console.Net
 
         private static void InitialiseLog4Net()
         {
-            _log = LogHelper.GetLogger();
+            _log = Log.GetLogger();
         }
     }
 }

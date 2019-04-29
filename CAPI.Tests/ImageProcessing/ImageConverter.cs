@@ -13,7 +13,6 @@ namespace CAPI.Tests.ImageProcessing
     public class ImageConverter
     {
         private IUnityContainer _unity;
-        private IFileSystem _filesystem;
         private IProcessBuilder _processBuilder;
         private IImageProcessingFactory _imageProcessingFactory;
         private IImgProcConfig _imgProcConfig;
@@ -28,7 +27,6 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _filesystem = _unity.Resolve<IFileSystem>();
             _processBuilder = _unity.Resolve<IProcessBuilder>();
             _imageProcessingFactory = _unity.Resolve<IImageProcessingFactory>();
             _imgProcConfig = _unity.Resolve<IImgProcConfig>();
@@ -56,12 +54,12 @@ namespace CAPI.Tests.ImageProcessing
         public void ConvertDicom2Nii()
         {
             // Arrange
-            _filesystem.DirectoryExistsIfNotCreate(_outputFolder);
+            General.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
             var imageConverter =
-                _imageProcessingFactory.CreateImageConverter(_filesystem, _processBuilder, _imgProcConfig, _log);
+                _imageProcessingFactory.CreateImageConverter(_processBuilder, _imgProcConfig);
             imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert

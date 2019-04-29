@@ -2,6 +2,7 @@
 using CAPI.Common.Config;
 using CAPI.Dicom.Abstractions;
 using CAPI.General.Abstractions.Services;
+using CAPI.General;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
@@ -9,7 +10,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SliceType = CAPI.ImageProcessing.Abstraction.SliceType;
+using SliceType = CAPI.NiftiLib.SliceType;
 
 namespace CAPI.Agent.Models
 {
@@ -18,7 +19,6 @@ namespace CAPI.Agent.Models
         private readonly Recipe _recipe;
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessingFactory _imgProcFactory;
-        private readonly IFileSystem _filesystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
@@ -63,16 +63,15 @@ namespace CAPI.Agent.Models
 
         public Job(Recipe recipe,
                    IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-                   IFileSystem filesystem, IProcessBuilder processBuilder,
-                   CapiConfig capiConfig, ILog log)
+                   IProcessBuilder processBuilder,
+                   CapiConfig capiConfig)
         {
             _recipe = recipe;
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
-            _filesystem = filesystem;
             _processBuilder = processBuilder;
             _capiConfig = capiConfig;
-            _log = log;
+            _log = Log.GetLogger();
 
             SourceAet = recipe.SourceAet;
             PatientId = recipe.PatientId;
@@ -116,8 +115,8 @@ namespace CAPI.Agent.Models
 
             _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
             var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
-                                                    _filesystem, _processBuilder,
-                                                    _capiConfig.ImgProcConfig, _log, context);
+                                                    _processBuilder,
+                                                    _capiConfig.ImgProcConfig, context);
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
@@ -213,16 +212,16 @@ namespace CAPI.Agent.Models
                         var resultParentFolderPath = Path.GetDirectoryName(result.NiftiFilePath);
                         var resultParentFolderName = Path.GetFileName(resultParentFolderPath);
                         var resultDestinationFolder = Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException());
-                        _filesystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
+                        FileSystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
                     }
 
                     var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
                     var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
-                    _filesystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
+                    FileSystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
                 }
                 else
                 {
-                    _filesystem.CopyDirectory(ProcessingFolder, destJobFolderPath);
+                    FileSystem.CopyDirectory(ProcessingFolder, destJobFolderPath);
                 }
             }
         }

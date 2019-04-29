@@ -16,17 +16,15 @@ namespace CAPI.UAT
         private static readonly string Nl = Environment.NewLine;
         private readonly IDicomFactory _dicomFactory;
         private IImageProcessingFactory _imgProcFactory;
-        private readonly IFileSystem _fileSystem;
         private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
         public TestRunner(IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
-                          IFileSystem fileSystem, IProcessBuilder processBuilder, ILog log)
+                          IProcessBuilder processBuilder, ILog log)
         {
             _dicomFactory = dicomFactory;
             _imgProcFactory = imgProcFactory;
-            _fileSystem = fileSystem;
             _processBuilder = processBuilder;
             _log = log;
             _capiConfig = new CapiConfig().GetConfig();
@@ -52,7 +50,7 @@ namespace CAPI.UAT
             var tests = new UatTests();
             tests.Tests.Add(new ConfigFilesExists());
             //tests.Tests.Add(new DbConnectionString { CapiConfig = _capiConfig });
-            tests.Tests.Add(new DicomConnectivity(_dicomFactory, _fileSystem, _processBuilder, _log) { CapiConfig = _capiConfig });
+            tests.Tests.Add(new DicomConnectivity(_dicomFactory, _processBuilder, _log) { CapiConfig = _capiConfig });
             tests.Tests.Add(new BinFilesExist { CapiConfig = _capiConfig });
             // Add Tests Here!
             return tests;

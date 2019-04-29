@@ -1,4 +1,4 @@
-﻿namespace CAPI.ImageProcessing.Abstraction
+﻿namespace CAPI.NiftiLib
 {
     public interface INiftiHeader
     {

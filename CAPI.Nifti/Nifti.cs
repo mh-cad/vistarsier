@@ -1,5 +1,4 @@
 ﻿using CAPI.Extensions;
-using CAPI.ImageProcessing.Abstraction;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.NiftiLib
 {
     /// <summary>
     /// Represents a Nifti-1 type file (reads from  file only if little endian)
@@ -173,7 +172,7 @@ namespace CAPI.ImageProcessing
             {
                 for (var i = 0; i < 4; i++) reader.ReadByte(); // 4 bytes gap between header and voxels
             }
-            catch(EndOfStreamException)
+            catch (EndOfStreamException)
             {
                 // There will not be the 4 byte gap if we're just reading the .hdr, which is fine.
             }
@@ -257,64 +256,6 @@ namespace CAPI.ImageProcessing
             var digits = (int)Math.Log10(sliceCount) + 1;
             for (var i = 0; i < sliceCount; i++)
                 GetSlice(i, sliceType).Save($@"{folderPath}\{(i + 1).ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
-        }
-
-        public INifti Compare(INifti current, INifti prior, SliceType sliceType,
-                              ISubtractionLookUpTable lookUpTable, string workingDir,
-                              INifti currentResliced = null, INifti mask = null)
-        {
-            mask?.InvertMask();
-            currentResliced = currentResliced?.NormalizeNonBrainComponents(currentResliced,
-                                  lookUpTable.Width / 2, lookUpTable.Width / 8, mask, 0, lookUpTable.Width - 1);
-            mask?.InvertMask();
-
-            var outNifti = currentResliced ?? current;
-
-            EnsureNormalization(current, prior, lookUpTable);
-            if (currentResliced != null)
-                EnsureNormalization(currentResliced, prior, lookUpTable);
-
-
-            for (var i = 0; i < current.voxels.Length; i++)
-                if (currentResliced != null && mask != null)
-                {
-                    if (mask.voxels[i] > 0) // brain
-                        outNifti.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
-                            (int)prior.voxels[i]].ToArgb().ToBgr();
-                    else if (mask.voxels[i] < 1) // non-brain
-                        outNifti.voxels[i] = Color.FromArgb((int)outNifti.voxels[i], (int)outNifti.voxels[i],
-                            (int)outNifti.voxels[i]).ToArgb().ToBgr();
-                }
-                else
-                    outNifti.voxels[i] = lookUpTable.Pixels[(int)current.voxels[i],
-                        (int)prior.voxels[i]].ToArgb().ToBgr();
-
-            outNifti.Header.cal_min = outNifti.voxels.Min();
-            outNifti.Header.cal_max = outNifti.voxels.Max();
-
-            outNifti.ConvertHeaderToRgb();
-
-            return outNifti;
-        }
-
-        private static void EnsureNormalization(INifti current, INifti prior, ISubtractionLookUpTable lookUpTable)
-        {
-            var currentMinVal = current.voxels.Min();
-            var currentMaxVal = current.voxels.Max();
-            var priorMinVal = prior.voxels.Min();
-            var priorMaxVal = prior.voxels.Max();
-
-            if (currentMinVal < 0
-                || currentMaxVal > lookUpTable.Width)
-                throw new ArgumentOutOfRangeException($"Current nifti file voxels value range does not match with lookup table:{Environment.NewLine}" +
-                                                      $"current min={currentMinVal}, current max={currentMaxVal}{Environment.NewLine}" +
-                                                      $"lookup Table X min={lookUpTable.Xmin}, lookup Table X max={lookUpTable.Xmax}");
-
-            if (priorMinVal < 0
-                || priorMaxVal > lookUpTable.Height)
-                throw new ArgumentOutOfRangeException($"Prior nifti file voxels value range does not match with lookup table:{Environment.NewLine}" +
-                                                      $"prior min={priorMinVal}, prior max={priorMaxVal}{Environment.NewLine}" +
-                                                      $"lookup Table Y min={lookUpTable.Ymin}, lookup Table Y max={lookUpTable.Ymax}");
         }
 
         public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null)
@@ -455,6 +396,17 @@ namespace CAPI.ImageProcessing
             return allVoxels;
         }
 
+        // TODO: Avoid using SetPixel (since it takes out a lock on the image, changes pixel, unlocks.
+        // This is super slow and we can just take out the lock once. Also there's a bunch of stuff we're doing
+        // in the inner loop which we can just do up front.
+        // Example code so I remember what to try again:
+        //    var bmpData = slice.LockBits(new Rectangle(0, 0, slice.Width, slice.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        //    unsafe
+        //    {
+        //        var u = (int*)bmpData.Scan0;
+        //        ...
+        //    }
+        //    slick.UnlockBits(bmpData);
         public Bitmap GetSlice(int sliceIndex, SliceType sliceType)
         {
             if (Header.dim == null) throw new NullReferenceException("Nifti file header dim is null");
@@ -467,7 +419,7 @@ namespace CAPI.ImageProcessing
             if (sliceIndex >= nSlices) throw new ArgumentOutOfRangeException($"Slice index out of range. No of slices = {nSlices}");
 
             var slice = new Bitmap(width, height);
-            
+
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
@@ -477,6 +429,7 @@ namespace CAPI.ImageProcessing
 
             return slice;
         }
+
 
         public int GetPixelColor(int x, int y, int z, SliceType sliceType)
         {
@@ -976,6 +929,51 @@ namespace CAPI.ImageProcessing
                 default:
                     throw new Exception("Slice Type not supported");
             }
+        }
+
+        private int[] GetVoxelIndices(int z, SliceType sliceType)
+        {
+            if (Header.dim[1] == 0 || Header.dim[2] == 0 || Header.dim[3] == 0)
+                throw new Exception("Nifti header dimensions not set!");
+
+            // Get the orientation of the data (e.g. left to right, inferior to superior, etc)
+            var ltRt = Header.dim[1];
+            var antPos = Header.dim[2];
+            var infSup = Header.dim[3];
+
+            // Get the dimensions of the data.
+            GetDimensions(sliceType, out var width, out var height, out var nSlices);
+
+            // For efficiency we only want to call this switch statement once, so we'll use it to
+            // put a lambda together.
+            Func<int, int, int> indexGetter = null;
+            switch (sliceType)
+            {
+                case SliceType.Axial:
+                    indexGetter = (x, y) => (ltRt - 1 - x) + ltRt * (antPos - 1 - y) + ltRt * antPos * z;
+                    break;
+                case SliceType.Sagittal:
+                    indexGetter = (x, y) => z + ltRt * (antPos - 1 - x) + ltRt * antPos * (infSup - 1 - y);
+                    break;
+                case SliceType.Coronal:
+                    indexGetter = (x, y) => (ltRt - 1 - x) + ltRt * z + ltRt * antPos * (infSup - 1 - y);
+                    break;
+                default:
+                    throw new Exception("Slice Type not supported");
+            }
+
+            // Now we fill up the result array with indexes.
+            int[] result = new int[width * height];
+            for (int y = 0; y < width; ++y)
+            {
+                for(int x = 0; x < height; ++x)
+                {
+                    int idx = y * width + x ;
+                    if (idx < result.Length) result[idx] = indexGetter(x, y);
+                }
+            }
+
+            return result;
         }
 
         public INifti DeepCopy()

@@ -13,17 +13,16 @@ namespace CAPI.Agent
     {
         public IAgent CreateAgent(string[] args, IDicomFactory dicomFactory,
                                   IImageProcessingFactory imgProcFactory,
-                                  IFileSystem fileSystem, IProcessBuilder processBuilder,
-                                  ILog log)
+                                  IProcessBuilder processBuilder)
         {
-            return new Agent(args, dicomFactory, imgProcFactory, fileSystem, processBuilder, log);
+            return new Agent(args, dicomFactory, imgProcFactory, processBuilder);
         }
 
         public IImageProcessor CreateAgentImageProcessor(
             IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-            IFileSystem fileSystem, IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, ILog log, IAgentRepository context)
+            IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, IAgentRepository context)
         {
-            return new ImageProcessor(dicomServices, imgProcFactory, fileSystem, processBuilder, imfProcConfig, log, context as AgentRepository);
+            return new ImageProcessor(dicomServices, imgProcFactory, processBuilder, imfProcConfig, context as AgentRepository);
         }
     }
 }

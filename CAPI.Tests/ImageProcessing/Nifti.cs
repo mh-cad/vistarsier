@@ -21,7 +21,7 @@ namespace CAPI.Tests.ImageProcessing
         private string _rgbfile;
         private string _fixedBrain;
         private string _rgbBmpsFolder;
-        private ISubtractionLookUpTable _lookUpTable;
+        //private ISubtractionLookUpTable _lookUpTable;
         private string _fixedShades;
         private string _floatingShades;
         private string _sampleRgbBitmapsFolder;
@@ -45,8 +45,8 @@ namespace CAPI.Tests.ImageProcessing
             _rgbafile = $@"{_testResourcesPath}/rgba-test.nii";
             _rgbfile = $@"{_testResourcesPath}/rgb-test.nii";
             //_rgbBmpsFolder = $@"{_testResourcesPath}\RgbBmps";
-            _lookUpTable = _unity.Resolve<ISubtractionLookUpTable>();
-            _lookUpTable.LoadImage($@"{_testResourcesPath}/lut.bmp");
+            //_lookUpTable = _unity.Resolve<ISubtractionLookUpTable>();
+            //_lookUpTable.LoadImage($@"{_testResourcesPath}/lut.bmp");
             //_sampleRgbBitmapsFolder = $@"{_testResourcesPath}\SampleBmps";
             _fixedShades = $@"{_testResourcesPath}/avg152T1_LR_nifti.nii";
             _floatingShades = $@"{_testResourcesPath}/avg152T1_LR_nifti_mask.nii";
