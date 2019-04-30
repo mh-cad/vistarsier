@@ -1,6 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
-
-namespace CAPI.Common.Config
+﻿namespace CAPI.Config
 {
     public class TestsConfig : ITestsConfig
     {

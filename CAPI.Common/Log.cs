@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 
-namespace CAPI.General
+namespace CAPI.Common
 {
     public static class Log
     {

@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace CAPI.Common.Config
+namespace CAPI.Config
 {
 
     public class CapiConfigJsonConverter : JsonConverter

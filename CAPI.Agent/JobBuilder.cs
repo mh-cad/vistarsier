@@ -1,9 +1,8 @@
 ﻿using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General.Services;
-using CAPI.General.Abstractions.Services;
+using CAPI.Common;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
@@ -29,7 +28,6 @@ namespace CAPI.Agent
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IValueComparer _valueComparer;
-        private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
         private AgentRepository _context;
@@ -47,13 +45,11 @@ namespace CAPI.Agent
         /// <param name="context">Agent Repository (DbContext) to communicate data with database</param>
         public JobBuilder(IDicomServices dicomServices,
                           IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
-                          IProcessBuilder processBuilder,
                           CapiConfig capiConfig, ILog log, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _valueComparer = valueComparer;
-            _processBuilder = processBuilder;
             _capiConfig = capiConfig;
             _log = log;
             _context = context;
@@ -87,9 +83,7 @@ namespace CAPI.Agent
                 currentDicomStudy.Series.Count == 0)
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
-            var job = new Job(recipe,
-                              _dicomServices, _imgProcFactory,
-                              _processBuilder, _capiConfig);
+            var job = new Job(recipe, _dicomServices, _imgProcFactory, _capiConfig);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;

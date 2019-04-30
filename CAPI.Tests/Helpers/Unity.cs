@@ -1,19 +1,17 @@
 ﻿using CAPI.Agent;
 using CAPI.Agent.Abstractions;
-using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
-using CAPI.General.Services;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
+using CAPI.NiftiLib;
 using Unity;
 using Unity.log4net;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 using ImageProcessor = CAPI.ImageProcessing.ImageProcessor;
-using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
+using ImgProcConfig = CAPI.Config.ImgProcConfig;
 
 namespace CAPI.Tests.Helpers
 {
@@ -41,8 +39,6 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IAgentFactory, AgentFactory>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IFileSystem, General.Services.FileSystem>();
-            container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;
         }

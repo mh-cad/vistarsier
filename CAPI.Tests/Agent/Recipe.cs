@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System.IO;

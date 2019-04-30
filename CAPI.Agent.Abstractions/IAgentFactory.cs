@@ -1,8 +1,6 @@
-﻿using CAPI.Common.Abstractions.Config;
+﻿using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
-using log4net;
 
 namespace CAPI.Agent.Abstractions
 {
@@ -19,8 +17,7 @@ namespace CAPI.Agent.Abstractions
         /// <param name="log"></param>
         /// <returns></returns>
         IAgent CreateAgent(string[] args, IDicomFactory dicomFactory,
-            IImageProcessingFactory imgProcFactory,
-            IProcessBuilder processBuilder);
+            IImageProcessingFactory imgProcFactory);
 
         /// <summary>
         /// Creates a new Agent.Abstractions.IImageProcessor
@@ -34,7 +31,6 @@ namespace CAPI.Agent.Abstractions
         /// <param name="context"></param>
         /// <returns></returns>
         IImageProcessor CreateAgentImageProcessor(
-            IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-            IProcessBuilder processBuilder, IImgProcConfig imfProcConfig, IAgentRepository context);
+            IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,IImgProcConfig imfProcConfig, IAgentRepository context);
     }
 }

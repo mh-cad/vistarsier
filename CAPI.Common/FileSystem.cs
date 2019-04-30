@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace CAPI.General
+namespace CAPI.Common
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public static class FileSystem

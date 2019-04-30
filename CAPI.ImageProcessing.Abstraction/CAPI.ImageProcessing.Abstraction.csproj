@@ -50,17 +50,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
-      <Project>{33ACFCF5-6147-407C-BA09-993FC6A16CC3}</Project>
-      <Name>CAPI.Common.Abstractions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>CAPI.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
-      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
-      <Name>CAPI.General.Abstractions</Name>
+    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
+      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
+      <Name>CAPI.Config</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

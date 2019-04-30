@@ -1,6 +1,4 @@
-﻿using CAPI.General.Abstractions.Services;
-using log4net;
-using System;
+﻿using System;
 
 namespace CAPI.Dicom.Abstractions
 {
@@ -10,7 +8,7 @@ namespace CAPI.Dicom.Abstractions
         IDicomNode CreateDicomNode(string logicalName, string aeTitle, string ipAddress, int port);
         IDicomTag CreateDicomTag(string name, uint tagValue, TagType dicomTagType, Type valueType);
         IDicomTagCollection CreateDicomTagCollection();
-        IDicomServices CreateDicomServices(IDicomConfig config, IProcessBuilder processBuilder);
+        IDicomServices CreateDicomServices(IDicomConfig config);
         IDicomStudy CreateStudy();
         IDicomSeries CreateDicomSeries();
         IDicomImage CreateDicomImage();

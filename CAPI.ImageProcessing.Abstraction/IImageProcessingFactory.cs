@@ -1,7 +1,5 @@
-﻿using CAPI.Common.Abstractions.Config;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Config;
 using CAPI.NiftiLib;
-using log4net;
 
 namespace CAPI.ImageProcessing.Abstraction
 {
@@ -9,7 +7,7 @@ namespace CAPI.ImageProcessing.Abstraction
     {
         INifti CreateNifti();
 
-        IImageConverter CreateImageConverter(IProcessBuilder processBuilder, IImgProcConfig config);
-        IImageProcessor CreateImageProcessor(IProcessBuilder processBuilder, IImgProcConfig config);
+        IImageConverter CreateImageConverter(IImgProcConfig config);
+        IImageProcessor CreateImageProcessor(IImgProcConfig config);
     }
 }

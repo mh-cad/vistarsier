@@ -1,5 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Config;
 using CAPI.NiftiLib;
 using CAPI.NiftiLib.Processing;
 using CAPI.ImageProcessing.Abstraction;
@@ -8,21 +7,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using CAPI.General;
+using CAPI.Common;
 
 namespace CAPI.ImageProcessing
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessor : IImageProcessor
     {
-        private readonly IProcessBuilder _processBuilder;
         private readonly IImgProcConfig _config;
         private readonly ILog _log;
 
-        public ImageProcessor(IProcessBuilder processBuilder,
-                              IImgProcConfig config)
+        public ImageProcessor(IImgProcConfig config)
         {
-            _processBuilder = processBuilder;
             _config = config;
             _log = Log.GetLogger();
         }

@@ -1,5 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Config;
 using CAPI.NiftiLib;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -14,16 +13,14 @@ namespace CAPI.ImageProcessing
             return new Nifti();
         }
 
-        public IImageConverter CreateImageConverter(
-            IProcessBuilder processBuilder, IImgProcConfig config)
+        public IImageConverter CreateImageConverter(IImgProcConfig config)
         {
-            return new ImageConverter(processBuilder, config);
+            return new ImageConverter(config);
         }
 
-        public IImageProcessor CreateImageProcessor(IProcessBuilder processBuilder,
-                                                    IImgProcConfig config)
+        public IImageProcessor CreateImageProcessor(IImgProcConfig config)
         {
-            return new ImageProcessor(processBuilder, config);
+            return new ImageProcessor(config);
         }
     }
 }

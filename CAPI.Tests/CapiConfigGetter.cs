@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Config;
 using Newtonsoft.Json;
 using System;
 using System.IO;

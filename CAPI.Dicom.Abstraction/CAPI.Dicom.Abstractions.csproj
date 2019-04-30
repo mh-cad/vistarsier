@@ -127,12 +127,6 @@
     <Compile Include="TagType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
-      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
-      <Name>CAPI.General.Abstractions</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

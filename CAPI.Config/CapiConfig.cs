@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.Common.Config
+namespace CAPI.Config
 {
     [JsonConverter(typeof(CapiConfigJsonConverter))]
     // ReSharper disable once ClassNeverInstantiated.Global

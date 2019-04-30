@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General.Abstractions.Services;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -22,10 +21,9 @@ namespace CAPI.UAT.Tests
         public AgentRepository Context { get; set; }
 
         private readonly IDicomFactory _dicomFactory;
-        private readonly IProcessBuilder _processBuilder;
         private readonly ILog _log;
 
-        public DicomConnectivity(IDicomFactory dicomFactory, IProcessBuilder processBuilder, ILog log)
+        public DicomConnectivity(IDicomFactory dicomFactory, ILog log)
         {
             Name = "Dicom Connectivity";
             Description = "Check whether Dicom association can be made with details entailed in config.json file and Query Retrieve and Storage are successfully done";
@@ -34,7 +32,6 @@ namespace CAPI.UAT.Tests
             TestGroup = "Dicom";
 
             _dicomFactory = dicomFactory;
-            _processBuilder = processBuilder;
             _log = log;
         }
 
@@ -43,7 +40,7 @@ namespace CAPI.UAT.Tests
             var dicomConfig = _dicomFactory.CreateDicomConfig();
             dicomConfig.Img2DcmFilePath = CapiConfig.DicomConfig.Img2DcmFilePath;
 
-            var dicomServices = _dicomFactory.CreateDicomServices(dicomConfig, _processBuilder);
+            var dicomServices = _dicomFactory.CreateDicomServices(dicomConfig);
 
             var localNode = CapiConfig.DicomConfig.LocalNode;
 

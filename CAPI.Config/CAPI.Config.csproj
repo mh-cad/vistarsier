@@ -4,13 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</ProjectGuid>
+    <ProjectGuid>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Dicom</RootNamespace>
-    <AssemblyName>CAPI.Dicom</AssemblyName>
+    <RootNamespace>CAPI.Config</RootNamespace>
+    <AssemblyName>CAPI.Config</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,21 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClearCanvas.Common">
-      <HintPath>..\lib\ClearCanvas.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="ClearCanvas.Dicom">
-      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,34 +46,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DicomFactory.cs" />
+    <Compile Include="CapiConfig.cs" />
+    <Compile Include="CapiConfigJsonConverter.cs" />
     <Compile Include="DicomConfig.cs" />
-    <Compile Include="DicomImage.cs" />
-    <Compile Include="DicomPatient.cs" />
-    <Compile Include="DicomSeries.cs" />
-    <Compile Include="DicomStudy.cs" />
-    <Compile Include="Model\DicomNode.cs" />
-    <Compile Include="Model\DicomSeries.cs" />
-    <Compile Include="DicomServices.cs" />
-    <Compile Include="Model\DicomTag.cs" />
-    <Compile Include="Model\DicomTagCollection.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="ICapiConfig.cs" />
+    <Compile Include="IDicomConfig.cs" />
+    <Compile Include="IImgProcConfig.cs" />
+    <Compile Include="ImgProcConfig.cs" />
+    <Compile Include="ITestsConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StorageScp.cs" />
+    <Compile Include="TestsConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
+      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>CAPI.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstractions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
+      <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
+      <Name>CAPI.Dicom</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

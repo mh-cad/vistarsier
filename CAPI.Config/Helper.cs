@@ -1,9 +1,9 @@
-﻿using CAPI.General;
+﻿using CAPI.Common;
 using System;
 using System.Configuration;
 using System.IO;
 
-namespace CAPI.Common.Config
+namespace CAPI.Config
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public static class Helper

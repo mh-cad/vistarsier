@@ -1,7 +1,6 @@
 ﻿using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
-using CAPI.General;
+using CAPI.Common;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;
@@ -20,14 +19,12 @@ namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
-        private readonly IProcessBuilder _processBuilder;
         private readonly ILog _log;
         private readonly IDicomConfig _config;
 
-        public DicomServices(IDicomConfig config, IProcessBuilder processBuilder)
+        public DicomServices(IDicomConfig config)
         {
-            _processBuilder = processBuilder;
-            _log = Log.GetLogger();
+            _log = CAPI.Common.Log.GetLogger();
             _config = config;
         }
 
@@ -326,7 +323,7 @@ namespace CAPI.Dicom
 
             arguments += $"-i BMP {bmpFilepath} {dicomFilePath}";
 
-            _processBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+            ProcessBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
 
         public void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")

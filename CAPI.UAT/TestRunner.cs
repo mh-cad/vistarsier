@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.UAT.Tests;
 using log4net;
@@ -16,16 +15,13 @@ namespace CAPI.UAT
         private static readonly string Nl = Environment.NewLine;
         private readonly IDicomFactory _dicomFactory;
         private IImageProcessingFactory _imgProcFactory;
-        private readonly IProcessBuilder _processBuilder;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
-        public TestRunner(IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
-                          IProcessBuilder processBuilder, ILog log)
+        public TestRunner(IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory, ILog log)
         {
             _dicomFactory = dicomFactory;
             _imgProcFactory = imgProcFactory;
-            _processBuilder = processBuilder;
             _log = log;
             _capiConfig = new CapiConfig().GetConfig();
         }
@@ -50,7 +46,7 @@ namespace CAPI.UAT
             var tests = new UatTests();
             tests.Tests.Add(new ConfigFilesExists());
             //tests.Tests.Add(new DbConnectionString { CapiConfig = _capiConfig });
-            tests.Tests.Add(new DicomConnectivity(_dicomFactory, _processBuilder, _log) { CapiConfig = _capiConfig });
+            tests.Tests.Add(new DicomConnectivity(_dicomFactory, _log) { CapiConfig = _capiConfig });
             tests.Tests.Add(new BinFilesExist { CapiConfig = _capiConfig });
             // Add Tests Here!
             return tests;

@@ -543,7 +543,6 @@
         private System.Windows.Forms.Label lblcurrentPoint;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem axialToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem coronalToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sagittalToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer3;
