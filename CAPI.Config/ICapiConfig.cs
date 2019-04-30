@@ -1,4 +1,4 @@
-﻿namespace CAPI.Common.Abstractions.Config
+﻿namespace CAPI.Config
 {
     public interface ICapiConfig
     {

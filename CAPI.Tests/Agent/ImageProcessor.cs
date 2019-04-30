@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent.Abstractions;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,7 +25,6 @@ namespace CAPI.Tests.Agent
         private string _tmpFolder;
         private IDicomServices _dicomServices;
         private IImageProcessingFactory _imgProcFactory;
-        private IProcessBuilder _processBuilder;
         private CapiConfig _capiConfig;
         private CAPI.Dicom.Abstractions.IDicomConfig _dicomConfig;
         private ILog _log;
@@ -37,12 +35,11 @@ namespace CAPI.Tests.Agent
             _unity = Helpers.Unity.CreateContainerCore();
             _testResourcesPath = Helper.GetTestResourcesPath();
             _log = LogHelper.GetLogger();
-            _processBuilder = _unity.Resolve<IProcessBuilder>();
             _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
-            _dicomConfig = _unity.Resolve<IDicomConfig>();
+            _dicomConfig = _unity.Resolve<CAPI.Dicom.Abstractions.IDicomConfig>();
             //_dicomConfig.ExecutablesPath = _capiConfig.DicomConfig.DicomServicesExecutablesPath;
             _dicomServices = _unity.Resolve<IDicomFactory>()
-                .CreateDicomServices(_dicomConfig, _processBuilder);
+                .CreateDicomServices(_dicomConfig);
             _imgProcFactory = _unity.Resolve<IImageProcessingFactory>();
 
             _tmpFolder = $@"{_testResourcesPath}\TempFolder";
@@ -56,16 +53,16 @@ namespace CAPI.Tests.Agent
             // Arrange
             var agentFactory = _unity.Resolve<IAgentFactory>();
             var agentImgProc = agentFactory.CreateAgentImageProcessor(
-                _dicomServices, _imgProcFactory, _processBuilder, _capiConfig.ImgProcConfig, null);
+                _dicomServices, _imgProcFactory, _capiConfig.ImgProcConfig, null);
 
             var testFolders = new[] { "01_1323314" };
 
             foreach (var folder in testFolders)
             {
                 _currentStudyDicomFolder = Path.Combine(_tmpFolder, "fixed", "dicom");
-                General.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\fixed\dicom", _currentStudyDicomFolder);
+                CAPI.Common.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\fixed\dicom", _currentStudyDicomFolder);
                 _priorStudyDicomFolder = Path.Combine(_tmpFolder, "floating", "dicom");
-                General.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\floating\dicom", _priorStudyDicomFolder);
+                CAPI.Common.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\floating\dicom", _priorStudyDicomFolder);
 
                 _lookupTableFile = $@"{_testResourcesPath}\LookUpTable.bmp";
                 _destinationResults = Path.Combine(_tmpFolder, "Results", Path.GetFileNameWithoutExtension(_lookupTableFile), "Dicom");

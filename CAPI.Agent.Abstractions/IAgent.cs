@@ -1,4 +1,4 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Config;
 
 namespace CAPI.Agent.Abstractions
 {

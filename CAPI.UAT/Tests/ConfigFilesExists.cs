@@ -1,5 +1,5 @@
 ﻿using CAPI.Agent;
-using CAPI.Common.Config;
+using CAPI.Config;
 using System;
 using System.IO;
 using System.Linq;

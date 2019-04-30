@@ -93,17 +93,9 @@
     <None Include="ThirdPartyTools\floating.nii" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
-      <Project>{33ACFCF5-6147-407C-BA09-993FC6A16CC3}</Project>
-      <Name>CAPI.Common.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
-      <Project>{644E77B3-A14A-4A11-9F4B-FADA5D67D839}</Project>
-      <Name>CAPI.General.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
-      <Project>{B4385310-57A2-4A56-AC62-58311D9C0C65}</Project>
-      <Name>CAPI.General</Name>
+    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
+      <Project>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</Project>
+      <Name>CAPI.Config</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>

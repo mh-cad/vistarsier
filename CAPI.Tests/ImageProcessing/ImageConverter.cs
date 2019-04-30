@@ -1,6 +1,5 @@
-﻿using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Config;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Common;
+using CAPI.Config;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,7 +12,6 @@ namespace CAPI.Tests.ImageProcessing
     public class ImageConverter
     {
         private IUnityContainer _unity;
-        private IProcessBuilder _processBuilder;
         private IImageProcessingFactory _imageProcessingFactory;
         private IImgProcConfig _imgProcConfig;
         private ILog _log;
@@ -27,7 +25,6 @@ namespace CAPI.Tests.ImageProcessing
         public void TestInit()
         {
             _unity = Helpers.Unity.CreateContainerCore();
-            _processBuilder = _unity.Resolve<IProcessBuilder>();
             _imageProcessingFactory = _unity.Resolve<IImageProcessingFactory>();
             _imgProcConfig = _unity.Resolve<IImgProcConfig>();
             _log = LogHelper.GetLogger();
@@ -54,12 +51,12 @@ namespace CAPI.Tests.ImageProcessing
         public void ConvertDicom2Nii()
         {
             // Arrange
-            General.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
             var imageConverter =
-                _imageProcessingFactory.CreateImageConverter(_processBuilder, _imgProcConfig);
+                _imageProcessingFactory.CreateImageConverter(_imgProcConfig);
             imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
 
             // Assert

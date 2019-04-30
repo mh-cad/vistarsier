@@ -2,7 +2,7 @@
 using CAPI.Dicom.Model;
 using System.Collections.Generic;
 
-namespace CAPI.Common.Config
+namespace CAPI.Config
 {
     public class DicomConfig //: IDicomConfig
     {

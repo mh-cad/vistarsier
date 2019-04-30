@@ -1,5 +1,5 @@
-﻿using CAPI.Common.Config;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Common;
+using CAPI.Config;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,7 +27,6 @@ namespace CAPI.Tests.ImageProcessing
         private CapiConfig _capiConfig;
         private string _fixedMaskFile;
         private string _fixedNiiFile;
-        private IProcessBuilder _processBuilder;
         private ILog _log;
         private string _fixedBrainFile;
         private string _floatingBrainFile;
@@ -42,19 +41,18 @@ namespace CAPI.Tests.ImageProcessing
             _unity = Helpers.Unity.CreateContainerCore();
 
             _log = LogHelper.GetLogger();
-            _processBuilder = _unity.Resolve<IProcessBuilder>();
             _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
             _testResourcesPath = $@"{Helper.GetTestResourcesPath()}/nifti";//_capiConfig.TestsConfig.TestResourcesPath
             var imgProcFactory = _unity.Resolve<IImageProcessingFactory>();
-            _imageProcessor = imgProcFactory.CreateImageProcessor(_processBuilder, _capiConfig.ImgProcConfig);
+            _imageProcessor = imgProcFactory.CreateImageProcessor(_capiConfig.ImgProcConfig);
 
             const string testFolderName = "sample_series";
             _outputFolder = $@"{_testResourcesPath}\Output";
             _resultsFolder = $@"{_outputFolder}\Results";
             if (Directory.Exists(_outputFolder)) Directory.Delete(_outputFolder, true);
-            General.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
             if (Directory.Exists(_resultsFolder)) Directory.Delete(_resultsFolder, true);
-            General.FileSystem.DirectoryExistsIfNotCreate(_resultsFolder);
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate(_resultsFolder);
 
             var fixedFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.nii";
             var fixedBrainFilepath = $@"{_testResourcesPath}\SeriesToTest\{testFolderName}\Current\fixed.brain.nii";
@@ -130,7 +128,7 @@ namespace CAPI.Tests.ImageProcessing
             var brain = $@"{_outputFolder}\floating.brain.nii";
             var mask = $@"{_outputFolder}\floating.mask.nii";
             var bseParams = _capiConfig.ImgProcConfig.BseParams;
-            General.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate(_outputFolder);
 
             // Act
             //_imageProcessor.ExtractBrainMask(_floatingBfcNiiFile, bseParams, brain, mask);
@@ -146,7 +144,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var floatingResliced = $@"{_resultsFolder}\prior.resliced.nii";
             var maskResliced = $@"{_resultsFolder}\prior.resliced.mask.nii";
-            General.FileSystem.DirectoryExistsIfNotCreate(_resultsFolder);
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate(_resultsFolder);
 
             // Act
             //_imageProcessor.Registration(_fixedBrainFile, _floatingBrainFile, floatingResliced, "brain");
@@ -163,7 +161,7 @@ namespace CAPI.Tests.ImageProcessing
             // Arrange
             var outNii = $@"{_resultsFolder}\prior.brain.bfc.nii";
             const string bseParams = "--iterate --ellipse --timer";
-            General.FileSystem.DirectoryExistsIfNotCreate($"{_resultsFolder}");
+            CAPI.Common.FileSystem.DirectoryExistsIfNotCreate($"{_resultsFolder}");
 
             // Act
             //_imageProcessor.BiasFieldCorrection(_floatingBrainFile, _floatingMaskFile, bseParams, outNii);

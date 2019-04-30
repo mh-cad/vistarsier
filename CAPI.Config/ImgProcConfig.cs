@@ -1,6 +1,4 @@
-﻿using CAPI.Common.Abstractions.Config;
-
-namespace CAPI.Common.Config
+﻿namespace CAPI.Config
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ImgProcConfig : IImgProcConfig

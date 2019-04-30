@@ -1,13 +1,11 @@
-﻿using CAPI.Common.Config;
+﻿using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using System.Linq;
 using Unity;
 using Unity.Lifetime;
 using Unity.log4net;
@@ -21,8 +19,7 @@ namespace CAPI.Tests.Dicom
         private IDicomFactory _dicomFactory;
         private IDicomNode _localNode;
         private IDicomNode _remoteNode;
-        private IDicomConfig _dicomConfig;
-        private IProcessBuilder _processBuilder;
+        private CAPI.Dicom.Abstractions.IDicomConfig _dicomConfig;
 
         private string _testObjectsPath;
         private static string _testResources;
@@ -46,8 +43,7 @@ namespace CAPI.Tests.Dicom
             var container = Helpers.Unity.CreateContainerCore();
             _dicomFactory = container.Resolve<IDicomFactory>();
             _dicomServices = container.Resolve<IDicomServices>();
-            _dicomConfig = container.Resolve<IDicomConfig>();
-            _processBuilder = container.Resolve<IProcessBuilder>();
+            _dicomConfig = container.Resolve<CAPI.Dicom.Abstractions.IDicomConfig>();
 
             _log = LogHelper.GetLogger();
 
@@ -61,10 +57,10 @@ namespace CAPI.Tests.Dicom
 
             _orientationReferenceDicomFolder =
                 Path.Combine(_tempOutputFolder, Path.GetFileName(OrientationReferenceDicomFolder));
-            General.FileSystem.CopyDirectory(OrientationReferenceDicomFolder, _orientationReferenceDicomFolder);
+            CAPI.Common.FileSystem.CopyDirectory(OrientationReferenceDicomFolder, _orientationReferenceDicomFolder);
 
             _testingDicomFolderForOrientation = Path.Combine(_tempOutputFolder, Path.GetFileName(TestingDicomFolderForOrientation));
-            General.FileSystem.CopyDirectory(TestingDicomFolderForOrientation, _testingDicomFolderForOrientation);
+            CAPI.Common.FileSystem.CopyDirectory(TestingDicomFolderForOrientation, _testingDicomFolderForOrientation);
 
             _localNode = GetLocalDicomNode();
             _remoteNode = GetRemoteDicomNode();
@@ -208,7 +204,7 @@ namespace CAPI.Tests.Dicom
             var dicomTags = _dicomFactory.CreateDicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _processBuilder);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
             dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
@@ -221,7 +217,7 @@ namespace CAPI.Tests.Dicom
             var dicomFolderPath = Path.Combine(_testResources, OutDicomRelPath);
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
-            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig, _processBuilder);
+            var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
 
             var dicomTags = _dicomFactory.CreateDicomTagCollection();

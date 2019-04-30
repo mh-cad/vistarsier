@@ -1,13 +1,12 @@
-﻿using CAPI.General.Abstractions.Services;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.General.Services
+namespace CAPI.Common
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ProcessBuilder : IProcessBuilder
+    public class ProcessBuilder
     {
         private static Process Build(string processPath, string processFileNameExt, string arguments, string workingDir)
         {
@@ -30,7 +29,7 @@ namespace CAPI.General.Services
             return proc;
         }
 
-        public Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "",
+        public static Process CallExecutableFile(string fileFullPath, string arguments, string workingDir = "",
                                           DataReceivedEventHandler outputDataReceived = null,
                                           DataReceivedEventHandler errorOccuredInProcess = null)
         {
@@ -47,7 +46,7 @@ namespace CAPI.General.Services
             return process;
         }
 
-        public Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "",
+        public static Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "",
                                 DataReceivedEventHandler outputDataReceived = null,
                                 DataReceivedEventHandler errorOccuredInProcess = null)
         {

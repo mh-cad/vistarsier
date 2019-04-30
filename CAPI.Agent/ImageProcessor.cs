@@ -1,9 +1,8 @@
 ﻿using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Abstractions.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General;
-using CAPI.General.Abstractions.Services;
+using CAPI.Common;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
@@ -36,14 +35,13 @@ namespace CAPI.Agent
         private const string ImagesFolderSuffix = "_Images";
 
         public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
-                              IProcessBuilder processBuilder,
                               IImgProcConfig imgProcConfig, AgentRepository context)
         {
             _dicomServices = dicomServices;
             _imgProcFactory = imgProcFactory;
             _log = Log.GetLogger();
             _imgProcConfig = imgProcConfig;
-            _imgProc = imgProcFactory.CreateImageProcessor(processBuilder, imgProcConfig);
+            _imgProc = imgProcFactory.CreateImageProcessor(imgProcConfig);
             _context = context;
         }
 

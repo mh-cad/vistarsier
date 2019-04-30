@@ -1,8 +1,8 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Console.Net.Helpers;
 using CAPI.Dicom.Abstractions;
-using CAPI.General;
-using CAPI.General.Abstractions.Services;
+using CAPI.Common;
+using CAPI.Common.Abstractions.Services;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.UAT;
 using log4net;

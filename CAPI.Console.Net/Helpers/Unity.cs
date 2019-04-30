@@ -1,18 +1,16 @@
 ﻿using CAPI.Agent.Abstractions;
-using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
-using CAPI.General.Services;
+using CAPI.Common;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.NiftiLib;
 using Unity;
 using Unity.log4net;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
-using ImgProcConfig = CAPI.Common.Config.ImgProcConfig;
+using ImgProcConfig = CAPI.Config.ImgProcConfig;
 
 
 namespace CAPI.Console.Net.Helpers

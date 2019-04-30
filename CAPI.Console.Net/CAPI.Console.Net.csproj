@@ -185,14 +185,6 @@
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>CAPI.Dicom</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
-      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
-      <Name>CAPI.General.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
-      <Project>{b4385310-57a2-4a56-ac62-58311d9c0c65}</Project>
-      <Name>CAPI.General</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
       <Name>CAPI.ImageProcessing.Abstraction</Name>

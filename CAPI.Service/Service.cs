@@ -1,12 +1,9 @@
 ﻿using CAPI.Agent.Abstractions;
-using CAPI.Common.Abstractions.Config;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.NiftiLib;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
-using CAPI.General.Services;
 using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
@@ -37,10 +34,9 @@ namespace CAPI.Service
             var agentFactory = container.Resolve<IAgentFactory>();
             var dicomFactory = container.Resolve<IDicomFactory>();
             var imgProcFactory = container.Resolve<IImageProcessingFactory>();
-            var processBuilder = container.Resolve<IProcessBuilder>();
 
             var log = GetLogger();
-            _agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory, processBuilder);
+            _agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory);
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 
@@ -85,7 +81,6 @@ namespace CAPI.Service
             container.RegisterType<IAgentFactory, Agent.AgentFactory>();
             container.RegisterType<IImgProcConfig, ImgProcConfig>();
             container.RegisterType<ITestsConfig, TestsConfig>();
-            container.RegisterType<IProcessBuilder, ProcessBuilder>();
 
             return container;
         }

@@ -1,5 +1,4 @@
-﻿using CAPI.General.Abstractions.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using Unity;
@@ -39,7 +38,7 @@ namespace CAPI.Tests.FileSystem
             File.AppendAllText(filePath, fileContent);
 
             // Act
-            General.FileSystem.CopyDirectory(_sourcePath, _targetPath);
+            CAPI.Common.FileSystem.CopyDirectory(_sourcePath, _targetPath);
 
             // Assert
             Assert.IsTrue(File.Exists(filePath));

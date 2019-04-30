@@ -1,10 +1,9 @@
 ﻿using CAPI.Agent.Abstractions;
 using CAPI.Agent.Abstractions.Models;
 using CAPI.Agent.Models;
-using CAPI.Common.Config;
+using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.General;
-using CAPI.General.Abstractions.Services;
+using CAPI.Common;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +22,6 @@ namespace CAPI.Agent
         private readonly ILog _log;
         private readonly IDicomFactory _dicomFactory;
         private readonly IImageProcessingFactory _imgProcFactory;
-        private readonly IProcessBuilder _processBuilder;
 
         public CapiConfig Config { get; set; }
         public bool IsBusy { get; set; }
@@ -42,12 +40,10 @@ namespace CAPI.Agent
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
         public Agent(string[] args, IDicomFactory dicomFactory,
-                     IImageProcessingFactory imgProcFactory,
-                     IProcessBuilder processBuilder)
+                     IImageProcessingFactory imgProcFactory)
         {
             IsHealthy = true;
             _dicomFactory = dicomFactory;
-            _processBuilder = processBuilder;
             _log = Log.GetLogger();
             _imgProcFactory = imgProcFactory;
             _args = args;
@@ -185,7 +181,7 @@ namespace CAPI.Agent
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
                 SetCaseStatus(@case, "Processing");
 
-                Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _processBuilder, _log, _context);
+                Case.Process(recipe, _dicomFactory, _imgProcFactory, Config, _log, _context);
 
                 _log.Info(
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");

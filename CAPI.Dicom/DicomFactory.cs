@@ -1,7 +1,5 @@
 ﻿using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.General.Abstractions.Services;
-using log4net;
 using System;
 
 namespace CAPI.Dicom
@@ -25,10 +23,9 @@ namespace CAPI.Dicom
         {
             return new DicomTagCollection();
         }
-        public IDicomServices CreateDicomServices(IDicomConfig config, 
-            IProcessBuilder processBuilder)
+        public IDicomServices CreateDicomServices(IDicomConfig config)
         {
-            return new DicomServices(config, processBuilder);
+            return new DicomServices(config);
         }
         public IDicomStudy CreateStudy()
         {

@@ -1,5 +1,4 @@
-﻿using CAPI.General;
-using CAPI.General.Abstractions.Services;
+﻿using CAPI.Common;
 using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
@@ -11,15 +10,11 @@ namespace CAPI.ImageProcessing
 {
     public class ImageConverter : IImageConverter
     {
-        private readonly IProcessBuilder _processBuilder;
-        private readonly Common.Abstractions.Config.IImgProcConfig _config;
+        private readonly Config.IImgProcConfig _config;
         private readonly ILog _log;
 
-        public ImageConverter(
-            IProcessBuilder processBuilder,
-            Common.Abstractions.Config.IImgProcConfig config)
+        public ImageConverter(Config.IImgProcConfig config)
         {
-            _processBuilder = processBuilder;
             _config = config;
             _log = Log.GetLogger();
         }
@@ -35,7 +30,7 @@ namespace CAPI.ImageProcessing
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
             FileSystem.DirectoryExistsIfNotCreate(tmpDir);
 
-            var process = _processBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
+            var process = ProcessBuilder.CallExecutableFile(dcm2NiiExe, $"{@params} -o {tmpDir} {dicomDir}");
             process.OutputDataReceived += OutputDataReceivedInProcess;
             process.ErrorDataReceived += ErrorOccuredInProcess;
             process.WaitForExit();

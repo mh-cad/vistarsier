@@ -108,13 +108,13 @@
       <Project>{1abf0272-bc85-45a1-85ff-532885d05bc0}</Project>
       <Name>CAPI.Agent</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Common.Abstractions\CAPI.Common.Abstractions.csproj">
-      <Project>{33acfcf5-6147-407c-ba09-993fc6a16cc3}</Project>
-      <Name>CAPI.Common.Abstractions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
+      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
+      <Name>CAPI.Config</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
@@ -127,14 +127,6 @@
     <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
       <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
       <Name>CAPI.Extensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.General.Abstractions\CAPI.General.Abstractions.csproj">
-      <Project>{644e77b3-a14a-4a11-9f4b-fada5d67d839}</Project>
-      <Name>CAPI.General.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.General\CAPI.General.csproj">
-      <Project>{b4385310-57a2-4a56-ac62-58311d9c0c65}</Project>
-      <Name>CAPI.General</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
       <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>

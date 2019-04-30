@@ -1,5 +1,5 @@
-﻿using CAPI.Common.Config;
-using CAPI.ImageProcessing.Abstraction;
+﻿using CAPI.Config;
+using CAPI.NiftiLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Drawing;
 using System.IO;

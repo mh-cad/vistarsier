@@ -1,5 +1,5 @@
 ﻿using CAPI.Agent;
-using CAPI.Common.Config;
+using CAPI.Config;
 using System.IO;
 
 namespace CAPI.UAT.Tests

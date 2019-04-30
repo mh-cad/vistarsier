@@ -1,7 +1,7 @@
 ﻿using CAPI.Dicom.Abstractions;
 using System.Collections.Generic;
 
-namespace CAPI.Common.Abstractions.Config
+namespace CAPI.Config
 {
     public interface IDicomConfig
     {
