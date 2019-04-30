@@ -58,7 +58,10 @@ namespace CAPI.ImageProcessing
             // Setup what toolchain we are using...
             Func<string, DataReceivedEventHandler, string> BiasCorrect = BiasCorrection.AntsN4;
             Func<string, DataReceivedEventHandler, string> SkullStrip = BrainExtraction.BrainSuiteBSE;
-            Func<string, string, DataReceivedEventHandler, string> Register = Registration.CMTKRegistration;
+
+            // Note, these should be the same tool since they're going to use the correct temp files for the transform matrix.
+            Func<string, string, DataReceivedEventHandler, string> Register = Registration.ANTSRegistration;
+            Func<string, string, DataReceivedEventHandler, string> Reslicer = Registration.ANTSApplyTransforms;
 
             DataReceivedEventHandler dataout = (s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
 
@@ -112,7 +115,7 @@ namespace CAPI.ImageProcessing
                 stopwatch1.Restart();
 
                 //TODO fix this...
-                //priorWithSkull = Registration.CMTKResliceUsingPrevious(priorWithSkull, refBrain);
+                priorWithSkull = Reslicer(priorWithSkull, refBrain, dataout);
             }
 
             // Convert files to INifti, now that we're done with pre-processing.
