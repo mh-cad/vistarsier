@@ -12,10 +12,10 @@ namespace CAPI.Cmd
     {
         static void Main(string[] args)
         {
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory + "../../");
 
-            string floatingPath = "../../floating.nii";
-            string fixedPath = "../../fixed.nii";
+            string floatingPath = "floating.nii";
+            string fixedPath = "fixed.nii";
             string outputPrefix = "capiout";
 
 
@@ -40,7 +40,7 @@ namespace CAPI.Cmd
             totaltime.Start();
 
             IImageProcessor ip = new ImageProcessor(null);
-            string[] outputs = { outputPrefix + "-decrease.nii", outputPrefix + "-increase.nii" };
+            string[] outputs = { outputPrefix + "-increase.nii", outputPrefix + "-decrease.nii" };
             ip.MSLesionCompare(fixedPath, floatingPath, fixedPath, true, true, true, outputs, "prior-resliced.nii");
 
             Console.WriteLine($@" ALL DONE! [{totaltime.Elapsed}]");

@@ -49,19 +49,18 @@ namespace CAPI.ImageProcessing
         /// <param name="resultNiis">end result output nifti files path</param>
         /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
         public void MSLesionCompare(
-            string currentNii, string priorNii, string referenceNii, 
+            string currentNii, string priorNii, string referenceNii,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
         {
             FileSystem.FilesExist(new[] { currentNii, priorNii });
-            //_filesystem.FilesExist(lookupTablePaths);
 
-            //var fixedFile = currentNii;
-            //var floatingFile = priorNii;
-            //var fixedMask = string.Empty; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
-            //var floatingMask = string.Empty; // even in case of no mask, an empty parameter should be passed to bias field correction method - empty param gets handled in bfc
-            //var referenceBrain = string.Empty;
-            //var referenceMask = string.Empty;
+            // Setup what toolchain we are using...
+            Func<string, DataReceivedEventHandler, string> BiasCorrect = BiasCorrection.AntsN4;
+            Func<string, DataReceivedEventHandler, string> SkullStrip = BrainExtraction.BrainSuiteBSE;
+            Func<string, string, DataReceivedEventHandler, string> Register = Registration.CMTKRegistration;
+
+            DataReceivedEventHandler dataout = (s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
 
             var stopwatch1 = new Stopwatch();
 
@@ -70,8 +69,8 @@ namespace CAPI.ImageProcessing
             {
                 _log.Info("Starting bias correction...");
                 stopwatch1.Start();
-                var bias1 = Task.Run(() => { return BiasCorrection.AntsN4(currentNii); });
-                var bias2 = Task.Run(() => { return BiasCorrection.AntsN4(priorNii); });
+                var bias1 = Task.Run(() => { return BiasCorrect(currentNii, dataout); });
+                var bias2 = Task.Run(() => { return BiasCorrect(priorNii, dataout); });
                 bias1.Wait();
                 bias2.Wait();
                 currentNii = bias1.Result;
@@ -85,9 +84,9 @@ namespace CAPI.ImageProcessing
 
             // Brain Extraction
             _log.Info("Starting brain extraction...");
-            var brain1 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(currentNii); });
-            var brain2 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(priorNii); });
-            var brain3 = Task.Run(() => { return BrainExtraction.BrainSuiteBSE(referenceNii); }); // TODO: This can be null.
+            var brain1 = Task.Run(() => { return SkullStrip(currentNii, dataout); });
+            var brain2 = Task.Run(() => { return SkullStrip(priorNii, dataout); });
+            var brain3 = Task.Run(() => { return SkullStrip(referenceNii, dataout); }); // TODO: This can be null.
             brain1.Wait();
             brain2.Wait();
             brain3.Wait();
@@ -104,15 +103,16 @@ namespace CAPI.ImageProcessing
 
                 // Registration
                 _log.Info("Starting registration...");
-                priorNii = Registration.CMTKRegistration(priorNii, refBrain);
+                priorNii = Register(priorNii, refBrain, dataout);
                 if (!refBrain.Equals(currentNii)) // If we're using a third file for registration...
                 {
-                    priorNii = Registration.CMTKRegistration(currentNii, refBrain);
+                    priorNii = Register(currentNii, refBrain, dataout);
                 }
                 _log.Info($@"..done. [{stopwatch1.Elapsed}]");
                 stopwatch1.Restart();
 
-                priorWithSkull = Registration.CMTKResliceUsingPrevious(priorWithSkull, refBrain);
+                //TODO fix this...
+                //priorWithSkull = Registration.CMTKResliceUsingPrevious(priorWithSkull, refBrain);
             }
 
             // Convert files to INifti, now that we're done with pre-processing.
