@@ -9,6 +9,6 @@ namespace CAPI.ImageProcessing.Abstraction
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii);
 
-        string DicomToNifti(string dicomFolder);
+        string DicomToNifti(string dicomFolder, string niftiFile);
     }
 }
