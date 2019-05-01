@@ -71,16 +71,16 @@ namespace CAPI.Agent
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
             _log.Info($@"Start converting series dicom files to Nii");
-            var task1 = Task.Run(() => { return _imgProc.DicomToNifti(currentDicomFolder); });
-            var task2 = Task.Run(() => { return _imgProc.DicomToNifti(priorDicomFolder); });
-            var task3 = Task.Run(() => { return _imgProc.DicomToNifti(referenceDicomFolder); });
+            var task1 = Task.Run(() => { return _imgProc.DicomToNifti(currentDicomFolder, "current.nii"); });
+            var task2 = Task.Run(() => { return _imgProc.DicomToNifti(priorDicomFolder, "prior.nii"); });
+            var task3 = Task.Run(() => { return _imgProc.DicomToNifti(referenceDicomFolder, "reference.nii"); });
             task1.Wait();
             task2.Wait();
             task3.Wait();
 
             var currentNifti = task1.Result;
-            var priorNifti = task1.Result;
-            var referenceNifti = task1.Result;
+            var priorNifti = task2.Result;
+            var referenceNifti = task3.Result;
             _log.Info($@"Finished converting series dicom files to Nii");
 
             // Process Nifti files.
@@ -109,6 +109,7 @@ namespace CAPI.Agent
                 _log.Info("Start converting resliced prior series back to Dicom");
 
                 var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
+                priorStudyDate = FormatDate(priorStudyDate);
                 var priorStudyDescBase = string.IsNullOrEmpty(priorReslicedDicomSeriesDescription) ?
                     _imgProcConfig.PriorReslicedDicomSeriesDescription :
                     priorReslicedDicomSeriesDescription;
@@ -117,7 +118,7 @@ namespace CAPI.Agent
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                ConvertNiftiToDicom(referenceNifti, outPriorReslicedDicom, sliceType,
+                ConvertNiftiToDicom(outPriorReslicedNii, outPriorReslicedDicom, sliceType,
                                     currentDicomFolder, priorStudyDescription, "", referenceDicomFolder);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
@@ -127,10 +128,7 @@ namespace CAPI.Agent
                           $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
             });
 
-            // TODO1: Remove when done experimenting
-            #region "Experimental"
-            //ConvertCurrentBfcedToDicom(outPriorReslicedNiiFile, currentDicomFolder, sliceType, referenceDicomFolder);
-            #endregion
+            _log.Debug(resultNiis);
 
             var results = new List<IJobResult>();
             foreach (var resultNii in resultNiis)
@@ -161,7 +159,7 @@ namespace CAPI.Agent
                 else
                 {
                     dicomFolderPath = resultNii.Replace(".nii", "");
-                    var description = dicomFolderPath.Contains("increase") ? "increase" : "decrease";
+                    var description = dicomFolderPath.ToLower().Contains("increase") ? "increase" : "decrease";
                     //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
                     //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
                     ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
@@ -185,6 +183,30 @@ namespace CAPI.Agent
             task.Dispose();
 
             return results.ToArray();
+        }
+
+        /// <summary>
+        /// This is just a dirty method to replace numeric months with letters to avoid confusion.
+        /// </summary>
+        /// <param name="priorStudyDate"></param>
+        /// <returns></returns>
+        private string FormatDate(string priorStudyDate)
+        {
+            // Silly and inefficient but it's not in an inner loop ;)
+            priorStudyDate = priorStudyDate.Replace("-01-", "-Jan-");
+            priorStudyDate = priorStudyDate.Replace("-02-", "-Feb-");
+            priorStudyDate = priorStudyDate.Replace("-03-", "-Mar-");
+            priorStudyDate = priorStudyDate.Replace("-04-", "-Apr-");
+            priorStudyDate = priorStudyDate.Replace("-05-", "-May-");
+            priorStudyDate = priorStudyDate.Replace("-06-", "-Jun-");
+            priorStudyDate = priorStudyDate.Replace("-07-", "-Jul-");
+            priorStudyDate = priorStudyDate.Replace("-08-", "-Aug-");
+            priorStudyDate = priorStudyDate.Replace("-09-", "-Sep-");
+            priorStudyDate = priorStudyDate.Replace("-10-", "-Oct-");
+            priorStudyDate = priorStudyDate.Replace("-11-", "-Nov-");
+            priorStudyDate = priorStudyDate.Replace("-12-", "-Dec-");
+
+            return priorStudyDate;
         }
 
         private void GetReferenceSeries(string referenceDicomFolder, string currentDicomFolder,
@@ -259,7 +281,7 @@ namespace CAPI.Agent
                                          string overlayText, string lookupTableFilePath = "", string referenceDicomFolder = "")
         {
             var bmpFolder = outDicomFolder + ImagesFolderSuffix;
-
+            _log.Debug("Converting to dicom -- " + inNiftiFile);
             ConvertToBmp(inNiftiFile, bmpFolder, sliceType, overlayText);
 
             ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders, sliceType, overlayText);
@@ -289,6 +311,7 @@ namespace CAPI.Agent
 
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
         {
+            _log.Debug("Converting to bmp -- " + inNiftiFile);
             var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
 
             nim.ExportSlicesToBmps(bmpFolder, sliceType);
