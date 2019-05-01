@@ -11,6 +11,13 @@ using CAPI.Common;
 
 namespace CAPI.ImageProcessing
 {
+    public class IThinkSomethingWentWrongException : Exception
+    {
+        public IThinkSomethingWentWrongException(string message) : base(message)
+        {
+        }
+    }
+
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessor : IImageProcessor
     {
@@ -23,7 +30,7 @@ namespace CAPI.ImageProcessing
             _log = Log.GetLogger();
         }
 
-        public string DicomToNifti(string dicomFolder)
+        public string DicomToNifti(string dicomFolder, string niftiFile)
         {
             // Check that directory is valid.
             if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomFolder))
@@ -31,9 +38,11 @@ namespace CAPI.ImageProcessing
                 _log.Info($@"No dicom files exist to convert to Nii in {dicomFolder}");
                 return null;
             }
-            
-            //new ImageConverter(_filesystem, _processBuilder, _config, _log).DicomToNiix(dicomFolder, niftiPath);
-            return Tools.Dcm2Nii(dicomFolder);
+
+            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomFolder), niftiFile);
+            //new ImageConverter(_config).DicomToNiix(dicomFolder, niftiPath);
+
+            return Tools.Dcm2Nii(dicomFolder, niftiFile);
         }
 
         /// <summary>
@@ -63,7 +72,7 @@ namespace CAPI.ImageProcessing
             Func<string, string, DataReceivedEventHandler, string> Register = Registration.ANTSRegistration;
             Func<string, string, DataReceivedEventHandler, string> Reslicer = Registration.ANTSApplyTransforms;
 
-            DataReceivedEventHandler dataout = (s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
+            DataReceivedEventHandler dataout = null;//(s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
 
             var stopwatch1 = new Stopwatch();
 
@@ -234,6 +243,12 @@ namespace CAPI.ImageProcessing
             _log.Info($@"Edge ratio for increase: {varianceIncrease / totalIncrease}");
             _log.Info($@"Edge ratio for decrease: {varianceDecrease / totalDecrease}");
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
+
+            if (totalIncrease == 0 || totalDecrease == 0 || double.IsNaN(varianceIncrease / totalIncrease))
+            {
+                throw new IThinkSomethingWentWrongException("The edge ratio on this one is way out. Not going to filthy up the PACS with it.");
+            }
+
             stopwatch1.Reset();
 
             // Write the prior resliced file.

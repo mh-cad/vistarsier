@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using CAPI.Common;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace CAPI.NiftiLib.Processing
 {
@@ -47,13 +49,28 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="dicomPath">Path to the DICOM</param>
         /// <param name="updates">Event handler to handle updates.</param>
         /// <returns></returns>
-        public static string Dcm2Nii(string dicomPath, DataReceivedEventHandler updates = null)
+        public static string Dcm2Nii(string dicomPath, string name, DataReceivedEventHandler updates = null)
         {
-            var name = Path.GetDirectoryName(dicomPath);
-            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomPath), $@"{name}.nii");
+            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomPath), $@"{name}");
 
-            var args = $@" -o {niftiPath} {dicomPath}";
+            var tmpDir = $@"{Path.GetDirectoryName(niftiPath)}\tmp";
+            if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+            FileSystem.DirectoryExistsIfNotCreate(tmpDir);
+
+
+            var args = $@" -o {tmpDir} {dicomPath}";
             ExecProcess("ThirdPartyTools/dcm2niix.exe", args, updates);
+
+            if (!Directory.Exists(tmpDir))
+                throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
+            var outFiles = Directory.GetFiles(tmpDir);
+            var nim = outFiles.Single(f => Path.GetExtension(f) == ".nii");
+            if (File.Exists(niftiPath)) File.Delete(niftiPath);
+            File.Move(nim, niftiPath);
+
+            Directory.Delete(tmpDir, true);
+
+            
 
             return niftiPath;
         }

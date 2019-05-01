@@ -65,6 +65,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
+      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
+      <Name>CAPI.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
       <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
       <Name>CAPI.Extensions</Name>
