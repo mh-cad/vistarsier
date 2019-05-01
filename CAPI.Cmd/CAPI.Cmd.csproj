@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
-    <ApplicationRevision>4</ApplicationRevision>
+    <ApplicationRevision>5</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -111,6 +111,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ThirdPartyTools\ants\antsApplyTransforms.exe" />
+    <Content Include="ThirdPartyTools\ants\antsRegistration.exe" />
     <Content Include="ThirdPartyTools\ants\N4BiasFieldCorrection.exe" />
     <Content Include="ThirdPartyTools\brain_suite\bfc.exe" />
     <Content Include="ThirdPartyTools\brain_suite\bse.exe" />
