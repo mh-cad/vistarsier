@@ -95,7 +95,7 @@ namespace CAPI.NiftiLib.Processing
             // --shrink-factors 8x4x2x1 :: shrink factors control the resolution at each level
             // --smoothing-sigmas 3x2x1x0vox :: not really sure what smoothing sigmas do but the values should be fine
             // --output [_, {niftiOutPath}] :: output the transform value + our sweet nifti file.
-            var args = $@" --dimensionality 3 --float 1 --interpolation Linear --use-histogram-matching 0 --initial-moving-transform [{fixedFile},{floatingFile}, 1] --transform Rigid[0.1] --metric MI[{fixedFile},{floatingFile},1,32,Regular,0.25] --convergence [1000x500x250x100,1e-6,10] --shrink-factors 8x4x2x1 --smoothing-sigmas 3x2x1x0vox --output [_, {niftiOutPath}]";
+            var args = $@" --dimensionality 3 --float 1 --interpolation Linear --use-histogram-matching 0 --initial-moving-transform [{fixedFile},{floatingFile}, 1] --transform Affine[0.1] --metric MI[{fixedFile},{floatingFile},1,32,Regular,0.25] --convergence [1000x500x250x100,1e-6,10] --shrink-factors 8x4x2x1 --smoothing-sigmas 3x2x1x0vox --output [_, {niftiOutPath}]";
 
             Tools.ExecProcess("ThirdPartyTools/ANTS/antsRegistration.exe", args, updates);
 
