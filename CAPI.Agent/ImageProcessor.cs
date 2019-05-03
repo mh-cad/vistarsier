@@ -333,7 +333,8 @@ namespace CAPI.Agent
                     using (var text = new Font("Tahoma", 9))
                     {
                         var x = (float)(bitmap.Width - overlayText.Length * 5.4) / 2;
-                        var y = bitmap.Height - text.Height - 5;
+                        var y = bitmap.Height - text.Height - 10;
+                        graphics.DrawString(overlayText, text, Brushes.Black, new PointF(x+1, y+1));
                         graphics.DrawString(overlayText, text, Brushes.White, new PointF(x, y));
                     }
                 }
