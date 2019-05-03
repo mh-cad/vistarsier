@@ -7,7 +7,6 @@ namespace CAPI.ImageProcessing.Abstraction
     {
         INifti CreateNifti();
 
-        IImageConverter CreateImageConverter(IImgProcConfig config);
         IImageProcessor CreateImageProcessor(IImgProcConfig config);
     }
 }

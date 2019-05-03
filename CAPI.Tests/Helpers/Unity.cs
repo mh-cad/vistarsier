@@ -27,7 +27,6 @@ namespace CAPI.Tests.Helpers
             container.RegisterType<IDicomFactory, DicomFactory>();
             container.RegisterType<IDicomServices, DicomServices>();
             container.RegisterType<CAPI.Dicom.Abstractions.IDicomConfig, CAPI.Dicom.DicomConfig>();
-            container.RegisterType<IImageConverter, ImageConverter>();
             container.RegisterType<IImageProcessor, ImageProcessor>();
             container.RegisterType<CAPI.Agent.Abstractions.Models.ISeriesSelectionCriteria, CAPI.Agent.Models.SeriesSelectionCriteria>();
             container.RegisterType<CAPI.Agent.Abstractions.Models.IDestination, CAPI.Agent.Models.Destination>();
