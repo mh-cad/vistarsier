@@ -68,7 +68,6 @@ namespace CAPI.Service
             container.RegisterType<IDicomFactory, DicomFactory>();
             container.RegisterType<IDicomServices, DicomServices>();
             container.RegisterType<Dicom.Abstractions.IDicomConfig, Dicom.DicomConfig>();
-            container.RegisterType<IImageConverter, ImageConverter>();
             container.RegisterType<ImageProcessing.Abstraction.IImageProcessor, ImageProcessing.ImageProcessor>();
             container.RegisterType<Agent.Abstractions.Models.ISeriesSelectionCriteria, Agent.Models.SeriesSelectionCriteria>();
             container.RegisterType<Agent.Abstractions.Models.IDestination, Agent.Models.Destination>();

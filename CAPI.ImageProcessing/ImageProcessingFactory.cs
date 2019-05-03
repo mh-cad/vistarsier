@@ -13,11 +13,6 @@ namespace CAPI.ImageProcessing
             return new Nifti();
         }
 
-        public IImageConverter CreateImageConverter(IImgProcConfig config)
-        {
-            return new ImageConverter(config);
-        }
-
         public IImageProcessor CreateImageProcessor(IImgProcConfig config)
         {
             return new ImageProcessor(config);

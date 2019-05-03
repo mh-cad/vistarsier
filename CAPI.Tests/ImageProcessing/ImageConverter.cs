@@ -1,6 +1,7 @@
 ﻿using CAPI.Common;
 using CAPI.Config;
 using CAPI.ImageProcessing.Abstraction;
+using CAPI.NiftiLib.Processing;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
@@ -55,9 +56,7 @@ namespace CAPI.Tests.ImageProcessing
             var outfile = $@"{_outputFolder}\floating2.nii";
 
             // Act
-            var imageConverter =
-                _imageProcessingFactory.CreateImageConverter(_imgProcConfig);
-            imageConverter.DicomToNiix(_floatingDicomFolder, outfile);
+            Tools.Dcm2Nii(_floatingDicomFolder, outfile);
 
             // Assert
             Assert.IsTrue(File.Exists(outfile), "dcm2niix failed to convert dicom to nii");
