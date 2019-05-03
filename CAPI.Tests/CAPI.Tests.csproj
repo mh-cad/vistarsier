@@ -90,6 +90,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="NiftiLib\NiftiTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Settings.settings">
