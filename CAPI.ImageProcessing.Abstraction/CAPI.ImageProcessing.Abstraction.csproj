@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="IImageProcessingFactory.cs" />
     <Compile Include="IImageProcessor.cs" />
+    <Compile Include="Metrics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
