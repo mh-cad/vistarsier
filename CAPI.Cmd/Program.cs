@@ -1,11 +1,11 @@
 ﻿using CAPI.ImageProcessing;
 using CAPI.ImageProcessing.Abstraction;
 using CAPI.NiftiLib;
+using CAPI.NiftiLib.Processing;
+using ClearCanvas.Dicom;
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace CAPI.Cmd
 {
@@ -15,7 +15,7 @@ namespace CAPI.Cmd
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory + "../../");
 
-            string repo = "D:/Capi-Files/ImageRepository";
+            string repo = "D:/Capi-Files/ImageRepository/MCGRE-18R0204857-181128_140605997";
 
             foreach(var arg in args)
             {
@@ -56,9 +56,38 @@ namespace CAPI.Cmd
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
             System.Console.WriteLine($@"Start converting series dicom files to Nii");
 
-            var currentNifti = ip.DicomToNifti(currentDicomFolder, "current.nii");
-            var priorNifti = ip.DicomToNifti(priorDicomFolder, "prior.nii");
-            var referenceNifti = ip.DicomToNifti(referenceDicomFolder, "reference.nii");
+            var currentNifti = Tools.Dcm2Nii(currentDicomFolder, "current.nii");
+            var priorNifti = Tools.Dcm2Nii(priorDicomFolder, "prior.nii");
+            var referenceNifti = Tools.Dcm2Nii(referenceDicomFolder, "reference.nii");
+
+            //DicomFile dfile = new DicomFile();
+            //dfile.Load(currentDicomFolder + "/000");
+            //using (var writer = File.CreateText(currentDicomFolder + "metadata.txt"))
+            //{
+            //    writer.Write(dfile.DataSet.DumpString);
+            //    writer.Flush();
+            //    writer.Close();
+            //}
+            //foreach (var dacThing in dfile.DataSet)
+            //{
+                
+            //    System.Console.WriteLine(dacThing.Tag);
+            //    System.Console.WriteLine(dacThing.ToString());
+            //}
+
+            //System.Console.WriteLine(dfile.ImplementationClassUid);
+            //System.Console.WriteLine(dfile.ImplementationVersionName);
+            //System.Console.WriteLine(dfile.Loaded);
+            //System.Console.WriteLine(dfile.MediaStorageSopClassUid);
+            //System.Console.WriteLine(dfile.MediaStorageSopInstanceUid);
+            //System.Console.WriteLine(dfile.MetaInfoFileLength);
+            //System.Console.WriteLine(dfile.PrivateInformationCreatorUid);
+            //System.Console.WriteLine(dfile.SopClass);
+            //System.Console.WriteLine(dfile.SourceApplicationEntityTitle);
+            //System.Console.WriteLine(dfile.TransferSyntax);
+            //System.Console.WriteLine(dfile.TransferSyntaxUid);
+            //System.Console.WriteLine(dfile);
+
 
             System.Console.WriteLine($@"Finished converting series dicom files to Nii");
 

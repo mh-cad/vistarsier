@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
 using SliceType = CAPI.NiftiLib.SliceType;
+using CAPI.NiftiLib.Processing;
 
 namespace CAPI.Agent
 {
@@ -71,9 +72,9 @@ namespace CAPI.Agent
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
             _log.Info($@"Start converting series dicom files to Nii");
-            var task1 = Task.Run(() => { return _imgProc.DicomToNifti(currentDicomFolder, "current.nii"); });
-            var task2 = Task.Run(() => { return _imgProc.DicomToNifti(priorDicomFolder, "prior.nii"); });
-            var task3 = Task.Run(() => { return _imgProc.DicomToNifti(referenceDicomFolder, "reference.nii"); });
+            var task1 = Task.Run(() => { return Tools.Dcm2Nii(currentDicomFolder, "current.nii"); });
+            var task2 = Task.Run(() => { return Tools.Dcm2Nii(priorDicomFolder, "prior.nii"); });
+            var task3 = Task.Run(() => { return Tools.Dcm2Nii(referenceDicomFolder, "reference.nii"); });
             task1.Wait();
             task2.Wait();
             task3.Wait();

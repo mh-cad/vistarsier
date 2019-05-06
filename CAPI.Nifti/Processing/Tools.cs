@@ -51,6 +51,11 @@ namespace CAPI.NiftiLib.Processing
         /// <returns></returns>
         public static string Dcm2Nii(string dicomPath, string name, DataReceivedEventHandler updates = null)
         {
+            if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomPath))
+            {
+                return null;
+            }
+
             var niftiPath = Path.Combine(Path.GetDirectoryName(dicomPath), $@"{name}");
 
             var tmpDir = $@"{Path.GetDirectoryName(niftiPath)}\tmp";
@@ -69,8 +74,6 @@ namespace CAPI.NiftiLib.Processing
             File.Move(nim, niftiPath);
 
             Directory.Delete(tmpDir, true);
-
-            
 
             return niftiPath;
         }
