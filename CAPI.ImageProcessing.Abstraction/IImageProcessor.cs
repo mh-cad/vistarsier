@@ -1,14 +1,14 @@
 ﻿using CAPI.NiftiLib;
+using System;
+using System.Collections.Generic;
 
 namespace CAPI.ImageProcessing.Abstraction
 {
     public interface IImageProcessor
     {
-        void MSLesionCompare(
+        Metrics MSLesionCompare(
             string currentNii, string priorNii, string referenceNii,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii);
-
-        string DicomToNifti(string dicomFolder, string niftiFile);
     }
 }

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using CAPI.Common;
+using System.Collections.Generic;
 
 namespace CAPI.ImageProcessing
 {
@@ -30,21 +31,6 @@ namespace CAPI.ImageProcessing
             _log = Log.GetLogger();
         }
 
-        public string DicomToNifti(string dicomFolder, string niftiFile)
-        {
-            // Check that directory is valid.
-            if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomFolder))
-            {
-                _log.Info($@"No dicom files exist to convert to Nii in {dicomFolder}");
-                return null;
-            }
-
-            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomFolder), niftiFile);
-            //new ImageConverter(_config).DicomToNiix(dicomFolder, niftiPath);
-
-            return Tools.Dcm2Nii(dicomFolder, niftiFile);
-        }
-
         /// <summary>
         /// Main method responsible for calling other methods to Extract Brain from current and prior series, Register the two, BFC and Normalize and then compare using a lookup table
         /// </summary>
@@ -57,7 +43,7 @@ namespace CAPI.ImageProcessing
         /// <param name="biasFieldCorrect">to perform bias field correction or not</param>
         /// <param name="resultNiis">end result output nifti files path</param>
         /// <param name="outPriorReslicedNii">resliced prior series nifti file path</param>
-        public void MSLesionCompare(
+        public Metrics MSLesionCompare(
             string currentNii, string priorNii, string referenceNii,
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
@@ -73,6 +59,8 @@ namespace CAPI.ImageProcessing
             Func<string, string, DataReceivedEventHandler, string> Reslicer = Registration.ANTSApplyTransforms;
 
             DataReceivedEventHandler dataout = null;//(s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
+
+            var qaResults = new Metrics();
 
             var stopwatch1 = new Stopwatch();
 
@@ -148,6 +136,11 @@ namespace CAPI.ImageProcessing
                 if (priorNiftiWithSkull.voxels[i] > 30) volWSkullPrior++;
             }
             var match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
+            // Add results to QA list
+            qaResults.VoxelVolPrior = volPrior;
+            qaResults.VoxelVolCurrent = volCurrent;
+            qaResults.BrainMatch = match;
+
             _log.Info($@"Percentage of current volume that's brain: {(int)(volCurrent/volWSkullCurrent * 100d)}%");
             _log.Info($@"Percentage of prior volume that's brain: {(int)(volPrior/volWSkullPrior * 100d)}%");
             _log.Info($@"Brain extraction match: {(int)(match * 100)}%");
@@ -190,6 +183,10 @@ namespace CAPI.ImageProcessing
                 }
                 match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
                 _log.Info($@"Brain extraction match after mask: {(int)(match * 100)}%");
+            }
+            else if (match < 0.7)
+            {
+                qaResults.Passed = false;
             }
 
             // In theory this should stop the skull highlights darkening the output images...
@@ -272,6 +269,8 @@ namespace CAPI.ImageProcessing
             writeTask2.Wait();
 
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
+
+            return qaResults;
         }
     }
 }
