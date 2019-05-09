@@ -6,7 +6,6 @@ namespace CAPI.Config
     {
         public ImagePaths()
         {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             ImageRepositoryPath = AppDomain.CurrentDomain.BaseDirectory + "ImageRepository/";
             ResultsDicomSeriesDescription = "CAPI Modified Signal";
             PriorReslicedDicomSeriesDescription = "CAPI Prior Resliced";

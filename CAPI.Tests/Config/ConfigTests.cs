@@ -18,6 +18,7 @@ namespace CAPI.Tests.Config
             var confPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "config.json");
             if (System.IO.File.Exists(confPath)) System.IO.File.Delete(confPath);
 
+            // The first 
             var conf = CapiConfig.GetConfig();
             conf = CapiConfig.GetConfig();
         }

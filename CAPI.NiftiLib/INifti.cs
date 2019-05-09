@@ -13,12 +13,7 @@ namespace CAPI.NiftiLib
         /// <summary>
         /// The underlying voxels for the Nifti object.
         /// </summary>
-        float[] voxels { get; set; }
-        
-        /// <summary>
-        /// Cache of the voxel bytes(?) TODO: Should this be exposed in the interface?
-        /// </summary>
-        byte[] voxelsBytes { get; set; }
+        float[] Voxels { get; set; }
         
         /// <summary>
         /// The ColorMap, which is used to map intensity values to a given color range.
@@ -39,58 +34,11 @@ namespace CAPI.NiftiLib
         void ReadNiftiHeader(string filepath);
         
         /// <summary>
-        /// Same as ReadNiftiHeader but returns the header as well (TODO: Why don't we just have this version?)
-        /// </summary>
-        /// <param name="filepath"></param>
-        /// <returns></returns>
-        INiftiHeader ReadHeaderFromFile(string filepath);
-        
-        /// <summary>
         /// Write this Nifti object to a Nifti file.
         /// </summary>
         /// <param name="filepath"></param>
         void WriteNifti(string filepath);
-        
-        /// <summary>
-        ///  Reorient voxels into new dimensions - setting dimension property to new values
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="slices"></param>
-        void Reorient(short width, short height, short slices);
-        
-        /// <summary>
-        /// Reorder voxels from Left-to-right, posterior-to-anterior, inferior-to-superior  -- to -- Anterior-to-posterior, superior-to-inferior, right-to-left
-        /// </summary>
-        void ReorderVoxelsLpi2Asr();
-        
-        /// <summary>
-        /// Reorder voxels from Left-to-right, posterior-to-anterior, inferior-to-superior  -- to -- Anterior-to-posterior, inferior-to-superior, left-to-right
-        /// </summary>
-        void ReorderVoxelsLpi2Ail();
-        
-        /// <summary>
-        /// Convert the header of this Nifti object to the RGB datatype.
-        /// </summary>
-        void ConvertHeaderToRgb();
-        
-        /// <summary>
-        /// Convert the header of this Nifti object to the RGBA datatype.
-        /// </summary>
-        void ConvertHeaderToRgba();
-        
-        /// <summary>
-        /// Set voxel RGB value.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="sliceType"></param>
-        /// <param name="r"></param>
-        /// <param name="g"></param>
-        /// <param name="b"></param>
-        void SetPixelRgb(int x, int y, int z, SliceType sliceType, int r, int g, int b);
-        
+            
         /// <summary>
         /// Get the RGBA value for a given voxel.
         /// </summary>
@@ -110,13 +58,6 @@ namespace CAPI.NiftiLib
         /// <param name="sliceType"></param>
         /// <returns></returns>
         float GetValue(int x, int y, int z, SliceType sliceType);
-        
-        /// <summary>
-        /// Populate voxels from a series of BMP image files.
-        /// </summary>
-        /// <param name="filepaths"></param>
-        /// <param name="sliceType"></param>
-        void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType);
         
         /// <summary>
         /// Get the specified slice as a BMP.
@@ -141,62 +82,13 @@ namespace CAPI.NiftiLib
         /// <param name="sliceType"></param>
         /// <returns></returns>
         IEnumerable<float[]> GetSlices(SliceType sliceType);
-        
-        /// <summary>
-        /// Flattens the given 2-D array to a 1-D array of voxel values.
-        /// </summary>
-        /// <param name="slices"></param>
-        /// <param name="sliceType"></param>
-        /// <returns></returns>
-        float[] SlicesToArray(float[][] slices, SliceType sliceType);
-        
+                
         /// <summary>
         /// Exports each slice to a bitmap file in the given folder path.
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="sliceType"></param>
         void ExportSlicesToBmps(string folderPath, SliceType sliceType);
-        
-        /// <summary>
-        /// Normalises each slice individually to the given mean, standard deviation, and range. Ignoring values where the mask is false.
-        /// </summary>
-        /// <param name="nifti"></param>
-        /// <param name="sliceType"></param>
-        /// <param name="mean"></param>
-        /// <param name="std"></param>
-        /// <param name="rangeWidth"></param>
-        /// <param name="mask"></param>
-        /// <returns></returns>
-        INifti NormalizeEachSlice(INifti nifti, SliceType sliceType, int mean, int std,
-                                  int rangeWidth, INifti mask);
-
-        /// <summary>
-        /// Normalises non-zero components which fall outside of the given mask.
-        /// </summary>
-        /// <param name="nim"></param>
-        /// <param name="targetMean"></param>
-        /// <param name="targetStdDev"></param>
-        /// <param name="mask"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        INifti NormalizeNonBrainComponents(INifti nim, int targetMean, int targetStdDev, INifti mask, int start,
-            int end);
-
-        /// <summary>
-        /// Generates a lookup table. TODO: How? Why?
-        /// </summary>
-        /// <param name="currentSlice"></param>
-        /// <param name="priorSlice"></param>
-        /// <param name="compareResult"></param>
-        /// <param name="baseLut"></param>
-        /// <returns></returns>
-        Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null);
-
-        /// <summary>
-        /// Assuming that if this Nifti object is being used as a mask, it will be inverted. The actual operation is converting each voxel value to : 2 * median - voxelValue
-        /// </summary>
-        void InvertMask();
 
         /// <summary>
         /// Creates a deep copy of this INifti instance.

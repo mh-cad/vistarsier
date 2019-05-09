@@ -16,7 +16,7 @@ namespace CAPI.NiftiLib.Processing
         public static INifti CompareMSLesionIncrease(INifti input, INifti reference)
         {
             INifti output = CompareMSLesion(input, reference);
-            for (int i = 0; i < output.voxels.Length; ++i) if (output.voxels[i] < 0) output.voxels[i] = 0;
+            for (int i = 0; i < output.Voxels.Length; ++i) if (output.Voxels[i] < 0) output.Voxels[i] = 0;
             output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.RedScale();
 
@@ -33,7 +33,7 @@ namespace CAPI.NiftiLib.Processing
         public static INifti CompareMSLesionDecrease(INifti input, INifti reference)
         {
             INifti output = CompareMSLesion(input, reference);
-            for (int i = 0; i < output.voxels.Length; ++i) if (output.voxels[i] > 0) output.voxels[i] = 0;
+            for (int i = 0; i < output.Voxels.Length; ++i) if (output.Voxels[i] > 0) output.Voxels[i] = 0;
             output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.ReverseGreenScale();
 
@@ -56,37 +56,37 @@ namespace CAPI.NiftiLib.Processing
         {
             INifti output = input.DeepCopy();
 
-            float mean = (float)input.voxels.Where(val => val > backgroundThreshold).Mean();
-            float stdDev = (float)input.voxels.Where(val => val > backgroundThreshold).StandardDeviation();
+            float mean = (float)input.Voxels.Where(val => val > backgroundThreshold).Mean();
+            float stdDev = (float)input.Voxels.Where(val => val > backgroundThreshold).StandardDeviation();
             //float range = input.voxels.Max() - input.voxels.Min();
             // Values from trial and error....
             float minRelevantValue = mean + (minRelevantStd * stdDev); 
             float maxRelevantValue = mean + (maxRelevantStd * stdDev);
 
-            if (input.voxels.Length != reference.voxels.Length) throw new Exception("Input and reference don't match size");
+            if (input.Voxels.Length != reference.Voxels.Length) throw new Exception("Input and reference don't match size");
 
-            for (int i = 0; i < input.voxels.Length; ++i)
+            for (int i = 0; i < input.Voxels.Length; ++i)
             {
-                output.voxels[i] = input.voxels[i] - reference.voxels[i];
+                output.Voxels[i] = input.Voxels[i] - reference.Voxels[i];
                 
                 // We want to ignore changes below the minimum relevant value.
-                if (input.voxels[i] < minRelevantValue) output.voxels[i] = 0;
-                if (reference.voxels[i] < minRelevantValue) output.voxels[i] = 0;
+                if (input.Voxels[i] < minRelevantValue) output.Voxels[i] = 0;
+                if (reference.Voxels[i] < minRelevantValue) output.Voxels[i] = 0;
                 
                 // And above the maximum relevant value.
-                if (input.voxels[i] > maxRelevantValue) output.voxels[i] = 0;
-                if (reference.voxels[i] > maxRelevantValue) output.voxels[i] = 0;
+                if (input.Voxels[i] > maxRelevantValue) output.Voxels[i] = 0;
+                if (reference.Voxels[i] > maxRelevantValue) output.Voxels[i] = 0;
                 
                 // If we haven't changed by at least 1 stdDev we're not significant
-                if (Math.Abs(output.voxels[i]) < Math.Abs(minChange * stdDev)) output.voxels[i] = 0;
-                if (Math.Abs(output.voxels[i]) > Math.Abs(maxChange * stdDev)) output.voxels[i] = 0;
-                if (reference.voxels[i] < backgroundThreshold) output.voxels[i] = 0;
-                if (input.voxels[i] < backgroundThreshold) output.voxels[i] = 0;
+                if (Math.Abs(output.Voxels[i]) < Math.Abs(minChange * stdDev)) output.Voxels[i] = 0;
+                if (Math.Abs(output.Voxels[i]) > Math.Abs(maxChange * stdDev)) output.Voxels[i] = 0;
+                if (reference.Voxels[i] < backgroundThreshold) output.Voxels[i] = 0;
+                if (input.Voxels[i] < backgroundThreshold) output.Voxels[i] = 0;
             }
 
-            for (int i = 1; i < output.voxels.Length-1; ++i)
+            for (int i = 1; i < output.Voxels.Length-1; ++i)
             {
-                if (output.voxels[i - 1] == 0 && output.voxels[i + 1] == 0) output.voxels[i] = 0;
+                if (output.Voxels[i - 1] == 0 && output.Voxels[i + 1] == 0) output.Voxels[i] = 0;
                 else
                 {
                    // Console.WriteLine("Got one!");
@@ -95,9 +95,9 @@ namespace CAPI.NiftiLib.Processing
 
             output.RecalcHeaderMinMax(); // Update header range.
 
-            var stdDv = output.voxels.StandardDeviation();
-            var mean2 = output.voxels.Where(val => val > 0).Mean();
-            System.Console.WriteLine($@"Compared. Mean={mean2}, stdDv={stdDv}, size={output.voxels.Where(val => val > 0).Count()}");
+            var stdDv = output.Voxels.StandardDeviation();
+            var mean2 = output.Voxels.Where(val => val > 0).Mean();
+            System.Console.WriteLine($@"Compared. Mean={mean2}, stdDv={stdDv}, size={output.Voxels.Where(val => val > 0).Count()}");
 
             return output;
         }

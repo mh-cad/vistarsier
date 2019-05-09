@@ -57,46 +57,7 @@ namespace CAPI.Tests.NiftiLib
         }
 
         [TestMethod]
-        public void SlicesAxialToArray()
-        {
-            var nim = new Nifti();
-            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-            nim.Header.dim = new short[] { 3, 2, 3, 4 };
-            var slices = nim.GetSlices(SliceType.Axial).ToArray();
-
-            var arr = nim.SlicesToArray(slices, SliceType.Axial);
-
-            for (var i = 0; i < arr.Length; i++) Assert.AreEqual(arr[i], nim.voxels[i]);
-        }
-        [TestMethod]
-        public void SlicesCoronalToArray()
-        {
-            var nim = new Nifti();
-            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-            nim.Header.dim = new short[] { 3, 2, 3, 4 };
-            var slices = nim.GetSlices(SliceType.Coronal).ToArray();
-
-            var arr = nim.SlicesToArray(slices, SliceType.Coronal);
-
-            for (var i = 0; i < arr.Length; i++) Assert.AreEqual(arr[i], nim.voxels[i]);
-        }
-
-        [TestMethod]
-        public void SlicesSagittalToArray()
-        {
-            var nim = new Nifti();
-            nim.voxels = new float[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-            nim.Header.dim = new short[] { 3, 2, 3, 4 };
-            var slices = nim.GetSlices(SliceType.Sagittal).ToArray();
-
-            var arr = nim.SlicesToArray(slices, SliceType.Sagittal);
-
-            for (var i = 0; i < arr.Length; i++)
-                Assert.AreEqual(arr[i], nim.voxels[i]);
-        }
-
-        [TestMethod]
-        public void Write() // TODO: This is currently failing (I'm assuming we're not releasing the lock on the file when we write)
+        public void Write()
         {
             // Read our minimal Nifti file
             var nifti = new Nifti();
@@ -142,9 +103,9 @@ namespace CAPI.Tests.NiftiLib
 
             // write voxels
             var voxelsSize = nifti.Header.dim[1] * nifti.Header.dim[2] * nifti.Header.dim[3];
-            nifti.voxels = new float[voxelsSize];
+            nifti.Voxels = new float[voxelsSize];
             for (var i = 0; i < voxelsSize; i++)
-                nifti.voxels[i] = 255;
+                nifti.Voxels[i] = 255;
 
             if (File.Exists(_rgbafile)) File.Delete(_rgbafile);
             nifti.WriteNifti(_rgbafile);
@@ -160,8 +121,7 @@ namespace CAPI.Tests.NiftiLib
             nifti.ReadNifti(_minimalNiftiPath);
 
             // Read pixdim from sample file
-            var header = nifti.ReadHeaderFromFile(_minimalNiftiHdrPath);
-            nifti.Header = header;
+            nifti.ReadNiftiHeader(_minimalNiftiHdrPath);
 
             // set dimensions for new file
             nifti.ConvertHeaderToRgb();
@@ -176,7 +136,7 @@ namespace CAPI.Tests.NiftiLib
             // write voxels
             var voxelsSize = nifti.Header.dim[1] * nifti.Header.dim[2] * nifti.Header.dim[3];
             var bytepix = nifti.Header.bitpix / 8;
-            nifti.voxelsBytes = new byte[voxelsSize * bytepix];
+            nifti.VoxelsBytes = new byte[voxelsSize * bytepix];
 
             const int r = 255;
             const int g = 51;
@@ -202,14 +162,14 @@ namespace CAPI.Tests.NiftiLib
 
             var niftiB = nifti.DeepCopy();
             // Check voxel copy
-            Assert.IsTrue(nifti.voxels[0] == niftiB.voxels[0]);
+            Assert.IsTrue(nifti.Voxels[0] == niftiB.Voxels[0]);
             // Check header copy
             Assert.IsTrue(nifti.Header.intent_code == niftiB.Header.intent_code);
             // Check that we're not just doing a shallow copy
-            niftiB.voxels[0] = nifti.voxels[0] + 1;
+            niftiB.Voxels[0] = nifti.Voxels[0] + 1;
             niftiB.Header.intent_code = (short)(nifti.Header.intent_code + 1);
             // Now they should be different...
-            Assert.IsFalse(nifti.voxels[0] == niftiB.voxels[0]);
+            Assert.IsFalse(nifti.Voxels[0] == niftiB.Voxels[0]);
             Assert.IsFalse(nifti.Header.intent_code == niftiB.Header.intent_code);
         }
 
