@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using CAPI.Common;
+using CAPI.Config;
+using System.Diagnostics;
 
 namespace CAPI.NiftiLib.Processing
 {
@@ -20,7 +22,7 @@ namespace CAPI.NiftiLib.Processing
 
             var args = $"--auto --trim -i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.bse, args, outputDataReceived: updates);
 
             INifti output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
             output.ReadNifti(niftiOutPath);
@@ -41,7 +43,8 @@ namespace CAPI.NiftiLib.Processing
 
             var args = $"--auto --trim -i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("ThirdPartyTools/brain_suite/bse.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.bse, args, outputDataReceived: updates);
+
 
             return niftiOutPath;
         }

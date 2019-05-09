@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CAPI.Common;
+using CAPI.Config;
+using System;
 using System.Diagnostics;
 
 namespace CAPI.NiftiLib.Processing
@@ -29,10 +31,10 @@ namespace CAPI.NiftiLib.Processing
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
 
             var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
-            Tools.ExecProcess("ThirdPartyTools/CMTK/registration.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.registration, args, outputDataReceived: updates);
 
             args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
-            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
 
             //INifti output = floating.DeepCopy();
             floating.ReadNifti(niftiOutPath);
@@ -58,10 +60,10 @@ namespace CAPI.NiftiLib.Processing
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
 
             var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
-            Tools.ExecProcess("ThirdPartyTools/CMTK/registration.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.registration, args, outputDataReceived: updates);
 
             args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
-            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
 
             return niftiOutPath;
         }
@@ -74,7 +76,7 @@ namespace CAPI.NiftiLib.Processing
             string regOutPath = "reg";
 
             var args = $"-o {niftiOutPath} --floating {floatingFile} {niftiRefPath} {regOutPath}";
-            Tools.ExecProcess("ThirdPartyTools/CMTK/reformatx.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
 
             return niftiOutPath;
         }
@@ -97,7 +99,7 @@ namespace CAPI.NiftiLib.Processing
             // --output [_, {niftiOutPath}] :: output the transform value + our sweet nifti file.
             var args = $@" --dimensionality 3 --float 1 --interpolation Linear --use-histogram-matching 0 --initial-moving-transform [{fixedFile},{floatingFile}, 1] --transform Affine[0.1] --metric MI[{fixedFile},{floatingFile},1,32,Regular,0.25] --convergence [1000x500x250x100,1e-6,10] --shrink-factors 8x4x2x1 --smoothing-sigmas 3x2x1x0vox --output [_, {niftiOutPath}]";
 
-            Tools.ExecProcess("ThirdPartyTools/ANTS/antsRegistration.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.antsRegistration, args, outputDataReceived: updates);
 
             return niftiOutPath;
         }
@@ -125,7 +127,7 @@ namespace CAPI.NiftiLib.Processing
 
             string args = $@"-d 3 --float 1 -i {floatingFile} -r {referenceFile} -o {niftiOutPath} -n Linear -t _0GenericAffine.mat";
 
-            Tools.ExecProcess("ThirdPartyTools/ANTS/antsApplyTransforms.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.antsApplyTransforms, args, outputDataReceived: updates);
 
             return niftiOutPath;
         }

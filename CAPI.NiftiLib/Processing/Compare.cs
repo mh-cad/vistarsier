@@ -87,10 +87,6 @@ namespace CAPI.NiftiLib.Processing
             for (int i = 1; i < output.Voxels.Length-1; ++i)
             {
                 if (output.Voxels[i - 1] == 0 && output.Voxels[i + 1] == 0) output.Voxels[i] = 0;
-                else
-                {
-                   // Console.WriteLine("Got one!");
-                }
             }
 
             output.RecalcHeaderMinMax(); // Update header range.

@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using CAPI.Common;
+using CAPI.Config;
+using System.Diagnostics;
 
 namespace CAPI.NiftiLib.Processing
 {
@@ -20,7 +22,7 @@ namespace CAPI.NiftiLib.Processing
 
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.N4BiasFieldCorrection, args, outputDataReceived: updates);
 
             INifti output = input.DeepCopy();
             output.ReadNifti(niftiOutPath);
@@ -41,7 +43,7 @@ namespace CAPI.NiftiLib.Processing
             string niftiOutPath = inputFile + ".antsN4.out.nii";
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
 
-            Tools.ExecProcess("ThirdPartyTools/ants/N4BiasFieldCorrection.exe", args, updates);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.N4BiasFieldCorrection, args, outputDataReceived: updates);
             return niftiOutPath;
         }
     }

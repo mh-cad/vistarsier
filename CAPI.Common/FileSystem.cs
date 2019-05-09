@@ -4,7 +4,6 @@ using System.IO;
 
 namespace CAPI.Common
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
     public static class FileSystem
     {
         public static bool DirectoryExistsIfNotCreate(string directoryPath)

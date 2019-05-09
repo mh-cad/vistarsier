@@ -1,4 +1,5 @@
 ﻿using CAPI.Common;
+using CAPI.Config;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,37 +12,6 @@ namespace CAPI.NiftiLib.Processing
     public static class Tools
     {
         public const string TEMPDIR = "temp";
-
-        /// <summary>
-        /// Execyte a processs
-        /// </summary>
-        /// <param name="filename">The file to be executed</param>
-        /// <param name="args">Arguments to be passed on execution</param>
-        /// <param name="updates">Event handler to handle updates.</param>
-        public static void ExecProcess(string filename, string args, DataReceivedEventHandler updates = null)
-        { 
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = filename,
-                    Arguments = args,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true,
-                }
-            };
-
-            process.OutputDataReceived += updates;
-            process.ErrorDataReceived += updates;
-            process.Start();
-            process.BeginOutputReadLine();
-            
-
-            process.WaitForExit();
-        }
 
         /// <summary>
         /// Converts the given Dicom path to a nifti file which is loaded and returned as a nifti object.
@@ -64,7 +34,8 @@ namespace CAPI.NiftiLib.Processing
 
 
             var args = $@" -o {tmpDir} {dicomPath}";
-            ExecProcess("ThirdPartyTools/dcm2niix.exe", args, updates);
+
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.dcm2niix, args, outputDataReceived: updates);
 
             if (!Directory.Exists(tmpDir))
                 throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
