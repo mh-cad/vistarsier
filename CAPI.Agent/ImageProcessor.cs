@@ -3,7 +3,6 @@ using CAPI.Agent.Models;
 using CAPI.Config;
 using CAPI.Dicom.Abstractions;
 using CAPI.Common;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -12,9 +11,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using IImageProcessor = CAPI.ImageProcessing.Abstraction.IImageProcessor;
+using IImageProcessor = CAPI.NiftiLib.Processing.IImageProcessor;
 using SliceType = CAPI.NiftiLib.SliceType;
 using CAPI.NiftiLib.Processing;
+using CAPI.NiftiLib;
 
 namespace CAPI.Agent
 {
@@ -26,7 +26,6 @@ namespace CAPI.Agent
     {
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessor _imgProc;
-        private readonly IImageProcessingFactory _imgProcFactory;
         private readonly ILog _log;
         private readonly IImgProcConfig _imgProcConfig;
         private readonly AgentRepository _context;
@@ -35,14 +34,13 @@ namespace CAPI.Agent
         private const string ResultsFileName = "result.nii";
         private const string ImagesFolderSuffix = "_Images";
 
-        public ImageProcessor(IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
+        public ImageProcessor(IDicomServices dicomServices, 
                               IImgProcConfig imgProcConfig, AgentRepository context)
         {
             _dicomServices = dicomServices;
-            _imgProcFactory = imgProcFactory;
             _log = Log.GetLogger();
             _imgProcConfig = imgProcConfig;
-            _imgProc = imgProcFactory.CreateImageProcessor(imgProcConfig);
+            _imgProc = new MS.ImageProcessor();
             _context = context;
         }
 
@@ -313,7 +311,7 @@ namespace CAPI.Agent
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
         {
             _log.Debug("Converting to bmp -- " + inNiftiFile);
-            var nim = _imgProcFactory.CreateNifti().ReadNifti(inNiftiFile);
+            var nim = new Nifti().ReadNifti(inNiftiFile);
 
             nim.ExportSlicesToBmps(bmpFolder, sliceType);
 

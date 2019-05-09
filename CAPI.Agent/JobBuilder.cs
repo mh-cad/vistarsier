@@ -2,8 +2,6 @@
 using CAPI.Agent.Models;
 using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.Common;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -26,7 +24,6 @@ namespace CAPI.Agent
         private const string PriorResliced = "PriorResliced";
 
         private readonly IDicomServices _dicomServices;
-        private readonly IImageProcessingFactory _imgProcFactory;
         private readonly IValueComparer _valueComparer;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
@@ -44,11 +41,10 @@ namespace CAPI.Agent
         /// <param name="log">Log4Net logger</param>
         /// <param name="context">Agent Repository (DbContext) to communicate data with database</param>
         public JobBuilder(IDicomServices dicomServices,
-                          IImageProcessingFactory imgProcFactory, IValueComparer valueComparer,
+                          IValueComparer valueComparer,
                           CapiConfig capiConfig, ILog log, AgentRepository context)
         {
             _dicomServices = dicomServices;
-            _imgProcFactory = imgProcFactory;
             _valueComparer = valueComparer;
             _capiConfig = capiConfig;
             _log = log;
@@ -83,7 +79,7 @@ namespace CAPI.Agent
                 currentDicomStudy.Series.Count == 0)
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
-            var job = new Job(recipe, _dicomServices, _imgProcFactory, _capiConfig);
+            var job = new Job(recipe, _dicomServices, _capiConfig);
             var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;

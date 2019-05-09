@@ -2,7 +2,6 @@
 using CAPI.Config;
 using CAPI.Dicom.Abstractions;
 using CAPI.Common;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,7 +16,6 @@ namespace CAPI.Agent.Models
     {
         private readonly Recipe _recipe;
         private readonly IDicomServices _dicomServices;
-        private readonly IImageProcessingFactory _imgProcFactory;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
@@ -60,12 +58,11 @@ namespace CAPI.Agent.Models
         public Job() { }
 
         public Job(Recipe recipe,
-                   IDicomServices dicomServices, IImageProcessingFactory imgProcFactory,
+                   IDicomServices dicomServices,
                    CapiConfig capiConfig)
         {
             _recipe = recipe;
             _dicomServices = dicomServices;
-            _imgProcFactory = imgProcFactory;
             _capiConfig = capiConfig;
             _log = Log.GetLogger();
 
@@ -110,7 +107,7 @@ namespace CAPI.Agent.Models
             stopwatch.Start();
 
             _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
-            var imageProcessor = new ImageProcessor(_dicomServices, _imgProcFactory,
+            var imageProcessor = new ImageProcessor(_dicomServices,
                                                     _capiConfig.ImgProcConfig, context);
 
             var sliceType = GetSliceType(_recipe.SliceType);

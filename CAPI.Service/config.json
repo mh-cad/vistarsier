@@ -1,37 +1,38 @@
 {
-  "AgentDbConnectionString": "Server=server;Database=Capi;User Id=user;Password=password;Connection Timeout=120",
+  "AgentDbConnectionString": "Server=RAD-VTNEW;Database=Capi;User Id=sa;Password=radsysadmin;Connection Timeout=120",
   "RunInterval": "30",
-  "ManualProcessPath": "path-to\\ManualProcess",
-  "Hl7ProcessPath": "path-to\\CompletedMRIs",
-  "DefaultRecipePath": "path-to\\DefaultRecipe.recipe.json",
-  "LogPath:": "path-to\\Logs\\log.txt",
+  "ManualProcessPath": "D:\\MehdiFiles\\ManualProcess",
+  "Hl7ProcessPath": "D:\\Mirth_data\\Capi\\CompletedMRIs",
+  "DefaultRecipePath": "D:\\MehdiFiles\\DefaultRecipe.recipe.json",
+  "LogPath:": "D:\\MehdiFiles\\Logs\\log.txt",
   "ProcessCasesAddedManually": true,
   "ProcessCasesAddedByHL7": true,
   "DicomConfig": {
-    "Img2DcmFilePath": "path-to\\img2dcm.exe",
+    //"Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\dcmtk-3.6.0-win32-i386\\img2dcm.exe",
+    "Img2DcmFilePath": "D:\\MehdiFiles\\RAPPreprocess\\bin\\img2dcm.exe",
     "LocalNode": {
       "LogicalName": "CAPI Server",
       "AeTitle": "CAPI",
-      "IpAddress": "ip-address",
+      "IpAddress": "172.28.43.65",
       "Port": 4104
     },
     "RemoteNodes": [
       {
-        "LogicalName": "PACS Name",
-        "AeTitle": "PACS AE",
-        "IpAddress": "ip address",
-        "Port": port#
+        "LogicalName": "Synapse Live",
+        "AeTitle": "RMHSYNSCP",
+        "IpAddress": "172.28.40.151",
+        "Port": 104
       },
       {
-        "LogicalName": "PACS Name",
-        "AeTitle": "PACS AE",
-        "IpAddress": "ip address",
-        "Port": port#
+        "LogicalName": "Syn-mini",
+        "AeTitle": "RMHSYNMINISCP",
+        "IpAddress": "172.28.40.152",
+        "Port": 104
       }
     ]
   },
   "ImgProcConfig": {
-    "ImgProcBinFolderPath": "path-to",
+    "ImgProcBinFolderPath": "D:\\MehdiFiles\\RAPPreprocess\\bin",
     "Dcm2NiiExeRelFilePath": "dcm2niix.exe",
     "BseExeRelFilePath": "bse.exe",
     "BseParams": "--auto --trim --timer",
@@ -45,13 +46,13 @@
     "BfcParams": "--iterate --ellipse --timer",
 
     "JavaExeFilePath": "C:\\Program Files\\Java\\jre1.8.0_121\\bin\\java.exe",
-    "JavaClasspath": "path-to\\dist\\*",
-    "ProcessesLogPath": "path-to\\CAPI_Processes_Log",
-    "ImageRepositoryPath": "path-to\\ImageRepository",
+    "JavaClasspath": "D:\\MehdiFiles\\RAPPreprocess\\PreprocessJavaUtils\\dist\\*",
+    "ProcessesLogPath": "C:\\temp\\CAPI_Processes_Log",
+    "ImageRepositoryPath": "D:\\MehdiFiles\\ImageRepository",
     "ResultsDicomSeriesDescription": "CAPI Modified Signal",
     "PriorReslicedDicomSeriesDescription": "Prior Resliced"
   },
   "TestsConfig": {
-    "TestResourcesPath": "path-to\\TestsResources"
+    "TestResourcesPath": "D:\\Capi-Tests\\TestsResources"
   }
 }

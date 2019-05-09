@@ -119,7 +119,7 @@ namespace CAPI.Tests.Dicom
             if (string.IsNullOrEmpty(localNodeIp)) return null;
 
             return string.IsNullOrEmpty(localNodePort) ? null :
-                _dicomFactory.CreateDicomNode("", localNodeAet, localNodeIp, int.Parse(localNodePort));
+                new DicomNode("", localNodeAet, localNodeIp, int.Parse(localNodePort));
         }
         private IDicomNode GetRemoteDicomNode()
         {
@@ -131,7 +131,7 @@ namespace CAPI.Tests.Dicom
             if (string.IsNullOrEmpty(remoteNodeIp)) return null;
 
             return string.IsNullOrEmpty(remoteNodePort) ? null :
-                _dicomFactory.CreateDicomNode("", remoteNodeAet, remoteNodeIp, int.Parse(remoteNodePort));
+                new DicomNode("", remoteNodeAet, remoteNodeIp, int.Parse(remoteNodePort));
         }
 
         [TestMethod]
@@ -201,7 +201,7 @@ namespace CAPI.Tests.Dicom
         {
             var colorMapPosFullPath = Path.Combine(_testResources, ColorMapNegFolderRelPath);
             var dicomFiles = Directory.GetFiles(colorMapPosFullPath);
-            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+            var dicomTags = new DicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
             var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
@@ -220,7 +220,7 @@ namespace CAPI.Tests.Dicom
             var dicomServices = _dicomFactory.CreateDicomServices(_dicomConfig);
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
 
-            var dicomTags = _dicomFactory.CreateDicomTagCollection();
+            var dicomTags = new DicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Modified Signal" };
             var dicomFiles = Directory.GetFiles(dicomFolderPath);
             dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
@@ -276,18 +276,6 @@ namespace CAPI.Tests.Dicom
                 recipeText = recipeText.Replace("\"PriorAccession\": \"\"", $"\"PriorAccession\": \"{priorAccession}\"");
                 File.WriteAllText($@"D:\Capi-Files\ManualProcess\TBP\{currentAccession}.recipe.json", recipeText);
             }
-        }
-
-        private static IUnityContainer CreateContainerCore()
-        {
-            var container = (UnityContainer)new UnityContainer()
-                .AddNewExtension<Log4NetExtension>();
-
-            container.RegisterType<IDicomServices, CAPI.Dicom.DicomServices>(new TransientLifetimeManager());
-            container.RegisterType<IDicomFactory, DicomFactory>(new TransientLifetimeManager());
-            container.RegisterType<IDicomNode, DicomNode>(new TransientLifetimeManager());
-
-            return container;
         }
     }
 }

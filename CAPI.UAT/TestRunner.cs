@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent;
 using CAPI.Config;
 using CAPI.Dicom.Abstractions;
-using CAPI.ImageProcessing.Abstraction;
 using CAPI.UAT.Tests;
 using log4net;
 using System;

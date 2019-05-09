@@ -58,6 +58,8 @@
     <Compile Include="Processing\BiasCorrection.cs" />
     <Compile Include="Processing\BrainExtraction.cs" />
     <Compile Include="Processing\Compare.cs" />
+    <Compile Include="Processing\IImageProcessor.cs" />
+    <Compile Include="Processing\Metrics.cs" />
     <Compile Include="Processing\Normalization.cs" />
     <Compile Include="Processing\Registration.cs" />
     <Compile Include="Processing\Tools.cs" />
