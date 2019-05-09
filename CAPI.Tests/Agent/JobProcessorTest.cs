@@ -1,5 +1,4 @@
-﻿using CAPI.Agent;
-using CAPI.Config;
+﻿using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using log4net;

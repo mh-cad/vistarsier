@@ -44,6 +44,12 @@ namespace CAPI.MS
             SkullStrip = BrainExtraction.BrainSuiteBSE;
             Register = Registration.ANTSRegistration;
             Reslicer = Registration.ANTSApplyTransforms;
+
+            _extractBrain = extractBrain;
+            _register = register;
+            _biasFieldCorrect = biasFieldCorrect;
+            _resultNiis = resultNiis;
+            _outPriorReslicedNii = outPriorReslicedNii;
         }
 
         /// <summary>

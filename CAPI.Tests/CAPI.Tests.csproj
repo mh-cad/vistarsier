@@ -86,14 +86,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Agent.Abstractions\CAPI.Agent.Abstractions.csproj">
-      <Project>{8b03ddc7-0cdf-472b-8031-65947a23e58a}</Project>
-      <Name>CAPI.Agent.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Agent\CAPI.Agent.csproj">
-      <Project>{1abf0272-bc85-45a1-85ff-532885d05bc0}</Project>
-      <Name>CAPI.Agent</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>

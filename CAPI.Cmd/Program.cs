@@ -1,4 +1,4 @@
-﻿using CAPI.Agent.Models;
+﻿using CAPI.Service.Db;
 using CAPI.Common;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
