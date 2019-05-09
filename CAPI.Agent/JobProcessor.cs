@@ -22,7 +22,7 @@ namespace CAPI.Agent
     /// Compares current and prior sereis and saves results into filesystem or sends off to a dicom node
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ImageProcessor : Abstractions.IImageProcessor
+    public class JobProcessor : Abstractions.IJobProcessor
     {
         private readonly IDicomServices _dicomServices;
         private readonly IImageProcessor _imgProc;
@@ -31,10 +31,9 @@ namespace CAPI.Agent
         private readonly AgentRepository _context;
 
         private const string ResultsFolderName = "Results";
-        private const string ResultsFileName = "result.nii";
         private const string ImagesFolderSuffix = "_Images";
 
-        public ImageProcessor(IDicomServices dicomServices, 
+        public JobProcessor(IDicomServices dicomServices, 
                               IImgProcConfig imgProcConfig, AgentRepository context)
         {
             _dicomServices = dicomServices;
@@ -118,7 +117,7 @@ namespace CAPI.Agent
                 stopwatch.Start();
 
                 ConvertNiftiToDicom(outPriorReslicedNii, outPriorReslicedDicom, sliceType,
-                                    currentDicomFolder, priorStudyDescription, "", referenceDicomFolder);
+                                    currentDicomFolder, priorStudyDescription, referenceDicomFolder);
 
                 UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
 
@@ -162,7 +161,7 @@ namespace CAPI.Agent
                     //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
                     //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
                     ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
-                                        $"{resultsSeriesDescription}-{description}", "", referenceDicomFolder);
+                                        $"{resultsSeriesDescription}-{description}", referenceDicomFolder);
                 }
 
                 stopwatch.Stop();
@@ -277,7 +276,7 @@ namespace CAPI.Agent
         }
         private void ConvertNiftiToDicom(string inNiftiFile, string outDicomFolder,
                                          SliceType sliceType, string dicomFolderForReadingHeaders,
-                                         string overlayText, string lookupTableFilePath = "", string referenceDicomFolder = "")
+                                         string overlayText, string referenceDicomFolder = "")
         {
             var bmpFolder = outDicomFolder + ImagesFolderSuffix;
             _log.Debug("Converting to dicom -- " + inNiftiFile);

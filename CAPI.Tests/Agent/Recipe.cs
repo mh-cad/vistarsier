@@ -2,21 +2,18 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System.IO;
-using Unity;
 
 namespace CAPI.Tests.Agent
 {
     [TestClass]
     public class Recipe
     {
-        private IUnityContainer _unity;
         private string _testResourcesPath;
         private string _defaultRecipePath;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            _unity = Helpers.Unity.CreateContainerCore();
             _testResourcesPath = Helper.GetTestResourcesPath();
             _defaultRecipePath = $@"{_testResourcesPath}\DefaultRecipe.recipe.json";
         }

@@ -20,7 +20,6 @@ namespace CAPI.UAT.Tests
         public CapiConfig CapiConfig { get; set; }
         public AgentRepository Context { get; set; }
 
-        private readonly IDicomFactory _dicomFactory;
         private readonly ILog _log;
 
         public DicomConnectivity(IDicomFactory dicomFactory, ILog log)
