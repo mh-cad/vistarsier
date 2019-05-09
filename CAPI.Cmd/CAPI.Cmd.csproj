@@ -153,6 +153,10 @@
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Service\CAPI.Service.csproj">
+      <Project>{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}</Project>
+      <Name>CAPI.Service</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="ThirdPartyTools\ants\antsApplyTransforms.exe" />

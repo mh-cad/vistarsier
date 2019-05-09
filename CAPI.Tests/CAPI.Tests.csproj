@@ -114,6 +114,10 @@
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CAPI.Service\CAPI.Service.csproj">
+      <Project>{134cd45f-8d80-4d2b-862a-0341baa5a4db}</Project>
+      <Name>CAPI.Service</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
