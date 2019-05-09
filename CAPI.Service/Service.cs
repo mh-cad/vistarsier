@@ -1,10 +1,4 @@
 ﻿using CAPI.Agent.Abstractions;
-using CAPI.Agent;
-using CAPI.Config;
-using CAPI.NiftiLib;
-using CAPI.Dicom;
-using CAPI.Dicom.Abstractions;
-using CAPI.Dicom.Model;
 using log4net;
 using log4net.Config;
 using System;

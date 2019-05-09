@@ -1,21 +1,18 @@
-﻿using CAPI.Agent.Abstractions;
+﻿using CAPI.Agent;
 using CAPI.Config;
+using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using Unity;
-using IImageProcessor = CAPI.Agent.Abstractions.IImageProcessor;
 using SliceType = CAPI.NiftiLib.SliceType;
 
 namespace CAPI.Tests.Agent
 {
     [TestClass]
-    public class ImageProcessor
+    public class JobProcessorTest
     {
-        private IUnityContainer _unity;
         private string _testResourcesPath;
         private string _currentStudyDicomFolder;
         private string _priorStudyDicomFolder;
@@ -24,7 +21,6 @@ namespace CAPI.Tests.Agent
         private string _destinationPriorResliced;
         private string _tmpFolder;
         private IDicomServices _dicomServices;
-        private IImageProcessingFactory _imgProcFactory;
         private CapiConfig _capiConfig;
         private CAPI.Dicom.Abstractions.IDicomConfig _dicomConfig;
         private ILog _log;
@@ -32,15 +28,12 @@ namespace CAPI.Tests.Agent
         [TestInitialize]
         public void TestInitialize()
         {
-            _unity = Helpers.Unity.CreateContainerCore();
             _testResourcesPath = Helper.GetTestResourcesPath();
             _log = LogHelper.GetLogger();
             _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
-            _dicomConfig = _unity.Resolve<CAPI.Dicom.Abstractions.IDicomConfig>();
             //_dicomConfig.ExecutablesPath = _capiConfig.DicomConfig.DicomServicesExecutablesPath;
-            _dicomServices = _unity.Resolve<IDicomFactory>()
-                .CreateDicomServices(_dicomConfig);
-            _imgProcFactory = _unity.Resolve<IImageProcessingFactory>();
+            _dicomServices = new DicomServices(new CAPI.Dicom.DicomConfig());
+            
 
             _tmpFolder = $@"{_testResourcesPath}\TempFolder";
             if (Directory.Exists(_tmpFolder)) Directory.Delete(_tmpFolder, true);
@@ -51,9 +44,8 @@ namespace CAPI.Tests.Agent
         public void Compare()
         {
             // Arrange
-            var agentFactory = _unity.Resolve<IAgentFactory>();
-            var agentImgProc = agentFactory.CreateAgentImageProcessor(
-                _dicomServices, _imgProcFactory, _capiConfig.ImgProcConfig, null);
+            var agentImgProc = new JobProcessor(
+                _dicomServices, _capiConfig.ImgProcConfig, null);
 
             var testFolders = new[] { "01_1323314" };
 
@@ -88,10 +80,10 @@ namespace CAPI.Tests.Agent
             var newFilePath = Path.Combine(_tmpFolder, "SampleBmpFile.bmp");
             File.Copy(filepath, newFilePath);
             var overlayText = $"CAPI - Prior re-sliced ({DateTime.Today:dd/MM/yyyy})";
-            var imgProcessor = _unity.Resolve<IImageProcessor>();
+            var jobProcessor = new JobProcessor(_dicomServices, _capiConfig.ImgProcConfig, null);
 
             // Act
-            imgProcessor.AddOverlayToImage(newFilePath, overlayText);
+            jobProcessor.AddOverlayToImage(newFilePath, overlayText);
 
             // Assert
         }

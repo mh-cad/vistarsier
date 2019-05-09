@@ -107,7 +107,7 @@ namespace CAPI.Agent.Models
             stopwatch.Start();
 
             _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
-            var imageProcessor = new ImageProcessor(_dicomServices,
+            var imageProcessor = new JobProcessor(_dicomServices,
                                                     _capiConfig.ImgProcConfig, context);
 
             var sliceType = GetSliceType(_recipe.SliceType);

@@ -32,7 +32,6 @@ namespace CAPI.MS
         /// <param name="currentNii">current series nifti file path</param>
         /// <param name="priorNii">prior series nifti file path</param>
         /// <param name="referenceNii">reference series nifti file path (If exists, used for universal frame of reference)</param>
-        /// <param name="sliceType">Sagittal, Axial or Coronal</param>
         /// <param name="extractBrain">to do skull stripping or not</param>
         /// <param name="register">to register or not</param>
         /// <param name="biasFieldCorrect">to perform bias field correction or not</param>

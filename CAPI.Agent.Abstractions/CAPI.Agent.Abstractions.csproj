@@ -110,7 +110,7 @@
     <Compile Include="IAgentRepository.cs" />
     <Compile Include="Models\ICase.cs" />
     <Compile Include="Models\IDestination.cs" />
-    <Compile Include="IImageProcessor.cs" />
+    <Compile Include="IJobProcessor.cs" />
     <Compile Include="Models\IJob.cs" />
     <Compile Include="IJobBuilder.cs" />
     <Compile Include="Models\IJobResult.cs" />

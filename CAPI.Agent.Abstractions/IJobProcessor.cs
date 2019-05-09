@@ -3,7 +3,7 @@ using CAPI.Agent.Abstractions.Models;
 
 namespace CAPI.Agent.Abstractions
 {
-    public interface IImageProcessor
+    public interface IJobProcessor
     {
         IJobResult[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
