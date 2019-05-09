@@ -15,8 +15,8 @@ namespace CAPI.NiftiLib
     public class Nifti : INifti
     {
         public INiftiHeader Header { get; set; }
-        public float[] voxels { get; set; }
-        public byte[] voxelsBytes { get; set; }
+        public float[] Voxels { get; set; }
+        public byte[] VoxelsBytes { get; set; }
         public Color[] ColorMap { get; set; }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace CAPI.NiftiLib
                 ReadNiftiHeader(reader);
 
                 var bytesLength = Convert.ToInt32(reader.BaseStream.Length) - Convert.ToInt32(Header.vox_offset);
-                voxels = ReadVoxels(reader, bytesLength);
+                Voxels = ReadVoxels(reader, bytesLength);
 
                 if (reader.BaseStream.Position != reader.BaseStream.Length)
                     throw new Exception("Not all bytes in the stream were read!");
@@ -69,8 +69,8 @@ namespace CAPI.NiftiLib
 
             if (Header.cal_min == 0 && Header.cal_max == 0)
             {
-                Header.cal_min = voxels.Min();
-                Header.cal_max = voxels.Max();
+                Header.cal_min = Voxels.Min();
+                Header.cal_max = Voxels.Max();
             }
 
             return this;
@@ -177,73 +177,6 @@ namespace CAPI.NiftiLib
                 // There will not be the 4 byte gap if we're just reading the .hdr, which is fine.
             }
         }
-        public INiftiHeader ReadHeaderFromFile(string filepath)
-        {
-            ReadNiftiHeader(filepath);
-            return Header;
-        }
-
-        public void ReadVoxelsFromRgb256Bmps(string[] filepaths, SliceType sliceType)
-        {
-            ConvertHeaderToRgb();
-            var w = new Bitmap(filepaths[0]).Width;
-            var h = new Bitmap(filepaths[0]).Height;
-
-            SetDimensions((short)filepaths.Length, (short)w, (short)h, sliceType);
-
-            voxels = new float[filepaths.Length * w * h];
-
-            for (var z = 0; z < filepaths.Length; z++)
-            {
-                var bitmap = new Bitmap(filepaths[z]);
-                var sliceVoxels = GetVoxelsFromBitmap(bitmap);
-                for (var j = 0; j < sliceVoxels.Length; j++)
-                {
-                    var index = GetVoxelIndex(j % w, j / w, z, sliceType);
-                    voxels[index] = sliceVoxels[j];
-                }
-            }
-        }
-
-        private void SetDimensions(short numberOfFiles, short width, short height, SliceType sliceType)
-        {
-            switch (sliceType)
-            {
-                case SliceType.Sagittal:
-                    Header.dim[1] = numberOfFiles;
-                    Header.dim[2] = width;
-                    Header.dim[3] = height;
-                    break;
-                case SliceType.Coronal:
-                    Header.dim[1] = width;
-                    Header.dim[2] = numberOfFiles;
-                    Header.dim[3] = height;
-                    break;
-                case SliceType.Axial:
-                    Header.dim[1] = width;
-                    Header.dim[2] = height;
-                    Header.dim[3] = numberOfFiles;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(sliceType), sliceType, null);
-            }
-        }
-
-        private static float[] GetVoxelsFromBitmap(Bitmap bitmap)
-        {
-            var w = bitmap.Width;
-            var h = bitmap.Height;
-            var sliceVoxlels = new float[w * h];
-
-            for (var y = 0; y < bitmap.Height; y++)
-                for (var x = 0; x < bitmap.Width; x++)
-                {
-                    var pixel = bitmap.GetPixel(x, y);
-                    sliceVoxlels[x + y * w] = pixel.B << 16 | pixel.G << 8 | pixel.R; // In bmp files order of colors are BGR
-                }
-
-            return sliceVoxlels;
-        }
 
         public void ExportSlicesToBmps(string folderPath, SliceType sliceType)
         {
@@ -258,109 +191,6 @@ namespace CAPI.NiftiLib
                 GetSlice(i, sliceType).Save($@"{folderPath}\{(i + 1).ToString($"D{digits}")}.bmp", ImageFormat.Bmp);
         }
 
-        public Bitmap GenerateLookupTable(Bitmap currentSlice, Bitmap priorSlice, Bitmap compareResult, Bitmap baseLut = null)
-        {
-            CheckIfDimensionsMatch(currentSlice, priorSlice, compareResult);
-
-            var lut = baseLut ?? GetBlankLookupTable();
-            for (var y = 0; y < currentSlice.Height; y++)
-                for (var x = 0; x < currentSlice.Width; x++)
-                {
-                    var lutX = currentSlice.GetPixel(x, y).R;
-                    var lutY = priorSlice.GetPixel(x, y).R;
-                    var lutColor = compareResult.GetPixel(x, y);
-
-                    if (IsColor(lut.GetPixel(lutX, lutY), 5)) continue;
-
-                    if (IsColor(lutColor, 5))
-                        lut.SetPixel(lutX, lutY, lutColor);
-                }
-
-            return lut;
-        }
-
-        public void InvertMask()
-        {
-            var median = (voxels.Max() - voxels.Min()) / 2 + voxels.Min();
-            for (var i = 0; i < voxels.Length; i++)
-                voxels[i] = 2 * median - voxels[i];
-        }
-
-        private static bool IsColor(Color color, int rgbValueGap)
-        {
-            return Math.Abs(color.R - color.G) > rgbValueGap ||
-                   Math.Abs(color.R - color.B) > rgbValueGap ||
-                   Math.Abs(color.G - color.B) > rgbValueGap;
-        }
-
-        private static Bitmap GetBlankLookupTable()
-        {
-            var lut = new Bitmap(256, 256);
-            for (var y = 0; y < 256; y++)
-                for (var x = 0; x < 256; x++)
-                    lut.SetPixel(x, y, Color.FromArgb(255, x, x, x));
-            return lut;
-        }
-
-        private static void CheckIfDimensionsMatch(Image currentSlice, Image priorSlice, Image compareResult)
-        {
-            if (currentSlice.Width != priorSlice.Width || currentSlice.Width != compareResult.Width)
-                throw new ArgumentException(
-                    "Width of current, prior or result slices do not match. " +
-                    $"Current:[{currentSlice.Width}] Prior:[{priorSlice.Width}] Comparison:[{compareResult.Width}]");
-
-            if (currentSlice.Height != priorSlice.Height || currentSlice.Height != compareResult.Height)
-                throw new ArgumentException(
-                    "Height of current, prior or result slices do not match. " +
-                    $"Current:[{currentSlice.Height}] Prior:[{priorSlice.Height}] Comparison:[{compareResult.Height}]");
-        }
-
-        public INifti NormalizeEachSlice(INifti nifti, SliceType sliceType,
-                                                        int mean, int std, int rangeWidth, INifti mask)
-        {
-            var slices = nifti.GetSlices(sliceType).ToArray();
-            if (slices == null) throw new Exception("No slices found in file being compared");
-            var maskArray = GetArrayFromMask(mask, sliceType);
-
-            for (var i = 0; i < slices.Length; i++)
-            {
-                if (nifti.Header.datatype == 128) slices[i].RgbValToGrayscale();
-                //slices[i].Normalize(mean, std, 10, (int)slices[i].Max()); // Normalize each slice
-                //slices[i].Normalize(mean, std); // Normalize each slice
-                slices[i].Normalize(mean, std, maskArray[i]); // Normalize each slice with mask
-            }
-
-            nifti.voxels = nifti.SlicesToArray(slices, sliceType); // Return back from slices to a single array
-            nifti.voxels.Trim(0, rangeWidth - 1);
-
-            return nifti;
-        }
-
-        public INifti NormalizeNonBrainComponents(INifti nim, int targetMean, int targetStdDev, INifti mask, int start, int end)
-        {
-            var nonBrainNonBlackMask = new bool[nim.voxels.Length];
-            for (var i = 0; i < nim.voxels.Length; i++) // Create mask for non-brain non-black voxels
-                if (mask.voxels[i] < 1 && nim.voxels[i] > 0) nonBrainNonBlackMask[i] = true;
-
-            nim.voxels.Normalize(targetMean, targetStdDev, nonBrainNonBlackMask);
-
-            nim.voxels.Trim(start, end);
-
-            nim.Header.cal_max = nim.voxels.Max();
-            nim.Header.cal_min = nim.voxels.Min();
-
-            return nim;
-        }
-
-        private static bool[][] GetArrayFromMask(INifti mask, SliceType sliceType)
-        {
-            var slices = mask.GetSlices(sliceType).ToArray();
-            var arr = new bool[slices.Length][];
-            for (var i = 0; i < slices.Length; i++)
-                arr[i] = slices[i].Select(v => v > 0).ToArray();
-            return arr;
-        }
-
         public IEnumerable<float[]> GetSlices(SliceType sliceType)
         {
             GetDimensions(sliceType, out var width, out var height, out var nSlices);
@@ -372,28 +202,11 @@ namespace CAPI.NiftiLib
                     for (var x = 0; x < width; x++)
                     {
                         var pixelIndex = GetVoxelIndex(x, y, z, sliceType);
-                        slices[z][x + y * width] = voxels[pixelIndex];
+                        slices[z][x + y * width] = Voxels[pixelIndex];
                     }
             }
 
             return slices;
-        }
-        public float[] SlicesToArray(float[][] slices, SliceType sliceType)
-        {
-            var allVoxels = new float[slices.Length * slices[0].Length];
-
-            GetDimensions(sliceType, out var width, out var height, out _);
-            //var width = slices[0].;
-
-            for (var z = 0; z < slices.Length; z++)
-            {
-                for (var y = 0; y < height; y++)
-                    for (var x = 0; x < width; x++)
-                        allVoxels[GetVoxelIndex(x, y, z, sliceType)]
-                            = slices[z][x + y * width];
-            }
-
-            return allVoxels;
         }
 
         // TODO: Avoid using SetPixel (since it takes out a lock on the image, changes pixel, unlocks.
@@ -434,7 +247,7 @@ namespace CAPI.NiftiLib
         public int GetPixelColor(int x, int y, int z, SliceType sliceType)
         {
             var voxelIndex = GetVoxelIndex(x, y, z, sliceType);
-            var voxelValue = (int)voxels[voxelIndex];
+            var voxelValue = (int)Voxels[voxelIndex];
 
             switch (Header.datatype)
             {
@@ -443,8 +256,8 @@ namespace CAPI.NiftiLib
                 case 4: // GrayScale 16bit
                     if (Math.Abs(Header.cal_min - Header.cal_max) < .1)
                     {
-                        Header.cal_min = voxels.Min();
-                        Header.cal_max = voxels.Max();
+                        Header.cal_min = Voxels.Min();
+                        Header.cal_max = Voxels.Max();
                     }
 
                     var range = Header.cal_max - Header.cal_min;
@@ -468,7 +281,7 @@ namespace CAPI.NiftiLib
         public float GetValue(int x, int y, int z, SliceType sliceType)
         {
             var voxelIndex = GetVoxelIndex(x, y, z, sliceType);
-            return voxels[voxelIndex];
+            return Voxels[voxelIndex];
         }
 
         public void GetDimensions(SliceType sliceType, out int width, out int height, out int nSlices)
@@ -511,7 +324,7 @@ namespace CAPI.NiftiLib
 
             BitConverter.GetBytes(r << 16 | g << 8 | b)
                 .Take(3).ToArray()
-                .CopyTo(voxelsBytes, voxelIndex * 3);
+                .CopyTo(VoxelsBytes, voxelIndex * 3);
         }
 
         public void ConvertHeaderToRgba()
@@ -523,6 +336,7 @@ namespace CAPI.NiftiLib
             Header.datatype = 2304;
             Header.intent_code = 2004;
         }
+
         public void ConvertHeaderToRgb()
         {
             Header.dim[0] = 5; // RGB and RGBA both have 5 dimensions
@@ -532,6 +346,7 @@ namespace CAPI.NiftiLib
             Header.datatype = 128;
             Header.intent_code = 2003;
         }
+
         public void ConvertHeaderToGrayScale16Bit()
         {
             Header.dim[0] = 4; // 3 spatial and one temporal dimension
@@ -548,9 +363,9 @@ namespace CAPI.NiftiLib
         /// <param name="slices"></param>
         public void Reorient(short width, short height, short slices)
         {
-            if (width * height * slices != voxels.Length)
+            if (width * height * slices != Voxels.Length)
                 throw new Exception("number of voxels and new dimensions don't match. " +
-                                    $"Width: {width} Height: {height} Slices: {slices} No. of voxels: {voxels.Length}");
+                                    $"Width: {width} Height: {height} Slices: {slices} No. of voxels: {Voxels.Length}");
 
             Header.dim[0] = 3;
             Header.dim[1] = width;
@@ -561,15 +376,15 @@ namespace CAPI.NiftiLib
             //Header.dim[2] = width;
             //Header.dim[3] = height;
 
-            var oldVoxels = voxels;
-            voxels = new float[voxels.Length];
+            var oldVoxels = Voxels;
+            Voxels = new float[Voxels.Length];
             for (var z = 0; z < slices; z++)
                 for (var y = 0; y < height; y++)
                     for (var x = 0; x < width; x++)
                     {
                         var op = z + (width - 1 - x) * slices + (height - 1 - y) * slices * width;
                         var np = x + y * width + z * width * height;
-                        voxels[np] = oldVoxels[op];
+                        Voxels[np] = oldVoxels[op];
                     }
         }
 
@@ -580,12 +395,12 @@ namespace CAPI.NiftiLib
             var d2 = Header.dim[2];
             var d3 = Header.dim[3];
 
-            if (d2 * d3 * d1 != voxels.Length)
+            if (d2 * d3 * d1 != Voxels.Length)
                 throw new Exception("number of voxels and new dimensions don't match. " +
-                                    $"[Assuming Sagittal] Width: {d2} Height: {d3} Slices: {d1} No. of voxels: {voxels.Length}");
+                                    $"[Assuming Sagittal] Width: {d2} Height: {d3} Slices: {d1} No. of voxels: {Voxels.Length}");
 
-            var oldVoxels = voxels;
-            voxels = new float[voxels.Length];
+            var oldVoxels = Voxels;
+            Voxels = new float[Voxels.Length];
             for (var z = 0; z < d3; z++)
                 for (var y = 0; y < d2; y++)
                     for (var x = 0; x < d1; x++)
@@ -596,7 +411,7 @@ namespace CAPI.NiftiLib
                         var newI3 = d1 - 1 - x;
                         var newPixelIndex = newI1 + newI2 * d2 + newI3 * d2 * d3;
 
-                        voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
+                        Voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
                     }
 
             Header.dim[1] = d2;
@@ -611,12 +426,12 @@ namespace CAPI.NiftiLib
             var d2 = Header.dim[2];
             var d3 = Header.dim[3];
 
-            if (d2 * d3 * d1 != voxels.Length)
+            if (d2 * d3 * d1 != Voxels.Length)
                 throw new Exception("number of voxels and new dimensions don't match. " +
-                                    $"dim1: {d1} / dim2: {d2} / dim3: {d3} | No. of voxels: {voxels.Length}");
+                                    $"dim1: {d1} / dim2: {d2} / dim3: {d3} | No. of voxels: {Voxels.Length}");
 
-            var oldVoxels = voxels;
-            voxels = new float[voxels.Length];
+            var oldVoxels = Voxels;
+            Voxels = new float[Voxels.Length];
             for (var z = 0; z < d3; z++)
                 for (var y = 0; y < d2; y++)
                     for (var x = 0; x < d1; x++)
@@ -627,7 +442,7 @@ namespace CAPI.NiftiLib
                         var newI3 = x;
                         var newPixelIndex = newI1 + newI2 * d2 + newI3 * d2 * d3;
 
-                        voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
+                        Voxels[newPixelIndex] = oldVoxels[currentPixelIndex];
                     }
 
             Header.dim[1] = d2;
@@ -647,53 +462,53 @@ namespace CAPI.NiftiLib
             {
                 case 1: // 1 bit
                     {
-                        voxels = new float[bytesLength];
+                        Voxels = new float[bytesLength];
                         for (var i = 0; i < bytesLength; i++)
-                            voxels[i] = reader.ReadBoolean() ? 1 : 0;
+                            Voxels[i] = reader.ReadBoolean() ? 1 : 0;
                         break;
                     }
 
                 case 2: // 8 bits
                     {
-                        voxels = new float[bytesLength];
+                        Voxels = new float[bytesLength];
                         for (var i = 0; i < bytesLength; i++)
-                            voxels[i] = reader.ReadByte();
+                            Voxels[i] = reader.ReadByte();
                         break;
                     }
 
                 case 4: // 16 bits
                     {
-                        voxels = new float[bytesLength / 2];
+                        Voxels = new float[bytesLength / 2];
                         for (var i = 0; i < bytesLength / 2; i++)
-                            voxels[i] = reader.ReadInt16();
+                            Voxels[i] = reader.ReadInt16();
                         break;
                     }
 
                 case 8: // 32 bits
                 case 2304: // RGBA  (32 bit)
                     {
-                        voxels = new float[bytesLength / 4];
+                        Voxels = new float[bytesLength / 4];
                         for (var i = 0; i < bytesLength / 4; i++)
-                            voxels[i] = reader.ReadInt32();
+                            Voxels[i] = reader.ReadInt32();
                         break;
                     }
 
                 case 16: // float
                     {
-                        voxels = new float[bytesLength / 4];
+                        Voxels = new float[bytesLength / 4];
                         for (var i = 0; i < bytesLength / 4; i++)
-                            voxels[i] = reader.ReadSingle();
+                            Voxels[i] = reader.ReadSingle();
                         break;
                     }
                 case 128: // RGB (24 bit)
                     {
-                        voxels = new float[bytesLength / 3];
+                        Voxels = new float[bytesLength / 3];
                         for (var i = 0; i < bytesLength / 3; i++)
                         {
                             var byte1 = reader.ReadByte();
                             var byte2 = reader.ReadByte();
                             var byte3 = reader.ReadByte();
-                            voxels[i] = byte3 << 16 | byte2 << 8 | byte1;
+                            Voxels[i] = byte3 << 16 | byte2 << 8 | byte1;
                         }
                         break;
                     }
@@ -701,7 +516,7 @@ namespace CAPI.NiftiLib
                 default:
                     throw new ArgumentException($"Nifti datatype [{Header.datatype}] not supported.");
             }
-            return voxels;
+            return Voxels;
         }
         /// <summary>
         /// Read sequence of bytes and convert to string
@@ -789,7 +604,7 @@ namespace CAPI.NiftiLib
         private byte[] WriteVoxelsBytes(byte[] buffer)
         {
             GetVoxelsBytes();
-            voxelsBytes.CopyTo(buffer, (int)Header.vox_offset);
+            VoxelsBytes.CopyTo(buffer, (int)Header.vox_offset);
 
             return buffer;
         }
@@ -865,46 +680,46 @@ namespace CAPI.NiftiLib
 
         private int GetTotalSize()
         {
-            if (voxelsBytes != null && voxelsBytes.Length > 0) return (int)Header.vox_offset + voxelsBytes.Length;
-            if (voxels == null || voxels.Length == 0) throw new Exception("Both voxels and voxelsBytes are empty!");
-            return (int)Header.vox_offset + voxels.Length * Header.bitpix / 8;
+            if (VoxelsBytes != null && VoxelsBytes.Length > 0) return (int)Header.vox_offset + VoxelsBytes.Length;
+            if (Voxels == null || Voxels.Length == 0) throw new Exception("Both voxels and voxelsBytes are empty!");
+            return (int)Header.vox_offset + Voxels.Length * Header.bitpix / 8;
         }
         private void GetVoxelsBytes()
         {
-            voxelsBytes = new byte[GetTotalSize() - (int)Header.vox_offset];
+            VoxelsBytes = new byte[GetTotalSize() - (int)Header.vox_offset];
             var bytePix = Header.bitpix / 8;
 
-            for (var i = 0; i < voxels.Length; i++)
+            for (var i = 0; i < Voxels.Length; i++)
                 for (var j = 0; j < bytePix; j++)
                 {
                     var position = i * bytePix + j;
                     switch (bytePix)
                     {
                         case 1 when Header.cal_min >= 0:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToByte(voxels[i]))[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToByte(Voxels[i]))[j], position);
                             break;
                         case 1 when Header.cal_min < 0:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToSByte(voxels[i]))[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToSByte(Voxels[i]))[j], position);
                             break;
                         case 2:
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt16(voxels[i])).ToArray()[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt16(Voxels[i])).ToArray()[j], position);
                             break;
                         case 3 when Header.cal_min >= 0:
                             // RGB is 24bit so needs three bytes for each pixel (bytePix=3) hence .Take(3)
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).Take(3).ToArray()[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(Voxels[i])).Take(3).ToArray()[j], position);
                             break;
                         case 4 when Header.cal_min >= 0 && (Header.datatype == 8 || Header.datatype == 768): // signed (8) or unsigned (768) int
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(voxels[i])).ToArray()[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToUInt32(Voxels[i])).ToArray()[j], position);
                             break;
                         case 4 when Header.cal_min < 0 && (Header.datatype == 8 || Header.datatype == 768): // signed (8) or unsigned (768) int
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i])).ToArray()[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(Voxels[i])).ToArray()[j], position);
                             break;
                         case 4 when Header.datatype == 16: // float
-                            voxelsBytes.SetValue(BitConverter.GetBytes(voxels[i]).ToArray()[j], position);
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Voxels[i]).ToArray()[j], position);
                             break;
                         case 4 when Header.datatype == 2304:
                             // This should be RGBA, TODO: Make sure this makes sense (I think it does, but will need a test if it's being used).
-                            voxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(voxels[i])).ToArray()[j], position); 
+                            VoxelsBytes.SetValue(BitConverter.GetBytes(Convert.ToInt32(Voxels[i])).ToArray()[j], position); 
                             break;
                         default:
                             throw new Exception($"Bitpix {Header.bitpix} not supported!");
@@ -931,62 +746,23 @@ namespace CAPI.NiftiLib
             }
         }
 
-        private int[] GetVoxelIndices(int z, SliceType sliceType)
-        {
-            if (Header.dim[1] == 0 || Header.dim[2] == 0 || Header.dim[3] == 0)
-                throw new Exception("Nifti header dimensions not set!");
-
-            // Get the orientation of the data (e.g. left to right, inferior to superior, etc)
-            var ltRt = Header.dim[1];
-            var antPos = Header.dim[2];
-            var infSup = Header.dim[3];
-
-            // Get the dimensions of the data.
-            GetDimensions(sliceType, out var width, out var height, out var nSlices);
-
-            // For efficiency we only want to call this switch statement once, so we'll use it to
-            // put a lambda together.
-            Func<int, int, int> indexGetter = null;
-            switch (sliceType)
-            {
-                case SliceType.Axial:
-                    indexGetter = (x, y) => (ltRt - 1 - x) + ltRt * (antPos - 1 - y) + ltRt * antPos * z;
-                    break;
-                case SliceType.Sagittal:
-                    indexGetter = (x, y) => z + ltRt * (antPos - 1 - x) + ltRt * antPos * (infSup - 1 - y);
-                    break;
-                case SliceType.Coronal:
-                    indexGetter = (x, y) => (ltRt - 1 - x) + ltRt * z + ltRt * antPos * (infSup - 1 - y);
-                    break;
-                default:
-                    throw new Exception("Slice Type not supported");
-            }
-
-            // Now we fill up the result array with indexes.
-            int[] result = new int[width * height];
-            for (int y = 0; y < width; ++y)
-            {
-                for(int x = 0; x < height; ++x)
-                {
-                    int idx = y * width + x ;
-                    if (idx < result.Length) result[idx] = indexGetter(x, y);
-                }
-            }
-
-            return result;
-        }
 
         public INifti DeepCopy()
         {
-            Nifti copy = new Nifti();
-            copy.Header = Header.DeepCopy();
-            copy.voxels = new float[voxels.Length];
-            voxels.CopyTo(copy.voxels, 0);
-            if (voxelsBytes != null)
+            Nifti copy = new Nifti
             {
-                copy.voxelsBytes = new byte[voxelsBytes.Length];
-                voxelsBytes.CopyTo(copy.voxelsBytes, 0);
+                Header = Header.DeepCopy(),
+                Voxels = new float[Voxels.Length]
+            };
+
+            Voxels.CopyTo(copy.Voxels, 0);
+
+            if (VoxelsBytes != null)
+            {
+                copy.VoxelsBytes = new byte[VoxelsBytes.Length];
+                VoxelsBytes.CopyTo(copy.VoxelsBytes, 0);
             }
+
             copy.ColorMap = new Color[ColorMap.Length];
             ColorMap.CopyTo(copy.ColorMap, 0);
 
@@ -995,7 +771,7 @@ namespace CAPI.NiftiLib
 
         public INifti AddOverlay(INifti overlay)
         {
-            INifti output = this.DeepCopy();
+            Nifti output = (Nifti)(this.DeepCopy());
 
             // Caclulate conversion to colour map.
             var range = Header.cal_max - Header.cal_min;
@@ -1007,15 +783,15 @@ namespace CAPI.NiftiLib
             var scaleOverlay = overlay.ColorMap.Length / rangeOverlay;
             var biasOverlay = -(overlay.Header.cal_min);
 
-            for (int i = 0; i < voxels.Length; ++i)
+            for (int i = 0; i < Voxels.Length; ++i)
             {
                 // Get the colour map index for our value.
-                int idx = (int)((voxels[i] + bias) * scale);
+                int idx = (int)((Voxels[i] + bias) * scale);
                 if (idx < 0) idx = 0;
                 else if (idx > ColorMap.Length - 1) idx = ColorMap.Length - 1;
 
                 // Get the colour map value for the overlay
-                int idxOverlay = (int)((overlay.voxels[i] + biasOverlay) * scaleOverlay);
+                int idxOverlay = (int)((overlay.Voxels[i] + biasOverlay) * scaleOverlay);
                 if (idxOverlay < 0) idxOverlay = 0;
                 else if (idxOverlay > overlay.ColorMap.Length - 1) idxOverlay = overlay.ColorMap.Length - 1;
 
@@ -1023,7 +799,7 @@ namespace CAPI.NiftiLib
                 var green = (overlay.ColorMap[idxOverlay].G * overlay.ColorMap[idxOverlay].A + ColorMap[idx].G * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
                 var blue = (overlay.ColorMap[idxOverlay].B * overlay.ColorMap[idxOverlay].A + ColorMap[idx].B * (255 - overlay.ColorMap[idxOverlay].A)) / 255;
 
-                output.voxels[i] = Convert.ToUInt32((byte)red << 16 | (byte)green << 8 | (byte)blue);
+                output.Voxels[i] = Convert.ToUInt32((byte)red << 16 | (byte)green << 8 | (byte)blue);
             }
 
             output.ConvertHeaderToRgb();
@@ -1034,8 +810,8 @@ namespace CAPI.NiftiLib
 
         public void RecalcHeaderMinMax()
         {
-            Header.cal_max = voxels.Max();
-            Header.cal_min = voxels.Min();
+            Header.cal_max = Voxels.Max();
+            Header.cal_min = Voxels.Min();
         }
     }
 }

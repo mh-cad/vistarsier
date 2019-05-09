@@ -29,7 +29,7 @@ namespace CAPI.Config
         {
             var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
 
-            CapiConfig config = null;
+            CapiConfig config;
 
             if (File.Exists(configFilePath))
             {
@@ -47,8 +47,6 @@ namespace CAPI.Config
 
         public static CapiConfig GenerateDefault()
         {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ThirdPartyTools/");
-
             return new CapiConfig
             {
                 Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ThirdPartyTools/")),

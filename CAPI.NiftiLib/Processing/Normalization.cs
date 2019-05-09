@@ -18,16 +18,16 @@ namespace CAPI.NiftiLib.Processing
             INifti output = input.DeepCopy();
 
             // We take the mean and standard deviation ignoring background.
-            var currentMean = input.voxels.Where(val => val > backgroundThreshold).Mean();
-            var currentStdDev = input.voxels.Where(val => val > backgroundThreshold).StandardDeviation();
-            var mean = (float)reference.voxels.Where(val => val > backgroundThreshold).Mean();
-            var stdDev = (float)reference.voxels.Where(val => val > backgroundThreshold).StandardDeviation();
+            var currentMean = input.Voxels.Where(val => val > backgroundThreshold).Mean();
+            var currentStdDev = input.Voxels.Where(val => val > backgroundThreshold).StandardDeviation();
+            var mean = (float)reference.Voxels.Where(val => val > backgroundThreshold).Mean();
+            var stdDev = (float)reference.Voxels.Where(val => val > backgroundThreshold).StandardDeviation();
 
             if (Math.Abs(currentStdDev) < 0.000001) return output;
 
-            for (var i = 0; i < output.voxels.Length; i++)
+            for (var i = 0; i < output.Voxels.Length; i++)
             {
-                output.voxels[i] = (float)((output.voxels[i] - currentMean) / currentStdDev) * stdDev + mean;
+                output.Voxels[i] = (float)((output.Voxels[i] - currentMean) / currentStdDev) * stdDev + mean;
             }
 
             output.RecalcHeaderMinMax(); //update display range

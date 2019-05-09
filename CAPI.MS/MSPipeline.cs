@@ -198,17 +198,17 @@ namespace CAPI.MS
             var totalIncrease = 0d;
             var varianceDecrease = 0d;
             var totalDecrease = 0d;
-            for (int i = 0; i < increaseNifti.voxels.Length - 1; ++i)
+            for (int i = 0; i < increaseNifti.Voxels.Length - 1; ++i)
             {
-                if ((increaseNifti.voxels[i] > 0 != increaseNifti.voxels[i + 1] > 0)) varianceIncrease++;
-                if (increaseNifti.voxels[i] > 0) totalIncrease++; // Note, we'll miss the last voxel but it's just a rough estimate.
-                if ((decreaseNifti.voxels[i] < 0 != decreaseNifti.voxels[i + 1] < 0)) varianceDecrease++;
-                if (decreaseNifti.voxels[i] < 0) totalDecrease++;
+                if ((increaseNifti.Voxels[i] > 0 != increaseNifti.Voxels[i + 1] > 0)) varianceIncrease++;
+                if (increaseNifti.Voxels[i] > 0) totalIncrease++; // Note, we'll miss the last voxel but it's just a rough estimate.
+                if ((decreaseNifti.Voxels[i] < 0 != decreaseNifti.Voxels[i + 1] < 0)) varianceDecrease++;
+                if (decreaseNifti.Voxels[i] < 0) totalDecrease++;
 
-                if (i == increaseNifti.voxels.Length - 2)
+                if (i == increaseNifti.Voxels.Length - 2)
                 {
-                    if (increaseNifti.voxels[i + 1] > 0) totalIncrease++;
-                    if (decreaseNifti.voxels[i + 1] < 0) totalDecrease++;
+                    if (increaseNifti.Voxels[i + 1] > 0) totalIncrease++;
+                    if (decreaseNifti.Voxels[i + 1] < 0) totalDecrease++;
                 }
             }
 
@@ -229,12 +229,12 @@ namespace CAPI.MS
             var volPrior = 0d;
             var volWSkullCurrent = 0;
             var volWSkullPrior = 0;
-            for (int i = 0; i < currentNifti.voxels.Length; ++i)
+            for (int i = 0; i < currentNifti.Voxels.Length; ++i)
             {
-                if (currentNifti.voxels[i] > 0) volCurrent++;
-                if (currentNiftiWithSkull.voxels[i] > 30) volWSkullCurrent++;
-                if (priorNifti.voxels[i] > 0) volPrior++;
-                if (priorNiftiWithSkull.voxels[i] > 30) volWSkullPrior++;
+                if (currentNifti.Voxels[i] > 0) volCurrent++;
+                if (currentNiftiWithSkull.Voxels[i] > 30) volWSkullCurrent++;
+                if (priorNifti.Voxels[i] > 0) volPrior++;
+                if (priorNiftiWithSkull.Voxels[i] > 30) volWSkullPrior++;
             }
             var match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
             // Add results to QA list
@@ -255,19 +255,19 @@ namespace CAPI.MS
                 _log.Info($@"Brain extraction match not good enough, taking the union...");
                 // Let's try to make the brain mask an OR of the two.
                 var mask = currentNifti.DeepCopy();
-                for (int i = 0; i < mask.voxels.Length; ++i)
+                for (int i = 0; i < mask.Voxels.Length; ++i)
                 {
-                    if (currentNifti.voxels[i] != 0 || priorNifti.voxels[i] != 0) mask.voxels[i] = 1;
-                    else mask.voxels[i] = 0;
+                    if (currentNifti.Voxels[i] != 0 || priorNifti.Voxels[i] != 0) mask.Voxels[i] = 1;
+                    else mask.Voxels[i] = 0;
                 }
 
                 currentNifti = currentNiftiWithSkull.DeepCopy();
                 priorNifti = priorNiftiWithSkull.DeepCopy();
 
-                for (int i = 0; i < currentNifti.voxels.Length; ++i)
+                for (int i = 0; i < currentNifti.Voxels.Length; ++i)
                 {
-                    currentNifti.voxels[i] = currentNifti.voxels[i] * mask.voxels[i];
-                    priorNifti.voxels[i] = priorNifti.voxels[i] * mask.voxels[i];
+                    currentNifti.Voxels[i] = currentNifti.Voxels[i] * mask.Voxels[i];
+                    priorNifti.Voxels[i] = priorNifti.Voxels[i] * mask.Voxels[i];
                 }
 
                 currentNifti.RecalcHeaderMinMax();
@@ -276,10 +276,10 @@ namespace CAPI.MS
                 // Check brain extraction match again...
                 volCurrent = 0d;
                 volPrior = 0d;
-                for (int i = 0; i < currentNifti.voxels.Length; ++i)
+                for (int i = 0; i < currentNifti.Voxels.Length; ++i)
                 {
-                    if (currentNifti.voxels[i] > 0) volCurrent++;
-                    if (priorNifti.voxels[i] > 0) volPrior++;
+                    if (currentNifti.Voxels[i] > 0) volCurrent++;
+                    if (priorNifti.Voxels[i] > 0) volPrior++;
                 }
                 match = Math.Min(volPrior, volCurrent) / Math.Max(volPrior, volCurrent);
                 _log.Info($@"Brain extraction match after mask: {(int)(match * 100)}%");
