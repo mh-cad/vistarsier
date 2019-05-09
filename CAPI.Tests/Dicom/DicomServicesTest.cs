@@ -1,4 +1,5 @@
 ﻿
+using CAPI.Common;
 using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
@@ -7,7 +8,6 @@ using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using DicomConfig = CAPI.Dicom.DicomConfig;
 
 namespace CAPI.Tests.Dicom
 {
@@ -17,7 +17,6 @@ namespace CAPI.Tests.Dicom
         private IDicomServices _dicomServices;
         private IDicomNode _localNode;
         private IDicomNode _remoteNode;
-        private CAPI.Dicom.Abstractions.IDicomConfig _dicomConfig;
 
         private string _testObjectsPath;
         private static string _testResources;
@@ -37,19 +36,18 @@ namespace CAPI.Tests.Dicom
         [TestInitialize]
         public void TestInit()
         {
-            var capiConfig = new CapiConfig().GetConfig(new[] { "-dev" }); //CapiConfigGetter.GetCapiConfig();
+            var capiConfig = CapiConfig.GetConfig(); //CapiConfigGetter.GetCapiConfig();
 
             _testObjectsPath = GetTestObjectsPath();
-            _dicomConfig = new DicomConfig();
-            _dicomServices = new DicomServices(_dicomConfig); 
-
+            _dicomServices = new DicomServices();
+            _testResources = Helper.GetTestResourcesPath();
             _log = LogHelper.GetLogger();
 
             
 
             //_dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
 
-            _tempOutputFolder = Path.Combine(capiConfig.TestsConfig.TestResourcesPath, "tempOutput");
+            _tempOutputFolder = Path.Combine(Helper.GetTestResourcesPath(), "tempOutput");
             if (Directory.Exists(_tempOutputFolder)) Directory.Delete(_tempOutputFolder, true);
             Directory.CreateDirectory(_tempOutputFolder);
 
@@ -65,7 +63,7 @@ namespace CAPI.Tests.Dicom
         }
         private static string GetTestObjectsPath()
         {
-            _testResources = Helper.GetTestResourcesPath();
+           // _testResources = Helper.GetTestResourcesPath();
 
             var binPath = Directory.GetParent(Environment.CurrentDirectory).FullName;
             var projectPath = Directory.GetParent(binPath).FullName;
@@ -202,7 +200,7 @@ namespace CAPI.Tests.Dicom
             var dicomTags = new DicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
-            var dicomServices = new DicomServices(_dicomConfig);
+            var dicomServices = new DicomServices();
             dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
@@ -215,7 +213,7 @@ namespace CAPI.Tests.Dicom
             var dicomFolderPath = Path.Combine(_testResources, OutDicomRelPath);
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
-            var dicomServices = new DicomServices(_dicomConfig);
+            var dicomServices = new DicomServices();
             dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
 
             var dicomTags = new DicomTagCollection();

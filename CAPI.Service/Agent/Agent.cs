@@ -22,7 +22,6 @@ namespace CAPI.Service.Agent
         public bool IsBusy { get; set; }
         public bool IsHealthy { get; set; }
         private DbBroker _context;
-        private readonly string[] _args;
         private Timer _timer;
 
         /// <summary>
@@ -34,12 +33,11 @@ namespace CAPI.Service.Agent
         /// <param name="fileSystem">CAPI FileSystem service</param>
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
-        public Agent(string[] args)
+        public Agent()
         {
             IsHealthy = true;
             _log = Log.GetLogger();
-            _args = args;
-            Config = GetCapiConfig(args);
+            Config = GetCapiConfig();
             _context = GetAgentRepository(true);
         }
 
@@ -65,11 +63,11 @@ namespace CAPI.Service.Agent
             return null;
         }
 
-        private CapiConfig GetCapiConfig(string[] args)
+        private CapiConfig GetCapiConfig()
         {
             try
             {
-                return new CapiConfig().GetConfig(args);
+                return CapiConfig.GetConfig();
             }
             catch (Exception ex)
             {
@@ -124,7 +122,7 @@ namespace CAPI.Service.Agent
             try
             {
                 _log.Info("Checking for new cases");
-                Config = new CapiConfig().GetConfig(_args);
+                Config = CapiConfig.GetConfig();
                 _timer.Interval = int.Parse(Config.RunInterval) * 1000;
                 HandleNewlyAddedCases();
             }

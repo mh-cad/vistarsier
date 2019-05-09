@@ -13,19 +13,16 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using StorageScp = ClearCanvas.Dicom.Samples.StorageScp;
 
 namespace CAPI.Dicom
 {
     public class DicomServices : IDicomServices
     {
         private readonly ILog _log;
-        private readonly IDicomConfig _config;
 
-        public DicomServices(IDicomConfig config)
+        public DicomServices()
         {
-            _log = CAPI.Common.Log.GetLogger();
-            _config = config;
+            _log = Log.GetLogger();
         }
 
         public void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode)
@@ -322,8 +319,7 @@ namespace CAPI.Dicom
                 arguments = $@"-df {dicomHeadersFilePath} "; // Copy dicom headers from dicom file: -df = dataset file
 
             arguments += $"-i BMP {bmpFilepath} {dicomFilePath}";
-
-            ProcessBuilder.CallExecutableFile(_config.Img2DcmFilePath, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
+            ProcessBuilder.CallExecutableFile(Config.CapiConfig.GetConfig().Binaries.img2dcm, arguments, "", OutputDataReceivedInProcess, ErrorOccuredInProcess);
         }
 
         public void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CAPI.Common;
 
 namespace CAPI.Service.Agent
 {
@@ -79,14 +80,14 @@ namespace CAPI.Service.Agent
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
             var job = new Job(recipe, _dicomServices, _capiConfig);
-            var imageRepositoryPath = _capiConfig.ImgProcConfig.ImageRepositoryPath;
+            var imageRepositoryPath = _capiConfig.ImagePaths.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;
             var accessionInJobName = string.Empty;
             if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = $"-{accession.Substring(2, 10)}-";
             var patientNameSubstring = patientName.Length > 4 ? patientName.Substring(0, 5) : patientName.Substring(0, patientName.Length);
             var jobFolderName = $"{patientNameSubstring}{accessionInJobName}{DateTime.Now:yyMMdd_HHmmssfff}";
-            job.ProcessingFolder = Path.Combine(_capiConfig.ImgProcConfig.ImageRepositoryPath, jobFolderName);
+            job.ProcessingFolder = Path.Combine(_capiConfig.ImagePaths.ImageRepositoryPath, jobFolderName);
 
             var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
 
@@ -101,12 +102,6 @@ namespace CAPI.Service.Agent
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
             job.PriorAccession = priorDicomStudy.AccessionNumber;
             job.PatientId = currentDicomStudy.PatientId;
-            job.ExtractBrainParams = string.IsNullOrEmpty(recipe.ExtractBrainParams) ?
-                _capiConfig.ImgProcConfig.BseParams :
-                recipe.ExtractBrainParams;
-            job.BiasFieldCorrectionParams = string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams) ?
-                _capiConfig.ImgProcConfig.BfcParams :
-                recipe.BiasFieldCorrectionParams;
 
             // If both current and prior are found, save them to disk for processing
             _log.Info("Saving current series to disk...");

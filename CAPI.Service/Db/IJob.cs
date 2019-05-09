@@ -13,12 +13,10 @@ namespace CAPI.Service.Db
         string PriorAccession { get; set; }
         string DefaultDestination { get; set; }
         bool ExtractBrain { get; set; }
-        string ExtractBrainParams { get; set; }
         bool Register { get; set; }
         //string RegistrationData { get; set; }
         string ReferenceSeries { get; set; }
         bool BiasFieldCorrection { get; set; }
-        string BiasFieldCorrectionParams { get; set; }
         string Status { get; set; }
         DateTime Start { get; set; }
         DateTime End { get; set; }

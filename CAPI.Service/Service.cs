@@ -21,7 +21,7 @@ namespace CAPI.Service
         protected override void OnStart(string[] args)
         {
             var log = GetLogger();
-            _agent = new Agent.Agent(args);
+            _agent = new Agent.Agent();
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 

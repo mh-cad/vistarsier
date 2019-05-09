@@ -25,19 +25,16 @@ namespace CAPI.Service.Agent
     {
         private readonly IDicomServices _dicomServices;
         private readonly ILog _log;
-        private readonly IImgProcConfig _imgProcConfig;
-        private readonly DbBroker _context;
+        private readonly DbBroker _dbBroker;
 
         private const string ResultsFolderName = "Results";
         private const string ImagesFolderSuffix = "_Images";
 
-        public JobProcessor(IDicomServices dicomServices, 
-                              IImgProcConfig imgProcConfig, DbBroker context)
+        public JobProcessor(IDicomServices dicomServices, DbBroker dbBroker)
         {
             _dicomServices = dicomServices;
             _log = Log.GetLogger();
-            _imgProcConfig = imgProcConfig;
-            _context = context;
+            _dbBroker = dbBroker;
         }
 
         public IJobResult[] CompareAndSaveLocally(
@@ -61,7 +58,7 @@ namespace CAPI.Service.Agent
 
             var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
             var patientId = _dicomServices.GetPatientIdFromDicomFile(dicomFilePath);
-            var job = _context.Jobs.LastOrDefault(j => j.PatientId == patientId);
+            var job = _dbBroker.Jobs.LastOrDefault(j => j.PatientId == patientId);
 
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
@@ -89,14 +86,14 @@ namespace CAPI.Service.Agent
             
             if (job != null)
             {
-                var jobToUpdate = _context.Jobs.FirstOrDefault(j => j.Id == job.Id);
+                var jobToUpdate = _dbBroker.Jobs.FirstOrDefault(j => j.Id == job.Id);
                 if (jobToUpdate == null) throw new Exception($"No job was found in database with id: [{job.Id}]");
 
                 // Check if there is a reference series from last processes for the patient, if not set the current series as reference for future
                 GetReferenceSeries(referenceDicomFolder, currentDicomFolder, out var refStudyUid, out var refSeriesUid);
                 jobToUpdate.WriteStudyAndSeriesIdsToReferenceSeries(refStudyUid, refSeriesUid);
-                _context.Jobs.Update(jobToUpdate);
-                _context.SaveChanges();
+                _dbBroker.Jobs.Update(jobToUpdate);
+                _dbBroker.SaveChanges();
             }
 
             // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
@@ -108,7 +105,7 @@ namespace CAPI.Service.Agent
                 var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
                 priorStudyDate = FormatDate(priorStudyDate);
                 var priorStudyDescBase = string.IsNullOrEmpty(priorReslicedDicomSeriesDescription) ?
-                    _imgProcConfig.PriorReslicedDicomSeriesDescription :
+                    CapiConfig.GetConfig().ImagePaths.PriorReslicedDicomSeriesDescription :
                     priorReslicedDicomSeriesDescription;
                 var priorStudyDescription = $"{priorStudyDescBase} {priorStudyDate}";
 
@@ -136,7 +133,7 @@ namespace CAPI.Service.Agent
                 stopwatch.Start();
 
                 var resultsSeriesDescription = string.IsNullOrEmpty(resultsDicomSeriesDescription)
-                    ? _imgProcConfig.ResultsDicomSeriesDescription
+                    ? CapiConfig.GetConfig().ImagePaths.ResultsDicomSeriesDescription
                     : resultsDicomSeriesDescription;
 
                 string dicomFolderPath;
