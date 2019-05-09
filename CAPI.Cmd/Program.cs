@@ -1,7 +1,5 @@
 ﻿using CAPI.Service.Db;
 using CAPI.Common;
-using CAPI.Dicom;
-using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
 using Newtonsoft.Json;
 using System;
@@ -9,6 +7,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
+using CAPI.MS;
 
 namespace CAPI.Cmd
 {
@@ -22,7 +21,7 @@ namespace CAPI.Cmd
         public static async Task<int> Main(params string[] args)
         {
             RootCommand rootCommand = new RootCommand(
-              description: "Converts an image file from one format to another."
+              description: "Performs CAPI MS Lesion compare on two NIFTI files."
               , treatUnmatchedTokensAsErrors: false);
 
             Option priorOption = new Option(
@@ -37,31 +36,31 @@ namespace CAPI.Cmd
               , argument: new Argument<string>());
             rootCommand.AddOption(currentOption);
 
-            Option recipeOption = new Option(
-              aliases: new string[] { "--recipe", "-r" }
-              , description: "Recipe to use"
-              , argument: new Argument<string>());
-            rootCommand.AddOption(recipeOption);
+            //Option recipeOption = new Option(
+            //  aliases: new string[] { "--recipe", "-r" }
+            //  , description: "Recipe to use"
+            //  , argument: new Argument<string>());
+            //rootCommand.AddOption(recipeOption);
 
-            Option outputOption = new Option(
-              aliases: new string[] { "--output-type", "-t" }
-              , description: "Type of output [nifti|dicom|scp]. Output can be NIfTI files, Dicom folders, or direct to PACS system"
-              , argument: new Argument<string>());
-            rootCommand.AddOption(outputOption);
+            //Option outputOption = new Option(
+            //  aliases: new string[] { "--output-type", "-o" }
+            //  , description: "Type of output [nifti|dicom|scp]. Output can be NIfTI files, Dicom folders, or direct to PACS system"
+            //  , argument: new Argument<string>());
+            //rootCommand.AddOption(outputOption);
 
-            Option aetOption = new Option(
-              aliases: new string[] { "--calling-ae", "-a" }
-              , description: "Set my calling AE [title,hostname,port] e.g. [CAPI,127.0.0.1,4030] (no spaces)"
-              , argument: new Argument<string>());
-            rootCommand.AddOption(aetOption);
+            //Option aetOption = new Option(
+            //  aliases: new string[] { "--calling-ae", "-a" }
+            //  , description: "Set my calling AE [title,hostname,port] e.g. [CAPI,127.0.0.1,4030] (no spaces)"
+            //  , argument: new Argument<string>());
+            //rootCommand.AddOption(aetOption);
 
-            Option aecOption = new Option(
-              aliases: new string[] { "--target-ae", "-e" }
-              , description: "Set the target [title,hostname,port] e.g. [CAPI,127.0.0.1,4030] (no spaces). " +
-                "Target AET will be used for input / output based on accession number and scp mode, respectively. " +
-                "To use different source and target AETs use the --recipe option."
-              , argument: new Argument<string>());
-            rootCommand.AddOption(aecOption);
+            //Option aecOption = new Option(
+            //  aliases: new string[] { "--target-ae", "-e" }
+            //  , description: "Set the target [title,hostname,port] e.g. [CAPI,127.0.0.1,4030] (no spaces). " +
+            //    "Target AET will be used for input / output based on accession number and scp mode, respectively. " +
+            //    "To use different source and target AETs use the --recipe option."
+            //  , argument: new Argument<string>());
+            //rootCommand.AddOption(aecOption);
 
             rootCommand.Handler =
               CommandHandler.Create((Action<string, string, string, string, string, string>)CAPIit);
@@ -73,9 +72,11 @@ namespace CAPI.Cmd
         }
 
         static public void CAPIit(
-          string prior = null, string current = null, string recipe = null, string output = null, string callingAE = null, string targetAE = null)
+          string prior = null, string current = null, string recipe = null, string output = "nifti", string callingAE = null, string targetAE = null)
         {
-            var dicomConfig = new DicomConfig();
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory + "../../");
+
+            var dicomConfig = new Config.DicomConfig();
             
             // Attempt to create nodes.
             var localNode = ParseNode(callingAE);
@@ -93,21 +94,25 @@ namespace CAPI.Cmd
             var currentType = GuessType(current);
             var outputType = GuessType(output);
 
+            var metrics = new MSPipeline(current, prior, current, true, true, true, new string[] { "out-increase.nii", "out-decrease.nii" }, "prior-resliced.nii").Process();
+            Console.WriteLine($"Voxel volume used: {metrics.VoxelVolUsed}");
+            Console.WriteLine("DONERINO, EL DUDETINO!");
+
             // Create a recipe based on the args.
-            if (r == null)
-            {
-                r = new Recipe()
-                {
-                    BiasFieldCorrection = true,
-                    ExtractBrain = true,
-                    SourceAet = sourceNode.AeTitle,
-                   // CurrentAccession = currentType == IOType.ACCESSION ? current : currentType == IOType ?  : null,
-                    PriorAccession = priorType == IOType.ACCESSION ? prior : null,
-                };
-            }
+            //if (r == null)
+            //{
+            //    r = new Recipe()
+            //    {
+            //        BiasFieldCorrection = true,
+            //        ExtractBrain = true,
+            //        SourceAet = sourceNode.AeTitle,
+            //       // CurrentAccession = currentType == IOType.ACCESSION ? current : currentType == IOType ?  : null,
+            //        PriorAccession = priorType == IOType.ACCESSION ? prior : "",
+            //    };
+            //}
 
             //var ip = new ImageProcessor();
-            if (outputType == IOType.ACCESSION)
+            
 
             //DicomServices dicomServices = new DicomServices(dicomConfig);
 
@@ -146,6 +151,8 @@ namespace CAPI.Cmd
 
         private static IOType GuessType(string thing)
         {
+            if (thing == null) return IOType.ERROR;
+
             thing = thing.Trim(' ');
 
             if ("nifti".Equals(thing.ToLower())) return IOType.NIFTI;

@@ -27,13 +27,14 @@ using System.IO;
 using System.Net;
 using System.Text;
 using ClearCanvas.Common;
+using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Network;
 using ClearCanvas.Dicom.Utilities.Statistics;
 
-namespace ClearCanvas.Dicom.Samples
+namespace CAPI.Dicom
 {
     /// <summary>
-    /// DICOM Storage SCP Sample Application
+    /// DICOM Storage SCP based on the ClearCanvas Sample Application
     /// </summary>
     public class StorageScp : IDicomServerHandler
     {

@@ -29,12 +29,10 @@ namespace CAPI.Service.Db
         public string PriorAccession { get; set; }
         public string DefaultDestination { get; set; }
         public bool ExtractBrain { get; set; }
-        public string ExtractBrainParams { get; set; }
         public bool Register { get; set; }
         //public string RegistrationData { get; set; }
         public string ReferenceSeries { get; set; }
         public bool BiasFieldCorrection { get; set; }
-        public string BiasFieldCorrectionParams { get; set; }
 
         public string Status { get; set; }
         public DateTime Start { get; set; }
@@ -75,10 +73,8 @@ namespace CAPI.Service.Db
             PriorAccession = recipe.PriorAccession;
 
             ExtractBrain = recipe.ExtractBrain;
-            ExtractBrainParams = recipe.ExtractBrainParams;
             Register = recipe.Register;
             BiasFieldCorrection = recipe.BiasFieldCorrection;
-            BiasFieldCorrectionParams = recipe.BiasFieldCorrectionParams;
 
             DefaultDestination =
                 recipe.DicomDestinations != null && !string.IsNullOrEmpty(recipe.DicomDestinations.FirstOrDefault()) ?
@@ -93,10 +89,10 @@ namespace CAPI.Service.Db
             job.Start = DateTime.Now;
             job.Status = "Processing";
 
-            var context = new DbBroker(_capiConfig.AgentDbConnectionString);
+            var dbBroker = new DbBroker(_capiConfig.AgentDbConnectionString);
 
-            context.Jobs.Add(job);
-            context.SaveChanges();
+            dbBroker.Jobs.Add(job);
+            dbBroker.SaveChanges();
 
             _log.Info($"{Environment.NewLine}");
             _log.Info($"Job processing started...{Environment.NewLine}");
@@ -107,9 +103,8 @@ namespace CAPI.Service.Db
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            _capiConfig.ImgProcConfig = UpdateImgProcConfig(_recipe);
-            var imageProcessor = new JobProcessor(_dicomServices,
-                                                    _capiConfig.ImgProcConfig, context);
+            _capiConfig.ImagePaths = UpdateImgProcConfig(_recipe);
+            var imageProcessor = new JobProcessor(_dicomServices, dbBroker);
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
@@ -121,10 +116,10 @@ namespace CAPI.Service.Db
 
             End = DateTime.Now;
             Status = "Complete";
-            var jobToUpdate = context.Jobs.SingleOrDefault(j => j.Id == Id);
+            var jobToUpdate = dbBroker.Jobs.SingleOrDefault(j => j.Id == Id);
             if (jobToUpdate == null) throw new Exception($"Job with id [{Id}] not found");
-            context.Jobs.Update(jobToUpdate);
-            context.SaveChanges();
+            dbBroker.Jobs.Update(jobToUpdate);
+            dbBroker.SaveChanges();
 
             stopwatch.Stop();
             _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
@@ -146,15 +141,9 @@ namespace CAPI.Service.Db
             ReferenceSeries = string.Join("|", studyId, seriesId);
         }
 
-        private ImgProcConfig UpdateImgProcConfig(IRecipe recipe)
+        private ImagePaths UpdateImgProcConfig(IRecipe recipe)
         {
-            var imgProcConfig = _capiConfig.ImgProcConfig;
-
-            if (!string.IsNullOrEmpty(recipe.ExtractBrainParams))
-                imgProcConfig.BseParams = recipe.ExtractBrainParams;
-
-            if (!string.IsNullOrEmpty(recipe.BiasFieldCorrectionParams))
-                imgProcConfig.BfcParams = recipe.BiasFieldCorrectionParams;
+            var imgProcConfig = _capiConfig.ImagePaths;
 
             if (!string.IsNullOrEmpty(recipe.ResultsDicomSeriesDescription.Trim()))
                 imgProcConfig.ResultsDicomSeriesDescription = recipe.ResultsDicomSeriesDescription;

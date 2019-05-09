@@ -23,8 +23,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
-    <ApplicationRevision>41</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationVersion>1.0.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -223,10 +223,6 @@
     <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>CAPI.Config</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
-      <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
-      <Name>CAPI.Dicom.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
       <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>

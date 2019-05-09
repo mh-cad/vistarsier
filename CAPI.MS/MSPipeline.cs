@@ -45,6 +45,9 @@ namespace CAPI.MS
             Register = Registration.ANTSRegistration;
             Reslicer = Registration.ANTSApplyTransforms;
 
+            _currentNii = currentNii;
+            _priorNii = priorNii;
+            _referenceNii = referenceNii;
             _extractBrain = extractBrain;
             _register = register;
             _biasFieldCorrect = biasFieldCorrect;

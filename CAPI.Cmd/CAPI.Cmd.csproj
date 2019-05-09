@@ -141,13 +141,17 @@
       <Project>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</Project>
       <Name>CAPI.Config</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
-      <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
-      <Name>CAPI.Dicom.Abstractions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
       <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
       <Name>CAPI.Dicom</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.MS\CAPI.MS.csproj">
+      <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
+      <Name>CAPI.MS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
+      <Project>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</Project>
+      <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Service\CAPI.Service.csproj">
       <Project>{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}</Project>

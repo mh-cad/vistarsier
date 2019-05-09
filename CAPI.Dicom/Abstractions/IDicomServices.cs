@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CAPI.Common;
+using System.Collections.Generic;
 
 namespace CAPI.Dicom.Abstractions
 {

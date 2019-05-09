@@ -1,4 +1,4 @@
-﻿namespace CAPI.Dicom.Abstractions
+﻿namespace CAPI.Common
 {
     public interface IDicomNode
     {

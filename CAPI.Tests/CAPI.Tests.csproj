@@ -67,10 +67,11 @@
     <Compile Include="Agent\JobProcessorTest.cs" />
     <Compile Include="CapiConfigGetter.cs" />
     <Compile Include="Common\Extensions\Statistics.cs" />
+    <Compile Include="Config\ConfigTests.cs" />
     <Compile Include="Dicom\DicomServicesTest.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="LogHelper.cs" />
-    <Compile Include="NiftiLib\FilesTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -87,6 +88,21 @@
     </None>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\nifti\avg152T1_LR_nifti.nii">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\nifti\avg152T1_LR_nifti_mask.nii">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\nifti\minimal.hdr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\nifti\minimal.img">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\nifti\minimal.nii">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
@@ -96,10 +112,6 @@
     <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>CAPI.Config</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
-      <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
-      <Name>CAPI.Dicom.Abstractions</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
@@ -122,6 +134,7 @@
       <Name>CAPI.Service</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

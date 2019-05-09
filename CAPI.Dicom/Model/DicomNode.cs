@@ -1,4 +1,4 @@
-﻿using CAPI.Dicom.Abstractions;
+﻿using CAPI.Common;
 
 namespace CAPI.Dicom.Model
 {

@@ -29,9 +29,9 @@ namespace CAPI.Tests.Agent
         {
             _testResourcesPath = Helper.GetTestResourcesPath();
             _log = LogHelper.GetLogger();
-            _capiConfig = new CapiConfig().GetConfig(new[] { "-dev" });
+            _capiConfig = CapiConfig.GetConfig();
             //_dicomConfig.ExecutablesPath = _capiConfig.DicomConfig.DicomServicesExecutablesPath;
-            _dicomServices = new DicomServices(new CAPI.Dicom.DicomConfig());
+            _dicomServices = new DicomServices();
             
 
             _tmpFolder = $@"{_testResourcesPath}\TempFolder";
@@ -44,7 +44,7 @@ namespace CAPI.Tests.Agent
         {
             // Arrange
             var agentImgProc = new JobProcessor(
-                _dicomServices, _capiConfig.ImgProcConfig, null);
+                _dicomServices, null);
 
             var testFolders = new[] { "01_1323314" };
 
@@ -79,7 +79,7 @@ namespace CAPI.Tests.Agent
             var newFilePath = Path.Combine(_tmpFolder, "SampleBmpFile.bmp");
             File.Copy(filepath, newFilePath);
             var overlayText = $"CAPI - Prior re-sliced ({DateTime.Today:dd/MM/yyyy})";
-            var jobProcessor = new JobProcessor(_dicomServices, _capiConfig.ImgProcConfig, null);
+            var jobProcessor = new JobProcessor(_dicomServices, null);
 
             // Act
             jobProcessor.AddOverlayToImage(newFilePath, overlayText);
