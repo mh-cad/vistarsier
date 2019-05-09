@@ -56,12 +56,12 @@ namespace CAPI.NiftiLib.Processing
         {
             INifti output = input.DeepCopy();
 
-            float mean = (float)input.Voxels.Where(val => val > backgroundThreshold).Mean();
-            float stdDev = (float)input.Voxels.Where(val => val > backgroundThreshold).StandardDeviation();
+            //var mean = (float)input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
+            (var mean, var stdDev) = input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
             //float range = input.voxels.Max() - input.voxels.Min();
             // Values from trial and error....
-            float minRelevantValue = mean + (minRelevantStd * stdDev); 
-            float maxRelevantValue = mean + (maxRelevantStd * stdDev);
+            float minRelevantValue = (float)(mean + (minRelevantStd * stdDev)); 
+            float maxRelevantValue = (float)(mean + (maxRelevantStd * stdDev));
 
             if (input.Voxels.Length != reference.Voxels.Length) throw new Exception("Input and reference don't match size");
 
@@ -69,6 +69,7 @@ namespace CAPI.NiftiLib.Processing
             {
                 output.Voxels[i] = input.Voxels[i] - reference.Voxels[i];
                 
+
                 // We want to ignore changes below the minimum relevant value.
                 if (input.Voxels[i] < minRelevantValue) output.Voxels[i] = 0;
                 if (reference.Voxels[i] < minRelevantValue) output.Voxels[i] = 0;
@@ -93,7 +94,7 @@ namespace CAPI.NiftiLib.Processing
 
             var stdDv = output.Voxels.StandardDeviation();
             var mean2 = output.Voxels.Where(val => val > 0).Mean();
-            System.Console.WriteLine($@"Compared. Mean={mean2}, stdDv={stdDv}, size={output.Voxels.Where(val => val > 0).Count()}");
+            System.Console.WriteLine($"Compared. Mean={mean2}, stdDv={stdDv}, size={output.Voxels.Where(val => val > 0).Count()}");
 
             return output;
         }
