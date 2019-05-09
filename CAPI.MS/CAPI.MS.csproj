@@ -54,7 +54,7 @@
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
