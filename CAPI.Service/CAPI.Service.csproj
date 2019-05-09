@@ -236,7 +236,7 @@
       <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>
       <Name>CAPI.MS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>

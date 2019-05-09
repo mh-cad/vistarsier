@@ -42,6 +42,7 @@
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore, Version=2.2.3.0, Culture=neutral, PublicKeyToken=adb9793829ddae60" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.4.0\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -69,6 +70,7 @@
     <Compile Include="Dicom\DicomServicesTest.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="LogHelper.cs" />
+    <Compile Include="NiftiLib\FilesTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -76,6 +78,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="NiftiLib\NiftiTests.cs" />
+    <Compile Include="Service\DBConnection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Settings.settings">
@@ -110,7 +113,7 @@
       <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
       <Name>CAPI.MS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
+    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
