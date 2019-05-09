@@ -16,7 +16,7 @@
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <PublishUrl>publish\</PublishUrl>
+    <PublishUrl>D:\capi-temp\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -26,7 +26,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
-    <ApplicationRevision>8</ApplicationRevision>
+    <ApplicationRevision>9</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -64,61 +64,9 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ClearCanvas.Dicom, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a" />
-    <Reference Include="Microsoft.Extensions.Configuration, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.CommandLine, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Configuration.CommandLine.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.CommandLine.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Primitives.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.CommandLine, Version=0.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.CommandLine.Experimental.0.2.0-alpha.19174.3\lib\netstandard2.0\System.CommandLine.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Memory, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.5.1\lib\netstandard2.0\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.1\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="IOType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -128,49 +76,11 @@
     </Content>
     <None Include="packages.config" />
     <None Include="ThirdPartyTools\ants\.vs\N4BiasFieldCorrection\v15\.suo" />
-    <None Include="ThirdPartyTools\CMTK\fixed.nii" />
-    <None Include="ThirdPartyTools\CMTK\floating.nii" />
-    <None Include="ThirdPartyTools\floating.nii" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
-      <Name>CAPI.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
-      <Project>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</Project>
-      <Name>CAPI.Config</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
-      <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
-      <Name>CAPI.Dicom</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.MS\CAPI.MS.csproj">
-      <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
-      <Name>CAPI.MS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
-      <Project>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</Project>
-      <Name>CAPI.NiftiLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Service\CAPI.Service.csproj">
-      <Project>{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}</Project>
-      <Name>CAPI.Service</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="ThirdPartyTools\ants\antsApplyTransforms.exe" />
     <Content Include="ThirdPartyTools\ants\antsRegistration.exe" />
     <Content Include="ThirdPartyTools\ants\N4BiasFieldCorrection.exe" />
-    <Content Include="ThirdPartyTools\brain_suite\bfc.exe" />
-    <Content Include="ThirdPartyTools\brain_suite\bse.exe" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3f-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3l-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\reformatx.exe" />
-    <Content Include="ThirdPartyTools\CMTK\registration.exe" />
-    <Content Include="ThirdPartyTools\dcm2niix.exe" />
-    <Content Include="ThirdPartyTools\img2dcm.exe" />
     <Content Include="ThirdPartyTools\zlib1.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -186,10 +96,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <Reference Include="System.CommandLine, Version=0.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.CommandLine.Experimental.0.2.0-alpha.19174.3\lib\netstandard2.0\System.CommandLine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CAPI.MS\CAPI.MS.csproj">
+      <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>
+      <Name>CAPI.MS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
+      <Project>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</Project>
+      <Name>CAPI.NiftiLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
