@@ -1,6 +1,7 @@
 ﻿using CAPI.Config;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
+using CAPI.Service.Agent;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -21,7 +22,6 @@ namespace CAPI.Tests.Agent
         private string _tmpFolder;
         private IDicomServices _dicomServices;
         private CapiConfig _capiConfig;
-        private CAPI.Dicom.Abstractions.IDicomConfig _dicomConfig;
         private ILog _log;
 
         [TestInitialize]
