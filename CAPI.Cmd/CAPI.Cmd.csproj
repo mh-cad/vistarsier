@@ -133,10 +133,6 @@
     <None Include="ThirdPartyTools\floating.nii" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Agent\CAPI.Agent.csproj">
-      <Project>{1ABF0272-BC85-45A1-85FF-532885D05BC0}</Project>
-      <Name>CAPI.Agent</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>CAPI.Common</Name>
