@@ -1,13 +1,9 @@
-﻿using CAPI.Service.Db;
-using CAPI.Common;
-using CAPI.Dicom.Model;
-using Newtonsoft.Json;
+﻿using CAPI.MS;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
-using CAPI.MS;
 
 namespace CAPI.Cmd
 {
@@ -35,12 +31,6 @@ namespace CAPI.Cmd
               , description: "Current accession number, nifti, or dicom folder"
               , argument: new Argument<string>());
             rootCommand.AddOption(currentOption);
-
-            //Option recipeOption = new Option(
-            //  aliases: new string[] { "--recipe", "-r" }
-            //  , description: "Recipe to use"
-            //  , argument: new Argument<string>());
-            //rootCommand.AddOption(recipeOption);
 
             //Option outputOption = new Option(
             //  aliases: new string[] { "--output-type", "-o" }
@@ -76,23 +66,16 @@ namespace CAPI.Cmd
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory + "../../");
 
-            var dicomConfig = new Config.DicomConfig();
+            //var dicomConfig = new Config.DicomConfig();
             
-            // Attempt to create nodes.
-            var localNode = ParseNode(callingAE);
-            var sourceNode = ParseNode(targetAE);
+            //// Attempt to create nodes.
+            //var localNode = ParseNode(callingAE);
+            //var sourceNode = ParseNode(targetAE);
             
-            // Attempt to read recipe.
-            Recipe r = ReadRecipe(recipe);
-            if (recipe != null && r == null)
-            {
-                System.Console.WriteLine($"Error reading recipe ({recipe}). We'll try to make things happen anyway...");
-            }
-
-            // Parse and infer type of inputs and output.
-            var priorType = GuessType(prior);
-            var currentType = GuessType(current);
-            var outputType = GuessType(output);
+            //// Parse and infer type of inputs and output.
+            //var priorType = GuessType(prior);
+            //var currentType = GuessType(current);
+            //var outputType = GuessType(output);
 
             var metrics = new MSPipeline(current, prior, current, true, true, true, new string[] { "out-increase.nii", "out-decrease.nii" }, "prior-resliced.nii").Process();
             Console.WriteLine($"Voxel volume used: {metrics.VoxelVolUsed}");
@@ -167,31 +150,17 @@ namespace CAPI.Cmd
             return IOType.ACCESSION;
         }
 
-        private static IDicomNode ParseNode(string AE)
-        {
-            IDicomNode node = null;
-            if (AE != null)
-            {
-                string[] nodeStuff = AE.Trim(' ', '[', ']').Split(',');
-                node = new DicomNode(nodeStuff[0].Trim(' '), nodeStuff[0].Trim(' '), nodeStuff[1].Trim(' '), int.Parse(nodeStuff[2].Trim(' ')));
-            }
+        //private static IDicomNode ParseNode(string AE)
+        //{
+        //    IDicomNode node = null;
+        //    if (AE != null)
+        //    {
+        //        string[] nodeStuff = AE.Trim(' ', '[', ']').Split(',');
+        //        node = new DicomNode(nodeStuff[0].Trim(' '), nodeStuff[0].Trim(' '), nodeStuff[1].Trim(' '), int.Parse(nodeStuff[2].Trim(' ')));
+        //    }
 
-            return node;
-        }
-
-        private static Recipe ReadRecipe(string recipePath)
-        {
-            // Try to parse the recipe.
-            Recipe recipe = null;
-            try
-            {
-                var recipeText = File.ReadAllText(recipePath);
-                recipe = JsonConvert.DeserializeObject<Recipe>(recipeText);
-            }
-            catch { }
-
-            return recipe;
-        }
+        //    return node;
+        //}
 
         /// <summary>
         /// CAPI Entry point.
