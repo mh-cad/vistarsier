@@ -68,12 +68,15 @@ namespace CAPI.NiftiLib.Processing
             for (int i = 0; i < input.voxels.Length; ++i)
             {
                 output.voxels[i] = input.voxels[i] - reference.voxels[i];
+                
                 // We want to ignore changes below the minimum relevant value.
                 if (input.voxels[i] < minRelevantValue) output.voxels[i] = 0;
                 if (reference.voxels[i] < minRelevantValue) output.voxels[i] = 0;
+                
                 // And above the maximum relevant value.
                 if (input.voxels[i] > maxRelevantValue) output.voxels[i] = 0;
                 if (reference.voxels[i] > maxRelevantValue) output.voxels[i] = 0;
+                
                 // If we haven't changed by at least 1 stdDev we're not significant
                 if (Math.Abs(output.voxels[i]) < Math.Abs(minChange * stdDev)) output.voxels[i] = 0;
                 if (Math.Abs(output.voxels[i]) > Math.Abs(maxChange * stdDev)) output.voxels[i] = 0;

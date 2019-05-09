@@ -2,7 +2,7 @@
 
 namespace CAPI.MS
 {
-    class MSMetrics : Metrics
+    public class MSMetrics : Metrics
     {
         public double VoxelVolPrior { get; set; }
         public double VoxelVolCurrent { get; set; }

@@ -11,10 +11,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using IImageProcessor = CAPI.NiftiLib.Processing.IImageProcessor;
 using SliceType = CAPI.NiftiLib.SliceType;
 using CAPI.NiftiLib.Processing;
 using CAPI.NiftiLib;
+using CAPI.MS;
 
 namespace CAPI.Agent
 {
@@ -25,7 +25,6 @@ namespace CAPI.Agent
     public class JobProcessor : Abstractions.IJobProcessor
     {
         private readonly IDicomServices _dicomServices;
-        private readonly IImageProcessor _imgProc;
         private readonly ILog _log;
         private readonly IImgProcConfig _imgProcConfig;
         private readonly AgentRepository _context;
@@ -39,7 +38,6 @@ namespace CAPI.Agent
             _dicomServices = dicomServices;
             _log = Log.GetLogger();
             _imgProcConfig = imgProcConfig;
-            _imgProc = new MS.ImageProcessor();
             _context = context;
         }
 
@@ -82,10 +80,12 @@ namespace CAPI.Agent
             _log.Info($@"Finished converting series dicom files to Nii");
 
             // Process Nifti files.
-            _imgProc.MSLesionCompare(
+            var pipe = new MSPipeline(
                 currentNifti, priorNifti, referenceNifti,
                 extractBrain, register, biasFieldCorrect,
                 resultNiis, outPriorReslicedNii);
+
+            var metrics = pipe.Process(); // TODO: use theres.
 
             
             if (job != null)

@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MSMetrics.cs" />
-    <Compile Include="ImageProcessor.cs" />
+    <Compile Include="MSPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
