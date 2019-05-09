@@ -25,7 +25,7 @@ namespace CAPI.Tests.Agent
             var recipeText = File.ReadAllText(_defaultRecipePath);
 
             // Act
-            var recipe = JsonConvert.DeserializeObject<CAPI.Service.Db.Recipe>(recipeText);
+            var recipe = JsonConvert.DeserializeObject<Recipe>(recipeText);
 
             //// Assert
             Assert.IsNotNull(recipe);
