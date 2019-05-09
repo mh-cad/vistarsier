@@ -1,4 +1,5 @@
-﻿using CAPI.Service.Db;
+﻿using CAPI.Config;
+using CAPI.Service.Db;
 
 namespace CAPI.Service.Agent.Abstractions
 {

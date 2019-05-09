@@ -20,21 +20,12 @@ namespace CAPI.NiftiLib.Processing
             string niftiInPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.in.nii";
             string niftiRefPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.ref.nii";
             string niftiOutPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.out.nii";
-            string regOutPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.reg";
-
-           // Directory.CreateDirectory(regOutPath);
 
             // Write nifti to temp directory.
             floating.WriteNifti(niftiInPath);
             reference.WriteNifti(niftiRefPath);
 
-            Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
-
-            var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
-            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.registration, args, outputDataReceived: updates);
-
-            args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
-            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
+            niftiOutPath = CMTKRegistration(niftiInPath, niftiRefPath, updates);
 
             //INifti output = floating.DeepCopy();
             floating.ReadNifti(niftiOutPath);
@@ -113,7 +104,7 @@ namespace CAPI.NiftiLib.Processing
             floating.WriteNifti(niftiInPath);
             reference.WriteNifti(niftiRefPath);
 
-            string niftiOutPath = ANTSRegistration(niftiInPath, niftiRefPath);
+            string niftiOutPath = ANTSRegistration(niftiInPath, niftiRefPath, updates);
 
             var output = floating.DeepCopy();
             output = output.ReadNifti(niftiOutPath);

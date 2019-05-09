@@ -49,7 +49,7 @@ namespace CAPI.Config
         {
             return new CapiConfig
             {
-                Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ThirdPartyTools/")),
+                Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "3rdparty_bin/")),
                 DicomConfig = new DicomConfig(),
                 ImagePaths = new ImagePaths(),
                 RunInterval = "30",

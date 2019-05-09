@@ -14,6 +14,7 @@ using CAPI.NiftiLib.Processing;
 using CAPI.NiftiLib;
 using CAPI.MS;
 using System.Drawing;
+using CAPI.Service.Agent.Abstractions;
 
 namespace CAPI.Service.Agent
 {
@@ -21,7 +22,7 @@ namespace CAPI.Service.Agent
     /// Compares current and prior sereis and saves results into filesystem or sends off to a dicom node
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class JobProcessor : Abstractions.IJobProcessor
+    public class JobProcessor : IJobProcessor
     {
         private readonly IDicomServices _dicomServices;
         private readonly ILog _log;
