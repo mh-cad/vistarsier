@@ -1,11 +1,10 @@
 ﻿using CAPI.Agent.Abstractions;
+using CAPI.Agent;
 using CAPI.Config;
 using CAPI.NiftiLib;
 using CAPI.Dicom;
 using CAPI.Dicom.Abstractions;
 using CAPI.Dicom.Model;
-using CAPI.ImageProcessing;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using log4net.Config;
 using System;
@@ -13,8 +12,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.ServiceProcess;
-using Unity;
-using Unity.log4net;
 
 namespace CAPI.Service
 {
@@ -29,14 +26,8 @@ namespace CAPI.Service
 
         protected override void OnStart(string[] args)
         {
-            var container = CreateContainerCore();
-
-            var agentFactory = container.Resolve<IAgentFactory>();
-            var dicomFactory = container.Resolve<IDicomFactory>();
-            var imgProcFactory = container.Resolve<IImageProcessingFactory>();
-
             var log = GetLogger();
-            _agent = agentFactory.CreateAgent(args, dicomFactory, imgProcFactory);
+            _agent = new Agent.Agent(args);
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 
@@ -57,31 +48,6 @@ namespace CAPI.Service
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
             return LogManager.GetLogger(logRepository.Name, filename);
-        }
-
-        public static IUnityContainer CreateContainerCore()
-        {
-            var container = (UnityContainer)new UnityContainer()
-                .AddNewExtension<Log4NetExtension>();
-
-            container.RegisterType<IDicomNode, DicomNode>();
-            container.RegisterType<IDicomFactory, DicomFactory>();
-            container.RegisterType<IDicomServices, DicomServices>();
-            container.RegisterType<Dicom.Abstractions.IDicomConfig, Dicom.DicomConfig>();
-            container.RegisterType<ImageProcessing.Abstraction.IImageProcessor, ImageProcessing.ImageProcessor>();
-            container.RegisterType<Agent.Abstractions.Models.ISeriesSelectionCriteria, Agent.Models.SeriesSelectionCriteria>();
-            container.RegisterType<Agent.Abstractions.Models.IDestination, Agent.Models.Destination>();
-            container.RegisterType<Agent.Abstractions.Models.IValueComparer, Agent.Models.ValueComparer>();
-            container.RegisterType<IImageProcessingFactory, ImageProcessingFactory>();
-            container.RegisterType<INifti, Nifti>();
-            //container.RegisterType<ISubtractionLookUpTable, SubtractionLookUpTable>();
-            container.RegisterType<IAgent, Agent.Agent>();
-            container.RegisterType<Agent.Abstractions.IImageProcessor, Agent.ImageProcessor>();
-            container.RegisterType<IAgentFactory, Agent.AgentFactory>();
-            container.RegisterType<IImgProcConfig, ImgProcConfig>();
-            container.RegisterType<ITestsConfig, TestsConfig>();
-
-            return container;
         }
     }
 }

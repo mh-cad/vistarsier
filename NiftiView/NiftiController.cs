@@ -1,15 +1,7 @@
 ﻿using CAPI.NiftiLib;
-using MathNet.Numerics.Statistics;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
-using Unity;
-using Unity.log4net;
 
 namespace NiftiView
 {
@@ -91,7 +83,7 @@ namespace NiftiView
 
         public void LoadNiftiFile(string fileName)
         {
-            INifti nifti = InitNifti();
+            INifti nifti = new Nifti();
             nifti.ReadNifti(fileName);
 
             Nifti = nifti;
@@ -171,16 +163,6 @@ namespace NiftiView
 
             // Great now we know the scale.
             _scaleFactor = width / (decimal)boundsImg.Width;
-        }
-
-        private INifti InitNifti()
-        {
-            var container = (UnityContainer)new UnityContainer()
-                .AddNewExtension<Log4NetExtension>();
-            container.RegisterType<INifti, Nifti>();
-
-            return container.Resolve<INifti>();
-            
         }
 
         private void MouseOverImage(object sender, EventArgs e)

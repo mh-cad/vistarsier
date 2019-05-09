@@ -1,8 +1,4 @@
-﻿using CAPI.NiftiLib;
-using System;
-using System.Collections.Generic;
-
-namespace CAPI.ImageProcessing.Abstraction
+﻿namespace CAPI.NiftiLib.Processing
 {
     public interface IImageProcessor
     {

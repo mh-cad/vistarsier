@@ -1,7 +1,6 @@
 ﻿using CAPI.Agent.Abstractions.Models;
 using CAPI.Config;
-using CAPI.Dicom.Abstractions;
-using CAPI.ImageProcessing.Abstraction;
+using CAPI.Dicom;
 using log4net;
 
 namespace CAPI.Agent.Models
@@ -14,22 +13,21 @@ namespace CAPI.Agent.Models
         public string Comment { get; set; }
         public AdditionMethod AdditionMethod { get; set; }
 
-        public static void Process(Recipe recipe, IDicomFactory dicomFactory, IImageProcessingFactory imgProcFactory,
+        public static void Process(Recipe recipe,
                                    CapiConfig capiConfig, ILog log, AgentRepository context)
         {
-            var dicomConfig = GetDicomConfigFromCapiConfig(capiConfig, dicomFactory);
-            var dicomServices = dicomFactory.CreateDicomServices(dicomConfig);
+            var dicomConfig = GetDicomConfigFromCapiConfig(capiConfig);
+            var dicomServices = new DicomServices(dicomConfig);
             var job = new JobBuilder(dicomServices,
-                                     imgProcFactory,
                                      new ValueComparer(),
                                      capiConfig, log, context)
                       .Build(recipe);
             job.Process();
         }
 
-        private static CAPI.Dicom.Abstractions.IDicomConfig GetDicomConfigFromCapiConfig(CapiConfig capiConfig, IDicomFactory dicomFactory)
+        private static CAPI.Dicom.Abstractions.IDicomConfig GetDicomConfigFromCapiConfig(CapiConfig capiConfig)
         {
-            var dicomConfig = dicomFactory.CreateDicomConfig();
+            var dicomConfig = new Dicom.DicomConfig();
             dicomConfig.Img2DcmFilePath = capiConfig.DicomConfig.Img2DcmFilePath;
             return dicomConfig;
         }

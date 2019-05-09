@@ -4,14 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BF71C555-CFC8-43E8-8615-44619ADC91CD}</ProjectGuid>
+    <ProjectGuid>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.ImageProcessing</RootNamespace>
-    <AssemblyName>CAPI.ImageProcessing</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>CAPI.MS</RootNamespace>
+    <AssemblyName>CAPI.MS</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,15 +34,8 @@
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Numerics, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ImageProcessingFactory.cs" />
+    <Compile Include="MSMetrics.cs" />
     <Compile Include="ImageProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -60,25 +53,12 @@
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
-      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
-      <Name>CAPI.Config</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
-      <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
-      <Name>CAPI.Extensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

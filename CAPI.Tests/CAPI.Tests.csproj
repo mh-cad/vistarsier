@@ -60,15 +60,6 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Abstractions, Version=4.0.3.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>..\packages\Unity.Abstractions.4.0.3\lib\net46\Unity.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Container, Version=5.9.1.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>..\packages\Unity.Container.5.9.1\lib\net46\Unity.Container.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.log4net, Version=5.9.1.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>..\packages\Unity.log4net.5.9.1\lib\net46\Unity.log4net.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent\Recipe.cs" />
@@ -127,14 +118,6 @@
     <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
       <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
       <Name>CAPI.Extensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
-      <Project>{bf71c555-cfc8-43e8-8615-44619adc91cd}</Project>
-      <Name>CAPI.ImageProcessing</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

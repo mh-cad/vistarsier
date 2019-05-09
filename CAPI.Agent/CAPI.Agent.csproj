@@ -131,7 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
-    <Compile Include="AgentFactory.cs" />
     <Compile Include="AgentRepository.cs" />
     <Compile Include="Migrations\20180825090043_InitialCreate.cs" />
     <Compile Include="Migrations\20180825090043_InitialCreate.designer.cs">
@@ -183,9 +182,13 @@
       <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
       <Name>CAPI.Dicom.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0e90e48a-28a0-4762-bfad-4a3a8753613d}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
+    <ProjectReference Include="..\CAPI.Dicom\CAPI.Dicom.csproj">
+      <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
+      <Name>CAPI.Dicom</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.MS\CAPI.MS.csproj">
+      <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>
+      <Name>CAPI.MS</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

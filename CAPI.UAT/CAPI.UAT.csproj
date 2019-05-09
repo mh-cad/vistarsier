@@ -166,10 +166,6 @@
       <Project>{C11F23F0-DE98-46F9-8203-670ECE388551}</Project>
       <Name>CAPI.Dicom.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\config.template.json">

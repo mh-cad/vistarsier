@@ -90,14 +90,6 @@
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>CAPI.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing\CAPI.ImageProcessing.csproj">
-      <Project>{BF71C555-CFC8-43E8-8615-44619ADC91CD}</Project>
-      <Name>CAPI.ImageProcessing</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>CAPI.NiftiLib</Name>
@@ -106,12 +98,6 @@
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics">
       <Version>4.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Unity">
-      <Version>5.9.4</Version>
-    </PackageReference>
-    <PackageReference Include="Unity.log4net">
-      <Version>5.9.1</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

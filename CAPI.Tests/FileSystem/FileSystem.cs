@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using Unity;
 
 namespace CAPI.Tests.FileSystem
 {
@@ -11,13 +10,10 @@ namespace CAPI.Tests.FileSystem
         private string _workingDir;
         private string _sourcePath;
         private string _targetPath;
-        private IUnityContainer _unity;
 
         [TestInitialize]
         public void TestInit()
         {
-            _unity = Helpers.Unity.CreateContainerCore();
-
             _workingDir = Environment.CurrentDirectory;
             _sourcePath = $@"{_workingDir}\source-test";
             _targetPath = $@"{_workingDir}\target-test";

@@ -107,7 +107,6 @@
   <ItemGroup>
     <Compile Include="Models\DateOperand.cs" />
     <Compile Include="IAgent.cs" />
-    <Compile Include="IAgentFactory.cs" />
     <Compile Include="IAgentRepository.cs" />
     <Compile Include="Models\ICase.cs" />
     <Compile Include="Models\IDestination.cs" />
@@ -133,10 +132,6 @@
     <ProjectReference Include="..\CAPI.Dicom.Abstraction\CAPI.Dicom.Abstractions.csproj">
       <Project>{c11f23f0-de98-46f9-8203-670ece388551}</Project>
       <Name>CAPI.Dicom.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.ImageProcessing.Abstraction\CAPI.ImageProcessing.Abstraction.csproj">
-      <Project>{0E90E48A-28A0-4762-BFAD-4A3A8753613D}</Project>
-      <Name>CAPI.ImageProcessing.Abstraction</Name>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Nifti\CAPI.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

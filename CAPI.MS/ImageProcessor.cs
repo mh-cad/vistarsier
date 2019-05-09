@@ -1,16 +1,13 @@
-﻿using CAPI.Config;
-using CAPI.NiftiLib;
+﻿using CAPI.NiftiLib;
 using CAPI.NiftiLib.Processing;
-using CAPI.ImageProcessing.Abstraction;
 using log4net;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using CAPI.Common;
-using System.Collections.Generic;
 
-namespace CAPI.ImageProcessing
+namespace CAPI.MS
 {
     public class IThinkSomethingWentWrongException : Exception
     {
@@ -22,12 +19,10 @@ namespace CAPI.ImageProcessing
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ImageProcessor : IImageProcessor
     {
-        private readonly IImgProcConfig _config;
         private readonly ILog _log;
 
-        public ImageProcessor(IImgProcConfig config)
+        public ImageProcessor()
         {
-            _config = config;
             _log = Log.GetLogger();
         }
 
@@ -60,7 +55,7 @@ namespace CAPI.ImageProcessing
 
             DataReceivedEventHandler dataout = null;//(s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
 
-            var qaResults = new Metrics();
+            var qaResults = new MSMetrics();
 
             var stopwatch1 = new Stopwatch();
 
