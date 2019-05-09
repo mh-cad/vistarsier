@@ -7,8 +7,8 @@
     <ProjectGuid>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Nifti</RootNamespace>
-    <AssemblyName>CAPI.Nifti</AssemblyName>
+    <RootNamespace>CAPI.NiftiLib</RootNamespace>
+    <AssemblyName>CAPI.NiftiLib</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
