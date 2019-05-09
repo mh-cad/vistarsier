@@ -1,4 +1,4 @@
-﻿namespace CAPI.Service.Db
+﻿namespace CAPI.Common
 {
     public enum DateOperand
     {

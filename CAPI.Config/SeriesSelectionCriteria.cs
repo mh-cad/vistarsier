@@ -1,6 +1,6 @@
-﻿using CAPI.Service.Db;
+﻿using CAPI.Common;
 
-namespace CAPI.Service.Db
+namespace CAPI.Config
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class SeriesSelectionCriteria : ISeriesSelectionCriteria

@@ -1,4 +1,6 @@
-﻿namespace CAPI.Service.Db
+﻿using CAPI.Common;
+
+namespace CAPI.Config
 {
     public interface ISeriesSelectionCriteria
     {
