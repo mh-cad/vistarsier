@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CAPI.Common;
+using System;
 
 namespace CAPI.Service.Db
 {

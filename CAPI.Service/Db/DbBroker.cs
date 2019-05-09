@@ -1,5 +1,4 @@
-﻿using CAPI.Service.Agent.Abstractions;
-using CAPI.Service.Db;
+﻿using CAPI.Service.Db;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

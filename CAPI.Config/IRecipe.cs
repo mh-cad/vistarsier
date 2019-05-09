@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CAPI.Service.Db
+namespace CAPI.Config
 {
     public interface IRecipe
     {
