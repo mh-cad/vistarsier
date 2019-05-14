@@ -104,7 +104,7 @@ namespace CAPI.Service.Db
             stopwatch.Start();
 
             _capiConfig.ImagePaths = UpdateImgProcConfig(_recipe);
-            var imageProcessor = new JobProcessor(_dicomServices, dbBroker);
+            var imageProcessor = new JobProcessor(dbBroker);
 
             var sliceType = GetSliceType(_recipe.SliceType);
 

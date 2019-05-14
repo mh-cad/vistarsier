@@ -16,9 +16,17 @@ namespace CAPI.Common
             if (fileSplit.Length > 1)
                 filename = $@"{fileSplit[fileSplit.Length - 2]}\{fileSplit[fileSplit.Length - 1]}";
 
-            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
-            return LogManager.GetLogger(logRepository.Name, filename);
+            if (Assembly.GetEntryAssembly() != null)
+            {
+                var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+                XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+                return LogManager.GetLogger(logRepository.Name, filename);
+            }
+            else
+            {
+                return LogManager.GetLogger("test-logger");
+            }
+            
         }
     }
 }

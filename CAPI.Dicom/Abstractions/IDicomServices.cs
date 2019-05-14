@@ -5,14 +5,20 @@ namespace CAPI.Dicom.Abstractions
 {
     public interface IDicomServices
     {
+        /// <summary>
+        /// Send a single dicom image file to the destination node.
+        /// </summary>
+        /// <param name="filepath">Local path of file.</param>
+        /// <param name="localAe">AE Name for local node.</param>
+        /// <param name="destinationDicomNode">Destination node.</param>
         void SendDicomFile(string filepath, string localAe, IDicomNode destinationDicomNode);
+        /// <summary>
+        /// Send a set of dicom images to the destination node.
+        /// </summary>
+        /// <param name="filepaths">Local path of file.</param>
+        /// <param name="localAe">AE Name for local node.</param>
+        /// <param name="destinationDicomNode">Destination node.</param>
         void SendDicomFiles(string[] filepaths, string localAe, IDicomNode destinationDicomNode);
-        void UpdateDicomHeaders(string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType);
-        void UpdateSeriesHeadersForAllFiles(string[] filesPath, IDicomTagCollection tags);
-        //void CopyDicomHeadersToNewFiles(string dicomFolderWithHeaders, string dicomFolderWithPixelData,
-        //    string ouputFolder);
-
-        IDicomTagCollection GetDicomTags(string filePath);
 
         IEnumerable<IDicomStudy> GetStudiesForPatientId(string patientId, IDicomNode localNode, IDicomNode remoteNode);
 
@@ -34,15 +40,5 @@ namespace CAPI.Dicom.Abstractions
 
         IDicomPatient GetPatientIdFromPatientDetails(string patientFullName, string patientBirthDate,
             IDicomNode localNode, IDicomNode sourceNode);
-
-        string GenerateNewStudyUid();
-        string GenerateNewSeriesUid();
-        string GenerateNewImageUid();
-
-        void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "", bool matchByFilename = false);
-        void ConvertBmpToDicom(string bmpFilepath, string dicomFilePath, string dicomHeadersFilePath = "");
-        void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "");
-        string GetPatientIdFromDicomFile(string dicomFilePath);
-        void UpdateImagePositionFromReferenceSeries(string[] dicomFilesToUpdate, string[] orientationDicomFiles);
     }
 }

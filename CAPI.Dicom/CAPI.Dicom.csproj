@@ -54,8 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DicomFileOps.cs" />
     <Compile Include="DicomImage.cs" />
-    <Compile Include="DicomNewObjectType.cs" />
+    <Compile Include="Abstractions\DicomNewObjectType.cs" />
     <Compile Include="DicomPatient.cs" />
     <Compile Include="DicomSeries.cs" />
     <Compile Include="DicomStudy.cs" />
@@ -66,11 +67,10 @@
     <Compile Include="Abstractions\IDicomStudy.cs" />
     <Compile Include="Abstractions\IDicomTag.cs" />
     <Compile Include="Abstractions\IDicomTagCollection.cs" />
-    <Compile Include="Model\DicomNode.cs" />
-    <Compile Include="Model\DicomSeries.cs" />
+    <Compile Include="DicomNode.cs" />
     <Compile Include="DicomServices.cs" />
-    <Compile Include="Model\DicomTag.cs" />
-    <Compile Include="Model\DicomTagCollection.cs" />
+    <Compile Include="DicomTag.cs" />
+    <Compile Include="DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SliceType.cs" />
     <Compile Include="StorageScp.cs" />
@@ -80,6 +80,7 @@
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>CAPI.Common</Name>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
     <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>

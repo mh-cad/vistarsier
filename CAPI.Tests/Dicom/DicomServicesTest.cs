@@ -20,12 +20,10 @@ namespace CAPI.Tests.Dicom
 
         private string _testObjectsPath;
         private static string _testResources;
-        private ILog _log;
         private string _tempOutputFolder;
         private string _orientationReferenceDicomFolder;
         private string _testingDicomFolderForOrientation;
 
-        private const string ColorMapPosFolderRelPath = @"MF-PC\ColorMapPosDicom";
         private const string ColorMapNegFolderRelPath = @"MF-PC\ColorMapNegDicom";
         private const string OutDicomRelPath = @"OutDicom";
         private const string TestDicomRelativePath = "Dicom\\DicomFile1";
@@ -36,14 +34,9 @@ namespace CAPI.Tests.Dicom
         [TestInitialize]
         public void TestInit()
         {
-            var capiConfig = CapiConfig.GetConfig(); //CapiConfigGetter.GetCapiConfig();
-
             _testObjectsPath = GetTestObjectsPath();
             _dicomServices = new DicomServices();
             _testResources = Helper.GetTestResourcesPath();
-            _log = LogHelper.GetLogger();
-
-            
 
             //_dicomConfig.ExecutablesPath = capiConfig.DicomConfig.DicomServicesExecutablesPath;
 
@@ -166,7 +159,7 @@ namespace CAPI.Tests.Dicom
         {
             var dicomFilePath = Path.Combine(_testObjectsPath, TestDicomRelativePath);
 
-            var dicomTagsFile = _dicomServices.GetDicomTags(dicomFilePath);
+            var dicomTagsFile = DicomFileOps.GetDicomTags(dicomFilePath);
 
             Assert.IsNotNull(dicomTagsFile);
             Assert.IsTrue(dicomTagsFile.StudyInstanceUid.Values.Length > 0);
@@ -180,11 +173,11 @@ namespace CAPI.Tests.Dicom
             var filePathToUpdate = Path.Combine(_testObjectsPath, TestDicomUpdatedTagsRelativePath);
             File.Copy(testDicomFile, filePathToUpdate, true);
 
-            var dicomTags = _dicomServices.GetDicomTags(testDicomFile);
+            var dicomTags = DicomFileOps.GetDicomTags(testDicomFile);
 
-            _dicomServices.UpdateDicomHeaders(filePathToUpdate, new DicomTagCollection(), dicomNewObjectType: DicomNewObjectType.NewStudy);
+            DicomFileOps.UpdateDicomHeaders(filePathToUpdate, new DicomTagCollection(), dicomNewObjectType: DicomNewObjectType.NewStudy);
 
-            var updatedDicomTags = _dicomServices.GetDicomTags(filePathToUpdate);
+            var updatedDicomTags = DicomFileOps.GetDicomTags(filePathToUpdate);
 
             Assert.IsFalse(dicomTags.StudyInstanceUid.Values[0] == updatedDicomTags.StudyInstanceUid.Values[0],
                 $"Dicom tags have not been updated. StudyInstanceUid has not changed.{Environment.NewLine}" +
@@ -201,7 +194,7 @@ namespace CAPI.Tests.Dicom
             dicomTags.SeriesDescription.Values = new[] { "CAPI Decreased Signal" };
 
             var dicomServices = new DicomServices();
-            dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
+            DicomFileOps.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
         }
@@ -214,12 +207,12 @@ namespace CAPI.Tests.Dicom
             var headersFolder = Path.Combine(_testResources, @"Fixed2\Dicom");
 
             var dicomServices = new DicomServices();
-            dicomServices.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
+            DicomFileOps.ConvertBmpsToDicom(bmpFolderPath, dicomFolderPath, SliceType.Sagittal, headersFolder);
 
             var dicomTags = new DicomTagCollection();
             dicomTags.SeriesDescription.Values = new[] { "CAPI Modified Signal" };
             var dicomFiles = Directory.GetFiles(dicomFolderPath);
-            dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
+            DicomFileOps.UpdateSeriesHeadersForAllFiles(dicomFiles, dicomTags);
 
             throw new NotImplementedException("Assert to be implemented");
         }
@@ -231,47 +224,13 @@ namespace CAPI.Tests.Dicom
             var refDicomFiles = Directory.GetFiles(_orientationReferenceDicomFolder);
             var targetDicomFiles = Directory.GetFiles(_testingDicomFolderForOrientation);
 
-            _dicomServices.UpdateImagePositionFromReferenceSeries(targetDicomFiles, refDicomFiles);
-
+            DicomFileOps.UpdateImagePositionFromReferenceSeries(targetDicomFiles, refDicomFiles);
         }
 
-
-        // To Be Removed After Building Recipes
         [TestMethod]
-        public void BuildRecipes()
+        public void SaveSeriesToLocalDiskTest()
         {
-            var defaultRecipeText = File.ReadAllText(@"D:\temp\tst3\DefaultRecipe.recipe.json");
-            var allRows = File.ReadAllLines(@"D:\temp\tst3\cases.csv");
-            for (var i = 0; i < allRows.Length; i = i + 2)
-            {
-                var recipeText = defaultRecipeText;
-                var currentPatient = allRows[i].Split('\"')[1];
-                var currentAccession = allRows[i].Split('\"')[2].Replace(",", "");
-                var priorPatient = allRows[i + 1].Split('\"')[1];
-                var priorAccession = allRows[i + 1].Split('\"')[2].Replace(",", "");
-                if (!currentPatient.Equals(priorPatient, StringComparison.CurrentCultureIgnoreCase))
-                    throw new Exception("Patients don't match!");
-
-                for (var j = 1; j < 10; j++)
-                {
-                    var fullCurrentAccession = currentAccession + $"-{j}";
-                    var currentStudy = _dicomServices.GetStudyForAccession(fullCurrentAccession, _localNode, _remoteNode);
-                    if (currentStudy == null) continue;
-                    currentAccession = fullCurrentAccession;
-                    break;
-                }
-                for (var j = 1; j < 10; j++)
-                {
-                    var fullPriorAccession = priorAccession + $"-{j}";
-                    var priorStudy = _dicomServices.GetStudyForAccession(fullPriorAccession, _localNode, _remoteNode);
-                    if (priorStudy == null) continue;
-                    priorAccession = fullPriorAccession;
-                    break;
-                }
-
-                recipeText = recipeText.Replace("\"PriorAccession\": \"\"", $"\"PriorAccession\": \"{priorAccession}\"");
-                File.WriteAllText($@"D:\Capi-Files\ManualProcess\TBP\{currentAccession}.recipe.json", recipeText);
-            }
+            FileSystem.DirectoryExistsIfNotCreate("temp");
         }
     }
 }

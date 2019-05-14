@@ -2,10 +2,10 @@
 using System;
 using System.IO;
 
-namespace CAPI.Tests.FileSystem
+namespace CAPI.Tests.Common
 {
     [TestClass]
-    public class FileSystem
+    public class FileSystemTests
     {
         private string _workingDir;
         private string _sourcePath;

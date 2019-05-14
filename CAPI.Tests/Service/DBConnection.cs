@@ -1,4 +1,5 @@
-﻿using CAPI.Service.Agent;
+﻿using CAPI.Config;
+using CAPI.Service.Agent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -10,7 +11,7 @@ namespace CAPI.Tests.Service
         [TestMethod]
         public void TestConnection()
         {
-            var connectionString = CapiConfigGetter.GetCapiConfig().AgentDbConnectionString;
+            var connectionString = CapiConfig.GetConfig().AgentDbConnectionString;
 
             try
             {

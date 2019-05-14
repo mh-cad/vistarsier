@@ -14,23 +14,13 @@ namespace CAPI.Tests.Agent
     public class JobProcessorTest
     {
         private string _testResourcesPath;
-        private string _currentStudyDicomFolder;
-        private string _priorStudyDicomFolder;
-        private string _lookupTableFile;
-        private string _destinationResults;
-        private string _destinationPriorResliced;
         private string _tmpFolder;
         private IDicomServices _dicomServices;
-        private CapiConfig _capiConfig;
-        private ILog _log;
 
         [TestInitialize]
         public void TestInitialize()
         {
             _testResourcesPath = Helper.GetTestResourcesPath();
-            _log = LogHelper.GetLogger();
-            _capiConfig = CapiConfig.GetConfig();
-            //_dicomConfig.ExecutablesPath = _capiConfig.DicomConfig.DicomServicesExecutablesPath;
             _dicomServices = new DicomServices();
             
 
@@ -40,46 +30,14 @@ namespace CAPI.Tests.Agent
         }
 
         [TestMethod]
-        public void Compare()
-        {
-            // Arrange
-            var agentImgProc = new JobProcessor(
-                _dicomServices, null);
-
-            var testFolders = new[] { "01_1323314" };
-
-            foreach (var folder in testFolders)
-            {
-                _currentStudyDicomFolder = Path.Combine(_tmpFolder, "fixed", "dicom");
-                CAPI.Common.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\fixed\dicom", _currentStudyDicomFolder);
-                _priorStudyDicomFolder = Path.Combine(_tmpFolder, "floating", "dicom");
-                CAPI.Common.FileSystem.CopyDirectory($@"{_testResourcesPath}\SeriesToTest\{folder}\floating\dicom", _priorStudyDicomFolder);
-
-                _lookupTableFile = $@"{_testResourcesPath}\LookUpTable.bmp";
-                _destinationResults = Path.Combine(_tmpFolder, "Results", Path.GetFileNameWithoutExtension(_lookupTableFile), "Dicom");
-                _destinationPriorResliced = Path.Combine(_tmpFolder, "Resliced");
-
-                agentImgProc.CompareAndSaveLocally(
-                    _currentStudyDicomFolder, _priorStudyDicomFolder, "", SliceType.Sagittal
-                    , true, true, true, _destinationPriorResliced, "Results", "Prior Resliced");
-
-                // Assert
-                Assert.IsTrue(Directory.Exists(_destinationResults));
-                Assert.IsTrue(Directory.GetFiles(_destinationResults).Length > 0);
-                Assert.IsTrue(Directory.Exists(_destinationPriorResliced));
-                Assert.IsTrue(Directory.GetFiles(_destinationPriorResliced).Length > 0);
-            }
-        }
-
-        [TestMethod]
         public void AddOverLay()
         {
             // Arrange
-            var filepath = Path.Combine(_testResourcesPath, "SampleBmps", "ResultSample.bmp");
-            var newFilePath = Path.Combine(_tmpFolder, "SampleBmpFile.bmp");
+            var filepath = Path.Combine(_testResourcesPath,"test.bmp");
+            var newFilePath = Path.Combine(_tmpFolder, "test.bmp");
             File.Copy(filepath, newFilePath);
             var overlayText = $"CAPI - Prior re-sliced ({DateTime.Today:dd/MM/yyyy})";
-            var jobProcessor = new JobProcessor(_dicomServices, null);
+            var jobProcessor = new JobProcessor(null);
 
             // Act
             jobProcessor.AddOverlayToImage(newFilePath, overlayText);
