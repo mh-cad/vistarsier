@@ -6,7 +6,7 @@ using System.Linq;
 namespace CAPI.Common
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class ProcessBuilder
+    public static class ProcessBuilder
     {
         private static Process Build(string processPath, string processFileNameExt, string arguments, string workingDir)
         {
@@ -46,25 +46,6 @@ namespace CAPI.Common
             return process;
         }
 
-        public static Process CallJava(string javaFullPath, string arguments, string methodCalled, string workingDir = "",
-                                DataReceivedEventHandler outputDataReceived = null,
-                                DataReceivedEventHandler errorOccuredInProcess = null)
-        {
-            if (!File.Exists(javaFullPath))
-                throw new FileNotFoundException($"Java.exe file not found at location [{javaFullPath}]");
-            if (string.IsNullOrEmpty(arguments))
-                throw new ArgumentNullException(nameof(arguments), "No arguments are passed for java process");
-
-            var javaFileNamExt = javaFullPath.Split('\\').LastOrDefault();
-            var javaFolderPath = javaFullPath.Replace($"\\{javaFileNamExt}", "");
-
-            var process = Build(javaFolderPath, javaFileNamExt, arguments, workingDir);
-
-            RunProcess(process, outputDataReceived, errorOccuredInProcess);
-
-            return process;
-        }
-
         private static void RunProcess(Process process,
                                DataReceivedEventHandler outputDataReceived = null,
                                DataReceivedEventHandler errorOccuredInProcess = null)
@@ -80,6 +61,38 @@ namespace CAPI.Common
             process.BeginErrorReadLine();
 
             process.WaitForExit();
+        }
+
+        public static void OutputDataReceivedInProcess(object sender, DataReceivedEventArgs e)
+        {
+            var consoleColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                    Log.GetLogger().Info($"Process stdout:{Environment.NewLine}{e.Data}");
+            }
+            finally
+            {
+                Console.ForegroundColor = consoleColor;
+            }
+        }
+        public static void ErrorOccuredInProcess(object sender, DataReceivedEventArgs e)
+        {
+            // Swallow log4j initialisation warnings
+            if (e?.Data == null || string.IsNullOrEmpty(e.Data) || string.IsNullOrWhiteSpace(e.Data) || e.Data.ToLower().Contains("log4j")) return;
+
+            var consoleColor = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                if (!string.IsNullOrEmpty(e.Data) && !string.IsNullOrWhiteSpace(e.Data))
+                    Log.GetLogger().Error($"Process error:{Environment.NewLine}{e.Data}");
+            }
+            finally
+            {
+                Console.ForegroundColor = consoleColor;
+            }
         }
     }
 }

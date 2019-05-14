@@ -319,7 +319,7 @@ namespace CAPI.Dicom
             _started = true;
         }
 
-        public static void StopListening(int port)
+        public static void StopListening()
         {
             if (_started)
             {
@@ -394,7 +394,7 @@ namespace CAPI.Dicom
 
             path.AppendFormat("{0}{1}.dcm", Path.DirectorySeparatorChar, sopInstanceUid.UID);
 
-            var dicomFile = new DicomFile(message, path.ToString())
+            var dicomFile = new ClearCanvas.Dicom.DicomFile(message, path.ToString())
                                 {
                                     TransferSyntaxUid = syntax.UidString,
                                     MediaStorageSopInstanceUid = sopInstanceUid.UID,

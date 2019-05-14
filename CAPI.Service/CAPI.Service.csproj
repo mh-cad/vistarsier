@@ -23,6 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
+    <TargetCulture>en-AU</TargetCulture>
     <ApplicationRevision>1</ApplicationRevision>
     <ApplicationVersion>1.0.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
@@ -38,6 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -204,8 +206,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
-    <None Include="ThirdPartyTools\CMTK\fixed.nii" />
-    <None Include="ThirdPartyTools\CMTK\floating.nii" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
@@ -253,25 +253,6 @@
     <Content Include="config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="ThirdPartyTools\ants\antsApplyTransforms.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ThirdPartyTools\ants\antsRegistration.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ThirdPartyTools\ants\N4BiasFieldCorrection.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ThirdPartyTools\brain_suite\bfc.exe" />
-    <Content Include="ThirdPartyTools\brain_suite\bse.exe" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3f-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\libfftw3l-3.dll" />
-    <Content Include="ThirdPartyTools\CMTK\reformatx.exe" />
-    <Content Include="ThirdPartyTools\CMTK\registration.exe" />
-    <Content Include="ThirdPartyTools\dcm2niix.exe" />
-    <Content Include="ThirdPartyTools\img2dcm.exe" />
-    <Content Include="ThirdPartyTools\zlib1.dll" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

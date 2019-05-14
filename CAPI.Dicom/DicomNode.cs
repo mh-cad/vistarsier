@@ -1,6 +1,6 @@
 ﻿using CAPI.Common;
 
-namespace CAPI.Dicom.Model
+namespace CAPI.Dicom
 {
     public class DicomNode : IDicomNode
     {

@@ -13,9 +13,9 @@ namespace CAPI.Tests.NiftiLib
     [TestClass]
     public class ProcessingTests
     {
-        string _minimalNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/minimal.nii";
-        string _lrNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/avg152T1_LR_nifti.nii";
-        string _lrMaskNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/avg152T1_LR_nifti_mask.nii";
+        readonly string _minimalNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/minimal.nii";
+        readonly string _lrNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/avg152T1_LR_nifti.nii";
+        readonly string _lrMaskNiftiPath = $@"{Helper.GetTestResourcesPath()}/nifti/avg152T1_LR_nifti_mask.nii";
 
         [TestMethod]
         public void BiasCorrectionTest()

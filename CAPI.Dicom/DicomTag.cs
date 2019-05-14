@@ -1,7 +1,7 @@
 using System;
 using CAPI.Dicom.Abstractions;
 
-namespace CAPI.Dicom.Model
+namespace CAPI.Dicom
 {
     public class DicomTag : IDicomTag
     {

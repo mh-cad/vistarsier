@@ -15,6 +15,7 @@ using CAPI.NiftiLib;
 using CAPI.MS;
 using System.Drawing;
 using CAPI.Service.Agent.Abstractions;
+using CAPI.Dicom;
 
 namespace CAPI.Service.Agent
 {
@@ -24,16 +25,14 @@ namespace CAPI.Service.Agent
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobProcessor : IJobProcessor
     {
-        private readonly IDicomServices _dicomServices;
         private readonly ILog _log;
         private readonly DbBroker _dbBroker;
 
         private const string ResultsFolderName = "Results";
         private const string ImagesFolderSuffix = "_Images";
 
-        public JobProcessor(IDicomServices dicomServices, DbBroker dbBroker)
+        public JobProcessor(DbBroker dbBroker)
         {
-            _dicomServices = dicomServices;
             _log = Log.GetLogger();
             _dbBroker = dbBroker;
         }
@@ -58,7 +57,7 @@ namespace CAPI.Service.Agent
             var outPriorReslicedNii = outPriorReslicedDicom + ".nii";
 
             var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
-            var patientId = _dicomServices.GetPatientIdFromDicomFile(dicomFilePath);
+            var patientId = DicomFileOps.GetPatientIdFromDicomFile(dicomFilePath);
             var job = _dbBroker.Jobs.LastOrDefault(j => j.PatientId == patientId);
 
 
@@ -215,7 +214,7 @@ namespace CAPI.Service.Agent
             var referenceForFutureProcessesDicomFolder = refStudyExists ? referenceDicomFolder : currentDicomFolder;
 
             var dicomFilePath = Directory.GetFiles(referenceForFutureProcessesDicomFolder).FirstOrDefault();
-            var dicomFileHeaders = _dicomServices.GetDicomTags(dicomFilePath);
+            var dicomFileHeaders = DicomFileOps.GetDicomTags(dicomFilePath);
             refStudyUId = dicomFileHeaders.StudyInstanceUid.Values[0];
             refSeriesUid = dicomFileHeaders.SeriesInstanceUid.Values[0];
         }
@@ -243,17 +242,17 @@ namespace CAPI.Service.Agent
                 (!Directory.Exists(orientationDicomFolder) || Directory.GetFiles(orientationDicomFolder).Length == 0))
                 throw new FileNotFoundException($"Orientation dicom folder contains no files: [{orientationDicomFolder}]");
 
-            var dicomTags = _dicomServices.GetDicomTags(dicomFiles.FirstOrDefault());
+            var dicomTags = DicomFileOps.GetDicomTags(dicomFiles.FirstOrDefault());
             dicomTags.SeriesDescription.Values = new[] { seriesDescription };
 
-            _dicomServices.UpdateSeriesHeadersForAllFiles(dicomFiles.ToArray(), dicomTags);
+            DicomFileOps.UpdateSeriesHeadersForAllFiles(dicomFiles.ToArray(), dicomTags);
             if (!string.IsNullOrEmpty(orientationDicomFolder))
-                _dicomServices.UpdateImagePositionFromReferenceSeries(dicomFiles.ToArray(), orientationDicomFiles);
+                DicomFileOps.UpdateImagePositionFromReferenceSeries(dicomFiles.ToArray(), orientationDicomFiles);
         }
 
         private string GetStudyDateFromDicomFile(string dicomFile)
         {
-            var headers = _dicomServices.GetDicomTags(dicomFile);
+            var headers = DicomFileOps.GetDicomTags(dicomFile);
             var studyDateVal = headers.StudyDate.Values[0];
             var year = studyDateVal.Substring(0, 4);
             var month = studyDateVal.Substring(4, 2);
@@ -266,7 +265,7 @@ namespace CAPI.Service.Agent
         {
             var dicomSliceType = GetDicomSliceType(sliceType);
 
-            _dicomServices.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType,
+            DicomFileOps.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType,
                                               sourceDicomFolder, matchWithFileNames);
 
             UpdateSeriesDescriptionForAllFiles(outDicomFolder, seriesDescription);
@@ -282,7 +281,7 @@ namespace CAPI.Service.Agent
             ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomFolderForReadingHeaders, sliceType, overlayText);
 
             if (!string.IsNullOrEmpty(referenceDicomFolder) && Directory.Exists(referenceDicomFolder) && Directory.GetFiles(referenceDicomFolder).Length > 0)
-                _dicomServices.UpdateImagePositionFromReferenceSeries(Directory.GetFiles(outDicomFolder), Directory.GetFiles(referenceDicomFolder));
+                DicomFileOps.UpdateImagePositionFromReferenceSeries(Directory.GetFiles(outDicomFolder), Directory.GetFiles(referenceDicomFolder));
 
             //if (!string.IsNullOrEmpty(lookupTableFilePath) &&
             //    File.Exists(lookupTableFilePath))

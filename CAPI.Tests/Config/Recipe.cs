@@ -8,21 +8,17 @@ namespace CAPI.Tests.Agent
     [TestClass]
     public class Recipe
     {
-        private string _testResourcesPath;
-        private string _defaultRecipePath;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            _testResourcesPath = Helper.GetTestResourcesPath();
-            _defaultRecipePath = $@"{_testResourcesPath}\DefaultRecipe.recipe.json";
         }
 
         [TestMethod]
         public void GetDefaultRecipe()
         {
             // Arrange
-            var recipeText = File.ReadAllText(_defaultRecipePath);
+            var recipeText = File.ReadAllText(CapiConfig.GenerateDefault().DefaultRecipePath);
 
             // Act
             var recipe = JsonConvert.DeserializeObject<Recipe>(recipeText);
