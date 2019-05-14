@@ -125,6 +125,7 @@ namespace CAPI.Tests.NiftiLib
         public void ToolsTest()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) Assert.Inconclusive("Currently uses Windows Binaries");
+            // TODO :: Need DICOM test data thats open source and not private. Could make one.
         }
 
         private void TestForChanges(Func<string, DataReceivedEventHandler, string> func, Func<INifti, DataReceivedEventHandler, INifti> funcNii, string niftiPath)
