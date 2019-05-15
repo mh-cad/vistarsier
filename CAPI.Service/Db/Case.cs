@@ -13,14 +13,11 @@ namespace CAPI.Service.Db
         public string Comment { get; set; }
         public AdditionMethod AdditionMethod { get; set; }
 
-        public static void Process(Recipe recipe,
-                                   CapiConfig capiConfig, ILog log, DbBroker context)
+        public static void Process(Recipe recipe, DbBroker context)
         {
-            var dicomServices = new DicomServices();
-            var job = new JobBuilder(dicomServices,
-                                     new ValueComparer(),
-                                     capiConfig, log, context)
-                      .Build(recipe);
+            //var remoteNode = if capiConfig.DicomConfig.RemoteNodes.Find((dn) => dn.AeTitle.ToUpper().Equals(recipe.
+
+            var job = new JobBuilder(new ValueComparer(), context).Build(recipe);
             job.Process();
         }
     }

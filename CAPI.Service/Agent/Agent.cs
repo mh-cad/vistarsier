@@ -171,7 +171,7 @@ namespace CAPI.Service.Agent
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
                 SetCaseStatus(@case, "Processing");
 
-                Case.Process(recipe, Config, _log, _context);
+                Case.Process(recipe, _context);
 
                 _log.Info(
                     $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
@@ -337,6 +337,7 @@ namespace CAPI.Service.Agent
                 throw;
             }
         }
+
         private void SetCaseStatus(ICase @case, string status)
         {
             @case.Status = status;

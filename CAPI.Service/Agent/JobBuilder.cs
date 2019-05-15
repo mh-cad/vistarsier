@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CAPI.Common;
+using CAPI.Dicom;
 
 namespace CAPI.Service.Agent
 {
@@ -23,11 +24,11 @@ namespace CAPI.Service.Agent
         private const string Results = "Results";
         private const string PriorResliced = "PriorResliced";
 
-        private readonly IDicomServices _dicomServices;
         private readonly IValueComparer _valueComparer;
-        private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
-        private DbBroker _context;
+        private readonly CapiConfig _capiConfig;
+        private readonly DbBroker _context;
+        private IDicomService _dicomSource;
 
         /// <summary>
         /// Constructor
@@ -40,15 +41,14 @@ namespace CAPI.Service.Agent
         /// <param name="capiConfig">CAPI configuration</param>
         /// <param name="log">Log4Net logger</param>
         /// <param name="context">Agent Repository (DbContext) to communicate data with database</param>
-        public JobBuilder(IDicomServices dicomServices,
-                          IValueComparer valueComparer,
-                          CapiConfig capiConfig, ILog log, DbBroker context)
+        public JobBuilder(IValueComparer valueComparer, DbBroker context)
         {
-            _dicomServices = dicomServices;
             _valueComparer = valueComparer;
-            _capiConfig = capiConfig;
-            _log = log;
+            _log = Log.GetLogger();
             _context = context;
+
+            _capiConfig = CapiConfig.GetConfig();
+
         }
 
         /// <summary>
@@ -58,12 +58,14 @@ namespace CAPI.Service.Agent
         /// <returns></returns>
         public IJob Build(Recipe recipe)
         {
+            // Setup out dicom service.
             GetLocalAndRemoteNodes(recipe.SourceAet, out var localNode, out var sourceNode);
+            _dicomSource = new DicomService(localNode, sourceNode);
 
-            var patientId = GetPatientIdFromRecipe(recipe, localNode, sourceNode);
+            var patientId = GetPatientIdFromRecipe(recipe);
 
             var allStudiesForPatient = GetDicomStudiesForPatient(patientId,
-                recipe.PatientFullName, recipe.PatientBirthDate, localNode, sourceNode)
+                recipe.PatientFullName, recipe.PatientBirthDate)
                     .OrderByDescending(s => s.StudyDate).ToList();
 
             if (allStudiesForPatient.Count < 1)
@@ -74,12 +76,12 @@ namespace CAPI.Service.Agent
 
             // Find Current Study (Fixed)
             _log.Info("Finding current series using recipe provided...");
-            var currentDicomStudy = GetCurrentDicomStudy(recipe, localNode, sourceNode, allStudiesForPatient);
+            var currentDicomStudy = GetCurrentDicomStudy(recipe, allStudiesForPatient);
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
-            var job = new Job(recipe, _dicomServices, _capiConfig);
+            var job = new Job(recipe);
             var imageRepositoryPath = _capiConfig.ImagePaths.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
             var accession = job.CurrentAccession;
@@ -94,7 +96,7 @@ namespace CAPI.Service.Agent
             // Find Prior Study (Floating)
             _log.Info("Finding prior series using recipe provided...");
             var priorDicomStudy =
-                GetPriorDicomStudy(recipe, studyFixedIndex, localNode, sourceNode, allStudiesForPatient);
+                GetPriorDicomStudy(recipe, studyFixedIndex, allStudiesForPatient);
 
             if (priorDicomStudy == null)
                 throw new DirectoryNotFoundException("No prior workable series were found");
@@ -108,7 +110,7 @@ namespace CAPI.Service.Agent
             try
             {
                 job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                                currentDicomStudy, job.ProcessingFolder, Current, localNode, sourceNode);
+                                currentDicomStudy, job.ProcessingFolder, Current);
             }
             catch (Exception ex)
             {
@@ -121,7 +123,7 @@ namespace CAPI.Service.Agent
             try
             {
                 job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                    priorDicomStudy, job.ProcessingFolder, Prior, localNode, sourceNode);
+                    priorDicomStudy, job.ProcessingFolder, Prior);
             }
             catch (Exception ex)
             {
@@ -134,13 +136,12 @@ namespace CAPI.Service.Agent
 
             // Get Registration Data for patient if exists in database
             job.ReferenceSeriesDicomFolder =
-                GetReferenceSeriesForRegistration(job, allStudiesForPatient, localNode, sourceNode);
+                GetReferenceSeriesForRegistration(job, allStudiesForPatient);
 
             return job;
         }
 
-        private string GetReferenceSeriesForRegistration(IJob job, IEnumerable<IDicomStudy> allStudiesForPatient,
-                                                         IDicomNode localNode, IDicomNode sourceNode)
+        private string GetReferenceSeriesForRegistration(IJob job, IEnumerable<IDicomStudy> allStudiesForPatient)
         {
             var studiesForPatient = allStudiesForPatient.ToList();
 
@@ -157,7 +158,7 @@ namespace CAPI.Service.Agent
                 _log.Error($"Failed to find reference study to register series against StudyInstanceUid: [{studyId}]");
                 return string.Empty;
             }
-            var allSeries = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid, localNode, sourceNode);
+            var allSeries = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
             var matchingSeries = allSeries.FirstOrDefault(s => s.SeriesInstanceUid == seriesId);
             if (matchingSeries == null)
             {
@@ -169,7 +170,7 @@ namespace CAPI.Service.Agent
             string referenceFolderPath;
             try
             {
-                referenceFolderPath = SaveDicomFilesToFilesystem(study, job.ProcessingFolder, Reference, localNode, sourceNode);
+                referenceFolderPath = SaveDicomFilesToFilesystem(study, job.ProcessingFolder, Reference);
             }
             catch (Exception ex)
             {
@@ -222,7 +223,7 @@ namespace CAPI.Service.Agent
 
             try
             {
-                _dicomServices.CheckRemoteNodeAvailability(localNode, sourceNode);
+                _dicomSource.CheckRemoteNodeAvailability();
             }
             catch (Exception ex)
             {
@@ -234,13 +235,13 @@ namespace CAPI.Service.Agent
 
         private string SaveDicomFilesToFilesystem(
                                                   IDicomStudy dicomStudy, string jobProcessingFolder,
-                                                  string studyName, IDicomNode localNode, IDicomNode sourceNode)
+                                                  string studyName)
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
             var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
 
-            _dicomServices.SaveSeriesToLocalDisk(series, folderPath, localNode, sourceNode);
+            _dicomSource.SaveSeriesToLocalDisk(series, folderPath);
 
             CopyDicomFilesToRootFolder(folderPath);
 
@@ -265,35 +266,30 @@ namespace CAPI.Service.Agent
             Directory.Delete(studyFolderPath, true);
         }
 
-        private IDicomStudy GetCurrentDicomStudy(
-                                                 Recipe recipe, IDicomNode localNode, IDicomNode sourceNode,
-                                                 IEnumerable<IDicomStudy> allStudiesForPatient)
+        private IDicomStudy GetCurrentDicomStudy(Recipe recipe, IEnumerable<IDicomStudy> allStudiesForPatient)
         {
             var currentDicomStudy =
                 string.IsNullOrEmpty(recipe.CurrentAccession)
-                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1, localNode, sourceNode)
+                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1)
                 : FindStudyMatchingAccession(allStudiesForPatient, recipe.CurrentAccession);
 
             currentDicomStudy = AddMatchingSeriesToStudy(
-                currentDicomStudy, recipe.CurrentSeriesCriteria, localNode, sourceNode);
+                currentDicomStudy, recipe.CurrentSeriesCriteria);
 
             return currentDicomStudy;
         }
 
         private IDicomStudy GetPriorDicomStudy(
                                                Recipe recipe, int studyFixedIndex,
-                                               IDicomNode localNode, IDicomNode sourceNode,
                                                IEnumerable<IDicomStudy> allStudiesForPatient)
         {
             var floatingSeriesBundle =
                 string.IsNullOrEmpty(recipe.PriorAccession)
-                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria,
-                        studyFixedIndex, localNode, sourceNode)
+                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria, studyFixedIndex)
                     : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorAccession);
 
             if (floatingSeriesBundle != null)
-                floatingSeriesBundle = AddMatchingSeriesToStudy(
-                    floatingSeriesBundle, recipe.PriorSeriesCriteria, localNode, sourceNode);
+                floatingSeriesBundle = AddMatchingSeriesToStudy(floatingSeriesBundle, recipe.PriorSeriesCriteria);
 
             return floatingSeriesBundle;
         }
@@ -305,20 +301,19 @@ namespace CAPI.Service.Agent
         /// <param name="localNode"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private string GetPatientIdFromRecipe(IRecipe recipe, IDicomNode localNode, IDicomNode sourceNode)
+        private string GetPatientIdFromRecipe(IRecipe recipe)
         {
             if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
             if (!string.IsNullOrEmpty(recipe.PatientFullName)
                 && !string.IsNullOrEmpty(recipe.PatientBirthDate))
-                return _dicomServices.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate,
-                    localNode, sourceNode).PatientId;
+                return _dicomSource.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate).PatientId;
 
             if (string.IsNullOrEmpty(recipe.CurrentAccession))
                 throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
 
             try
             {
-                var study = _dicomServices.GetStudyForAccession(recipe.CurrentAccession, localNode, sourceNode);
+                var study = _dicomSource.GetStudyForAccession(recipe.CurrentAccession);
                 return study.PatientId;
             }
             catch
@@ -339,14 +334,13 @@ namespace CAPI.Service.Agent
         /// <param name="sourceNode">Dicom archive where studies reside</param>
         /// <returns></returns>
         private IEnumerable<IDicomStudy> GetDicomStudiesForPatient(
-                                                                   string patientId, string patientFullName, string patientBirthDate,
-                                                                   IDicomNode localNode, IDicomNode sourceNode)
+            string patientId, string patientFullName, string patientBirthDate)
         {
             var patientIdIsProvided = !string.IsNullOrEmpty(patientId) && !string.IsNullOrWhiteSpace(patientId);
 
             return patientIdIsProvided ?
-                _dicomServices.GetStudiesForPatientId(patientId, localNode, sourceNode) :
-                _dicomServices.GetStudiesForPatient(patientFullName, patientBirthDate, localNode, sourceNode);
+                _dicomSource.GetStudiesForPatientId(patientId) :
+                _dicomSource.GetStudiesForPatient(patientFullName, patientBirthDate);
         }
 
         /// <summary>
@@ -362,7 +356,7 @@ namespace CAPI.Service.Agent
         /// <returns></returns>
         private IDicomStudy FindStudyMatchingCriteria(
                                                       IEnumerable<IDicomStudy> studies, IEnumerable<ISeriesSelectionCriteria> criteria,
-                                                      int referenceStudyIndex, IDicomNode localNode, IDicomNode sourceNode)
+                                                      int referenceStudyIndex)
         {
             var allStudies = studies as IList<IDicomStudy> ?? studies.ToList();
             var seriesSelectionCriteria = criteria as IList<ISeriesSelectionCriteria> ?? criteria.ToList();
@@ -374,8 +368,7 @@ namespace CAPI.Service.Agent
                     GetStudiesMatchingStudyDetails(studiesMatchingDateCriteria, seriesSelectionCriteria);
 
             var studiesContainingMatchingSeries =
-                GetStudiesContainingMatchingSeries(studiesMatchingStudyDetails, seriesSelectionCriteria,
-                localNode, sourceNode).ToList();
+                GetStudiesContainingMatchingSeries(studiesMatchingStudyDetails, seriesSelectionCriteria).ToList();
 
             var matchedStudies = GetStudiesMatchingOtherCriteria(studiesContainingMatchingSeries, seriesSelectionCriteria).ToList();
 
@@ -423,16 +416,14 @@ namespace CAPI.Service.Agent
         /// <param name="sourceNode"></param>
         /// <returns></returns>
         private IEnumerable<IDicomStudy> GetStudiesContainingMatchingSeries(
-            IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria,
-            IDicomNode localNode, IDicomNode sourceNode)
+            IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria)
         {
             return studies
                 .Where(study =>
                 {
                     return criteria.All(criterion =>
                     {
-                        var seriesList = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid,
-                            localNode, sourceNode);
+                        var seriesList = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
                         var matchingSeries = seriesList.Where(series =>
                             _valueComparer.CompareStrings(
                                 series.SeriesDescription, criterion.SeriesDescription,
@@ -549,10 +540,9 @@ namespace CAPI.Service.Agent
         /// <param name="sourceNode"></param>
         /// <returns></returns>
         private IDicomStudy AddMatchingSeriesToStudy(
-            IDicomStudy study, IEnumerable<ISeriesSelectionCriteria> criteria,
-            IDicomNode localNode, IDicomNode sourceNode)
+            IDicomStudy study, IEnumerable<ISeriesSelectionCriteria> criteria)
         {
-            var allSeries = _dicomServices.GetSeriesForStudy(study.StudyInstanceUid, localNode, sourceNode);
+            var allSeries = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
             var criterion = criteria.FirstOrDefault(c => !string.IsNullOrEmpty(c.SeriesDescription));
 
             if (criterion == null)
