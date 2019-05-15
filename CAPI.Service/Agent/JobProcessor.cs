@@ -245,7 +245,7 @@ namespace CAPI.Service.Agent
             var dicomTags = DicomFileOps.GetDicomTags(dicomFiles.FirstOrDefault());
             dicomTags.SeriesDescription.Values = new[] { seriesDescription };
 
-            DicomFileOps.UpdateSeriesHeadersForAllFiles(dicomFiles.ToArray(), dicomTags);
+            DicomFileOps.GenerateSeriesHeaderForAllFiles(dicomFiles.ToArray(), dicomTags);
             if (!string.IsNullOrEmpty(orientationDicomFolder))
                 DicomFileOps.UpdateImagePositionFromReferenceSeries(dicomFiles.ToArray(), orientationDicomFiles);
         }

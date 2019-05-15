@@ -10,13 +10,13 @@ using System.IO;
 using System.Linq;
 using SliceType = CAPI.NiftiLib.SliceType;
 using CAPI.Service.Agent;
+using CAPI.Dicom;
 
 namespace CAPI.Service.Db
 {
     public class Job : IJob
     {
         private readonly Recipe _recipe;
-        private readonly IDicomServices _dicomServices;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
@@ -56,13 +56,10 @@ namespace CAPI.Service.Db
         // Needed for EntityFramework
         public Job() { }
 
-        public Job(Recipe recipe,
-                   IDicomServices dicomServices,
-                   CapiConfig capiConfig)
+        public Job(Recipe recipe)
         {
             _recipe = recipe;
-            _dicomServices = dicomServices;
-            _capiConfig = capiConfig;
+            _capiConfig = CapiConfig.GetConfig();
             _log = Log.GetLogger();
 
             SourceAet = recipe.SourceAet;
@@ -227,20 +224,22 @@ namespace CAPI.Service.Db
                 if (remoteNode == null)
                     throw new Exception($"Remote node not found in config file [{dicomDestination}]");
 
+                var dicomServices = new DicomService(localNode, remoteNode);
+
                 _log.Info($"Establishing connection to AET [{remoteNode.AeTitle}]...");
-                _dicomServices.CheckRemoteNodeAvailability(localNode, remoteNode);
+                dicomServices.CheckRemoteNodeAvailability();
 
                 _log.Info($"Sending results to AET [{remoteNode.AeTitle}]...");
                 foreach (var result in Results)
                 {
                     var resultDicomFiles = Directory.GetFiles(result.DicomFolderPath);
-                    _dicomServices.SendDicomFiles(resultDicomFiles, localNode.AeTitle, remoteNode);
+                    dicomServices.SendDicomFiles(resultDicomFiles);
                 }
                 _log.Info($"Finished sending results to AET [{remoteNode.AeTitle}]");
 
                 _log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
                 var priorReslicedDicomFiles = Directory.GetFiles(PriorReslicedSeriesDicomFolder);
-                _dicomServices.SendDicomFiles(priorReslicedDicomFiles, localNode.AeTitle, remoteNode);
+                dicomServices.SendDicomFiles(priorReslicedDicomFiles);
                 _log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
             }
         }

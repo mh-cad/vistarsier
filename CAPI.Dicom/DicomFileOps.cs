@@ -76,7 +76,7 @@ namespace CAPI.Dicom
         /// </summary>
         /// <param name="filesPath">List of files to apply the tags to.</param>
         /// <param name="tags">The tags which you'd like to apply to the above files.</param>
-        public static void UpdateSeriesHeadersForAllFiles(string[] filesPath, IDicomTagCollection tags)
+        public static void GenerateSeriesHeaderForAllFiles(string[] filesPath, IDicomTagCollection tags)
         {
             tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid() };
             tags.ImageUid.Values = new[] { GenerateNewImageUid() };
@@ -104,7 +104,7 @@ namespace CAPI.Dicom
             ClearCanvas.Dicom.DicomFile dcmFile, IDicomTag newTag, bool overwriteIfNotProvided = false)
         {
             if (newTag.Values == null && !overwriteIfNotProvided) return dcmFile;
-            var value = newTag.Values != null ? newTag.Values[0] : "";
+            var value = newTag.Values != null && newTag.Values.Length > 0 ? newTag.Values[0] : "";
 
             return UpdateTag(dcmFile, newTag, value);
         }
@@ -162,6 +162,7 @@ namespace CAPI.Dicom
 
         public static string GenerateNewStudyUid()
         {
+            // By the looks, this prefix is assigned from https://www.medicalconnections.co.uk/FreeUID. I assume for us. -P@
             return $"1.2.826.0.1.3680043.9.7303.1.1.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
         public static string GenerateNewSeriesUid()
@@ -173,7 +174,7 @@ namespace CAPI.Dicom
             return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
         }
 
-        public static void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder = "", bool matchByFilename = false)
+        public static void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder, bool matchByFilename = false)
         {
             FileSystem.DirectoryExistsIfNotCreate(dicomFolder);
 
@@ -270,7 +271,7 @@ namespace CAPI.Dicom
             var newFilePath = Path.Combine(dicomFolderPath, newFileName ?? throw new ArgumentNullException(nameof(newFileName)));
 
             ConvertBmpToDicom(bmpFilePath, newFilePath, dicomFileHighestInstanceNo);
-            var newFileInstanceNumber = headers.InstanceNumber.Values == null ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
+            var newFileInstanceNumber = headers.InstanceNumber.Values == null || headers.InstanceNumber.Values.Length < 1 ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
             headers.InstanceNumber.Values = new[] { newFileInstanceNumber.ToString() };
             UpdateDicomHeaders(newFilePath, headers, DicomNewObjectType.NewImage);
         }
@@ -292,10 +293,22 @@ namespace CAPI.Dicom
                 throw new Exception("Number of files in \"Orientation dicom\" folder and \"Dicom Files to Update\" do not match");
 
             var orderedFilesToUpdate = dicomFilesToUpdate
-                .OrderBy(f => GetDicomTags(f).InstanceNumber.Values[0]).ToArray();
+                .OrderBy((f) =>
+                {
+                    var vals = GetDicomTags(f).InstanceNumber.Values;
+                    return vals != null && vals.Length > 0 ?
+                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                        : 0;
+                }).ToArray();
 
             var orderedOrientationFiles = orientationDicomFiles
-                .OrderBy(f => GetDicomTags(f).InstanceNumber.Values[0]).ToArray();
+                .OrderBy((f) =>
+                {
+                    var vals = GetDicomTags(f).InstanceNumber.Values;
+                    return vals != null && vals.Length > 0 ?
+                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                        : 0;
+                }).ToArray();
 
             for (var i = 0; i < orderedFilesToUpdate.Count(); i++)
             {
@@ -320,25 +333,40 @@ namespace CAPI.Dicom
         private static string GetDicomFileWithHighestInstanceNumber(string dicomFolderPath)
         {
             var dicomFiles = Directory.GetFiles(dicomFolderPath);
-            return dicomFiles.OrderByDescending(f =>
-                    GetDicomTags(f).InstanceNumber.Values != null ?
-                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
-                        : 0)
-                    .FirstOrDefault();
+            return dicomFiles.OrderByDescending((f) =>
+            {
+                var vals = GetDicomTags(f).InstanceNumber.Values;
+                return vals != null && vals.Length > 0 ?
+                    int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                    : 0;
+            }).FirstOrDefault();
         }
         private static string GetDicomFileWithLowestInstanceNumber(string dicomFolderPath)
         {
             var dicomFiles = Directory.GetFiles(dicomFolderPath);
-            return dicomFiles.OrderBy(f =>
-                    GetDicomTags(f).InstanceNumber.Values != null ?
-                        int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
-                        : 0)
-                .FirstOrDefault();
+            
+            return dicomFiles.OrderBy((f) =>
+            {
+                var vals = GetDicomTags(f).InstanceNumber.Values;
+                return vals != null && vals.Length > 0 ?
+                    int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
+                    : 0;
+            }).FirstOrDefault();
         }
 
         private static IEnumerable<string> GetFilesOrderedByInstanceNumber(IEnumerable<string> files)
         {
-            return files.OrderBy(f => Convert.ToInt32(GetDicomTags(f).InstanceNumber.Values[0])).ToList();
+            return files.OrderBy((f) =>
+            {
+                var tags = GetDicomTags(f);
+                if (tags.InstanceNumber?.Values?.Length > 0)
+                {
+                    return Convert.ToInt32(tags.InstanceNumber.Values[0]);
+                }
+
+                return int.MaxValue;
+                
+            }).ToList();
         }
     }
 }
