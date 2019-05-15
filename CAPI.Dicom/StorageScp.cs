@@ -349,7 +349,7 @@ namespace CAPI.Dicom
 
             String studyInstanceUid = null;
             String seriesInstanceUid = null;
-            DicomUid sopInstanceUid;
+            DicomUid sopInstanceUid = null;
             String patientName = null;
 
             bool ok = message.DataSet[DicomTags.SopInstanceUid].TryGetUid(0, out sopInstanceUid);
