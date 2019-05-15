@@ -67,6 +67,7 @@ Souce code: https://clearcanvas.github.io/
 
 ## ANTs
 Advanced normalisation tools.
+
 Source code: http://stnava.github.io/ANTs/
 
 ## Brain Suite
@@ -108,7 +109,7 @@ CMTK dcm2niix tool - part of MRIcroGL package
 - https://www.nitrc.org/frs/download.php/10900/mricrogl_windows.zip
 - version 1.0.20180328
 
-Source code: dcm2niix
+Source code: https://github.com/rordenlab/dcm2niix
 
 ## img2dcm
 
