@@ -7,6 +7,7 @@
 + [CAPI.Extensions](#CAPIExtensions)
 + [CAPI.MS](#CAPIMS)
 + [CAPI.NiftiLib](#CAPINiftiLib)
++ [CAPI.Service](#CAPIService)
 + [CAPI.Tests](#CAPITests)
 
 ## CAPI Dependencies
@@ -49,6 +50,9 @@ This module contains helper methods for `FileSystem` functions such as _Checking
 
 ## CAPI.NiftiLib
 Library which includes NIfTI file interfaces and functions for processing NIfTI objects.
+
+## CAPI.Service
+Main Windows service for running CAPI as part of a PACs system. 
 
 ## CAPI.Tests
 Unit test suite. Can always do with extending...
