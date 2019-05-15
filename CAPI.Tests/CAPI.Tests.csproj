@@ -134,8 +134,9 @@
     <Compile Include="Config\Recipe.cs" />
     <Compile Include="Agent\JobProcessorTest.cs" />
     <Compile Include="Config\ConfigTests.cs" />
-    <Compile Include="Dicom\DicomServicesTest.cs" />
     <Compile Include="Common\FileSystem.cs" />
+    <Compile Include="Dicom\DicomFilesTest.cs" />
+    <Compile Include="Dicom\DicomServiceTest.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="NiftiLib\ProcessingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -201,7 +202,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\test.bmp">
+    <Content Include="Resources\bmp\test.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

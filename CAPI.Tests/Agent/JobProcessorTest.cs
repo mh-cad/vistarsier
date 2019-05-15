@@ -15,13 +15,12 @@ namespace CAPI.Tests.Agent
     {
         private string _testResourcesPath;
         private string _tmpFolder;
-        private IDicomServices _dicomServices;
 
         [TestInitialize]
         public void TestInitialize()
         {
             _testResourcesPath = Helper.GetTestResourcesPath();
-            _dicomServices = new DicomServices();
+           // _dicomServices = new DicomServices();
             
 
             _tmpFolder = $@"{_testResourcesPath}\TempFolder";
@@ -33,7 +32,7 @@ namespace CAPI.Tests.Agent
         public void AddOverLay()
         {
             // Arrange
-            var filepath = Path.Combine(_testResourcesPath,"test.bmp");
+            var filepath = Path.Combine(_testResourcesPath, "bmp", "test.bmp");
             var newFilePath = Path.Combine(_tmpFolder, "test.bmp");
             File.Copy(filepath, newFilePath);
             var overlayText = $"CAPI - Prior re-sliced ({DateTime.Today:dd/MM/yyyy})";
