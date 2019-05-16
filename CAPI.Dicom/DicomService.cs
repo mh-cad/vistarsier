@@ -13,12 +13,12 @@ using System.Linq;
 
 namespace CAPI.Dicom
 {
-    public class DicomServices : IDicomServices
+    public class DicomService : IDicomService
     {
         public readonly IDicomNode LocalNode;
         public readonly IDicomNode RemoteNode;
 
-        public DicomServices(IDicomNode localNode, IDicomNode remoteNode)
+        public DicomService(IDicomNode localNode, IDicomNode remoteNode)
         {
             LocalNode = localNode;
             RemoteNode = remoteNode;

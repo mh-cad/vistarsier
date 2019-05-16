@@ -64,24 +64,24 @@ namespace CAPI.Tests.Dicom
             return JsonConvert.DeserializeObject<Recipe>(recipeText);
         }
 
-        private static IDicomServices GetSource()
+        private static IDicomService GetSource()
         {
             var config = CapiConfig.GetConfig().DicomConfig;
             var source = GetDefaultRecipe().SourceAet;
             var remoteNode = config.RemoteNodes.Find((node) => node.AeTitle.ToUpper().Equals(source.ToUpper()));
             if (remoteNode == null) remoteNode = config.RemoteNodes[0];
 
-            return new DicomServices(config.LocalNode, remoteNode);
+            return new DicomService(config.LocalNode, remoteNode);
         }
 
-        private static IDicomServices GetDest()
+        private static IDicomService GetDest()
         {
             var config = CapiConfig.GetConfig().DicomConfig;
             var source = GetDefaultRecipe().DicomDestinations[0];
             var remoteNode = config.RemoteNodes.Find((node) => node.AeTitle.ToUpper().Equals(source.ToUpper()));
             if (remoteNode == null) remoteNode = config.RemoteNodes[0];
 
-            return new DicomServices(config.LocalNode, remoteNode);
+            return new DicomService(config.LocalNode, remoteNode);
         }
     }
 }
