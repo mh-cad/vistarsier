@@ -49,6 +49,7 @@ namespace CAPI.Config
         {
             return new CapiConfig
             {
+                AgentDbConnectionString = "Server=;Database=Capi;User Id=;Password=;Connection Timeout=120",
                 Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "3rdparty_bin/")),
                 DicomConfig = new DicomConfig(),
                 ImagePaths = new ImagePaths(),

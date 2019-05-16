@@ -63,12 +63,12 @@
     <Compile Include="Abstractions\IDicomImage.cs" />
     <Compile Include="Abstractions\IDicomPatient.cs" />
     <Compile Include="Abstractions\IDicomSeries.cs" />
-    <Compile Include="Abstractions\IDicomServices.cs" />
+    <Compile Include="Abstractions\IDicomService.cs" />
     <Compile Include="Abstractions\IDicomStudy.cs" />
     <Compile Include="Abstractions\IDicomTag.cs" />
     <Compile Include="Abstractions\IDicomTagCollection.cs" />
     <Compile Include="DicomNode.cs" />
-    <Compile Include="DicomServices.cs" />
+    <Compile Include="DicomService.cs" />
     <Compile Include="DicomTag.cs" />
     <Compile Include="DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

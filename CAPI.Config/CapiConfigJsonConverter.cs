@@ -25,7 +25,7 @@ namespace CAPI.Config
             if (jsonToken["DicomConfig"] != null) HandleDicomConf(conf, jsonToken["DicomConfig"]);
             if (jsonToken["Hl7ProcessPath"] != null) conf.Hl7ProcessPath = jsonToken["Hl7ProcessPath"].ToString();
             if (jsonToken["ProcessCasesAddedByHL7"] != null) conf.ProcessCasesAddedByHL7 = jsonToken["ProcessCasesAddedByHL7"].ToObject<bool>();
-            if (jsonToken["ManualProcessPath"] != null) conf.DefaultRecipePath = jsonToken["ManualProcessPath"].ToString();
+            if (jsonToken["ManualProcessPath"] != null) conf.ManualProcessPath = jsonToken["ManualProcessPath"].ToString();
             if (jsonToken["ProcessCasesAddedManually"] != null) conf.ProcessCasesAddedManually = jsonToken["ProcessCasesAddedManually"].ToObject<bool>();
             if (jsonToken["RunInterval"] != null) conf.RunInterval = jsonToken["RunInterval"].ToString();
             if (jsonToken["ImagePaths"] != null) conf.ImagePaths = jsonToken["ImagePaths"].ToObject<ImagePaths>();
@@ -50,6 +50,13 @@ namespace CAPI.Config
                 serializer.Formatting = Formatting.Indented;
                 writer.Formatting = Formatting.Indented;
                 writer.WriteStartObject();
+
+                writer.WriteComment("String used to connect to the database.");
+                writer.WriteWhitespace(System.Environment.NewLine);
+                writer.WritePropertyName("AgentDbConnectionString");
+                serializer.Serialize(writer, conf.AgentDbConnectionString);
+                writer.WriteWhitespace(System.Environment.NewLine);
+                writer.WriteWhitespace(System.Environment.NewLine);
 
                 writer.WriteComment("These are the paths to binary tools used by CAPI. They shouldn't need changing unless you have your own versions.");
                 writer.WriteWhitespace(System.Environment.NewLine);
