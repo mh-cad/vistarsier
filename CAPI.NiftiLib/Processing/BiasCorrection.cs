@@ -12,7 +12,7 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="input">The input nifti to be corrected</param>
         /// <param name="updates">Event handler for updates from the process</param>
         /// <returns>New, corrected nifti</returns>
-        public static INifti AntsN4(INifti input, DataReceivedEventHandler updates = null)
+        public static INifti<float> AntsN4(INifti<float> input, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + input.GetHashCode() + ".antsN4.in.nii";
@@ -24,7 +24,7 @@ namespace CAPI.NiftiLib.Processing
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.N4BiasFieldCorrection, args, outputDataReceived: updates);
 
-            INifti output = input.DeepCopy();
+            var output = input.DeepCopy();
             output.ReadNifti(niftiOutPath);
             output.RecalcHeaderMinMax();
 

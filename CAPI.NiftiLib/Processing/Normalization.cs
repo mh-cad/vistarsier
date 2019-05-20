@@ -13,9 +13,9 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="reference">Reference nifti value</param>
         /// <param name="backgroundThreshold">Any values below this threashold will be ignored when calculating the mean and standard deviation.</param>
         /// <returns>Input nifti, now normalised to the reference nifti distribution.</returns>
-        public static INifti ZNormalize(INifti input, INifti reference, float backgroundThreshold = 10)
+        public static INifti<float> ZNormalize(INifti<float> input, INifti<float> reference, float backgroundThreshold = 10)
         {
-            INifti output = input.DeepCopy();
+            dynamic output = input.DeepCopy();
 
             // We take the mean and standard deviation ignoring background.
             var currentMean = input.Voxels.Where(val => val > backgroundThreshold).Mean();

@@ -60,7 +60,6 @@ namespace CAPI.Service.Agent
         {
             // Setup out dicom service.
             GetLocalAndRemoteNodes(recipe.SourceAet, out var localNode, out var sourceNode);
-            _dicomSource = new DicomService(localNode, sourceNode);
 
             var patientId = GetPatientIdFromRecipe(recipe);
 
@@ -223,6 +222,7 @@ namespace CAPI.Service.Agent
 
             try
             {
+                _dicomSource = new DicomService(localNode, sourceNode);
                 _dicomSource.CheckRemoteNodeAvailability();
             }
             catch (Exception ex)

@@ -31,7 +31,7 @@ namespace CAPI.Tests.NiftiLib
         public void ReadNifti()
         {
             // Read the minimal nifti file.
-            var nifti = new Nifti();
+            var nifti = new NiftiFloat32();
             nifti.ReadNifti(_minimalNiftiPath);
 
             // Check that the dimensions are correct.
@@ -39,12 +39,23 @@ namespace CAPI.Tests.NiftiLib
             Assert.AreEqual(height, 64);
             Assert.AreEqual(width, 64);
             Assert.AreEqual(nSlices, 10);
+
+            //// Read the minimal nifti file.
+            //var nifti2 = new NiftiRgb48();
+            //nifti2.ReadNifti(_minimalNiftiPath);
+
+            //// Check that the dimensions are correct.
+            //nifti2.GetDimensions(SliceType.Axial, out var width2, out var height2, out var nSlices2);
+            //Assert.AreEqual(height2, 64);
+            //Assert.AreEqual(width2, 64);
+            //Assert.AreEqual(nSlices2, 10);
+            //Assert.IsFalse(nifti2.Voxels[10] == 0);
         }
 
         [TestMethod]
         public void Reorient()
         {
-            var nifti = new Nifti();
+            var nifti = new NiftiFloat32();
 
             nifti.ReadNifti(_minimalNiftiPath);
             nifti.Reorient(nifti.Header.dim[2], nifti.Header.dim[3], nifti.Header.dim[1]);
@@ -60,7 +71,7 @@ namespace CAPI.Tests.NiftiLib
         public void Write()
         {
             // Read our minimal Nifti file
-            var nifti = new Nifti();
+            var nifti = new NiftiFloat32();
             nifti.ReadNifti(_minimalNiftiPath);
 
             // Write the minimal Nifti file.
@@ -69,7 +80,7 @@ namespace CAPI.Tests.NiftiLib
             Assert.IsTrue(File.Exists(_outfile), "Nifti file does not exist");
 
             // Read our nifti file back in.
-            var nifti2 = new Nifti();
+            var nifti2 = new NiftiFloat32();
             nifti2.ReadNifti(_outfile);
             // Delete the old file.
             File.Delete(_outfile);
@@ -87,7 +98,7 @@ namespace CAPI.Tests.NiftiLib
         // TODO: This is currently unsupported (technically RGBA doesn't seem to be part
         // of the NifTI 1.1 format, so it will throw an error on the datatype
         {
-            var nifti = new Nifti();
+            var nifti = new NiftiFloat32();
             nifti.ReadNifti(_minimalNiftiPath);
             nifti.ConvertHeaderToRgba();
 
@@ -117,7 +128,7 @@ namespace CAPI.Tests.NiftiLib
         public void WriteRgb()
         {
             if (File.Exists(_rgbfile)) File.Delete(_rgbfile);
-            var nifti = new Nifti();
+            var nifti = new NiftiFloat32();
             nifti.ReadNifti(_minimalNiftiPath);
 
             // Read pixdim from sample file
@@ -126,17 +137,13 @@ namespace CAPI.Tests.NiftiLib
             // set dimensions for new file
             nifti.ConvertHeaderToRgb();
 
-            nifti.Header.dim[1] = 160;
-            nifti.Header.dim[2] = 256;
-            nifti.Header.dim[3] = 256;
-
             nifti.Header.cal_min = 0;
             nifti.Header.cal_max = uint.MaxValue * (3 / 4);
 
             // write voxels
-            var voxelsSize = nifti.Header.dim[1] * nifti.Header.dim[2] * nifti.Header.dim[3];
-            var bytepix = nifti.Header.bitpix / 8;
-            nifti.VoxelsBytes = new byte[voxelsSize * bytepix];
+            //var voxelsSize = nifti.Header.dim[1] * nifti.Header.dim[2] * nifti.Header.dim[3];
+            //var bytepix = nifti.Header.bitpix / 8;
+            //nifti.VoxelsBytes = new byte[voxelsSize * bytepix];
 
             const int r = 255;
             const int g = 51;
@@ -145,8 +152,7 @@ namespace CAPI.Tests.NiftiLib
             for (var x = 0; x < nifti.Header.dim[1]; x++)
                 for (var y = 0; y < nifti.Header.dim[2]; y++)
                     for (var z = 0; z < nifti.Header.dim[3]; z++)
-                        if ((x - 128) * (x - 128) + (y - 128) * (y - 128) + (z) * (z) < 60 * 60) // Sphere
-                            nifti.SetPixelRgb(x, y, z, SliceType.Axial, r, g, b);
+                        nifti.SetPixelRgb(x, y, z, SliceType.Axial, r, g, b);
 
             if (File.Exists(_rgbfile)) File.Delete(_rgbfile);
             nifti.WriteNifti(_rgbfile);
@@ -158,9 +164,9 @@ namespace CAPI.Tests.NiftiLib
         [TestMethod]
         public void DeepCopy()
         {
-            var nifti = new Nifti().ReadNifti(_minimalNiftiPath);
+            NiftiFloat32 nifti = (NiftiFloat32)new NiftiFloat32().ReadNifti(_minimalNiftiPath); // TODO <<-- This is a nasty interface
 
-            var niftiB = nifti.DeepCopy();
+            var niftiB = (NiftiFloat32)nifti.DeepCopy();
             // Check voxel copy
             Assert.IsTrue(nifti.Voxels[0] == niftiB.Voxels[0]);
             // Check header copy

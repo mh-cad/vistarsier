@@ -12,7 +12,7 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="input">Nifti which contains the brain to be extracted</param>
         /// <param name="updates">Data handler for updates from the BSE tool.</param>
         /// <returns>The INifti containing the extracted brain.</returns>
-        public static INifti BrainSuiteBSE(INifti input, DataReceivedEventHandler updates = null)
+        public static INifti<float> BrainSuiteBSE(INifti<float> input, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + input.GetHashCode() + ".bse.in.nii";
@@ -24,7 +24,7 @@ namespace CAPI.NiftiLib.Processing
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.bse, args, outputDataReceived: updates);
 
-            INifti output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
+            var output = input.DeepCopy(); // Sometimes this messes with the header and gives us a 4-up???
             output.ReadNifti(niftiOutPath);
 
             return output;
