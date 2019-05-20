@@ -229,7 +229,7 @@ namespace CAPI.Dicom
 
             try
             {
-                StorageScp.StartListening(LocalNode.AeTitle, RemoteNode.Port);
+                StorageScp.StartListening(LocalNode.AeTitle, LocalNode.Port);
 
                 moveScu.Move();
 
