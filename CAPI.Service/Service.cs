@@ -1,4 +1,6 @@
-﻿using CAPI.Service.Agent.Abstractions;
+﻿using CAPI.Common;
+using CAPI.Config;
+using CAPI.Service.Agent.Abstractions;
 using log4net;
 using log4net.Config;
 using System;
@@ -20,12 +22,30 @@ namespace CAPI.Service
 
         protected override void OnStart(string[] args)
         {
+            CheckConfig();
             var log = GetLogger();
             _agent = new Agent.Agent();
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 
             _agent.Run();
+        }
+
+        private void CheckConfig()
+        {
+            var conf = CapiConfig.GetConfig();
+            FileSystem.DirectoryExistsIfNotCreate(conf.ManualProcessPath);
+            FileSystem.DirectoryExistsIfNotCreate(conf.Hl7ProcessPath);
+
+            if (!File.Exists(conf.Binaries.antsRegistration)
+                || !File.Exists(conf.Binaries.antsApplyTransforms)
+                || !File.Exists(conf.Binaries.N4BiasFieldCorrection)
+                || !File.Exists(conf.Binaries.img2dcm)
+                || !File.Exists(conf.Binaries.dcm2niix)
+                || !File.Exists(conf.Binaries.bse))
+            {
+                throw new FileNotFoundException("Could not find one or more essential binaries as referenced in config.json");
+            }
         }
 
         protected override void OnStop()

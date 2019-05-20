@@ -14,7 +14,7 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="reference">Reference nifti</param>
         /// <param name="updates">Event handler for updates from the toolchain...</param>
         /// <returns></returns>
-        public static INifti CMTKRegistration(INifti floating, INifti reference, DataReceivedEventHandler updates = null)
+        public static INifti<float> CMTKRegistration(INifti<float> floating, INifti<float> reference, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.in.nii";
@@ -95,7 +95,7 @@ namespace CAPI.NiftiLib.Processing
             return niftiOutPath;
         }
 
-        public static INifti ANTSRegistration(INifti floating, INifti reference, DataReceivedEventHandler updates = null)
+        public static INifti<float> ANTSRegistration(INifti<float> floating, INifti<float> reference, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + floating.GetHashCode() + ".antsrego.in.nii";

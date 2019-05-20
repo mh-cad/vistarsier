@@ -13,9 +13,9 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="input">Current example</param>
         /// <param name="reference">Prior example</param>
         /// <returns>Nifti who's values are the meaningful increase between prior and current.</returns>
-        public static INifti CompareMSLesionIncrease(INifti input, INifti reference)
+        public static INifti<float> CompareMSLesionIncrease(INifti<float> input, INifti<float> reference)
         {
-            INifti output = CompareMSLesion(input, reference);
+            INifti<float> output = CompareMSLesion(input, reference);
             for (int i = 0; i < output.Voxels.Length; ++i) if (output.Voxels[i] < 0) output.Voxels[i] = 0;
             output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.RedScale();
@@ -30,9 +30,9 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="input">Current example</param>
         /// <param name="reference">Prior example</param>
         /// <returns>Nifti who's values are the meaningful decrease (less than 0) between prior and current.</returns>
-        public static INifti CompareMSLesionDecrease(INifti input, INifti reference)
+        public static INifti<float> CompareMSLesionDecrease(INifti<float> input, INifti<float> reference)
         {
-            INifti output = CompareMSLesion(input, reference);
+            INifti<float> output = CompareMSLesion(input, reference);
             for (int i = 0; i < output.Voxels.Length; ++i) if (output.Voxels[i] > 0) output.Voxels[i] = 0;
             output.RecalcHeaderMinMax(); // This will update the header range.
             output.ColorMap = ColorMaps.ReverseGreenScale();
@@ -52,9 +52,9 @@ namespace CAPI.NiftiLib.Processing
         /// <param name="minChange">Minimum difference to be considered significant (e.g. noise threshold). Value is given in multiples of the standard deviation for the input voxels (ignoring background).</param>
         /// <param name="maxChange">Maximum difference to be considered significant. Value is given in multiples of the standard deviation for the input voxels (ignoring background).</param>
         /// <returns>INifti object which contains the relevant difference between the reference nifti and the input nifti.</returns>
-        public static INifti CompareMSLesion(INifti input, INifti reference, float backgroundThreshold = 10, float minRelevantStd = -1, float maxRelevantStd = 5, float minChange = 0.8f, float maxChange = 5)
+        public static INifti<float> CompareMSLesion(INifti<float> input, INifti<float> reference, float backgroundThreshold = 10, float minRelevantStd = -1, float maxRelevantStd = 5, float minChange = 0.8f, float maxChange = 5)
         {
-            INifti output = input.DeepCopy();
+            INifti<float> output = input.DeepCopy();
 
             //var mean = (float)input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
             (var mean, var stdDev) = input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();

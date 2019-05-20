@@ -35,8 +35,8 @@ namespace CAPI.Tests.NiftiLib
         public void CompareTest()
         {
             // Create som Nifti objects to compare.
-            var niftiA = new Nifti().ReadNifti(_minimalNiftiPath);
-            var niftiB = new Nifti().ReadNifti(_minimalNiftiPath);
+            var niftiA = new NiftiFloat32().ReadNifti(_minimalNiftiPath);
+            var niftiB = new NiftiFloat32().ReadNifti(_minimalNiftiPath);
 
             // Mean and standard deviations are used to see if the change is significant, which we want it to be.
             (var mean, var stdDev) = niftiA.Voxels.Where(val => val > 10).MeanStandardDeviation();
@@ -80,8 +80,8 @@ namespace CAPI.Tests.NiftiLib
         public void NormalizationTest()
         {
             // Setup a couple of niftis. (Reading from files just makes sure we have valid headers, etc.)
-            var niftiA = new Nifti().ReadNifti(_minimalNiftiPath);
-            var niftiB = new Nifti().ReadNifti(_minimalNiftiPath);
+            var niftiA = new NiftiFloat32().ReadNifti(_minimalNiftiPath);
+            var niftiB = new NiftiFloat32().ReadNifti(_minimalNiftiPath);
 
             // Lets use a random element in testing! Maybe it'll pass if we get lucky!
             var rng = new Random(1000);
@@ -104,15 +104,15 @@ namespace CAPI.Tests.NiftiLib
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) Assert.Inconclusive("Currently uses Windows Binaries");
 
-            var NiftiA = new Nifti().ReadNifti(_lrMaskNiftiPath);
-            var NiftiB = new Nifti().ReadNifti(_lrNiftiPath);
+            var NiftiA = new NiftiFloat32().ReadNifti(_lrMaskNiftiPath);
+            var NiftiB = new NiftiFloat32().ReadNifti(_lrNiftiPath);
 
             // Only doing a couple of asserts here. If something horrible goes wrong, we're expecting an exception.
             // You can also check the console output to see what the tools reckon.
             _ = Registration.ANTSRegistration(NiftiA, NiftiB, (d, e) => Console.WriteLine(e.Data));
             var outFile = Registration.ANTSApplyTransforms(_lrMaskNiftiPath, _lrNiftiPath, (d, e) => Console.WriteLine(e.Data));
             Assert.IsTrue(File.Exists(outFile), "No out file for ANTSApplyTransforms");
-            _ = new Nifti().ReadNifti(outFile);
+            _ = new NiftiFloat32().ReadNifti(outFile);
 
             _ = Registration.CMTKRegistration(NiftiA, NiftiB, (d, e) => Console.WriteLine(e.Data));
             outFile = Registration.CMTKResliceUsingPrevious(_lrMaskNiftiPath, _lrNiftiPath, (d, e) => Console.WriteLine(e.Data));
@@ -128,11 +128,11 @@ namespace CAPI.Tests.NiftiLib
             // TODO :: Need DICOM test data thats open source and not private. Could make one.
         }
 
-        private void TestForChanges(Func<string, DataReceivedEventHandler, string> func, Func<INifti, DataReceivedEventHandler, INifti> funcNii, string niftiPath)
+        private void TestForChanges(Func<string, DataReceivedEventHandler, string> func, Func<INifti<float>, DataReceivedEventHandler, INifti<float>> funcNii, string niftiPath)
         {
             // If anything's gone horribly wrong we'll probably get an exception here.
             var nii = func(niftiPath, (d, e) => Console.WriteLine(e.Data));
-            var nifti = new Nifti().ReadNifti(nii);
+            var nifti = new NiftiFloat32().ReadNifti(nii);
             nifti.RecalcHeaderMinMax();
 
             // Quick check to see if the file exists and is sane.

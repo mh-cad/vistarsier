@@ -306,7 +306,7 @@ namespace CAPI.Service.Agent
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
         {
             _log.Debug("Converting to bmp -- " + inNiftiFile);
-            var nim = new Nifti().ReadNifti(inNiftiFile);
+            var nim = (NiftiFloat32)new NiftiFloat32().ReadNifti(inNiftiFile);
 
             nim.ExportSlicesToBmps(bmpFolder, sliceType);
 

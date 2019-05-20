@@ -34,6 +34,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ClearCanvas.Dicom">
+      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
@@ -53,8 +56,10 @@
     <Compile Include="ColorMaps.cs" />
     <Compile Include="INifti.cs" />
     <Compile Include="INiftiHeader.cs" />
-    <Compile Include="Nifti.cs" />
+    <Compile Include="NiftiBase.cs" />
+    <Compile Include="NiftiFloat32.cs" />
     <Compile Include="NiftiHeader.cs" />
+    <Compile Include="NiftiType.cs" />
     <Compile Include="Processing\BiasCorrection.cs" />
     <Compile Include="Processing\BrainExtraction.cs" />
     <Compile Include="Processing\Compare.cs" />

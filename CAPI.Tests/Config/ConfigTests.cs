@@ -9,7 +9,7 @@ namespace CAPI.Tests.Config
         [TestMethod]
         public void DefaultConfig()
         {
-            var conf = CapiConfig.GenerateDefault(); 
+            _ = CapiConfig.GenerateDefault(); 
         }
 
         [TestMethod]

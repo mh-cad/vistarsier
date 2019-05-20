@@ -26,11 +26,11 @@ namespace CAPI.MS
         private string _currentNii;
         private string _priorNii;
         private string _referenceNii;
-        private bool _extractBrain;
-        private bool _register;
-        private bool _biasFieldCorrect;
-        private string[] _resultNiis;
-        private string _outPriorReslicedNii;
+        private readonly bool _extractBrain;
+        private readonly bool _register;
+        private readonly bool _biasFieldCorrect;
+        private readonly string[] _resultNiis;
+        private readonly string _outPriorReslicedNii;
 
         public MSPipeline(
             string currentNii, string priorNii, string referenceNii,
@@ -129,10 +129,10 @@ namespace CAPI.MS
             }
 
             // Convert files to INifti, now that we're done with pre-processing.
-            INifti currentNifti = new Nifti().ReadNifti(_currentNii);
-            INifti priorNifti = new Nifti().ReadNifti(_priorNii);
-            INifti currentNiftiWithSkull = new Nifti().ReadNifti(currentWithSkull);
-            INifti priorNiftiWithSkull = new Nifti().ReadNifti(priorWithSkull);
+            var currentNifti = new NiftiFloat32().ReadNifti(_currentNii);
+            var priorNifti = new NiftiFloat32().ReadNifti(_priorNii);
+            var currentNiftiWithSkull = new NiftiFloat32().ReadNifti(currentWithSkull);
+            var priorNiftiWithSkull = new NiftiFloat32().ReadNifti(priorWithSkull);
 
             // Check brain extraction match...
             _log.Info($@"Checking brain extraction...");
@@ -192,7 +192,7 @@ namespace CAPI.MS
             return Metrics;
         }
 
-        private void EstimateEdgeRatio(INifti increaseNifti, INifti decreaseNifti, MSMetrics qaResults)
+        private void EstimateEdgeRatio(INifti<float> increaseNifti, INifti<float> decreaseNifti, MSMetrics qaResults)
         {
             var varianceIncrease = 0d;
             var totalIncrease = 0d;
@@ -222,8 +222,8 @@ namespace CAPI.MS
         }
 
         private void CheckBrainExtractionMatch(
-            INifti currentNifti, INifti priorNifti,
-            INifti currentNiftiWithSkull, INifti priorNiftiWithSkull, MSMetrics qaResults)
+            INifti<float> currentNifti, INifti<float> priorNifti,
+            INifti<float> currentNiftiWithSkull, INifti<float> priorNiftiWithSkull, MSMetrics qaResults)
         {
             var volCurrent = 0d;
             var volPrior = 0d;
