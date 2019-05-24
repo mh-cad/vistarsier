@@ -1,16 +1,16 @@
 # Modules used in project
 #### _Table of contents_
-## CAPI Modules
-+ [CAPI.Cmd](#CAPICmd)
-+ [CAPI.Common](#CAPICommon)
-+ [CAPI.Dicom](#CAPIDicom)
-+ [CAPI.Extensions](#CAPIExtensions)
-+ [CAPI.MS](#CAPIMS)
-+ [CAPI.NiftiLib](#CAPINiftiLib)
-+ [CAPI.Service](#CAPIService)
-+ [CAPI.Tests](#CAPITests)
+## Open-VisTarsier Modules
++ [VisTarsier.Cmd](#VisTarsierCmd)
++ [VisTarsier.Common](#VisTarsierCommon)
++ [VisTarsier.Dicom](#VisTarsierDicom)
++ [VisTarsier.Extensions](#VisTarsierExtensions)
++ [VisTarsier.MS](#VisTarsierMS)
++ [VisTarsier.NiftiLib](#VisTarsierNiftiLib)
++ [VisTarsier.Service](#VisTarsierService)
++ [VisTarsier.Tests](#VisTarsierTests)
 
-## CAPI Dependencies
+## VisTarsier Dependencies
 
 + [ClearCanvas.Common](#ClearCanvasCommon)
 + [ClearCanvas.Dicom](#ClearCanvasDicom)
@@ -28,36 +28,36 @@
 
 
 
-## CAPI.Cmd
+## VisTarsier.Cmd
 
-This module is the command-line version of CAPI. The command line version is primarily aimed at using the NIfTi format and is the simplest example of the CAPI software.
+This module is the command-line version of VisTarsier. The command line version is primarily aimed at using the NIfTi format and is the simplest example of the VisTarsier software.
 
-## CAPI.Common
+## VisTarsier.Common
 
-The `CAPI.Common` module contains basic helpers and data structures which are commonly used throughout the code base.
+The `VisTarsier.Common` module contains basic helpers and data structures which are commonly used throughout the code base.
 
-## CAPI.Dicom
+## VisTarsier.Dicom
 
-Interfaces for `CAPI.Dicom` module
+Interfaces for `VisTarsier.Dicom` module
 
-## CAPI.Extensions
+## VisTarsier.Extensions
 
 This module contains extensions methods to enhance functionality of .NET framework libraries used across the project.
 
-## CAPI.General
+## VisTarsier.General
 
 This module contains helper methods for `FileSystem` functions such as _Checking if directory exists and contains files_ or _Check if an array of files all exist_ etc. as well as `Process` functions such as _building  processes to call exe files_ etc.
 
-## CAPI.NiftiLib
+## VisTarsier.NiftiLib
 Library which includes NIfTI file interfaces and functions for processing NIfTI objects.
 
-## CAPI.Service
-Main Windows service for running CAPI as part of a PACs system. 
+## VisTarsier.Service
+Main Windows service for running VisTarsier as part of a PACs system. 
 
-## CAPI.Tests
+## VisTarsier.Tests
 Unit test suite. Can always do with extending...
 
-# CAPI Dependencies
+# VisTarsier Dependencies
 ## ClearCanvas.Common
 ## ClearCanvas.Dicom
 ClearCanvas is a C# DICOM viewer. We're using some DICOM features.
