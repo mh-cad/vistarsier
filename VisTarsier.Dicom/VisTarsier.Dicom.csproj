@@ -7,8 +7,8 @@
     <ProjectGuid>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Dicom</RootNamespace>
-    <AssemblyName>CAPI.Dicom</AssemblyName>
+    <RootNamespace>VisTarsier.Dicom</RootNamespace>
+    <AssemblyName>VisTarsier.Dicom</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

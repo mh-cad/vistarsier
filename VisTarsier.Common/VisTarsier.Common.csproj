@@ -7,8 +7,8 @@
     <ProjectGuid>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Common</RootNamespace>
-    <AssemblyName>CAPI.Common</AssemblyName>
+    <RootNamespace>VisTarsier.Common</RootNamespace>
+    <AssemblyName>VisTarsier.Common</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

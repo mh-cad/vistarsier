@@ -37,7 +37,8 @@ namespace VisTarsier.Config
             else
             {
                 config = GenerateDefault();
-                File.WriteAllText(configFilePath, JsonConvert.SerializeObject(config, new CapiConfigJsonConverter()));
+                try { File.WriteAllText(configFilePath, JsonConvert.SerializeObject(config, new CapiConfigJsonConverter())); }
+                catch { }
             }
 
             return config;

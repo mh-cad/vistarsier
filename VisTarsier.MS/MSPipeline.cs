@@ -37,7 +37,7 @@ namespace VisTarsier.MS
             bool extractBrain, bool register, bool biasFieldCorrect,
             string[] resultNiis, string outPriorReslicedNii)
         {
-            _log = Log.GetLogger();
+            _log = VisTarsier.Common.Log.GetLogger();
             IsComplete = false;
             Metrics = new MSMetrics();
             BiasCorrect = BiasCorrection.AntsN4;
