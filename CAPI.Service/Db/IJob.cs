@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     public interface IJob
     {

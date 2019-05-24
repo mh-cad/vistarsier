@@ -1,4 +1,4 @@
-﻿namespace CAPI.NiftiLib.Processing
+﻿namespace VisTarsier.NiftiLib.Processing
 {
     public class Metrics
     {

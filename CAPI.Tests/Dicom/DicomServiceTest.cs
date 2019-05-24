@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using CAPI.Config;
-using CAPI.Dicom;
-using CAPI.Dicom.Abstractions;
+using VisTarsier.Config;
+using VisTarsier.Dicom;
+using VisTarsier.Dicom.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-namespace CAPI.Tests.Dicom
+namespace VisTarsier.Tests.Dicom
 {
     [TestClass]
     public class DicomServiceTest

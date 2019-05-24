@@ -1,6 +1,6 @@
-﻿using CAPI.Service.Db;
+﻿using VisTarsier.Service.Db;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     public class JobResult : IJobResult
     {

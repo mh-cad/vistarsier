@@ -4,15 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</ProjectGuid>
+    <ProjectGuid>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.Config</RootNamespace>
-    <AssemblyName>CAPI.Config</AssemblyName>
+    <RootNamespace>CAPI.Dicom</RootNamespace>
+    <AssemblyName>CAPI.Dicom</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,23 +20,32 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>embedded</DebugType>
+    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ClearCanvas.Common">
+      <HintPath>..\lib\ClearCanvas.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ClearCanvas.Dicom">
+      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,31 +54,45 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binaries.cs" />
-    <Compile Include="CapiConfig.cs" />
-    <Compile Include="CapiConfigJsonConverter.cs" />
-    <Compile Include="DicomConfig.cs" />
-    <Compile Include="ImagePaths.cs" />
-    <Compile Include="IRecipe.cs" />
-    <Compile Include="ISeriesSelectionCriteria.cs" />
+    <Compile Include="DicomFileOps.cs" />
+    <Compile Include="DicomImage.cs" />
+    <Compile Include="Abstractions\DicomNewObjectType.cs" />
+    <Compile Include="DicomPatient.cs" />
+    <Compile Include="DicomSeries.cs" />
+    <Compile Include="DicomStudy.cs" />
+    <Compile Include="Abstractions\IDicomImage.cs" />
+    <Compile Include="Abstractions\IDicomPatient.cs" />
+    <Compile Include="Abstractions\IDicomSeries.cs" />
+    <Compile Include="Abstractions\IDicomService.cs" />
+    <Compile Include="Abstractions\IDicomStudy.cs" />
+    <Compile Include="Abstractions\IDicomTag.cs" />
+    <Compile Include="Abstractions\IDicomTagCollection.cs" />
+    <Compile Include="DicomNode.cs" />
+    <Compile Include="DicomService.cs" />
+    <Compile Include="DicomTag.cs" />
+    <Compile Include="DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Recipe.cs" />
-    <Compile Include="SeriesSelectionCriteria.cs" />
+    <Compile Include="SliceType.cs" />
+    <Compile Include="StorageScp.cs" />
+    <Compile Include="TagType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
-      <Name>CAPI.Common</Name>
+    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
+      <Name>VisTarsier.Common</Name>
       <EmbedInteropTypes>False</EmbedInteropTypes>
+    </ProjectReference>
+    <ProjectReference Include="..\CAPI.Config\VisTarsier.Config.csproj">
+      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
+      <Name>VisTarsier.Config</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <Content Include="default.recipe.json">
+    <Content Include="3rdparty_bin\dicom\img2dcm.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

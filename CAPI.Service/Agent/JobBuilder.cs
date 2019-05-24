@@ -1,6 +1,6 @@
-﻿using CAPI.Service.Db;
-using CAPI.Config;
-using CAPI.Dicom.Abstractions;
+﻿using VisTarsier.Service.Db;
+using VisTarsier.Config;
+using VisTarsier.Dicom.Abstractions;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -9,10 +9,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CAPI.Common;
-using CAPI.Dicom;
+using VisTarsier.Common;
+using VisTarsier.Dicom;
 
-namespace CAPI.Service.Agent
+namespace VisTarsier.Service.Agent
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobBuilder //: IJobBuilder

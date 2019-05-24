@@ -1,10 +1,10 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
 
     public class CapiConfigJsonConverter : JsonConverter

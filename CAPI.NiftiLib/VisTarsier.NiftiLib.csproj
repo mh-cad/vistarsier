@@ -72,17 +72,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
+    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
-      <Name>CAPI.Common</Name>
+      <Name>VisTarsier.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\CAPI.Config.csproj">
+    <ProjectReference Include="..\CAPI.Config\VisTarsier.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
-      <Name>CAPI.Config</Name>
+      <Name>VisTarsier.Config</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Extensions\CAPI.Extensions.csproj">
+    <ProjectReference Include="..\CAPI.Extensions\VisTarsier.Extensions.csproj">
       <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
-      <Name>CAPI.Extensions</Name>
+      <Name>VisTarsier.Extensions</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

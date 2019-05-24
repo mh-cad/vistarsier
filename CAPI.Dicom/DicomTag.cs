@@ -1,7 +1,7 @@
 using System;
-using CAPI.Dicom.Abstractions;
+using VisTarsier.Dicom.Abstractions;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     public class DicomTag : IDicomTag
     {

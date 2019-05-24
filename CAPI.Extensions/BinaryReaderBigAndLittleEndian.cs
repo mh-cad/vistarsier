@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace CAPI.Extensions
+namespace VisTarsier.Extensions
 {
     public class BinaryReaderBigAndLittleEndian : BinaryReader
     {

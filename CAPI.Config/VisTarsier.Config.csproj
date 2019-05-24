@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</ProjectGuid>
+    <ProjectGuid>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CAPI.MS</RootNamespace>
-    <AssemblyName>CAPI.MS</AssemblyName>
+    <RootNamespace>CAPI.Config</RootNamespace>
+    <AssemblyName>CAPI.Config</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -24,18 +24,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -45,22 +47,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MSMetrics.cs" />
-    <Compile Include="MSPipeline.cs" />
+    <Compile Include="Binaries.cs" />
+    <Compile Include="CapiConfig.cs" />
+    <Compile Include="CapiConfigJsonConverter.cs" />
+    <Compile Include="DicomConfig.cs" />
+    <Compile Include="ImagePaths.cs" />
+    <Compile Include="IRecipe.cs" />
+    <Compile Include="ISeriesSelectionCriteria.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Recipe.cs" />
+    <Compile Include="SeriesSelectionCriteria.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\CAPI.Common.csproj">
-      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
-      <Name>CAPI.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CAPI.NiftiLib\CAPI.NiftiLib.csproj">
-      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
-      <Name>CAPI.NiftiLib</Name>
+    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
+      <Name>VisTarsier.Common</Name>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="default.recipe.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

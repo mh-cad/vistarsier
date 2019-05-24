@@ -1,4 +1,4 @@
-﻿namespace CAPI.Service
+﻿namespace VisTarsier.Service
 {
     partial class ProjectInstaller
     {

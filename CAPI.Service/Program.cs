@@ -6,7 +6,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CAPI.Service
+namespace VisTarsier.Service
 {
     static class Program
     {

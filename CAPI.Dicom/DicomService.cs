@@ -1,5 +1,5 @@
-﻿using CAPI.Dicom.Abstractions;
-using CAPI.Common;
+﻿using VisTarsier.Dicom.Abstractions;
+using VisTarsier.Common;
 using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Iod;
 using ClearCanvas.Dicom.Iod.Iods;
@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     public class DicomService : IDicomService
     {

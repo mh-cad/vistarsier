@@ -1,10 +1,10 @@
-﻿using CAPI.Service.Db;
+﻿using VisTarsier.Service.Db;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CAPI.Service.Agent
+namespace VisTarsier.Service.Agent
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DbBroker : DbContext

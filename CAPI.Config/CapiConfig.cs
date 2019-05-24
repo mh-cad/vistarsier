@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
     [JsonConverter(typeof(CapiConfigJsonConverter))]
     // ReSharper disable once ClassNeverInstantiated.Global

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace CAPI.NiftiLib
+namespace VisTarsier.NiftiLib
 {
     public class ColorMaps
     {

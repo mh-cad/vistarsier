@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CAPI.Dicom.Abstractions
+namespace VisTarsier.Dicom.Abstractions
 {
     public interface IDicomTag
     {

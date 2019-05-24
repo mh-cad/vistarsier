@@ -1,4 +1,4 @@
-﻿namespace CAPI.Tests
+﻿namespace VisTarsier.Tests
 {
     class Helper
     {

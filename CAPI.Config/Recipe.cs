@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Recipe : IRecipe

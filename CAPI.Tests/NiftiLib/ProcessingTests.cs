@@ -1,5 +1,5 @@
-﻿using CAPI.NiftiLib;
-using CAPI.NiftiLib.Processing;
+﻿using VisTarsier.NiftiLib;
+using VisTarsier.NiftiLib.Processing;
 using MathNet.Numerics.Statistics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace CAPI.Tests.NiftiLib
+namespace VisTarsier.Tests.NiftiLib
 {
     [TestClass]
     public class ProcessingTests

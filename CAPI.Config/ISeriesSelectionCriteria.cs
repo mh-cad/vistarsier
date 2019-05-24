@@ -1,6 +1,6 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
     public interface ISeriesSelectionCriteria
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
     public interface IRecipe
     {

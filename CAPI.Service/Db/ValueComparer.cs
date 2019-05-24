@@ -1,8 +1,8 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 using System;
 using System.Linq;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ValueComparer : IValueComparer

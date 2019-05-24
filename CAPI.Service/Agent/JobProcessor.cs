@@ -1,7 +1,7 @@
-﻿using CAPI.Service.Db;
-using CAPI.Config;
-using CAPI.Dicom.Abstractions;
-using CAPI.Common;
+﻿using VisTarsier.Service.Db;
+using VisTarsier.Config;
+using VisTarsier.Dicom.Abstractions;
+using VisTarsier.Common;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -9,15 +9,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SliceType = CAPI.NiftiLib.SliceType;
-using CAPI.NiftiLib.Processing;
-using CAPI.NiftiLib;
-using CAPI.MS;
+using SliceType = VisTarsier.NiftiLib.SliceType;
+using VisTarsier.NiftiLib.Processing;
+using VisTarsier.NiftiLib;
+using VisTarsier.MS;
 using System.Drawing;
-using CAPI.Service.Agent.Abstractions;
-using CAPI.Dicom;
+using VisTarsier.Service.Agent.Abstractions;
+using VisTarsier.Dicom;
 
-namespace CAPI.Service.Agent
+namespace VisTarsier.Service.Agent
 {
     /// <summary>
     /// Compares current and prior sereis and saves results into filesystem or sends off to a dicom node

@@ -1,9 +1,9 @@
-using CAPI.Dicom.Abstractions;
+using VisTarsier.Dicom.Abstractions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CAPI.Dicom.Model
+namespace VisTarsier.Dicom.Model
 {
     public class DicomTagCollection : IDicomTagCollection
     {

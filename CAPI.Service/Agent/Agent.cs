@@ -1,7 +1,7 @@
-﻿using CAPI.Service.Agent.Abstractions;
-using CAPI.Service.Db;
-using CAPI.Config;
-using CAPI.Common;
+﻿using VisTarsier.Service.Agent.Abstractions;
+using VisTarsier.Service.Db;
+using VisTarsier.Config;
+using VisTarsier.Common;
 using log4net;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Timers;
 
-namespace CAPI.Service.Agent
+namespace VisTarsier.Service.Agent
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Agent : IAgent

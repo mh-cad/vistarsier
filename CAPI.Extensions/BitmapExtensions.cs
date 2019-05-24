@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace CAPI.Extensions
+namespace VisTarsier.Extensions
 {
     public static class BitmapExtensions
     {

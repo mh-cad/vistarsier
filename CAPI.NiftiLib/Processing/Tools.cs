@@ -1,10 +1,10 @@
-﻿using CAPI.Common;
-using CAPI.Config;
+﻿using VisTarsier.Common;
+using VisTarsier.Config;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.NiftiLib.Processing
+namespace VisTarsier.NiftiLib.Processing
 {
     /// <summary>
     /// Helper tools for the Image processing library.

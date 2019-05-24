@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace CAPI.NiftiLib.Processing
+namespace VisTarsier.NiftiLib.Processing
 {
     public abstract class Pipeline<T> where T : Metrics
     {

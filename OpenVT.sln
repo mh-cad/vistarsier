@@ -3,35 +3,35 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Dicom", "CAPI.Dicom\CAPI.Dicom.csproj", "{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Dicom", "CAPI.Dicom\VisTarsier.Dicom.csproj", "{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Common", "CAPI.Common\CAPI.Common.csproj", "{06C9CB99-3266-4DD0-B790-B94FFC3CB154}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Common", "CAPI.Common\VisTarsier.Common.csproj", "{06C9CB99-3266-4DD0-B790-B94FFC3CB154}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Tests", "CAPI.Tests\CAPI.Tests.csproj", "{115B3EB1-1447-4735-A559-3425D85989C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Tests", "CAPI.Tests\VisTarsier.Tests.csproj", "{115B3EB1-1447-4735-A559-3425D85989C9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3} = {A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}
 		{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72} = {0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CAPI.Extensions", "CAPI.Extensions\CAPI.Extensions.csproj", "{CF73B4C7-8313-466C-AFA6-9530AEAFF89B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisTarsier.Extensions", "CAPI.Extensions\VisTarsier.Extensions.csproj", "{CF73B4C7-8313-466C-AFA6-9530AEAFF89B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Cmd", "CAPI.Cmd\CAPI.Cmd.csproj", "{6A9843A0-361E-4E82-AD7C-BE4A26D68E85}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Cmd", "CAPI.Cmd\VisTarsier.Cmd.csproj", "{6A9843A0-361E-4E82-AD7C-BE4A26D68E85}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72} = {0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Service", "CAPI.Service\CAPI.Service.csproj", "{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Service", "CAPI.Service\VisTarsier.Service.csproj", "{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72} = {0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A108376B-DF81-465D-B609-0DE8A8C35408}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.Config", "CAPI.Config\CAPI.Config.csproj", "{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Config", "CAPI.Config\VisTarsier.Config.csproj", "{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.MS", "CAPI.MS\CAPI.MS.csproj", "{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.MS", "CAPI.MS\VisTarsier.MS.csproj", "{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAPI.NiftiLib", "CAPI.NiftiLib\CAPI.NiftiLib.csproj", "{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.NiftiLib", "CAPI.NiftiLib\VisTarsier.NiftiLib.csproj", "{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

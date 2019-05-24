@@ -1,9 +1,9 @@
-﻿using CAPI.Config;
+﻿using VisTarsier.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System.IO;
 
-namespace CAPI.Tests.Agent
+namespace VisTarsier.Tests.Agent
 {
     [TestClass]
     public class Recipe

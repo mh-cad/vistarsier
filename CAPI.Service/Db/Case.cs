@@ -1,9 +1,9 @@
-﻿using CAPI.Config;
-using CAPI.Dicom;
+﻿using VisTarsier.Config;
+using VisTarsier.Dicom;
 using log4net;
-using CAPI.Service.Agent;
+using VisTarsier.Service.Agent;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     public class Case : ICase
     {
