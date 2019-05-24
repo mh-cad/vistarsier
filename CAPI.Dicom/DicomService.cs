@@ -253,6 +253,7 @@ namespace CAPI.Dicom
             var query = new StudyQueryIod();
             query.SetCommonTags();
             query.AccessionNumber = accessionNumber;
+            
             var findScu = new StudyRootFindScu();
             var studies = findScu
                 .Find(LocalNode.AeTitle, RemoteNode.AeTitle, RemoteNode.IpAddress, RemoteNode.Port, query)

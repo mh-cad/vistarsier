@@ -24,7 +24,7 @@ namespace CAPI.Service.Db
         string PriorSeriesDicomFolder { get; set; }
         string ReferenceSeriesDicomFolder { get; set; }
         string ResultSeriesDicomFolder { get; set; }
-        IJobResult[] Results { get; set; }
+        //IJobResult[] Results { get; set; }
         string PriorReslicedSeriesDicomFolder { get; set; }
         string ProcessingFolder { get; set; }
 

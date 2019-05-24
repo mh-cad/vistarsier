@@ -1,6 +1,5 @@
 ﻿using CAPI.Service.Db;
 using CAPI.Config;
-using CAPI.Dicom.Abstractions;
 using CAPI.Common;
 using log4net;
 using System;
@@ -11,6 +10,7 @@ using System.Linq;
 using SliceType = CAPI.NiftiLib.SliceType;
 using CAPI.Service.Agent;
 using CAPI.Dicom;
+using System.Runtime.InteropServices;
 
 namespace CAPI.Service.Db
 {
@@ -44,8 +44,8 @@ namespace CAPI.Service.Db
         public string PriorSeriesDicomFolder { get; set; }
         [NotMapped]
         public string ReferenceSeriesDicomFolder { get; set; }
-        [NotMapped]
-        public IJobResult[] Results { get; set; }
+       // [NotMapped]
+        //public IJobResult[] Results { get; set; }
         [NotMapped]
         public string ResultSeriesDicomFolder { get; set; }
         [NotMapped]
@@ -105,9 +105,20 @@ namespace CAPI.Service.Db
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
-            Results = imageProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
+            try
+            {
+                var preResults = imageProcessor.GenerateMetadataSlides(job);
+                SendToDestinations(preResults);
+            }
+            catch (Exception e)
+            {
+                _log.Error("Failed to generate pre-images. :(");
+                _log.Error(e.Message);
+                _log.Error(e.StackTrace);
+            }
 
-            SendToDestinations();
+            var results = imageProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
+            SendToDestinations(results);
 
             Directory.Delete(ProcessingFolder, true);
 
@@ -151,31 +162,33 @@ namespace CAPI.Service.Db
             return imgProcConfig;
         }
 
-        private void SendToDestinations()
+        private void SendToDestinations(IJobResult[] results)
         {
-            if (string.IsNullOrEmpty(ResultSeriesDicomFolder) ||
-                Directory.GetFiles(ResultSeriesDicomFolder).Length == 0 &&
-                Directory.GetDirectories(ResultSeriesDicomFolder).Length == 0)
-                throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
-                                                     $"at following path: [{ResultSeriesDicomFolder}] or empty!");
+            // TODO :: I'm note sure that we should be throwing errors here, since the job results should be 
+            // detemining where we're getting files from 
+            //if (string.IsNullOrEmpty(ResultSeriesDicomFolder) ||
+            //    Directory.GetFiles(ResultSeriesDicomFolder).Length == 0 &&
+            //    Directory.GetDirectories(ResultSeriesDicomFolder).Length == 0)
+            //    throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
+            //                                         $"at following path: [{ResultSeriesDicomFolder}] or empty!");
 
-            if (string.IsNullOrEmpty(PriorReslicedSeriesDicomFolder) || Directory.GetFiles(PriorReslicedSeriesDicomFolder).Length == 0)
-                throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
-                                                     $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
+            //if (string.IsNullOrEmpty(PriorReslicedSeriesDicomFolder) || Directory.GetFiles(PriorReslicedSeriesDicomFolder).Length == 0)
+            //    throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
+            //                                         $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
 
             _log.Info("Sending to destinations...");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             // Sending to Dicom Destinations
-            SendToDicomDestinations();
+            SendToDicomDestinations(results);
             // Sending to Filesystem Destinations
-            SendToFilesystemDestinations();
+            SendToFilesystemDestinations(results);
 
             stopwatch.Stop();
             _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
         }
-        private void SendToFilesystemDestinations()
+        private void SendToFilesystemDestinations(IJobResult[] results)
         {
             if (_recipe.FilesystemDestinations == null) return;
             foreach (var fsDestination in _recipe.FilesystemDestinations)
@@ -186,7 +199,7 @@ namespace CAPI.Service.Db
                 _log.Info($"Sending to folder [{destJobFolderPath}]...");
                 if (_recipe.OnlyCopyResults)
                 {
-                    foreach (var result in Results)
+                    foreach (var result in results)
                     {
                         var resultParentFolderPath = Path.GetDirectoryName(result.NiftiFilePath);
                         var resultParentFolderName = Path.GetFileName(resultParentFolderPath);
@@ -194,9 +207,9 @@ namespace CAPI.Service.Db
                         FileSystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
                     }
 
-                    var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
-                    var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
-                    FileSystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
+                    //var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
+                    //var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
+                    //FileSystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
                 }
                 else
                 {
@@ -204,7 +217,7 @@ namespace CAPI.Service.Db
                 }
             }
         }
-        private void SendToDicomDestinations()
+        private void SendToDicomDestinations(IJobResult[] results)
         {
             if (_recipe.DicomDestinations == null) return;
             foreach (var dicomDestination in _recipe.DicomDestinations)
@@ -230,17 +243,21 @@ namespace CAPI.Service.Db
                 dicomServices.CheckRemoteNodeAvailability();
 
                 _log.Info($"Sending results to AET [{remoteNode.AeTitle}]...");
-                foreach (var result in Results)
+
+                foreach (var result in results)
                 {
+                    // NOTE If there are non-dicom files in the directory you'll get an exception 
+                    // That looks like -- ClearCanvas.Dicom.DicomException: Invalid abstract syntax for presentation context, UID is zero length. 
+                    // TODO: Handle this better.
                     var resultDicomFiles = Directory.GetFiles(result.DicomFolderPath);
                     dicomServices.SendDicomFiles(resultDicomFiles);
                 }
                 _log.Info($"Finished sending results to AET [{remoteNode.AeTitle}]");
 
-                _log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
-                var priorReslicedDicomFiles = Directory.GetFiles(PriorReslicedSeriesDicomFolder);
-                dicomServices.SendDicomFiles(priorReslicedDicomFiles);
-                _log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
+                //_log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
+                //var priorReslicedDicomFiles = Directory.GetFiles(PriorReslicedSeriesDicomFolder);
+                //dicomServices.SendDicomFiles(priorReslicedDicomFiles);
+                //_log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
             }
         }
 

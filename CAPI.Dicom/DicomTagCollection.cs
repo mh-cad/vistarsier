@@ -31,6 +31,19 @@ namespace CAPI.Dicom.Model
         public IDicomTag RequestingPhysician { get; }
         public IDicomTag PhysiciansOfRecord { get; }
         public IDicomTag PerformingPhysiciansName { get; }
+        public IDicomTag Modality { get; }
+        public IDicomTag Manufacturer { get; }
+        public IDicomTag ManufacturersModelName { get; }
+        public IDicomTag DeviceSerialNumber { get; }
+        public IDicomTag SoftwareVersion { get; }
+        public IDicomTag EchoTime { get; }
+        public IDicomTag InversionTime { get; }
+        public IDicomTag ImagedNucleus { get; }
+        public IDicomTag MagneticFieldStrength { get; }
+        public IDicomTag EchoTrainLength { get; }
+        public IDicomTag TransmitCoilName { get; }
+        public IDicomTag ProtocolName { get; }
+        public IDicomTag ScanOptions { get; }
 
         public DicomTagCollection()
         {
@@ -58,6 +71,20 @@ namespace CAPI.Dicom.Model
             RequestingPhysician = new DicomTag("Requesting Physician", 3280946, TagType.CareProvider, typeof(string[]));
             PhysiciansOfRecord = new DicomTag("Physician(s) of Record", 528456, TagType.CareProvider, typeof(string[]));
             PerformingPhysiciansName = new DicomTag("Performing Physician's Description", 528464, TagType.CareProvider, typeof(string[]));
+            Modality = new DicomTag("Modality", 0x00080060, TagType.Series, typeof(string[]));
+            Manufacturer = new DicomTag("Manufacturer", 0x00080070, TagType.Series, typeof(string[]));
+            ManufacturersModelName = new DicomTag("Manufacturer's model name", 0x00081090, TagType.Series, typeof(string[]));
+            EchoTime = new DicomTag("Echo Time", 0x00180081, TagType.Series, typeof(string[]));
+            EchoTrainLength = new DicomTag("Echo Train Length", 0x00180091, TagType.Series, typeof(string[]));
+            InversionTime = new DicomTag("Inversion Time", 0x00180082, TagType.Series, typeof(string[]));
+            ImagedNucleus = new DicomTag("Imaged Nucleus", 0x00180085, TagType.Series, typeof(string[]));
+            MagneticFieldStrength = new DicomTag("Magnetic Field Strength", 0x00180087, TagType.Series, typeof(string[]));
+            EchoTrainLength = new DicomTag("Echo Train Length", 0x00180091, TagType.Series, typeof(string[]));
+            DeviceSerialNumber = new DicomTag("Device Serial Number", 0x00181000, TagType.Series, typeof(string[]));
+            SoftwareVersion = new DicomTag("Software Version(s)", 0x00180020, TagType.Series, typeof(string[]));
+            ProtocolName = new DicomTag("Protocol Name", 0x00181030, TagType.Series, typeof(string[]));
+            TransmitCoilName = new DicomTag("Transmit Coil Name", 0x00181251, TagType.Series, typeof(string[]));
+            ScanOptions = new DicomTag("Scan Options", 0x00180022, TagType.Series, typeof(string[]));
         }
 
         public IEnumerator<IDicomTag> GetEnumerator()
