@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="log4net.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
+      <Private></Private>
+    </ProjectReference>
+    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj" />
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj" />
+    <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VisTarsier.CommandLineTool": {
+      "commandName": "Project",
+      "commandLineArgs": "prior.nii current.nii"
+    }
+  }
+}
