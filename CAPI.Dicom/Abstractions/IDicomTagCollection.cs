@@ -28,6 +28,21 @@ namespace CAPI.Dicom.Abstractions
         IDicomTag RequestingPhysician { get; }
         IDicomTag PhysiciansOfRecord { get; }
         IDicomTag PerformingPhysiciansName { get; }
+        // About the scanner
+        IDicomTag Modality { get; }
+        IDicomTag Manufacturer { get; }
+        IDicomTag ManufacturersModelName { get; }
+        IDicomTag DeviceSerialNumber { get; }
+        IDicomTag SoftwareVersion { get; }
+        // Scanner settings
+        IDicomTag EchoTime { get; }
+        IDicomTag InversionTime { get; }
+        IDicomTag ImagedNucleus { get; }
+        IDicomTag MagneticFieldStrength { get; }
+        IDicomTag EchoTrainLength { get; }
+        IDicomTag TransmitCoilName { get; }
+        IDicomTag ProtocolName { get; }
+        IDicomTag ScanOptions { get; }
 
         void SetTagValue(uint tagValue, object value);
     }

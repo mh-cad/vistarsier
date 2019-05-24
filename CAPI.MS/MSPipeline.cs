@@ -165,7 +165,7 @@ namespace CAPI.MS
             EstimateEdgeRatio(increaseNifti, decreaseNifti, Metrics);
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
 
-            stopwatch1.Reset();
+            stopwatch1.Restart();
 
             // Write the prior resliced file.
             var priorToExport = _extractBrain ? priorNifti : priorNiftiWithSkull;

@@ -71,6 +71,15 @@ namespace CAPI.Dicom
             dcmFile.Save(filepath);
         }
 
+        public static void ForceUpdateDicomHeaders(string filepath, IDicomTagCollection tags)
+        {
+            var dcmFile = new ClearCanvas.Dicom.DicomFile(filepath);
+            dcmFile.Load(filepath);
+
+            tags.ToList().ForEach(tag => UpdateTag(dcmFile, tag));
+            dcmFile.Save();
+        }
+
         /// <summary>
         /// Update the tags for the given files. Files will be given a generated SeriesInstanceUid and ImageUid.
         /// </summary>
@@ -89,7 +98,7 @@ namespace CAPI.Dicom
             }
         }
 
-        private static DicomFile UpdateTags(
+        public static DicomFile UpdateTags(
             ClearCanvas.Dicom.DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
         {
             if (newTags == null) return dcmFile;
@@ -122,7 +131,7 @@ namespace CAPI.Dicom
             return dcmFile;
         }
 
-        private static IDicomTagCollection UpdateUidsForNewStudy(IDicomTagCollection tags)
+        public static IDicomTagCollection UpdateUidsForNewStudy(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.StudyInstanceUid.Values = new[] { GenerateNewStudyUid() };
@@ -130,14 +139,14 @@ namespace CAPI.Dicom
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        private static IDicomTagCollection UpdateUidsForNewSeries(IDicomTagCollection tags)
+        public static IDicomTagCollection UpdateUidsForNewSeries(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid() };
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        private static IDicomTagCollection UpdateUidsForNewImage(IDicomTagCollection tags)
+        public static IDicomTagCollection UpdateUidsForNewImage(IDicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.ImageUid.Values = new[] { GenerateNewImageUid() };
