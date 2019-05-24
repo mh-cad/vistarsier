@@ -1,18 +1,18 @@
-﻿using CAPI.Service.Db;
-using CAPI.Config;
-using CAPI.Common;
+﻿using VisTarsier.Service.Db;
+using VisTarsier.Config;
+using VisTarsier.Common;
 using log4net;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SliceType = CAPI.NiftiLib.SliceType;
-using CAPI.Service.Agent;
-using CAPI.Dicom;
+using SliceType = VisTarsier.NiftiLib.SliceType;
+using VisTarsier.Service.Agent;
+using VisTarsier.Dicom;
 using System.Runtime.InteropServices;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     public class Job : IJob
     {

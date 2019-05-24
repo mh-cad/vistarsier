@@ -1,11 +1,11 @@
 ﻿
-using CAPI.Config;
-using CAPI.NiftiLib;
+using VisTarsier.Config;
+using VisTarsier.NiftiLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.Tests.NiftiLib
+namespace VisTarsier.Tests.NiftiLib
 {
     [TestClass]
     public class NiftiTests

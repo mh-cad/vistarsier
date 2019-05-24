@@ -1,6 +1,6 @@
-﻿using CAPI.Common;
-using CAPI.Config;
-using CAPI.Service.Agent.Abstractions;
+﻿using VisTarsier.Common;
+using VisTarsier.Config;
+using VisTarsier.Service.Agent.Abstractions;
 using log4net;
 using log4net.Config;
 using System;
@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.ServiceProcess;
 
-namespace CAPI.Service
+namespace VisTarsier.Service
 {
     public partial class Service : ServiceBase
     {

@@ -1,8 +1,8 @@
-﻿using CAPI.Config;
-using CAPI.Service.Agent;
+﻿using VisTarsier.Config;
+using VisTarsier.Service.Agent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CAPI.Tests.Service
+namespace VisTarsier.Tests.Service
 {
     [TestClass]
     public class DBConnection

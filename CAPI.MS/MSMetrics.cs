@@ -1,6 +1,6 @@
-﻿using CAPI.NiftiLib.Processing;
+﻿using VisTarsier.NiftiLib.Processing;
 
-namespace CAPI.MS
+namespace VisTarsier.MS
 {
     public class MSMetrics : Metrics
     {

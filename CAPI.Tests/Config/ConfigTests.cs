@@ -1,7 +1,7 @@
-﻿using CAPI.Config;
+﻿using VisTarsier.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CAPI.Tests.Config
+namespace VisTarsier.Tests.Config
 {
     [TestClass]
     public class ConfigTests

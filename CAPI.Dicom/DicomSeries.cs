@@ -1,7 +1,7 @@
-﻿using CAPI.Dicom.Abstractions;
+﻿using VisTarsier.Dicom.Abstractions;
 using System.Collections.Generic;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     public class DicomSeries : IDicomSeries
     {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using CAPI.Common;
-using CAPI.Dicom;
-using CAPI.Dicom.Abstractions;
-using CAPI.Dicom.Model;
+using VisTarsier.Common;
+using VisTarsier.Dicom;
+using VisTarsier.Dicom.Abstractions;
+using VisTarsier.Dicom.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CAPI.Tests.Dicom
+namespace VisTarsier.Tests.Dicom
 {
     [TestClass]
     public class DicomFilesTest
@@ -38,7 +38,7 @@ namespace CAPI.Tests.Dicom
             catch { Assert.Fail("Could not read output DCM file."); }
 
             // Same deal, but this time it will convert all files from .bmp to a similarly named file w/ no extension.
-            DicomFileOps.ConvertBmpsToDicom(bmpFolder, dcmFolder, CAPI.Dicom.Abstractions.SliceType.Axial, dcmFolder);
+            DicomFileOps.ConvertBmpsToDicom(bmpFolder, dcmFolder, VisTarsier.Dicom.Abstractions.SliceType.Axial, dcmFolder);
             // Check that it did that.
             Assert.IsTrue(File.Exists(Path.Combine(dcmFolder, "test")), "Could not convert BMP to DCM.");
             try { _ = DicomFileOps.GetDicomTags(Path.Combine(dcmFolder, "test")); }

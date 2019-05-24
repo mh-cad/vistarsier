@@ -1,13 +1,13 @@
-﻿using CAPI.NiftiLib;
-using CAPI.NiftiLib.Processing;
+﻿using VisTarsier.NiftiLib;
+using VisTarsier.NiftiLib.Processing;
 using log4net;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using CAPI.Common;
+using VisTarsier.Common;
 
-namespace CAPI.MS
+namespace VisTarsier.MS
 {
     public class IThinkSomethingWentWrongException : Exception
     {

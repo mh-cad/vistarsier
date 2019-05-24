@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 
-namespace CAPI.Common
+namespace VisTarsier.Common
 {
     public static class Log
     {

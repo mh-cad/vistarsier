@@ -1,4 +1,4 @@
-﻿namespace CAPI.Service.Db
+﻿namespace VisTarsier.Service.Db
 {
     public interface ICase
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CAPI.NiftiLib
+namespace VisTarsier.NiftiLib
 {
     public static class NiftiType
     {

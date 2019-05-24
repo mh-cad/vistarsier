@@ -1,8 +1,8 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 using System.Collections.Generic;
 using System.Net;
 
-namespace CAPI.Config
+namespace VisTarsier.Config
 {
     public class DicomConfig
     {

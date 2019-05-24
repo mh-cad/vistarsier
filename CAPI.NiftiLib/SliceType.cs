@@ -1,4 +1,4 @@
-﻿namespace CAPI.NiftiLib
+﻿namespace VisTarsier.NiftiLib
 {
     public enum SliceType
     {

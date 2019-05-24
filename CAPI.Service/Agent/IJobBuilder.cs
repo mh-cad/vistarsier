@@ -1,7 +1,7 @@
-﻿using CAPI.Config;
-using CAPI.Service.Db;
+﻿using VisTarsier.Config;
+using VisTarsier.Service.Db;
 
-namespace CAPI.Service.Agent.Abstractions
+namespace VisTarsier.Service.Agent.Abstractions
 {
     public interface IJobBuilder
     {

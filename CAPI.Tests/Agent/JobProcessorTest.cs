@@ -1,14 +1,14 @@
-﻿using CAPI.Config;
-using CAPI.Dicom;
-using CAPI.Dicom.Abstractions;
-using CAPI.Service.Agent;
+﻿using VisTarsier.Config;
+using VisTarsier.Dicom;
+using VisTarsier.Dicom.Abstractions;
+using VisTarsier.Service.Agent;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using SliceType = CAPI.NiftiLib.SliceType;
+using SliceType = VisTarsier.NiftiLib.SliceType;
 
-namespace CAPI.Tests.Agent
+namespace VisTarsier.Tests.Agent
 {
     [TestClass]
     public class JobProcessorTest

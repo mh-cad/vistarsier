@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.Common
+namespace VisTarsier.Common
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public static class ProcessBuilder

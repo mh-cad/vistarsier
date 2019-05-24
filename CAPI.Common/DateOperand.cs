@@ -1,4 +1,4 @@
-﻿namespace CAPI.Common
+﻿namespace VisTarsier.Common
 {
     public enum DateOperand
     {

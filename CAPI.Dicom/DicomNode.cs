@@ -1,6 +1,6 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     public class DicomNode : IDicomNode
     {

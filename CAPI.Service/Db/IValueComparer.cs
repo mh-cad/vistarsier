@@ -1,7 +1,7 @@
-﻿using CAPI.Common;
+﻿using VisTarsier.Common;
 using System;
 
-namespace CAPI.Service.Db
+namespace VisTarsier.Service.Db
 {
     public interface IValueComparer
     {

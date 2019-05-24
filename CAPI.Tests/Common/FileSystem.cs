@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace CAPI.Tests.Common
+namespace VisTarsier.Tests.Common
 {
     [TestClass]
     public class FileSystemTests
@@ -34,7 +34,7 @@ namespace CAPI.Tests.Common
             File.AppendAllText(filePath, fileContent);
 
             // Act
-            CAPI.Common.FileSystem.CopyDirectory(_sourcePath, _targetPath);
+            VisTarsier.Common.FileSystem.CopyDirectory(_sourcePath, _targetPath);
 
             // Assert
             Assert.IsTrue(File.Exists(filePath));

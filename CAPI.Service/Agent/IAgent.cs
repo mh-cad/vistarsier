@@ -1,6 +1,6 @@
-﻿using CAPI.Config;
+﻿using VisTarsier.Config;
 
-namespace CAPI.Service.Agent.Abstractions
+namespace VisTarsier.Service.Agent.Abstractions
 {
     public interface IAgent
     {

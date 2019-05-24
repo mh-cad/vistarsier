@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace CAPI.Common
+namespace VisTarsier.Common
 {
     public static class FileSystem
     {

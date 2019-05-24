@@ -31,7 +31,7 @@ using ClearCanvas.Dicom;
 using ClearCanvas.Dicom.Network;
 using ClearCanvas.Dicom.Utilities.Statistics;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     /// <summary>
     /// DICOM Storage SCP based on the ClearCanvas Sample Application

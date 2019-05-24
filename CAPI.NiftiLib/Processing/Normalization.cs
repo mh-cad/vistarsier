@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace CAPI.NiftiLib.Processing
+namespace VisTarsier.NiftiLib.Processing
 {
     public static class Normalization
     {

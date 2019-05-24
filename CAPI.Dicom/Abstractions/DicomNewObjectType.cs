@@ -1,4 +1,4 @@
-﻿namespace CAPI.Dicom.Abstractions
+﻿namespace VisTarsier.Dicom.Abstractions
 {
     public enum DicomNewObjectType
     {

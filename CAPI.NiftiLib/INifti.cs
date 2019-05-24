@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace CAPI.NiftiLib
+namespace VisTarsier.NiftiLib
 {
     public interface INifti<T>
     {

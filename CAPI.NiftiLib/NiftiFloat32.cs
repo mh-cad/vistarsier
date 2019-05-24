@@ -1,4 +1,4 @@
-﻿using CAPI.Extensions;
+﻿using VisTarsier.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CAPI.NiftiLib
+namespace VisTarsier.NiftiLib
 {
     /// <summary>
     /// Represents a Nifti-1 type file (reads from  file only if little endian)

@@ -1,9 +1,9 @@
-﻿using CAPI.Common;
-using CAPI.Config;
+﻿using VisTarsier.Common;
+using VisTarsier.Config;
 using System;
 using System.Diagnostics;
 
-namespace CAPI.NiftiLib.Processing
+namespace VisTarsier.NiftiLib.Processing
 {
     public static class Registration
     {

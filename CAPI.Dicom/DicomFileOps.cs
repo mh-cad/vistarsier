@@ -1,6 +1,6 @@
-﻿using CAPI.Common;
-using CAPI.Dicom.Abstractions;
-using CAPI.Dicom.Model;
+﻿using VisTarsier.Common;
+using VisTarsier.Dicom.Abstractions;
+using VisTarsier.Dicom.Model;
 using ClearCanvas.Dicom;
 using System;
 using System.Collections;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CAPI.Dicom
+namespace VisTarsier.Dicom
 {
     public static class DicomFileOps
     {

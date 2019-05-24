@@ -1,11 +1,11 @@
-﻿using CAPI.Extensions;
+﻿using VisTarsier.Extensions;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CAPI.NiftiLib
+namespace VisTarsier.NiftiLib
 {
     public abstract class NiftiBase<T> : INifti<T>
     {
