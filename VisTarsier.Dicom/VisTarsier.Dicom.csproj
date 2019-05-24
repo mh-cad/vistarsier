@@ -77,12 +77,12 @@
     <Compile Include="TagType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>VisTarsier.Common</Name>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\VisTarsier.Config.csproj">
+    <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>VisTarsier.Config</Name>
     </ProjectReference>

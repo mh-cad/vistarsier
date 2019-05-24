@@ -208,23 +208,23 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>VisTarsier.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\VisTarsier.Config.csproj">
+    <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>VisTarsier.Config</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom\VisTarsier.Dicom.csproj">
+    <ProjectReference Include="..\VisTarsier.Dicom\VisTarsier.Dicom.csproj">
       <Project>{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}</Project>
       <Name>VisTarsier.Dicom</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.MS\VisTarsier.MS.csproj">
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj">
       <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>
       <Name>VisTarsier.MS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.NiftiLib\VisTarsier.NiftiLib.csproj">
+    <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>VisTarsier.NiftiLib</Name>
     </ProjectReference>

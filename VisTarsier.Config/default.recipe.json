@@ -1,57 +1,54 @@
 {
-	"SourceAet": "RMHSYNSCP",
-	"PatientId": "",
-	"PatientFullName": "", // Ref: 'Surname^Firstname' or 'Surname , Firstname'
-	"PatientBirthDate": "", // Ref: Date Format=yyyyMMdd
-	
-	"CurrentSeriesDicomFolder": "",
-	"CurrentAccession": "",
-	"CurrentSeriesCriteria": [	
-		{
-			"SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
-			"SeriesDescriptionOperand": 4, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
-			"SeriesDescriptionDelimiter": ";"
-		}
-	],
-	"PriorSeriesDicomFolder": "",
-	"PriorAccession": "",
-	"PriorSeriesCriteria": [
-		{
-			"PriorStudyIndex": 0, // 0-based index i.e. 0=most recent, 1=second most recent
-			"MostRecentPriorStudy": false, // overrides PriorStudyIndex if true; true equals PriorStudyIndex of 0
-			"OldestPriorStudy": false, // overrides PriorStudyIndex if true
-			"CutOffPeriodValueInMonths": "", // leave blank to include all dates
-			"Region": "", // Not Used
-			"StudyDescription": "",
-			"StudyDescriptionOperand": 0, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
-			"StudyDate": "",
-			"StudyDateOperand": 0, // Ref: 0=Equals, 1=Before, 2=After
-			"SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair", //",
-			"SeriesDescriptionOperand": 4, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
-			"SeriesDescriptionDelimiter": ";"
-		}
-	],
-	
-	"ExtractBrain": true,
-	"ExtractBrainParams": "", // leave blank to use default
-    "Register": true,
-    "BiasFieldCorrection": true,
-    "BiasFieldCorrectionParams": "", // leave blank to use default
-	
-	"SliceType": "Sag", // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
-	"LookUpTablePaths": [
-		"D:\\MehdiFiles\\LUT.bmp"
-	],
-	
-	"ResultsDicomSeriesDescription": "CAPI Modified Signal",
-	"PriorReslicedDicomSeriesDescription": "CAPI - Prior re-sliced",
-	
-	"FilesystemDestinations": [
-		//"File path here"
-	],
-	"OnlyCopyResults": false,
-	
-	"DicomDestinations": [
-		"RMHSYNMINISCP"
-	]
+  "SourceAet": "",
+  "PatientId": "",
+  "PatientFullName": "", // Ref: 'Surname^Firstname' or 'Surname , Firstname'
+  "PatientBirthDate": "", // Ref: Date Format=yyyyMMdd
+
+  "CurrentSeriesDicomFolder": "",
+  "CurrentAccession": "",
+  "CurrentSeriesCriteria": [
+    {
+      "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair",
+      "SeriesDescriptionOperand": 4, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
+      "SeriesDescriptionDelimiter": ";"
+    }
+  ],
+  "PriorSeriesDicomFolder": "",
+  "PriorAccession": "",
+  "PriorSeriesCriteria": [
+    {
+      "PriorStudyIndex": 0, // 0-based index i.e. 0=most recent, 1=second most recent
+      "MostRecentPriorStudy": false, // overrides PriorStudyIndex if true; true equals PriorStudyIndex of 0
+      "OldestPriorStudy": false, // overrides PriorStudyIndex if true
+      "CutOffPeriodValueInMonths": "", // leave blank to include all dates
+      "Region": "", // Not Used
+      "StudyDescription": "",
+      "StudyDescriptionOperand": 0, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
+      "StudyDate": "",
+      "StudyDateOperand": 0, // Ref: 0=Equals, 1=Before, 2=After
+      "SeriesDescription": "flair sag;flair sag 3d;t2 sag flair;flair sag fs;flair sag 3d - t2 space da-fl;3d sag flair fs;t2 sag flair 3d;flair 3d t2_spc_irprep_ns_sag_p2_da-fl_iso;3d flair_sag_p3_iso;3d t2 flair sag;t2_spc_irprep_ns_sag_p2_da-fl_iso;flair 3d;t2_3d_sag flair iso;sag 3d flair;t2 sag flair 3d;sag 3d flair", //",
+      "SeriesDescriptionOperand": 4, // Ref: 0=Equals, 1=Contains, 2=StartsWith, 3=EndsWith, 4=OccursIn
+      "SeriesDescriptionDelimiter": ";"
+    }
+  ],
+
+  "ExtractBrain": true,
+  "ExtractBrainParams": "", // leave blank to use default
+  "Register": true,
+  "BiasFieldCorrection": true,
+  "BiasFieldCorrectionParams": "", // leave blank to use default
+
+  "SliceType": "Sag", // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
+
+  "ResultsDicomSeriesDescription": "OVT Modified Signal",
+  "PriorReslicedDicomSeriesDescription": "OVT Prior re-sliced",
+
+  "FilesystemDestinations": [
+    //"File path here"
+  ],
+  "OnlyCopyResults": false,
+
+  "DicomDestinations": [
+    ""
+  ]
 }

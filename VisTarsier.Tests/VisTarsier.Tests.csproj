@@ -172,31 +172,31 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>VisTarsier.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Config\VisTarsier.Config.csproj">
+    <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
       <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>VisTarsier.Config</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Dicom\VisTarsier.Dicom.csproj">
+    <ProjectReference Include="..\VisTarsier.Dicom\VisTarsier.Dicom.csproj">
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>VisTarsier.Dicom</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Extensions\VisTarsier.Extensions.csproj">
-      <Project>{cf73b4c7-8313-466c-afa6-9530aeaff89b}</Project>
+    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj">
+      <Project>{a9ba8e02-1c38-422f-947f-04624859edc7}</Project>
       <Name>VisTarsier.Extensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.MS\VisTarsier.MS.csproj">
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj">
       <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
       <Name>VisTarsier.MS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.NiftiLib\VisTarsier.NiftiLib.csproj">
+    <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>VisTarsier.NiftiLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.Service\VisTarsier.Service.csproj">
+    <ProjectReference Include="..\VisTarsier.Service\VisTarsier.Service.csproj">
       <Project>{134cd45f-8d80-4d2b-862a-0341baa5a4db}</Project>
       <Name>VisTarsier.Service</Name>
     </ProjectReference>

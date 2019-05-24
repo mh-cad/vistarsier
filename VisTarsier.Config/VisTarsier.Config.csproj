@@ -59,7 +59,7 @@
     <Compile Include="SeriesSelectionCriteria.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
       <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>VisTarsier.Common</Name>
       <EmbedInteropTypes>False</EmbedInteropTypes>

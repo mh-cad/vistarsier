@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VisTarsier.Config;
 
 namespace VisTarsier.Dicom
 {
@@ -265,7 +266,7 @@ namespace VisTarsier.Dicom
                 arguments = $@"-df {dicomHeadersFilePath} "; // Copy dicom headers from dicom file: -df = dataset file
 
             arguments += $"-i BMP {bmpFilepath} {dicomFilePath}";
-            ProcessBuilder.CallExecutableFile(Config.CapiConfig.GetConfig().Binaries.img2dcm, arguments);
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.img2dcm, arguments);
         }
 
         public static void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")
