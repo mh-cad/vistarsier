@@ -50,11 +50,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CAPI.Common\VisTarsier.Common.csproj">
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
       <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>VisTarsier.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CAPI.NiftiLib\VisTarsier.NiftiLib.csproj">
+    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj">
+      <Project>{a9ba8e02-1c38-422f-947f-04624859edc7}</Project>
+      <Name>VisTarsier.Extensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>VisTarsier.NiftiLib</Name>
     </ProjectReference>

@@ -7,8 +7,8 @@ namespace VisTarsier.Config
         public ImagePaths()
         {
             ImageRepositoryPath = AppDomain.CurrentDomain.BaseDirectory + "ImageRepository/";
-            ResultsDicomSeriesDescription = "CAPI Modified Signal";
-            PriorReslicedDicomSeriesDescription = "CAPI Prior Resliced";
+            ResultsDicomSeriesDescription = "OVT Modified Signal";
+            PriorReslicedDicomSeriesDescription = "OVT Prior Resliced";
         }
 
         public string ImageRepositoryPath { get; set; }
