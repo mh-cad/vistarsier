@@ -15,5 +15,10 @@ namespace VisTarsier.Service
         {
             InitializeComponent();
         }
+
+        private void CAPIService_AfterInstall(object sender, InstallEventArgs e)
+        {
+
+        }
     }
 }

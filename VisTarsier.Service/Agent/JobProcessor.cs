@@ -16,6 +16,7 @@ using VisTarsier.MS;
 using System.Drawing;
 using VisTarsier.Service.Agent.Abstractions;
 using VisTarsier.Dicom;
+using System.Globalization;
 
 namespace VisTarsier.Service.Agent
 {
@@ -412,16 +413,19 @@ namespace VisTarsier.Service.Agent
             {
                 var font = new Font("Courier New", 12);
                 var brush = Brushes.White;
+                var priorStudyDate = DateTime.ParseExact(priorTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
+                var dob = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
+                var currentStudyDate = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
 
                 g.DrawString(priorTags.PatientId?.Values?[0], font, Brushes.White, patientIdField);
                 g.DrawString(priorTags.PatientName?.Values?[0], font, Brushes.White, patientNameField);
-                g.DrawString(priorTags.PatientBirthDate?.Values?[0], font, Brushes.White, patientDobField);
+                g.DrawString(dob, font, Brushes.White, patientDobField);
                 g.DrawString(priorTags.PatientSex?.Values?[0], font, Brushes.White, patientSexField);
                 g.DrawString(priorTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, priorAccessionField);
-                g.DrawString(priorTags.StudyDate?.Values?[0], font, Brushes.White, priorDateField);
+                g.DrawString(priorStudyDate, font, Brushes.White, priorDateField);
                 g.DrawString(priorTags.StudyDescription?.Values?[0], font, Brushes.White, priorDescField);
                 g.DrawString(currentTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, currentAccessionField);
-                g.DrawString(currentTags.StudyDate?.Values?[0], font, Brushes.White, currentDateField);
+                g.DrawString(currentStudyDate, font, Brushes.White, currentDateField);
                 g.DrawString(currentTags.StudyDescription?.Values?[0], font, Brushes.White, currentDescField);
 
                 g.DrawString($"[{jobId}]", new Font("Courier New", 14, FontStyle.Bold), Brushes.White, new Point(524,112));

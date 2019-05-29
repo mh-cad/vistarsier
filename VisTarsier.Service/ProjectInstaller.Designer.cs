@@ -43,6 +43,7 @@
             this.CAPIService.DisplayName = "CAPI Service";
             this.CAPIService.ServiceName = "CAPI Service";
             this.CAPIService.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.CAPIService.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.CAPIService_AfterInstall);
             // 
             // ProjectInstaller
             // 
