@@ -45,6 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IncreaseClassifier.cs" />
+    <Compile Include="IClassifier.cs" />
     <Compile Include="MSMetrics.cs" />
     <Compile Include="MSPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
