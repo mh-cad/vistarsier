@@ -92,10 +92,15 @@ namespace VisTarsier.Service.Db
             dbBroker.SaveChanges();
 
             _log.Info($"{Environment.NewLine}");
-            _log.Info($"Job processing started...{Environment.NewLine}");
-            _log.Info($"Job Id: [{job.Id}]");
-            _log.Info($"Current Accession: [{CurrentAccession}]");
-            _log.Info($"Prior Accession: [{PriorAccession}]");
+            _log.Info($"****************  JOB CREATED  **********************************");
+            _log.Info($" Job ID               *  {job.Id}");
+            _log.Info($" Patient ID           *  {job.PatientId}");
+            _log.Info($" Patient Name         *  {job.PatientFullName}");
+            _log.Info($" Patient DOB          *  {job.PatientBirthDate}");
+            _log.Info($" Current Accession    *  {CurrentAccession}");
+            _log.Info($" Prior Accession      *  {PriorAccession}");
+            _log.Info($"*****************************************************************");
+            _log.Info($"{Environment.NewLine}");
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -130,6 +135,14 @@ namespace VisTarsier.Service.Db
             dbBroker.SaveChanges();
 
             stopwatch.Stop();
+
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"****************  JOB COMPLETE  **********************************");
+            _log.Info($" Job ID               *  {job.Id}");
+            _log.Info($" Processing Time      *  {job.PatientId}");
+            _log.Info($"*****************************************************************");
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"{Environment.NewLine}");
             _log.Info($"Job Id=[{Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
         }
 

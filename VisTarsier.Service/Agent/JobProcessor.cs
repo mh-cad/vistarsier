@@ -415,7 +415,7 @@ namespace VisTarsier.Service.Agent
                 var brush = Brushes.White;
                 var priorStudyDate = DateTime.ParseExact(priorTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
                 var dob = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
-                var currentStudyDate = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
+                var currentStudyDate = DateTime.ParseExact(currentTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
 
                 g.DrawString(priorTags.PatientId?.Values?[0], font, Brushes.White, patientIdField);
                 g.DrawString(priorTags.PatientName?.Values?[0], font, Brushes.White, patientNameField);
