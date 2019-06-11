@@ -7,6 +7,10 @@ It is designed to perform all of these steps automatically upon recieving approp
 
 It has been retrospecitvely validated in multiple sclerosis (1) and a prospective study is currently undergoing peer review. 
 
+## Image examples
+
+_pending_
+
 ## Publications
 
 1. [retrospecitv validation] Improving Multiple Sclerosis Plaque Detection Using a Semiautomated Assistive Approach. AJNR 2015: https://www.ncbi.nlm.nih.gov/pubmed/26089318
