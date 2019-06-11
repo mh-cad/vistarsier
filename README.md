@@ -34,7 +34,7 @@ VisTarsier has been partially funded by a [Royal Melbourne Hosptial](https://www
 
 Associate Professor Frank Gaillard, from the Royal Melbourne Hosptial, has been the lead in this project and has overseen both the development of the app as well as the publications that have stemmed from it to date (2019). A number of developers have been involved over the years, each one enhancing the project. 
 
-- David Rawlinson (now at [Project AGI](https://agi.io/)
+- David Rawlinson (now at [Project AGI](https://agi.io/))
 - Alan Zhang
 - Rajib Chakravorty
 - Mehdi Tehrani
