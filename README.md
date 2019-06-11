@@ -1,7 +1,7 @@
 # vistarsier
 VisTarsier is an opensource medical imaging software platform designed to automate multi-study comparisons. 
 
-The first (and currently only) module is a _change detection_ pipeline for MRI brain which takes two 3D FLAIR sequences from two time points and highlights area of increased/decreased signal. It includes coregistration, reslicing, bias-field correction, normalisation, brain surface extration and change detection. 
+The first (and currently only) module is a _change detection_ pipeline for MRI brain which takes two 3D FLAIR sequences from two time points and highlights area of increased/decreased signal. It includes coregistration, reslicing, bias-field correction, normalisation, brain surface extration and change detection. New lesions are coloured in orange, whereas area of single reduction are coloured in green. 
 
 It is designed to perform all of these steps automatically upon recieving appropriate HL7 messages and retrieves studies from PACS and pushes results back to PACS within a few minutes of study completion. 
 
@@ -10,6 +10,13 @@ It has been retrospecitvely validated in multiple sclerosis (1) and a prospectiv
 ## Image examples
 
 _pending_
+
+*Figure 1:* New demyelinating plaque is high-lighted in orange where as an existing lesion that has reduced in size appears as a green doughnut. 
+
+
+_pending_
+
+*Figure 2:* VisTarsier is particularly helpful in patients with high lesion load or where new lesions abut existing ones. 
 
 ## Publications
 
