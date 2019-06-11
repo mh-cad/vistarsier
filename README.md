@@ -11,12 +11,12 @@ It has been retrospecitvely validated in multiple sclerosis (1) and a prospectiv
 
 _pending_
 
-*Figure 1:* New demyelinating plaque is high-lighted in orange where as an existing lesion that has reduced in size appears as a green doughnut. 
+**Figure 1:** New demyelinating plaque is high-lighted in orange where as an existing lesion that has reduced in size appears as a green doughnut. 
 
 
 _pending_
 
-*Figure 2:* VisTarsier is particularly helpful in patients with high lesion load or where new lesions abut existing ones. 
+**Figure 2:** VisTarsier is particularly helpful in patients with high lesion load or where new lesions abut existing ones. 
 
 ## Publications
 
