@@ -20,7 +20,7 @@ _pending_
 
 ## Publications
 
-1. [retrospecitv validation] Improving Multiple Sclerosis Plaque Detection Using a Semiautomated Assistive Approach. AJNR 2015: https://www.ncbi.nlm.nih.gov/pubmed/26089318
+1. [Retrospective validation] Improving Multiple Sclerosis Plaque Detection Using a Semiautomated Assistive Approach. AJNR 2015: https://www.ncbi.nlm.nih.gov/pubmed/26089318
 
 2. Neuroradiologists Compared with Non-Neuroradiologists in the Detection of New Multiple Sclerosis Plaques. AJNR 2017: https://www.ncbi.nlm.nih.gov/pubmed/28473341
 
