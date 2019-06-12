@@ -106,13 +106,13 @@ namespace VisTarsier.Service.Db
             stopwatch.Start();
 
             _capiConfig.ImagePaths = UpdateImgProcConfig(_recipe);
-            var imageProcessor = new JobProcessor(dbBroker);
+            var jobProcessor = new JobProcessor(dbBroker);
 
             var sliceType = GetSliceType(_recipe.SliceType);
 
             try
             {
-                var preResults = imageProcessor.GenerateMetadataSlides(job);
+                var preResults = jobProcessor.GenerateMetadataSlides(job);
                 SendToDestinations(preResults);
             }
             catch (Exception e)
@@ -122,7 +122,7 @@ namespace VisTarsier.Service.Db
                 _log.Error(e.StackTrace);
             }
 
-            var results = imageProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
+            var results = jobProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
             SendToDestinations(results);
 
             Directory.Delete(ProcessingFolder, true);

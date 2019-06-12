@@ -32,6 +32,8 @@ namespace VisTarsier.Service.Agent
         private const string ResultsFolderName = "Results";
         private const string ImagesFolderSuffix = "_Images";
 
+        private string _summarySlidePath;
+
         public JobProcessor(DbBroker dbBroker)
         {
             _log = Log.GetLogger();
@@ -82,9 +84,24 @@ namespace VisTarsier.Service.Agent
                 extractBrain, register, biasFieldCorrect,
                 resultNiis, outPriorReslicedNii);
 
-            var metrics = pipe.Process(); // TODO: use theres. <-- What does this mean??
+            var metrics = pipe.Process();
 
             var results = new List<IJobResult>();
+
+            string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
+            Directory.CreateDirectory(metadataPath);
+            string summary = GenerateSummarySlide(
+                Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault(),
+                Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault(),
+                $"{job.Id}",
+                workingDir);
+
+            GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(_summarySlidePath), metadataPath);
+
+            results.Add(new JobResult
+            {
+                DicomFolderPath = metadataPath,
+            });
 
             if (job != null)
             {
@@ -209,6 +226,8 @@ namespace VisTarsier.Service.Agent
                 Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault(),
                 DicomFileOps.GetDicomTags(summary),
                 metadataPath);
+
+            _summarySlidePath = summary;
 
             return new IJobResult[] {
                 new JobResult()
@@ -595,9 +614,37 @@ namespace VisTarsier.Service.Agent
             return outpath;
         }
 
-        public string GenerateResultsSlide(Metrics results, IDicomTagCollection metatags)
+        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, string outFolder)
         {
-            return null;
+            var output = new List<string>();
+            if (results.ResultsSlides == null)
+            {
+                _log.Debug("No results slides to be output.");
+
+                return new string[]{ };
+            }
+
+
+            for (int i = 0; i < results.ResultsSlides.Length; ++i)
+            {
+                var outpath = Path.Combine(outFolder, $"results{i+3}.dcm");
+                var bmp = new Bitmap(results.ResultsSlides[i]);
+                bmp.Save($"{outpath}.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+                _log.Info($"Written: {outpath}.bmp");
+
+                DicomFileOps.ConvertBmpToDicom($"{outpath}.bmp", outpath);
+                File.Delete($"{outpath}.bmp");
+                _log.Info($"Written DICOM: {outpath}");
+
+                metatags = DicomFileOps.UpdateUidsForNewImage(metatags);
+                metatags.InstanceNumber.Values = new string[] { $"{i+3}" };
+                DicomFileOps.ForceUpdateDicomHeaders(outpath, metatags);
+
+                output.Add(outpath);
+            }
+         
+
+            return output.ToArray();
         }
     }
 }

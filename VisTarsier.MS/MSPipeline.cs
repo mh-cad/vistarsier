@@ -189,6 +189,13 @@ namespace VisTarsier.Module.MS
 
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
 
+            Metrics.Histogram = new Histogram();
+            Metrics.Histogram.Current = currentNifti;
+            Metrics.Histogram.Prior = priorNifti;
+            Metrics.Histogram.Increase = increaseNifti;
+            Metrics.Histogram.Decrease = decreaseNifti;
+            Metrics.ResultsSlides = new System.Drawing.Bitmap[]{ Metrics.Histogram.GenerateSlide() };
+
             return Metrics;
         }
 

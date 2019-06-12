@@ -98,6 +98,12 @@ namespace VisTarsier.Tests.NiftiLib
             (var mean, var stdDev) = niftiA.Voxels.MeanStandardDeviation();
             Assert.AreEqual(niftiB.Voxels.Mean(), mean, 0.000001);
             Assert.AreEqual(niftiB.Voxels.StandardDeviation(), stdDev, 0.000001);
+
+            niftiB = Normalization.RangeNormalize(niftiA, 0, 1);
+            Assert.IsTrue(niftiB.Voxels.Max() <= 1);
+            Assert.IsTrue(niftiB.Voxels.Min() >= 0);
+            Assert.AreEqual(niftiB.Voxels.Mean(), 0.5, 0.1); // We would expect the mean to be roughly 0.5 given a random input.
+
         }
 
         [TestMethod]

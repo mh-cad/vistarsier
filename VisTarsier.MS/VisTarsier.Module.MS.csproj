@@ -7,8 +7,8 @@
     <ProjectGuid>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisTarsier.MS</RootNamespace>
-    <AssemblyName>VisTarsier.MS</AssemblyName>
+    <RootNamespace>VisTarsier.Module.MS</RootNamespace>
+    <AssemblyName>VisTarsier.Module.MS</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Histogram.cs" />
     <Compile Include="Compare.cs" />
     <Compile Include="IncreaseClassifier.cs" />
     <Compile Include="IClassifier.cs" />
