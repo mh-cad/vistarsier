@@ -2,7 +2,7 @@
 using VisTarsier.NiftiLib;
 using VisTarsier.NiftiLib.Processing;
 
-namespace VisTarsier.MS
+namespace VisTarsier.Module.MS
 {
     class CapiClassifier : IClassifier<float>
     {

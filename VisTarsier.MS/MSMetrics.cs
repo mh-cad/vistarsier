@@ -1,6 +1,6 @@
 ﻿using VisTarsier.NiftiLib.Processing;
 
-namespace VisTarsier.MS
+namespace VisTarsier.Module.MS
 {
     public class MSMetrics : Metrics
     {

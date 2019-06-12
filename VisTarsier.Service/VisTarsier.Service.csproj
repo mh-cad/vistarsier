@@ -250,9 +250,9 @@
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>VisTarsier.Dicom</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj">
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj">
       <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>
-      <Name>VisTarsier.MS</Name>
+      <Name>VisTarsier.Module.MS</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

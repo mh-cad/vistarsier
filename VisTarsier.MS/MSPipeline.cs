@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using VisTarsier.Common;
 
-namespace VisTarsier.MS
+namespace VisTarsier.Module.MS
 {
     public class IThinkSomethingWentWrongException : Exception
     {

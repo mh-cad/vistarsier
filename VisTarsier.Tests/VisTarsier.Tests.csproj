@@ -188,9 +188,9 @@
       <Project>{a9ba8e02-1c38-422f-947f-04624859edc7}</Project>
       <Name>VisTarsier.Extensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj">
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj">
       <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
-      <Name>VisTarsier.MS</Name>
+      <Name>VisTarsier.Module.MS</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
       <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>

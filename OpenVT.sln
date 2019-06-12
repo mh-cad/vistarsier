@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Dicom", "VisTars
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisTarsier.Extensions", "VisTarsier.Extensions\VisTarsier.Extensions.csproj", "{A9BA8E02-1C38-422F-947F-04624859EDC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.MS", "VisTarsier.MS\VisTarsier.MS.csproj", "{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Module.MS", "VisTarsier.MS\VisTarsier.Module.MS.csproj", "{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.NiftiLib", "VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj", "{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}"
 EndProject
@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Service", "VisTa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Tests", "VisTarsier.Tests\VisTarsier.Tests.csproj", "{115B3EB1-1447-4735-A559-3425D85989C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.CommandLineTool", "VisTarsier.Console\VisTarsier.CommandLineTool.csproj", "{0FACD61C-4F5C-4236-96D7-226546C7CD79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisTarsier.CommandLineTool", "VisTarsier.Console\VisTarsier.CommandLineTool.csproj", "{0FACD61C-4F5C-4236-96D7-226546C7CD79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

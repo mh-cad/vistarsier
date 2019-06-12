@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AssemblyName>vt</AssemblyName>
+    <StartupObject>VisTarsier.CommandLineTool.Program</StartupObject>
+    <ApplicationIcon />
+  </PropertyGroup>
+
+</Project>

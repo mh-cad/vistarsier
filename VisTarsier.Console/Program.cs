@@ -1,6 +1,6 @@
 ﻿
 using System.Diagnostics;
-using VisTarsier.MS;
+using VisTarsier.Module.MS;
 using VisTarsier.NiftiLib;
 
 namespace VisTarsier.CommandLineTool

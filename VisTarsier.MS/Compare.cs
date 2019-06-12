@@ -1,8 +1,9 @@
 ﻿using MathNet.Numerics.Statistics;
 using System;
 using System.Linq;
+using VisTarsier.NiftiLib;
 
-namespace VisTarsier.NiftiLib.Processing
+namespace VisTarsier.Module.MS
 {
     public static class Compare
     {
@@ -57,7 +58,9 @@ namespace VisTarsier.NiftiLib.Processing
             INifti<float> output = input.DeepCopy();
 
             //var mean = (float)input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
-            (var mean, var stdDev) = input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
+            var meanstddev =  input.Voxels.Where(val => val > backgroundThreshold).MeanStandardDeviation();
+            var mean = meanstddev.Item1;
+            var stdDev = meanstddev.Item2; //(Not sure why decompose stopped working here).
             //float range = input.voxels.Max() - input.voxels.Min();
             // Values from trial and error....
             float minRelevantValue = (float)(mean + (minRelevantStd * stdDev)); 
