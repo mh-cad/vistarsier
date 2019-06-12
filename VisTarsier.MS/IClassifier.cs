@@ -1,6 +1,6 @@
 ﻿using VisTarsier.NiftiLib;
 
-namespace VisTarsier.MS
+namespace VisTarsier.Module.MS
 {
     interface IClassifier<T>
     {

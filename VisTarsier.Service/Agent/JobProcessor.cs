@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using SliceType = VisTarsier.NiftiLib.SliceType;
 using VisTarsier.NiftiLib.Processing;
 using VisTarsier.NiftiLib;
-using VisTarsier.MS;
+using VisTarsier.Module.MS;
 using System.Drawing;
 using VisTarsier.Service.Agent.Abstractions;
 using VisTarsier.Dicom;

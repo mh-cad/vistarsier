@@ -24,7 +24,7 @@
       <Private></Private>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj" />
-    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.MS.csproj" />
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj" />
     <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj" />
   </ItemGroup>
 
