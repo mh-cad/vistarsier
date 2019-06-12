@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using VisTarsier.Common;
+using VisTarsier.NiftiLib;
+using VisTarsier.NiftiLib.Processing;
+
+namespace VisTarsier.Module.MS
+{
+    public class Histogram
+    {
+        public INifti<float> Prior { get; set; }
+        public INifti<float> Current { get; set; }
+        public INifti<float> Increase { get; set; }
+        public INifti<float> Decrease { get; set; }
+
+        public Bitmap GenerateSlide()
+        {
+            DirectBitmap slide = new DirectBitmap(1024, 1024);
+
+            // Init 2-D histo matrix
+            double[][] diffMatrix = new double[1024][];
+            for (int i = 0; i < 1024; ++i) diffMatrix[i] = new double[1024];
+            double[][] increaseMatrix = new double[1024][];
+            for (int i = 0; i < 1024; ++i) increaseMatrix[i] = new double[1024];
+            double[][] decreaseMatrix = new double[1024][];
+            for (int i = 0; i < 1024; ++i) decreaseMatrix[i] = new double[1024];
+
+            var max = double.MinValue;
+            var min = double.MaxValue;
+
+            var pnormed = Normalization.RangeNormalize(Prior, 0, 1);
+            var cnormed = Normalization.RangeNormalize(Current, 0, 1);
+            var diff = Subtract(pnormed.Voxels, cnormed.Voxels);
+
+            for (int i = 0; i < diff.Length; ++i) diff[i] = Math.Abs(diff[i]);
+
+            for (int i = 0; i < diff.Length; ++i)
+            {
+                int x = Math.Min(1023, (int)(pnormed.Voxels[i] * 1024));
+                int y = Math.Min(1023, (int)(cnormed.Voxels[i] * 1024));
+                diffMatrix[x][y] += (double)diff[i];
+                if (Increase != null) increaseMatrix[x][y] += (double)Increase.Voxels[i];
+                if (Decrease != null) decreaseMatrix[x][y] += (double)Decrease.Voxels[i];
+                if (diffMatrix[x][y] > max && x > 10 && y > 10) max = diffMatrix[x][y];
+                if (diffMatrix[x][y] < min) min = diffMatrix[x][y];
+            }
+
+            // We could normalise to the given range, but a flat multiplier will
+            // help us compare between scans.
+            var bmp = new DirectBitmap(1024, 1024);
+            var range = max - min;
+            var multiplier = 40;//(double)255 / range;
+
+            for (int x = 0; x < 1024; ++x)
+            {
+                for (int y = 0; y < 1024; ++y)
+                {
+                    var grey = Math.Min((int)((diffMatrix[x][y] - min) * multiplier), 255);
+                    grey = Math.Max(grey, 0);
+                    bmp.SetPixel(x, y, Color.FromArgb(grey, grey, grey));
+                    if (increaseMatrix[x][y] != 0) bmp.SetPixel(x, y, Color.FromArgb(Math.Min(255, (int)(grey * 1.5)), (int)(grey / 1.5), 0));
+                    if (decreaseMatrix[x][y] != 0) bmp.SetPixel(x, y, Color.FromArgb(0, Math.Min(255, (int)(grey * 1.5)), 0));
+                    if (x == y) bmp.SetPixel(x, y, Color.FromArgb(128, grey, grey));
+                }
+            }
+
+            return bmp.Bitmap;
+        }
+
+        private static float[] Subtract(float[] prior, float[] current)
+        {
+            var output = new float[current.Length];
+            for (var i = 0; i < current.Length; ++i)
+            {
+                output[i] = current[i] - prior[i];
+            }
+
+            return output;
+        }
+    }
+}

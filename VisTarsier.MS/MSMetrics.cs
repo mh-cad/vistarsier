@@ -1,4 +1,5 @@
-﻿using VisTarsier.NiftiLib.Processing;
+﻿using System.Drawing;
+using VisTarsier.NiftiLib.Processing;
 
 namespace VisTarsier.Module.MS
 {
@@ -11,5 +12,6 @@ namespace VisTarsier.Module.MS
         public double CorrectedBrainMatch { get; set; }
         public double EdgeRatioIncrease { get; set; }
         public double EdgeRatioDecrease { get; set; }
+        public Histogram Histogram { get; set; }
     }
 }
