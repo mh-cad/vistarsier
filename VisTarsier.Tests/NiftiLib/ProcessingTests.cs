@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using VisTarsier.Module.MS;
 
 namespace VisTarsier.Tests.NiftiLib
 {
