@@ -1,7 +1,7 @@
 ﻿using VisTarsier.Common;
 using System;
 
-namespace VisTarsier.Service.Db
+namespace VisTarsier.Service
 {
     public interface IValueComparer
     {

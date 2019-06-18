@@ -1,6 +1,5 @@
 ﻿using VisTarsier.Common;
 using VisTarsier.Config;
-using VisTarsier.Service.Agent.Abstractions;
 using log4net;
 using log4net.Config;
 using System;
@@ -8,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace VisTarsier.Service
 {
@@ -24,11 +24,18 @@ namespace VisTarsier.Service
         {
             CheckConfig();
             var log = GetLogger();
-            _agent = new Agent.Agent();
+            _agent = new Agent();
             System.Console.ForegroundColor = ConsoleColor.Gray;
             log.Info("App Started...");
 
-            _agent.Run();
+            int triesLeft = 5;
+            while (!_agent.IsHealthy && triesLeft-- > 0)
+            {
+                log.Error("Agent failed to load. Trying again...");
+                Thread.Sleep(10000);
+                _agent = new Agent();
+            }
+            _agent.Start();
         }
 
         private void CheckConfig()

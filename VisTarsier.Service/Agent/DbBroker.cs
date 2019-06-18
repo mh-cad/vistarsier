@@ -1,17 +1,16 @@
-﻿using VisTarsier.Service.Db;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace VisTarsier.Service.Agent
+namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DbBroker : DbContext
     {
         private readonly string _connectionString;
 
-        public DbSet<Case> Cases { get; set; }
+        public DbSet<Attempt> Attempts { get; set; }
         public DbSet<Job> Jobs { get; set; }
 
         public DbBroker()
@@ -29,17 +28,17 @@ namespace VisTarsier.Service.Agent
             optionsBuilder.UseSqlServer(_connectionString);
         }
 
-        #region "Cases"
-        public IEnumerable<Case> GetCaseByStatus(string status)
+        #region "Attempts"
+        public IEnumerable<Attempt> GetCaseByStatus(string status)
         {
-            return Cases.Where(c => c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return Attempts.Where(c => c != null && c.Status != null && c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
         #endregion
 
         #region "Jobs"
         public IEnumerable<Job> GetJobByStatus(string status)
         {
-            return Jobs.Where(j => j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return Jobs.Where(j => j != null && j.Status != null && j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
         #endregion
     }

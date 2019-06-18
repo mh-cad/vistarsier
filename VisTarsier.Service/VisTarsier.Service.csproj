@@ -171,19 +171,14 @@
   <ItemGroup>
     <Compile Include="Agent\Agent.cs" />
     <Compile Include="Agent\IAgent.cs" />
-    <Compile Include="Agent\IJobBuilder.cs" />
-    <Compile Include="Agent\IJobProcessor.cs" />
     <Compile Include="Agent\JobBuilder.cs" />
     <Compile Include="Agent\JobProcessor.cs" />
-    <Compile Include="Db\DbBroker.cs" />
-    <Compile Include="Db\Case.cs" />
-    <Compile Include="Db\ICase.cs" />
-    <Compile Include="Db\IJob.cs" />
-    <Compile Include="Db\IJobResult.cs" />
-    <Compile Include="Db\IValueComparer.cs" />
-    <Compile Include="Db\Job.cs" />
-    <Compile Include="Db\JobResult.cs" />
-    <Compile Include="Db\ValueComparer.cs" />
+    <Compile Include="Agent\DbBroker.cs" />
+    <Compile Include="Agent\Attempt.cs" />
+    <Compile Include="Agent\IValueComparer.cs" />
+    <Compile Include="Agent\Job.cs" />
+    <Compile Include="Agent\JobResult.cs" />
+    <Compile Include="Agent\ValueComparer.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>

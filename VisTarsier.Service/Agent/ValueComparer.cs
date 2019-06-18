@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace VisTarsier.Service.Db
+namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ValueComparer : IValueComparer

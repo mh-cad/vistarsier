@@ -1,13 +1,13 @@
 ﻿using VisTarsier.Config;
 
-namespace VisTarsier.Service.Agent.Abstractions
+namespace VisTarsier.Service
 {
     public interface IAgent
     {
         /// <summary>
         /// Start the Agent running. Agent will run on a loop with an interval defined in the config.
         /// </summary>
-        void Run();
+        void Start();
         /// <summary>
         /// Returns the configuration for the application.
         /// </summary>

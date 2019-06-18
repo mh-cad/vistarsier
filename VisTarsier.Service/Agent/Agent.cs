@@ -1,5 +1,4 @@
-﻿using VisTarsier.Service.Agent.Abstractions;
-using VisTarsier.Service.Db;
+﻿using VisTarsier.Service;
 using VisTarsier.Config;
 using VisTarsier.Common;
 using log4net;
@@ -11,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Timers;
 
-namespace VisTarsier.Service.Agent
+namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class Agent : IAgent
@@ -77,13 +76,21 @@ namespace VisTarsier.Service.Agent
             }
         }
 
-        public void Run()
+        public void Start()
         {
+            _log.Info("Agent started. Healthy : " + IsHealthy);
             if (!IsHealthy) return;
 
-            Init();
+            _log.Info("Handing failed cases and jobs");
+            try { HandleFailedCasesAndJobs(); }
+            catch(Exception e) { _log.Error(e); }
 
-            CheckForNewCasesAndProcessPendings();
+            _log.Info("Starting timer");
+            var interval = int.Parse(Config.RunInterval);
+            InitTimer(interval);
+
+            _log.Info("Initial run...");
+            Run();
 
             _timer.Start();
         }
@@ -103,22 +110,24 @@ namespace VisTarsier.Service.Agent
         {
             Console.ForegroundColor = ConsoleColor.Gray;
             _context = GetAgentRepository();
-            CheckForNewCasesAndProcessPendings();
+            Run();
         }
         /// <summary>
         /// Runs once after app starts, then every interval
         /// </summary>
-        private void CheckForNewCasesAndProcessPendings()
+        public void Run()
         {
+            // Check if we're busy processing cases.
             if (IsBusy)
             {
                 _log.Info("Agent is busy processing cases");
                 return;
             }
 
+            // Global agent lock.
             IsBusy = true;
 
-            // Handle newly added cases
+            // Handle newly added cases (add to DB)
             try
             {
                 _log.Info("Checking for new cases");
@@ -133,7 +142,7 @@ namespace VisTarsier.Service.Agent
                 return;
             }
 
-            // Process next pending case
+            // Process next pending case (from the DB)
             try
             {
                 var pendingCases = _context.GetCaseByStatus("Pending").ToList();
@@ -152,7 +161,7 @@ namespace VisTarsier.Service.Agent
             catch (Exception ex)
             {
                 var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
-                _log.Error($"{Environment.NewLine}Failed to get pending cases from database. {dbConnectionString}", ex);
+                _log.Error($"{Environment.NewLine}Failed to get pending attempts from database. {dbConnectionString}", ex);
                 IsBusy = false;
                 throw;
             }
@@ -161,31 +170,31 @@ namespace VisTarsier.Service.Agent
         /// <summary>
         /// Do the actual Processing of the case
         /// </summary>
-        /// <param name="case">Pending case to be processed</param>
-        private void ProcessCase(ICase @case)
+        /// <param name="attempt">Pending case to be processed</param>
+        private void ProcessCase(Attempt attempt)
         {
-            var recipe = FindRecipe(@case);
+            var recipe = FindRecipe(attempt);
             try
             {
                 _log.Info(
-                    $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Start processing case for this case.");
-                SetCaseStatus(@case, "Processing");
+                    $"Accession: [{attempt.CurrentAccession}] Addition method: [{attempt.Method}] Start processing case for this case.");
+                SetCaseStatus(attempt, "Processing");
 
-                Case.Process(recipe, _context);
+                attempt.Process(recipe, _context);
 
                 _log.Info(
-                    $"Accession: [{@case.Accession}] Addition method: [{@case.AdditionMethod}] Processing completed for this case.");
+                    $"Accession: [{attempt.CurrentAccession}] Addition method: [{attempt.Method}] Processing completed for this case.");
                 _log.Info("-------------------------");
-                @case.Comment = string.Empty;
-                SetCaseStatus(@case, "Complete");
+                attempt.Comment = string.Empty;
+                SetCaseStatus(attempt, "Complete");
             }
             catch (DirectoryNotFoundException ex)
             {
                 if (ex.Message.ToLower().Contains("workable series were found"))
                 {
-                    _log.Info($"{ex.Message} Accession: [{@case.Accession}]");
-                    SetCaseStatus(@case, "Failed");
-                    SetCaseComment(@case, ex.Message);
+                    _log.Info($"{ex.Message} Accession: [{attempt.CurrentAccession}]");
+                    SetCaseStatus(attempt, "Unworkable");
+                    SetCaseComment(attempt, ex.Message);
                 }
                 else throw;
             }
@@ -194,18 +203,12 @@ namespace VisTarsier.Service.Agent
                 _log.Error($"{Environment.NewLine}Case failed during processing", ex);
                 IsBusy = false;
 
-                SetCaseStatus(@case, "Failed");
-                SetCaseComment(@case, ex.Message);
+                SetCaseStatus(attempt, "Failed");
+                SetCaseComment(attempt, ex.Message);
             }
         }
 
-        private void Init()
-        {
-            HandleFailedCasesAndJobs();
 
-            var interval = int.Parse(Config.RunInterval);
-            InitTimer(interval);
-        }
         private void CleanupProcessFolder(string folderPath, string accession)
         {
             if (!Directory.Exists(folderPath))
@@ -238,21 +241,21 @@ namespace VisTarsier.Service.Agent
         private void HandleFailedCasesAndJobs()
         {
             var failedCases = _context.GetCaseByStatus("Processing");
-            failedCases.ToList().ForEach(c =>
+            foreach (var c in failedCases)
             {
                 var tmp = c;
                 tmp.Status = "Pending";
-                _context.Cases.Update(tmp);
+                _context.Attempts.Update(tmp);
                 _context.SaveChanges();
-            });
+            }
             var failedJobs = _context.GetJobByStatus("Processing");
-            failedJobs.ToList().ForEach(j =>
+            foreach (var j in failedJobs)
             {
                 var tmp = j;
                 tmp.Status = "Failed";
                 _context.Jobs.Update(tmp);
                 _context.SaveChanges();
-            });
+            }
         }
         private void HandleNewlyAddedCases()
         {
@@ -278,34 +281,34 @@ namespace VisTarsier.Service.Agent
                 throw;
             }
         }
-        private Recipe FindRecipe(ICase @case)
+        private Recipe FindRecipe(Attempt @case)
         {
             Recipe recipe;
 
             
-            if (@case.AdditionMethod == AdditionMethod.Hl7)
+            if (@case.Method == Attempt.AdditionMethod.Hl7)
             {
                 recipe = GetDefaultRecipe();
-                recipe.CurrentAccession = @case.Accession;
+                recipe.CurrentAccession = @case.CurrentAccession;
                 // Delete file in HL7 Folder after it was added to DB
-                CleanupProcessFolder(Config.Hl7ProcessPath, @case.Accession);
+                CleanupProcessFolder(Config.Hl7ProcessPath, @case.CurrentAccession);
             }
             else
             {
                 recipe = GetRecipeForManualCase(@case);
-                recipe.CurrentAccession = @case.Accession;
+                recipe.CurrentAccession = @case.CurrentAccession;
                 // Delete file in Manual Folder after it was added to DB
-                CleanupProcessFolder(Config.ManualProcessPath, @case.Accession);
+                CleanupProcessFolder(Config.ManualProcessPath, @case.CurrentAccession);
             }
             return recipe;
         }
 
-        private Recipe GetRecipeForManualCase(ICase @case)
+        private Recipe GetRecipeForManualCase(Attempt @case)
         {
             var recipeFilePath = Directory.GetFiles(Config.ManualProcessPath)
                 .OrderBy(f => f)
                 .FirstOrDefault(f => Path.GetFileName(f).ToLower()
-                    .StartsWith(@case.Accession, StringComparison.CurrentCultureIgnoreCase));
+                    .StartsWith(@case.CurrentAccession, StringComparison.CurrentCultureIgnoreCase));
 
             if (recipeFilePath == null || string.IsNullOrEmpty(recipeFilePath) || !File.Exists(recipeFilePath) || !recipeFilePath.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase))
                 return GetDefaultRecipe();
@@ -338,23 +341,23 @@ namespace VisTarsier.Service.Agent
             }
         }
 
-        private void SetCaseStatus(ICase @case, string status)
+        private void SetCaseStatus(Attempt @case, string status)
         {
             @case.Status = status;
-            _context.Cases.Update(@case as Case ?? throw new ArgumentNullException(nameof(@case),
+            _context.Attempts.Update(@case as Attempt ?? throw new ArgumentNullException(nameof(@case),
                                       "Case not found in database to be updated"));
             _context.SaveChanges();
         }
-        private void SetCaseComment(ICase @case, string comment)
+        private void SetCaseComment(Attempt @case, string comment)
         {
             @case.Comment = comment;
-            _context.Cases.Update(@case as Case ?? throw new ArgumentNullException(nameof(@case),
+            _context.Attempts.Update(@case as Attempt ?? throw new ArgumentNullException(nameof(@case),
                                       "Case not found in database to be updated"));
             _context.SaveChanges();
         }
 
         #region "Handle Manually Added Cases"
-        private static IEnumerable<ICase> GetManuallyAddedCases(string manualFolder)
+        private static IEnumerable<Attempt> GetManuallyAddedCases(string manualFolder)
         {
             var cases = (
                 from file in Directory.GetFiles(manualFolder)
@@ -362,7 +365,7 @@ namespace VisTarsier.Service.Agent
                     file.EndsWith(".recipe.json", StringComparison.CurrentCultureIgnoreCase) ?
                         Path.GetFileName(file.ToLower()).Replace(".recipe.json", "").Split('.')[0] : // recipe file
                         Path.GetFileNameWithoutExtension(file) // non-recipe file
-                select new Case { Accession = accession, AdditionMethod = AdditionMethod.Manually }
+                select new Attempt { CurrentAccession = accession, Method = Attempt.AdditionMethod.Manually }
             ).ToList();
             return cases;
 
@@ -372,84 +375,90 @@ namespace VisTarsier.Service.Agent
             var manuallyAddedCases = GetManuallyAddedCases(Config.ManualProcessPath).ToList();
             if (!manuallyAddedCases.Any()) return;
 
-            manuallyAddedCases.ToList().ForEach(mc =>
+            manuallyAddedCases.ToList().ForEach((Action<Attempt>)(mc =>
             {
-                var inDb = _context.Cases.Select(c => c.Accession)
-                        .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
+                var inDb = _context.Attempts.Any((System.Linq.Expressions.Expression<Func<Attempt, bool>>)(c => 
+                        (bool)(c.CurrentAccession.Equals((string)mc.CurrentAccession) 
+                        && ((c.CurrentSeriesUID == null && mc.CurrentSeriesUID == null) || c.CurrentSeriesUID.Equals(mc.CurrentSeriesUID))
+                        && ((c.PriorSeriesUID == null && mc.PriorSeriesUID == null) || c.PriorSeriesUID.Equals(mc.PriorSeriesUID)))));
 
                 if (inDb)
                 { // If already in database, set status to Pending
-                    var inDbCase = _context.Cases
-                        .Single(c => c.Accession.Equals(mc.Accession, StringComparison.InvariantCultureIgnoreCase));
+                    var inDbCase = _context.Attempts
+                        .Single((System.Linq.Expressions.Expression<Func<Attempt, bool>>)(c => (bool)c.CurrentAccession.Equals((string)mc.CurrentAccession, StringComparison.InvariantCultureIgnoreCase)));
                     inDbCase.Status = "Pending";
-                    inDbCase.AdditionMethod = AdditionMethod.Manually;
+                    inDbCase.Method = Attempt.AdditionMethod.Manually;
                     try
                     {
-                        _context.Cases.Update(inDbCase);
+                        _context.Attempts.Update(inDbCase);
                         _context.SaveChanges();
-                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.Accession}]");
+                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.CurrentAccession}]");
                     }
                     catch (Exception ex)
                     {
                         _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{inDbCase.Accession}]", ex);
+                                   $"{Environment.NewLine}Accession: [{inDbCase.CurrentAccession}]", ex);
                     }
                 }
                 else // if not in database, add to database
                 {
-                    var newCase = new Case { Accession = mc.Accession.ToUpper(), Status = "Pending", AdditionMethod = AdditionMethod.Manually };
+                    var newCase = new Attempt { CurrentAccession = mc.CurrentAccession.ToUpper(), Status = "Pending", Method = Attempt.AdditionMethod.Manually };
                     try
                     {
-                        _context.Cases.Add(newCase);
+                        _context.Attempts.Add(newCase);
                         _context.SaveChanges();
-                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.Accession}]");
+                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.CurrentAccession}]");
                     }
                     catch (Exception ex)
                     {
                         _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{newCase.Accession}]", ex);
+                                   $"{Environment.NewLine}Accession: [{newCase.CurrentAccession}]", ex);
                     }
                 }
-            });
+            }));
 
         }
         #endregion
 
         #region "Handle HL7 Added Cases"
-        private static IEnumerable<ICase> GetHl7AddedCases(string hl7Folder)
+        private static IEnumerable<Attempt> GetHl7AddedCases(string hl7Folder)
         {
             return (
                 from file in Directory.GetFiles(hl7Folder)
                 let accession = Path.GetFileNameWithoutExtension(file)
-                select new Case { Accession = accession, AdditionMethod = AdditionMethod.Hl7 }
+                select new Attempt { CurrentAccession = accession, Method = Attempt.AdditionMethod.Hl7 }
             ).ToList();
         }
         private void HandleHl7AddedCases()
         {
             var hl7AddedCases = GetHl7AddedCases(Config.Hl7ProcessPath);
-            hl7AddedCases.ToList().ForEach(mc =>
+            hl7AddedCases.ToList().ForEach((Action<Attempt>)(mc =>
             {
-                var inDb = _context.Cases.Select(c => c.Accession)
-                        .Any(ac => ac.ToLower().Contains(mc.Accession.ToLower()));
-                if (inDb) return; // If not in database, add to db
-                var newCase = new Case
+                var inDb = _context.Attempts.Any((System.Linq.Expressions.Expression<Func<Attempt, bool>>)(c => 
+                        (bool)(c.CurrentAccession.Equals((string)mc.CurrentAccession)
+                        && ((c.CurrentSeriesUID == null && mc.CurrentSeriesUID == null) || c.CurrentSeriesUID.Equals(mc.CurrentSeriesUID))
+                        && ((c.PriorSeriesUID == null && mc.PriorSeriesUID == null) || c.PriorSeriesUID.Equals(mc.PriorSeriesUID)))));
+
+            if (inDb) return; // If not in database, add to db
+                var @newCase = new Attempt
                 {
-                    Accession = mc.Accession,
+                    CurrentAccession = mc.CurrentAccession,
                     Status = "Pending",
-                    AdditionMethod = AdditionMethod.Hl7
+                    Method = Attempt.AdditionMethod.Hl7
                 };
                 try
                 {
-                    _context.Cases.Add(newCase);
+                    _log.Info("JobID for newCase : " + newCase.JobId);
+                    _context.Attempts.Add(newCase);
                     _context.SaveChanges();
-                    _log.Info($"Successfully inserted HL7 added case into database. Accession: [{newCase.Accession}]");
+                    _log.Info($"Successfully inserted HL7 added case into database. Accession: [{newCase.CurrentAccession}]");
                 }
                 catch (Exception ex)
                 {
-                    _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.Accession}]", ex);
+                    _log.Error($"Failed to insert HL7 added case into database. Accession: [{newCase.CurrentAccession}]", ex);
                 }
                 // if already in database, disregard
-            });
+            }));
         }
         #endregion
     }
