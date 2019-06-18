@@ -32,16 +32,17 @@ namespace VisTarsier.Module.MS
             var max = double.MinValue;
             var min = double.MaxValue;
 
-            var pnormed = Normalization.RangeNormalize(Prior, 0, 1);
-            var cnormed = Normalization.RangeNormalize(Current, 0, 1);
-            var diff = Subtract(pnormed.Voxels, cnormed.Voxels);
+            var rangeStart = Math.Min(Prior.Voxels.Min(), Current.Voxels.Min());
+            var rangeEnd = Math.Max(Prior.Voxels.Max(), Current.Voxels.Max());
+            var range = rangeEnd - rangeStart;
+            var diff = Subtract(Prior.Voxels, Current.Voxels);
 
             for (int i = 0; i < diff.Length; ++i) diff[i] = Math.Abs(diff[i]);
 
             for (int i = 0; i < diff.Length; ++i)
             {
-                int x = Math.Min(1023, (int)(pnormed.Voxels[i] * 1024));
-                int y = Math.Min(1023, (int)(cnormed.Voxels[i] * 1024));
+                int x = Math.Min(1023, (int)((Prior.Voxels[i] - rangeStart) / range  * 1024));
+                int y = Math.Min(1023, (int)((Current.Voxels[i] - rangeStart) / range * 1024));
                 diffMatrix[x][y] += (double)diff[i];
                 if (Increase != null) increaseMatrix[x][y] += (double)Increase.Voxels[i];
                 if (Decrease != null) decreaseMatrix[x][y] += (double)Decrease.Voxels[i];
@@ -52,8 +53,8 @@ namespace VisTarsier.Module.MS
             // We could normalise to the given range, but a flat multiplier will
             // help us compare between scans.
             var bmp = new DirectBitmap(1024, 1024);
-            var range = max - min;
-            var multiplier = 40;//(double)255 / range;
+            Log.GetLogger().Info($"Min {min}, Max {max}, Range = { max - min}, ideal multi={255.0 / (max - min)}");
+            var multiplier = 0.25;//255.0 / (max - min);
 
             for (int x = 0; x < 1024; ++x)
             {
