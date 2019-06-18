@@ -1,8 +1,4 @@
-﻿using VisTarsier.Config;
-using VisTarsier.Dicom;
-using VisTarsier.Dicom.Abstractions;
-using VisTarsier.Service.Agent;
-using log4net;
+﻿using VisTarsier.Service;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;

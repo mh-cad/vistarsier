@@ -1,5 +1,4 @@
-﻿using VisTarsier.Service.Db;
-using VisTarsier.Config;
+﻿using VisTarsier.Config;
 using VisTarsier.Common;
 using log4net;
 using System;
@@ -8,36 +7,27 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SliceType = VisTarsier.NiftiLib.SliceType;
-using VisTarsier.Service.Agent;
 using VisTarsier.Dicom;
-using System.Runtime.InteropServices;
+using System.ComponentModel.DataAnnotations;
 
-namespace VisTarsier.Service.Db
+namespace VisTarsier.Service
 {
-    public class Job : IJob
+    public class Job
     {
-        private readonly Recipe _recipe;
         private readonly CapiConfig _capiConfig;
         private readonly ILog _log;
 
-        public long Id { get; set; }
-        public string SourceAet { get; set; }
-        public string PatientId { get; set; }
-        public string PatientFullName { get; set; }
-        public string PatientBirthDate { get; set; }
-        public string CurrentAccession { get; set; }
-        public string PriorAccession { get; set; }
-        public string DefaultDestination { get; set; }
-        public bool ExtractBrain { get; set; }
-        public bool Register { get; set; }
-        //public string RegistrationData { get; set; }
-        public string ReferenceSeries { get; set; }
-        public bool BiasFieldCorrection { get; set; }
 
+        public readonly Recipe Recipe;
+        public long Id { get; set; }
         public string Status { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
+        public string RecipeString { get; set; }
+        public string DbExt { get; set; }
 
+        [NotMapped]
+        public Attempt Attempt { get; set; }
         [NotMapped]
         public string CurrentSeriesDicomFolder { get; set; }
         [NotMapped]
@@ -52,26 +42,25 @@ namespace VisTarsier.Service.Db
         public string PriorReslicedSeriesDicomFolder { get; set; }
         [NotMapped]
         public string ProcessingFolder { get; set; }
+        [NotMapped]
+        public string DefaultDestination { get; set; }
 
         // Needed for EntityFramework
         public Job() { }
 
-        public Job(Recipe recipe)
+        public Job(Recipe recipe, Attempt attempt)
         {
-            _recipe = recipe;
+            Recipe = recipe;
             _capiConfig = CapiConfig.GetConfig();
             _log = Log.GetLogger();
+            Attempt = attempt;
 
-            SourceAet = recipe.SourceAet;
-            PatientId = recipe.PatientId;
-            PatientFullName = recipe.PatientFullName;
-            PatientBirthDate = recipe.PatientBirthDate;
-            CurrentAccession = recipe.CurrentAccession;
-            PriorAccession = recipe.PriorAccession;
-
-            ExtractBrain = recipe.ExtractBrain;
-            Register = recipe.Register;
-            BiasFieldCorrection = recipe.BiasFieldCorrection;
+            Attempt.SourceAet = recipe.SourceAet;
+            Attempt.PatientId = recipe.PatientId;
+            Attempt.PatientFullName = recipe.PatientFullName;
+            Attempt.PatientBirthDate = recipe.PatientBirthDate;
+            Attempt.CurrentAccession = recipe.CurrentAccession;
+            Attempt.PriorAccession = recipe.PriorAccession;
 
             DefaultDestination =
                 recipe.DicomDestinations != null && !string.IsNullOrEmpty(recipe.DicomDestinations.FirstOrDefault()) ?
@@ -79,36 +68,38 @@ namespace VisTarsier.Service.Db
                 recipe.FilesystemDestinations.FirstOrDefault();
         }
 
-        public void Process()
+        public void Process(DbBroker dbBroker)
         {
-            var job = this;
+            var @job = this;
 
-            job.Start = DateTime.Now;
-            job.Status = "Processing";
-
-            var dbBroker = new DbBroker(_capiConfig.AgentDbConnectionString);
-
-            dbBroker.Jobs.Add(job);
+            @job.Start = DateTime.Now;
+            @job.Status = "Processing";
+            
+            if (dbBroker.Jobs.Find(@job.Id) == null) dbBroker.Jobs.Add(@job);
+            else dbBroker.Jobs.Update(@job);
+            dbBroker.SaveChanges();
+            job.Attempt.JobId = @job.Id;
+            dbBroker.Attempts.Update(Attempt);
             dbBroker.SaveChanges();
 
             _log.Info($"{Environment.NewLine}");
             _log.Info($"****************  JOB CREATED  **********************************");
             _log.Info($" Job ID               *  {job.Id}");
-            _log.Info($" Patient ID           *  {job.PatientId}");
-            _log.Info($" Patient Name         *  {job.PatientFullName}");
-            _log.Info($" Patient DOB          *  {job.PatientBirthDate}");
-            _log.Info($" Current Accession    *  {CurrentAccession}");
-            _log.Info($" Prior Accession      *  {PriorAccession}");
+            _log.Info($" Patient ID           *  {job.Attempt.PatientId}");
+            _log.Info($" Patient Name         *  {job.Attempt.PatientFullName}");
+            _log.Info($" Patient DOB          *  {job.Attempt.PatientBirthDate}");
+            _log.Info($" Current Accession    *  {job.Attempt.CurrentAccession}");
+            _log.Info($" Prior Accession      *  {job.Attempt.PriorAccession}");
             _log.Info($"*****************************************************************");
             _log.Info($"{Environment.NewLine}");
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            _capiConfig.ImagePaths = UpdateImgProcConfig(_recipe);
+            _capiConfig.ImagePaths = UpdateImgProcConfig(Recipe);
             var jobProcessor = new JobProcessor(dbBroker);
 
-            var sliceType = GetSliceType(_recipe.SliceType);
+            var sliceType = GetSliceType(Recipe.SliceType);
 
             try
             {
@@ -122,7 +113,7 @@ namespace VisTarsier.Service.Db
                 _log.Error(e.StackTrace);
             }
 
-            var results = jobProcessor.CompareAndSaveLocally(job, _recipe, sliceType);
+            var results = jobProcessor.CompareAndSaveLocally(job, Recipe, sliceType);
             SendToDestinations(results);
 
             Directory.Delete(ProcessingFolder, true);
@@ -139,7 +130,7 @@ namespace VisTarsier.Service.Db
             _log.Info($"{Environment.NewLine}");
             _log.Info($"****************  JOB COMPLETE  **********************************");
             _log.Info($" Job ID               *  {job.Id}");
-            _log.Info($" Processing Time      *  {job.PatientId}");
+            _log.Info($" Processing Time      *  {job.End - job.Start}");
             _log.Info($"*****************************************************************");
             _log.Info($"{Environment.NewLine}");
             _log.Info($"{Environment.NewLine}");
@@ -148,18 +139,18 @@ namespace VisTarsier.Service.Db
 
         public string GetStudyIdFromReferenceSeries()
         {
-            return ReferenceSeries.Split('|')[0];
+            return Attempt.ReferenceSeries.Split('|')[0];
         }
 
         public string GetSeriesIdFromReferenceSeries()
         {
-            return ReferenceSeries.Split('|').Length < 2 ? string.Empty :
-                                                           ReferenceSeries.Split('|')[1];
+            return Attempt.ReferenceSeries.Split('|').Length < 2 ? string.Empty :
+                                                           Attempt.ReferenceSeries.Split('|')[1];
         }
 
         public void WriteStudyAndSeriesIdsToReferenceSeries(string studyId, string seriesId)
         {
-            ReferenceSeries = string.Join("|", studyId, seriesId);
+            Attempt.ReferenceSeries = string.Join("|", studyId, seriesId);
         }
 
         private ImagePaths UpdateImgProcConfig(IRecipe recipe)
@@ -175,7 +166,7 @@ namespace VisTarsier.Service.Db
             return imgProcConfig;
         }
 
-        private void SendToDestinations(IJobResult[] results)
+        private void SendToDestinations(JobResult[] results)
         {
             // TODO :: I'm note sure that we should be throwing errors here, since the job results should be 
             // detemining where we're getting files from 
@@ -201,16 +192,16 @@ namespace VisTarsier.Service.Db
             stopwatch.Stop();
             _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
         }
-        private void SendToFilesystemDestinations(IJobResult[] results)
+        private void SendToFilesystemDestinations(JobResult[] results)
         {
-            if (_recipe.FilesystemDestinations == null) return;
-            foreach (var fsDestination in _recipe.FilesystemDestinations)
+            if (Recipe.FilesystemDestinations == null) return;
+            foreach (var fsDestination in Recipe.FilesystemDestinations)
             {
                 var jobFolderName = Path.GetFileName(ProcessingFolder) ?? throw new InvalidOperationException();
                 var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
 
                 _log.Info($"Sending to folder [{destJobFolderPath}]...");
-                if (_recipe.OnlyCopyResults)
+                if (Recipe.OnlyCopyResults)
                 {
                     foreach (var result in results)
                     {
@@ -230,10 +221,10 @@ namespace VisTarsier.Service.Db
                 }
             }
         }
-        private void SendToDicomDestinations(IJobResult[] results)
+        private void SendToDicomDestinations(JobResult[] results)
         {
-            if (_recipe.DicomDestinations == null) return;
-            foreach (var dicomDestination in _recipe.DicomDestinations)
+            if (Recipe.DicomDestinations == null) return;
+            foreach (var dicomDestination in Recipe.DicomDestinations)
             {
                 var localNode = _capiConfig.DicomConfig.LocalNode;
                 IDicomNode remoteNode;

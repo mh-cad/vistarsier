@@ -1,5 +1,4 @@
-﻿using VisTarsier.Service.Db;
-using VisTarsier.Config;
+﻿using VisTarsier.Config;
 using VisTarsier.Dicom.Abstractions;
 using log4net;
 using System;
@@ -11,8 +10,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using VisTarsier.Common;
 using VisTarsier.Dicom;
+using Newtonsoft.Json;
 
-namespace VisTarsier.Service.Agent
+namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobBuilder //: IJobBuilder
@@ -56,7 +56,7 @@ namespace VisTarsier.Service.Agent
         /// </summary>
         /// <param name="recipe">Contains details of studies to process, source and destinations</param>
         /// <returns></returns>
-        public IJob Build(Recipe recipe)
+        public Job Build(Recipe recipe, Attempt attempt)
         {
             // Setup out dicom service.
             GetLocalAndRemoteNodes(recipe.SourceAet, out var localNode, out var sourceNode);
@@ -67,23 +67,43 @@ namespace VisTarsier.Service.Agent
                 recipe.PatientFullName, recipe.PatientBirthDate)
                     .OrderByDescending(s => s.StudyDate).ToList();
 
+            @attempt.PatientId = recipe.PatientId;
+            _context.Attempts.Update(@attempt);
+            _context.SaveChanges();
+
             if (allStudiesForPatient.Count < 1)
                 throw new Exception(
                     $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{sourceNode.AeTitle}]");
+
+            @attempt.PatientId = allStudiesForPatient.FirstOrDefault().PatientId;
+            _context.Attempts.Update(@attempt);
+            _context.SaveChanges();
 
             recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
 
             // Find Current Study (Fixed)
             _log.Info("Finding current series using recipe provided...");
             var currentDicomStudy = GetCurrentDicomStudy(recipe, allStudiesForPatient);
+
+            // Update case in DB
+            @attempt.PatientFullName = recipe.PatientFullName;
+            @attempt.PatientBirthDate = recipe.PatientBirthDate;
+            _context.Attempts.Update(@attempt);
+            _context.SaveChanges();
+
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
-            var job = new Job(recipe);
+            @attempt.CurrentAccession = currentDicomStudy.AccessionNumber;
+            @attempt.CurrentSeriesUID = currentDicomStudy.Series.FirstOrDefault().SeriesInstanceUid;
+            _context.Attempts.Update(@attempt);
+            _context.SaveChanges();
+
+            var job = new Job(recipe, attempt);
             var imageRepositoryPath = _capiConfig.ImagePaths.ImageRepositoryPath;
             var patientName = recipe.PatientFullName.Split('^')[0];
-            var accession = job.CurrentAccession;
+            var accession = job.Attempt.CurrentAccession;
             var accessionInJobName = string.Empty;
             if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = $"-{accession.Substring(2, 10)}-";
             var patientNameSubstring = patientName.Length > 4 ? patientName.Substring(0, 5) : patientName.Substring(0, patientName.Length);
@@ -97,12 +117,21 @@ namespace VisTarsier.Service.Agent
             var priorDicomStudy =
                 GetPriorDicomStudy(recipe, studyFixedIndex, allStudiesForPatient);
 
+            @attempt.PriorAccession = priorDicomStudy?.AccessionNumber;
+            @attempt.PriorSeriesUID = priorDicomStudy?.Series?.FirstOrDefault()?.SeriesInstanceUid;
+            @attempt.SourceAet = recipe.SourceAet;
+            @attempt.DestinationAet = JsonConvert.SerializeObject(recipe.DicomDestinations);
+            @job.RecipeString = JsonConvert.SerializeObject(job.Recipe, new CapiConfigJsonConverter());
+            _context.Attempts.Update(@attempt);
+            _context.Jobs.Update(@job);
+            _context.SaveChanges();
+
             if (priorDicomStudy == null)
                 throw new DirectoryNotFoundException("No prior workable series were found");
 
             job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
-            job.PriorAccession = priorDicomStudy.AccessionNumber;
-            job.PatientId = currentDicomStudy.PatientId;
+            job.Attempt.PriorAccession = priorDicomStudy.AccessionNumber;
+            job.Attempt.PatientId = currentDicomStudy.PatientId;
 
             // If both current and prior are found, save them to disk for processing
             _log.Info("Saving current series to disk...");
@@ -140,14 +169,14 @@ namespace VisTarsier.Service.Agent
             return job;
         }
 
-        private string GetReferenceSeriesForRegistration(IJob job, IEnumerable<IDicomStudy> allStudiesForPatient)
+        private string GetReferenceSeriesForRegistration(Job job, IEnumerable<IDicomStudy> allStudiesForPatient)
         {
             var studiesForPatient = allStudiesForPatient.ToList();
 
-            if (string.IsNullOrEmpty(job.ReferenceSeries))
-                job.ReferenceSeries = FindReferenceSeriesInPreviousJobs(job.PatientId);
+            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries))
+                job.Attempt.ReferenceSeries = FindReferenceSeriesInPreviousJobs(job.Attempt.PatientId);
 
-            if (string.IsNullOrEmpty(job.ReferenceSeries)) return string.Empty;
+            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries)) return string.Empty;
 
             var studyId = job.GetStudyIdFromReferenceSeries();
             var seriesId = job.GetSeriesIdFromReferenceSeries();
@@ -181,11 +210,10 @@ namespace VisTarsier.Service.Agent
 
         private string FindReferenceSeriesInPreviousJobs(string patientId)
         {
-            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.PatientId == patientId &&
-                                                                    !string.IsNullOrEmpty(j.ReferenceSeries));
+            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
+                                                                    !string.IsNullOrEmpty(j.Attempt.ReferenceSeries));
 
-            return jobWithRefSeries != null ? jobWithRefSeries.ReferenceSeries :
-                                              string.Empty;
+            return jobWithRefSeries != null && jobWithRefSeries.Attempt != null ? jobWithRefSeries.Attempt.ReferenceSeries : string.Empty;
         }
 
         private static Recipe UpdateRecipeWithPatientDetails(Recipe recipe, IReadOnlyCollection<IDicomStudy> studies)
@@ -513,7 +541,7 @@ namespace VisTarsier.Service.Agent
         /// Finds only one study matching the accession number in list of studies passed to it. Throws exception in case no study is matched or more than one are matched.
         /// </summary>
         /// <param name="allStudies">All Studies passed to find one that matches accession number</param>
-        /// <param name="accessionNumber">Accession number to check against each study accession number [Case insensitive]</param>
+        /// <param name="accessionNumber">Accession number to check against each study accession number [Attempt insensitive]</param>
         /// <returns></returns>
         private IDicomStudy FindStudyMatchingAccession(IEnumerable<IDicomStudy> allStudies,
             string accessionNumber)

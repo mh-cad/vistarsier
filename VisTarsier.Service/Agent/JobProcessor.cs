@@ -1,5 +1,4 @@
-﻿using VisTarsier.Service.Db;
-using VisTarsier.Config;
+﻿using VisTarsier.Config;
 using VisTarsier.Dicom.Abstractions;
 using VisTarsier.Common;
 using log4net;
@@ -14,17 +13,16 @@ using VisTarsier.NiftiLib.Processing;
 using VisTarsier.NiftiLib;
 using VisTarsier.Module.MS;
 using System.Drawing;
-using VisTarsier.Service.Agent.Abstractions;
 using VisTarsier.Dicom;
 using System.Globalization;
 
-namespace VisTarsier.Service.Agent
+namespace VisTarsier.Service
 {
     /// <summary>
     /// Compares current and prior sereis and saves results into filesystem or sends off to a dicom node
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class JobProcessor : IJobProcessor
+    public class JobProcessor
     {
         private readonly ILog _log;
         private readonly DbBroker _dbBroker;
@@ -40,7 +38,7 @@ namespace VisTarsier.Service.Agent
             _dbBroker = dbBroker;
         }
 
-        public IJobResult[] CompareAndSaveLocally(
+        public JobResult[] CompareAndSaveLocally(
             string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
             SliceType sliceType,
             bool extractBrain, bool register, bool biasFieldCorrect,
@@ -59,9 +57,11 @@ namespace VisTarsier.Service.Agent
 
             var outPriorReslicedNii = outPriorReslicedDicom + ".nii";
 
+            if (Directory.GetFiles(currentDicomFolder).Length == 0) throw new ArgumentException($"Dicom folder {currentDicomFolder} does not contain any files.");
+
             var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
             var patientId = DicomFileOps.GetPatientIdFromDicomFile(dicomFilePath);
-            var job = _dbBroker.Jobs.LastOrDefault(j => j.PatientId == patientId);
+            var job = _dbBroker.Jobs.LastOrDefault(j => j != null && j.Attempt != null && j.Attempt.PatientId == patientId);
 
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
@@ -86,15 +86,10 @@ namespace VisTarsier.Service.Agent
 
             var metrics = pipe.Process();
 
-            var results = new List<IJobResult>();
+            var results = new List<JobResult>();
 
             string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
             Directory.CreateDirectory(metadataPath);
-            string summary = GenerateSummarySlide(
-                Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault(),
-                Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault(),
-                $"{job.Id}",
-                workingDir);
 
             GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(_summarySlidePath), metadataPath);
 
@@ -164,28 +159,15 @@ namespace VisTarsier.Service.Agent
 
                 string dicomFolderPath;
 
-                if (resultNii.ToLower().Contains("nicta"))
-                {
-                    var resultFolder = Path.GetDirectoryName(resultNii);
-                    dicomFolderPath = Path.Combine(resultFolder ?? throw new InvalidOperationException($"unable to get folder [{resultNii}] resides in."),
-                        "Result_Dicom");
-                    var imagesFolder = Directory.GetDirectories(resultFolder)
-                        .FirstOrDefault(d => d.ToLower().Contains("images"));
-
-                    var seriesDescription = resultNii.ToLower().Contains("nictapos") ? "Nicta Increased Signal" : "Nicta Decreased Signal";
-                    ConvertBmpsToDicom(imagesFolder, dicomFolderPath, currentDicomFolder, sliceType, seriesDescription, true);
-                }
-                else
-                {
-                    dicomFolderPath = resultNii.Replace(".nii", "");
-                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(currentDicomFolder).FirstOrDefault());
-                    var description = dicomFolderPath.ToLower().Contains("increase") ? "increase" : "decrease";
-                    //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
-                    //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
-                    ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
-                                        $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", referenceDicomFolder);
-                }
+                dicomFolderPath = resultNii.Replace(".nii", "");
+                var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
+                var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(currentDicomFolder).FirstOrDefault());
+                var description = dicomFolderPath.ToLower().Contains("increase") ? "increase" : "decrease";
+                //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
+                //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
+                ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
+                                    $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", referenceDicomFolder);
+                
 
                 stopwatch.Stop();
                 _log.Info("Finished converting results back to Dicom in " +
@@ -205,7 +187,7 @@ namespace VisTarsier.Service.Agent
             return results.ToArray();
         }
 
-        public IJobResult[] GenerateMetadataSlides(IJob job)
+        public JobResult[] GenerateMetadataSlides(Job job)
         {
             // Create results folder
             var allResultsFolder = job.ResultSeriesDicomFolder;
@@ -229,7 +211,7 @@ namespace VisTarsier.Service.Agent
 
             _summarySlidePath = summary;
 
-            return new IJobResult[] {
+            return new JobResult[] {
                 new JobResult()
                 {
                     DicomFolderPath = metadataPath
@@ -277,12 +259,12 @@ namespace VisTarsier.Service.Agent
             refSeriesUid = dicomFileHeaders.SeriesInstanceUid.Values[0];
         }
 
-        public IJobResult[] CompareAndSaveLocally(IJob job, IRecipe recipe, SliceType sliceType)
+        public JobResult[] CompareAndSaveLocally(Job job, IRecipe recipe, SliceType sliceType)
         {
             return CompareAndSaveLocally(
                 job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder, job.ReferenceSeriesDicomFolder,
                 sliceType,
-                job.ExtractBrain, job.Register, job.BiasFieldCorrection,
+                job.Recipe.ExtractBrain, job.Recipe.Register, job.Recipe.BiasFieldCorrection,
                 job.PriorReslicedSeriesDicomFolder,
                 recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
             );
@@ -426,6 +408,7 @@ namespace VisTarsier.Service.Agent
 
             var priorTags = DicomFileOps.GetDicomTags(priorDcm);
             var currentTags = DicomFileOps.GetDicomTags(currentDcm);
+
             var bmppath = Path.Combine(".", "resources", "templates", "summary.bmp");
             Bitmap slide = new Bitmap(bmppath);
             using (var g = Graphics.FromImage(slide))
@@ -436,17 +419,16 @@ namespace VisTarsier.Service.Agent
                 var dob = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
                 var currentStudyDate = DateTime.ParseExact(currentTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
 
-                g.DrawString(priorTags.PatientId?.Values?[0], font, Brushes.White, patientIdField);
-                g.DrawString(priorTags.PatientName?.Values?[0], font, Brushes.White, patientNameField);
+                if (priorTags.PatientId?.Values?.Length > 0) g.DrawString(priorTags.PatientId?.Values?[0], font, Brushes.White, patientIdField);
+                if (priorTags.PatientName?.Values?.Length > 0) g.DrawString(priorTags.PatientName?.Values?[0], font, Brushes.White, patientNameField);
                 g.DrawString(dob, font, Brushes.White, patientDobField);
-                g.DrawString(priorTags.PatientSex?.Values?[0], font, Brushes.White, patientSexField);
-                g.DrawString(priorTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, priorAccessionField);
+                if (priorTags.PatientSex?.Values?.Length > 0) g.DrawString(priorTags.PatientSex?.Values?[0], font, Brushes.White, patientSexField);
+                if (priorTags.StudyAccessionNumber?.Values?.Length > 0) g.DrawString(priorTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, priorAccessionField);
                 g.DrawString(priorStudyDate, font, Brushes.White, priorDateField);
-                g.DrawString(priorTags.StudyDescription?.Values?[0], font, Brushes.White, priorDescField);
-                g.DrawString(currentTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, currentAccessionField);
+                if (priorTags.StudyDescription?.Values?.Length > 0) g.DrawString(priorTags.StudyDescription?.Values?[0], font, Brushes.White, priorDescField);
+                if (priorTags.StudyAccessionNumber?.Values?.Length > 0) g.DrawString(currentTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, currentAccessionField);
                 g.DrawString(currentStudyDate, font, Brushes.White, currentDateField);
-                g.DrawString(currentTags.StudyDescription?.Values?[0], font, Brushes.White, currentDescField);
-
+                if (priorTags.StudyDescription?.Values?.Length > 0) g.DrawString(currentTags.StudyDescription?.Values?[0], font, Brushes.White, currentDescField);
                 g.DrawString($"[{jobId}]", new Font("Courier New", 14, FontStyle.Bold), Brushes.White, new Point(524,112));
             }
 
