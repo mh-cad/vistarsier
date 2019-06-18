@@ -34,7 +34,6 @@ namespace VisTarsier.Config
         public string BiasFieldCorrectionParams { get; set; }
 
         public string SliceType { get; set; } // Ref: Sag=Sagittal | Ax=Axial | Cor=Coronal
-        public string[] LookUpTablePaths { get; set; }
 
         public string ResultsDicomSeriesDescription { get; set; }
         public string PriorReslicedDicomSeriesDescription { get; set; }

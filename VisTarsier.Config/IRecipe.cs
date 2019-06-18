@@ -25,7 +25,6 @@ namespace VisTarsier.Config
         string BiasFieldCorrectionParams { get; set; }
 
         string SliceType { get; set; } // "Sag"=Sagittal | "Ax" = Axial | "Cor" = Coronal
-        string[] LookUpTablePaths { get; set; }
 
         string ResultsDicomSeriesDescription { get; set; }
         string PriorReslicedDicomSeriesDescription { get; set; }
