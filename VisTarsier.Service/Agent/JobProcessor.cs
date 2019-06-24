@@ -30,7 +30,7 @@ namespace VisTarsier.Service
         private const string ResultsFolderName = "Results";
         private const string ImagesFolderSuffix = "_Images";
 
-        private string _summarySlidePath;
+        public string SummarySlidePath { get; set; }
 
         public JobProcessor(DbBroker dbBroker)
         {
@@ -91,7 +91,7 @@ namespace VisTarsier.Service
             string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
             Directory.CreateDirectory(metadataPath);
 
-            GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(_summarySlidePath), metadataPath);
+            GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(SummarySlidePath), job, metadataPath);
 
             results.Add(new JobResult
             {
@@ -209,7 +209,7 @@ namespace VisTarsier.Service
                 DicomFileOps.GetDicomTags(summary),
                 metadataPath);
 
-            _summarySlidePath = summary;
+            SummarySlidePath = summary;
 
             return new JobResult[] {
                 new JobResult()
@@ -464,7 +464,7 @@ namespace VisTarsier.Service
             metatags.StudyDate.Values = currentTags.StudyDate.Values;
             metatags.StudyDescription.Values = currentTags.StudyDescription.Values;
             metatags.StudyInstanceUid.Values = currentTags.StudyInstanceUid.Values;
-            metatags.InstanceNumber.Values = new string[] { "1" };
+            metatags.InstanceNumber.Values = new string[] { "20" };
 
             DicomFileOps.ForceUpdateDicomHeaders(outfile, metatags);
 
@@ -486,6 +486,7 @@ namespace VisTarsier.Service
             var rowHeight = 22;
             var rowstartY = 213;
 
+            // Lots of ugly code to position text.
             Bitmap slide = new Bitmap(Path.Combine("resources", "templates", "metadata.bmp"));
             using (var g = Graphics.FromImage(slide))
             {
@@ -588,7 +589,7 @@ namespace VisTarsier.Service
             File.Delete($"{outpath}.bmp");
 
             metatags = DicomFileOps.UpdateUidsForNewImage(metatags);
-            metatags.InstanceNumber.Values = new string[] { "2" };
+            metatags.InstanceNumber.Values = new string[] { "40" };
             DicomFileOps.ForceUpdateDicomHeaders(outpath, metatags);
 
            // DicomFileOps.UpdateDicomHeaders(outpath, metatags, DicomNewObjectType.NewImage);
@@ -596,20 +597,76 @@ namespace VisTarsier.Service
             return outpath;
         }
 
-        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, string outFolder)
+        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, Job job, string outFolder)
         {
             var output = new List<string>();
+
+            var resultFile = Path.Combine(outFolder, "resultsSummary.dcm");
+            var bmppath = Path.Combine(".", "resources", "templates", "results.bmp");
+            var comment = results.Notes;
+
+            // Do some line splitting on the comments.
+            var lines = comment?.Split('\n');
+            for (int i = 0; i < lines?.Length; ++i)
+            {
+                var len = 0;
+                while (lines[i].Length - len > 48)
+                {
+                    len += 48;
+                    lines[i] = lines[i].Insert(len, "\n");
+                }
+            }
+            comment = "";
+            if (lines != null) foreach (var line in lines) comment += line + '\n';
+
+            // Create out results slide.
+            Bitmap slide = File.Exists(bmppath) ? new Bitmap(bmppath) : new Bitmap(1024, 1024);
+
+            using (var g = Graphics.FromImage(slide))
+            {
+                var font = new Font("Courier New", 12);
+                var brush = Brushes.White;
+
+                if (results.Passed) g.DrawString("PASSED", new Font("Courier New", 48, FontStyle.Bold), Brushes.LightGreen, new Point(250, 155));
+                else g.DrawString("FAILED", new Font("Courier New", 48, FontStyle.Bold), Brushes.OrangeRed, new Point(250, 155));
+                g.DrawString(comment, new Font("Courier New", 12), Brushes.White, new Point(141, 289));
+
+                g.DrawString($"[{job.Id}]", new Font("Courier New", 14, FontStyle.Bold), Brushes.White, new Point(524, 112));
+            }
+
+            try
+            {
+                new Bitmap(slide).Save($"{resultFile}.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+            }
+            catch (Exception e)
+            {
+                _log.Debug("Threw an error while trying to save bitmap because GDI+ is dumb.");
+                _log.Debug($"Tried to save bmp to {resultFile}.bmp");
+                throw e;
+            }
+
+            // Convert to DICOM file
+            DicomFileOps.ConvertBmpToDicom($"{resultFile}.bmp", resultFile);
+            File.Delete($"{resultFile}.bmp");
+            output.Add(resultFile);
+            _log.Info($"Written DICOM: {resultFile}");
+            metatags = DicomFileOps.UpdateUidsForNewImage(metatags);
+            metatags.InstanceNumber.Values = new string[] { $"1" };
+            
+            DicomFileOps.ForceUpdateDicomHeaders(resultFile, metatags);
+
+            // Process pipeline's results slides...
             if (results.ResultsSlides == null)
             {
                 _log.Debug("No results slides to be output.");
 
-                return new string[]{ };
+                return output.ToArray();
             }
 
 
             for (int i = 0; i < results.ResultsSlides.Length; ++i)
             {
-                var outpath = Path.Combine(outFolder, $"results{i+3}.dcm");
+                var outpath = Path.Combine(outFolder, $"results{i+60}.dcm");
                 var bmp = new Bitmap(results.ResultsSlides[i]);
                 bmp.Save($"{outpath}.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
                 _log.Info($"Written: {outpath}.bmp");
@@ -619,13 +676,13 @@ namespace VisTarsier.Service
                 _log.Info($"Written DICOM: {outpath}");
 
                 metatags = DicomFileOps.UpdateUidsForNewImage(metatags);
-                metatags.InstanceNumber.Values = new string[] { $"{i+3}" };
+                metatags.InstanceNumber.Values = new string[] { $"{i+60}" };
                 DicomFileOps.ForceUpdateDicomHeaders(outpath, metatags);
 
                 output.Add(outpath);
             }
          
-
+            // ... done.
             return output.ToArray();
         }
     }

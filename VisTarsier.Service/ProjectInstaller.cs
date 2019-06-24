@@ -20,5 +20,10 @@ namespace VisTarsier.Service
         {
 
         }
+
+        private void ServiceProcessInstaller1_AfterInstall(object sender, InstallEventArgs e)
+        {
+
+        }
     }
 }

@@ -19,8 +19,6 @@ namespace VisTarsier.Module.MS
 
         public Bitmap GenerateSlide()
         {
-            DirectBitmap slide = new DirectBitmap(1024, 1024);
-
             // Init 2-D histo matrix
             double[][] diffMatrix = new double[1024][];
             for (int i = 0; i < 1024; ++i) diffMatrix[i] = new double[1024];

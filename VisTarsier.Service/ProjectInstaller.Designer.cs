@@ -29,33 +29,34 @@
         private void InitializeComponent()
         {
             this.serviceProcessInstaller1 = new System.ServiceProcess.ServiceProcessInstaller();
-            this.CAPIService = new System.ServiceProcess.ServiceInstaller();
+            this.VisTarsier2Service = new System.ServiceProcess.ServiceInstaller();
             // 
             // serviceProcessInstaller1
             // 
             this.serviceProcessInstaller1.Account = System.ServiceProcess.ServiceAccount.LocalService;
             this.serviceProcessInstaller1.Password = null;
             this.serviceProcessInstaller1.Username = null;
+            this.serviceProcessInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.ServiceProcessInstaller1_AfterInstall);
             // 
-            // CAPIService
+            // VisTarsier2Service
             // 
-            this.CAPIService.Description = "The CAPI Imaging service";
-            this.CAPIService.DisplayName = "CAPI Service";
-            this.CAPIService.ServiceName = "CAPI Service";
-            this.CAPIService.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
-            this.CAPIService.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.CAPIService_AfterInstall);
+            this.VisTarsier2Service.Description = "The VisTarsier2 Imaging service";
+            this.VisTarsier2Service.DisplayName = "VisTarsier2.Service";
+            this.VisTarsier2Service.ServiceName = "VisTarsier2.Service";
+            this.VisTarsier2Service.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.VisTarsier2Service.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.CAPIService_AfterInstall);
             // 
             // ProjectInstaller
             // 
             this.Installers.AddRange(new System.Configuration.Install.Installer[] {
             this.serviceProcessInstaller1,
-            this.CAPIService});
+            this.VisTarsier2Service});
 
         }
 
         #endregion
 
         private System.ServiceProcess.ServiceProcessInstaller serviceProcessInstaller1;
-        private System.ServiceProcess.ServiceInstaller CAPIService;
+        private System.ServiceProcess.ServiceInstaller VisTarsier2Service;
     }
 }
