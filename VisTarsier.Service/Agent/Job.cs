@@ -9,6 +9,7 @@ using System.Linq;
 using SliceType = VisTarsier.NiftiLib.SliceType;
 using VisTarsier.Dicom;
 using System.ComponentModel.DataAnnotations;
+using VisTarsier.NiftiLib.Processing;
 
 namespace VisTarsier.Service
 {
@@ -113,8 +114,24 @@ namespace VisTarsier.Service
                 _log.Error(e.StackTrace);
             }
 
-            var results = jobProcessor.CompareAndSaveLocally(job, Recipe, sliceType);
-            SendToDestinations(results);
+            try
+            {
+                var results = jobProcessor.CompareAndSaveLocally(job, Recipe, sliceType);
+                SendToDestinations(results);
+            }
+            catch(Exception e)
+            {
+                // Hacky error handling. Attempt to send results slide to DICOM.
+                // Obviously this won't work in all cases.
+                string metadataPath = Path.Combine(job.ResultSeriesDicomFolder, "metadata");
+                FileSystem.DirectoryExistsIfNotCreate(metadataPath);
+                var failedResults = jobProcessor.GenerateResultsSlide(new Metrics() { Passed = false, Notes = e.Message }, DicomFileOps.GetDicomTags(jobProcessor.SummarySlidePath), job, metadataPath);
+                SendToDestinations(new JobResult[]{ new JobResult { DicomFolderPath = metadataPath }});
+
+                _log.Error(e);
+
+                throw e;
+            }
 
             Directory.Delete(ProcessingFolder, true);
 

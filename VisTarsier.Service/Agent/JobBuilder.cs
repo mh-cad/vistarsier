@@ -348,7 +348,7 @@ namespace VisTarsier.Service
             {
                 _log.Error($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
 
-                throw;
+                throw new Exception($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
             }
         }
 
