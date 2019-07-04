@@ -50,13 +50,15 @@
     <Compile Include="Binaries.cs" />
     <Compile Include="CapiConfig.cs" />
     <Compile Include="CapiConfigJsonConverter.cs" />
+    <Compile Include="CompareSettings.cs" />
     <Compile Include="DicomConfig.cs" />
     <Compile Include="ImagePaths.cs" />
-    <Compile Include="IRecipe.cs" />
     <Compile Include="ISeriesSelectionCriteria.cs" />
+    <Compile Include="OutputSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recipe.cs" />
     <Compile Include="SeriesSelectionCriteria.cs" />
+    <Compile Include="SliceType.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">

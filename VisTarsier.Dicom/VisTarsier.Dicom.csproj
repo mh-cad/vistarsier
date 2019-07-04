@@ -72,7 +72,6 @@
     <Compile Include="DicomTag.cs" />
     <Compile Include="DicomTagCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SliceType.cs" />
     <Compile Include="StorageScp.cs" />
     <Compile Include="TagType.cs" />
   </ItemGroup>
