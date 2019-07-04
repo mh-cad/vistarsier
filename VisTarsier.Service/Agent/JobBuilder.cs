@@ -120,7 +120,7 @@ namespace VisTarsier.Service
             @attempt.PriorAccession = priorDicomStudy?.AccessionNumber;
             @attempt.PriorSeriesUID = priorDicomStudy?.Series?.FirstOrDefault()?.SeriesInstanceUid;
             @attempt.SourceAet = recipe.SourceAet;
-            @attempt.DestinationAet = JsonConvert.SerializeObject(recipe.DicomDestinations);
+            @attempt.DestinationAet = JsonConvert.SerializeObject(recipe.OutputSettings.DicomDestinations);
             @job.RecipeString = JsonConvert.SerializeObject(job.Recipe, new CapiConfigJsonConverter());
             _context.Attempts.Update(@attempt);
             _context.Jobs.Update(@job);
@@ -329,7 +329,7 @@ namespace VisTarsier.Service
         /// <param name="localNode"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private string GetPatientIdFromRecipe(IRecipe recipe)
+        private string GetPatientIdFromRecipe(Recipe recipe)
         {
             if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
             if (!string.IsNullOrEmpty(recipe.PatientFullName)

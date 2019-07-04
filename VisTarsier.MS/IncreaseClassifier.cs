@@ -8,7 +8,7 @@ namespace VisTarsier.Module.MS
     {
         public INifti<float> Classify(INifti<float> prior, INifti<float> current)
         {
-            var output = Compare.CompareMSLesionIncrease(prior, current);
+            var output = MSCompare.CompareMSLesionIncrease(prior, current);
             return output;
         }
 

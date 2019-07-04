@@ -8,13 +8,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SliceType = VisTarsier.NiftiLib.SliceType;
 using VisTarsier.NiftiLib.Processing;
 using VisTarsier.NiftiLib;
-using VisTarsier.Module.MS;
 using System.Drawing;
 using VisTarsier.Dicom;
 using System.Globalization;
+using VisTarsier.Module.Custom;
+using Microsoft.EntityFrameworkCore;
 
 namespace VisTarsier.Service
 {
@@ -32,43 +32,133 @@ namespace VisTarsier.Service
 
         public string SummarySlidePath { get; set; }
 
-        public JobProcessor(DbBroker dbBroker)
+        public JobProcessor()
         {
             _log = Log.GetLogger();
-            _dbBroker = dbBroker;
+            var connectString = CapiConfig.GetConfig()?.AgentDbConnectionString;
+            _dbBroker = connectString != null ? new DbBroker(connectString) : new DbBroker();
         }
 
-        public JobResult[] CompareAndSaveLocally(
-            string currentDicomFolder, string priorDicomFolder, string referenceDicomFolder,
-            SliceType sliceType,
-            bool extractBrain, bool register, bool biasFieldCorrect,
-            string outPriorReslicedDicom,
-            string resultsDicomSeriesDescription, string priorReslicedDicomSeriesDescription)
+        public void Process(Job job)
         {
+
+            // We want to update the job in the DB, so we're going to turn it into a new instance
+            // straight from the DB to avoid errors.
+            if (_dbBroker.Jobs.Find(job.Id) == null) _dbBroker.Jobs.Add(job);
+            var @dbjob = _dbBroker.Jobs.Find(job.Id);
+            // Update job status in the DB
+            @dbjob.Start = DateTime.Now;
+            @dbjob.Status = "Processing";
+            _dbBroker.Jobs.Update(@dbjob);
+            _dbBroker.SaveChanges();
+            @dbjob.Attempt = job.Attempt;
+            @dbjob.Attempt.JobId = @dbjob.Id;
+            _dbBroker.Attempts.Update(@dbjob.Attempt);
+            _dbBroker.SaveChanges();
+
+            // Write banner to log file.
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"****************  JOB CREATED  **********************************");
+            _log.Info($" Job ID               *  {job.Id}");
+            _log.Info($" Patient ID           *  {job.Attempt.PatientId}");
+            _log.Info($" Patient Name         *  {job.Attempt.PatientFullName}");
+            _log.Info($" Patient DOB          *  {job.Attempt.PatientBirthDate}");
+            _log.Info($" Current Accession    *  {job.Attempt.CurrentAccession}");
+            _log.Info($" Prior Accession      *  {job.Attempt.PriorAccession}");
+            _log.Info($"*****************************************************************");
+            _log.Info($"{Environment.NewLine}");
+
+            // Start a timer for logging.
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var sliceType = job.Recipe.OutputSettings.SliceType;
+
+            // Create pre-metadata slides.
+            try
+            {
+                var preResults = GenerateMetadataSlides(job);
+                SendToDestinations(preResults, job);
+            }
+            catch (Exception e)
+            {
+                _log.Error("Failed to generate pre-images. :(");
+                _log.Error(e.Message);
+                _log.Error(e.StackTrace);
+            }
+
+            try
+            {
+                // This is where the magic happens...
+                var results = GetResults(job);
+                SendToDestinations(results, job);
+            }
+            catch (Exception e)
+            {
+                // Hacky error handling. Attempt to send results slide to DICOM.
+                // Obviously this won't work in all cases.
+                string metadataPath = Path.Combine(job.ResultSeriesDicomFolder, "metadata");
+                FileSystem.DirectoryExistsIfNotCreate(metadataPath);
+                var failedResults = GenerateResultsSlide(new Metrics() { Passed = false, Notes = e.Message }, DicomFileOps.GetDicomTags(SummarySlidePath), job, metadataPath, "N/A");
+                SendToDestinations(new JobResult[] { new JobResult { DicomFolderPath = metadataPath } }, job);
+
+                _log.Error(e);
+
+                throw e;
+            }
+            finally
+            {
+                Directory.Delete(job.ProcessingFolder, true);
+            }
+
+            // Update status of job in database.
+            @dbjob.End = DateTime.Now;
+            @dbjob.Status = "Complete";
+            @dbjob = _dbBroker.Jobs.SingleOrDefault(j => j.Id == job.Id);
+            if (@dbjob == null) throw new Exception($"Job with id [{job.Id}] not found");
+            _dbBroker.Jobs.Update(@dbjob);
+            _dbBroker.SaveChanges();
+
+            // Print end banner to log.
+            stopwatch.Stop();
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"****************  JOB COMPLETE  **********************************");
+            _log.Info($" Job ID               *  {job.Id}");
+            _log.Info($" Processing Time      *  {job.End - job.Start}");
+            _log.Info($"*****************************************************************");
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"{Environment.NewLine}");
+            _log.Info($"Job Id=[{job.Id}] completed in {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
+
+        }
+
+        public JobResult[] GetResults(Job job)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
             // Working directory.
-            var workingDir = Directory.GetParent(outPriorReslicedDicom).FullName;
+            var workingDir = Directory.GetParent(job.PriorReslicedSeriesDicomFolder).FullName;
             // We're getting result files based on paths for look up tables??? //TODO deconvolve...
             //var resultNiis = BuildResultNiftiPathsFromLuts(lookupTablePaths, workingDir).ToArray();
             // Create results folder
             var allResultsFolder = Path.Combine(workingDir, ResultsFolderName);
             FileSystem.DirectoryExistsIfNotCreate(allResultsFolder);
-            string[] resultNiis = { Path.Combine(allResultsFolder, "increase.nii"), Path.Combine(allResultsFolder, "decrease.nii") };
+  
 
+            var outPriorReslicedNii = job.PriorReslicedSeriesDicomFolder + ".nii";
 
-            var outPriorReslicedNii = outPriorReslicedDicom + ".nii";
+            if (Directory.GetFiles(job.CurrentSeriesDicomFolder).Length == 0) throw new ArgumentException($"Dicom folder {job.CurrentSeriesDicomFolder} does not contain any files.");
 
-            if (Directory.GetFiles(currentDicomFolder).Length == 0) throw new ArgumentException($"Dicom folder {currentDicomFolder} does not contain any files.");
-
-            var dicomFilePath = Directory.GetFiles(currentDicomFolder)[0];
+            var dicomFilePath = Directory.GetFiles(job.CurrentSeriesDicomFolder)[0];
             var patientId = DicomFileOps.GetPatientIdFromDicomFile(dicomFilePath);
-            var job = _dbBroker.Jobs.LastOrDefault(j => j != null && j.Attempt != null && j.Attempt.PatientId == patientId);
+            //var job = _dbBroker.Jobs.LastOrDefault(j => j != null && j.Attempt != null && j.Attempt.PatientId == patientId);
 
 
             // Generate Nifti file from Dicom and pass to ProcessNifti Method for current series.
             _log.Info($@"Start converting series dicom files to Nii");
-            var task1 = Task.Run(() => { return Tools.Dcm2Nii(currentDicomFolder, "current.nii"); });
-            var task2 = Task.Run(() => { return Tools.Dcm2Nii(priorDicomFolder, "prior.nii"); });
-            var task3 = Task.Run(() => { return Tools.Dcm2Nii(referenceDicomFolder, "reference.nii"); });
+            var task1 = Task.Run(() => { return Tools.Dcm2Nii(job.CurrentSeriesDicomFolder, "current.nii"); });
+            var task2 = Task.Run(() => { return Tools.Dcm2Nii(job.PriorSeriesDicomFolder, "prior.nii"); });
+            var task3 = Task.Run(() => { return Tools.Dcm2Nii(job.ReferenceSeriesDicomFolder, "reference.nii"); });
             task1.Wait();
             task2.Wait();
             task3.Wait();
@@ -79,10 +169,11 @@ namespace VisTarsier.Service
             _log.Info($@"Finished converting series dicom files to Nii");
 
             // Process Nifti files.
-            var pipe = new MSPipeline(
-                currentNifti, priorNifti, referenceNifti,
-                extractBrain, register, biasFieldCorrect,
-                resultNiis, outPriorReslicedNii);
+            //var pipe = new MSPipeline(
+            //    currentNifti, priorNifti, referenceNifti,
+            //    extractBrain, register, biasFieldCorrect,
+            //    resultNiis, outPriorReslicedNii);
+            var pipe = new CustomPipeline(job.Recipe, priorNifti, currentNifti);
 
             var metrics = pipe.Process();
 
@@ -91,20 +182,13 @@ namespace VisTarsier.Service
             string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
             Directory.CreateDirectory(metadataPath);
 
-            GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(SummarySlidePath), job, metadataPath);
-
-            results.Add(new JobResult
-            {
-                DicomFolderPath = metadataPath,
-            });
-
             if (job != null)
             {
                 var jobToUpdate = _dbBroker.Jobs.FirstOrDefault(j => j.Id == job.Id);
                 if (jobToUpdate == null) throw new Exception($"No job was found in database with id: [{job.Id}]");
 
                 // Check if there is a reference series from last processes for the patient, if not set the current series as reference for future
-                GetReferenceSeries(referenceDicomFolder, currentDicomFolder, out var refStudyUid, out var refSeriesUid);
+                GetReferenceSeries(job.ReferenceSeriesDicomFolder, job.CurrentSeriesDicomFolder, out var refStudyUid, out var refSeriesUid);
                 jobToUpdate.WriteStudyAndSeriesIdsToReferenceSeries(refStudyUid, refSeriesUid);
                 _dbBroker.Jobs.Update(jobToUpdate);
                 _dbBroker.SaveChanges();
@@ -112,77 +196,90 @@ namespace VisTarsier.Service
 
             // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
             // prior study date will be added to the end of Series Description tag
-            var task = Task.Run(() =>
+            //var task = Task.Run(() =>
+            //{
+            //    _log.Info("Start converting resliced prior series back to Dicom");
+
+            //    var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
+            //    priorStudyDate = FormatDate(priorStudyDate);
+
+            //    var priorStudyDescBase = string.IsNullOrEmpty(job.Recipe.OutputSettings.ReslicedDicomSeriesDescription) ?
+            //        CapiConfig.GetConfig().ImagePaths.PriorReslicedDicomSeriesDescription
+            //        : job.Recipe.OutputSettings.ReslicedDicomSeriesDescription;
+
+            //    var priorStudyDescription = $"{priorStudyDescBase} {priorStudyDate}";
+
+            //    var stopwatch = new Stopwatch();
+            //    stopwatch.Start();
+
+            //    ConvertNiftiToDicom(outPriorReslicedNii, job.PriorReslicedSeriesDicomFolder, job.Recipe.OutputSettings.SliceType,
+            //                        job.CurrentSeriesDicomFolder, priorStudyDescription, job.ReferenceSeriesDicomFolder);
+
+            //    UpdateSeriesDescriptionForAllFiles(job.PriorReslicedSeriesDicomFolder, priorStudyDescription);
+
+            //    stopwatch.Stop();
+            //    _log.Info("Finished Converting resliced prior series back to Dicom in " +
+            //              $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
+
+            //    results.Add(new JobResult()
+            //    {
+            //        DicomFolderPath = job.PriorReslicedSeriesDicomFolder,
+            //        NiftiFilePath = outPriorReslicedNii,
+            //        ImagesFolderPath = job.PriorReslicedSeriesDicomFolder + ImagesFolderSuffix,
+            //    });
+            //});
+
+            List<Task> tasks = new List<Task>();
+
+            foreach (var resultNii in metrics.ResultFiles)
             {
-                _log.Info("Start converting resliced prior series back to Dicom");
-
-                var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-                priorStudyDate = FormatDate(priorStudyDate);
-                var priorStudyDescBase = string.IsNullOrEmpty(priorReslicedDicomSeriesDescription) ?
-                    CapiConfig.GetConfig().ImagePaths.PriorReslicedDicomSeriesDescription :
-                    priorReslicedDicomSeriesDescription;
-                var priorStudyDescription = $"{priorStudyDescBase} {priorStudyDate}";
-
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
-
-                ConvertNiftiToDicom(outPriorReslicedNii, outPriorReslicedDicom, sliceType,
-                                    currentDicomFolder, priorStudyDescription, referenceDicomFolder);
-
-                UpdateSeriesDescriptionForAllFiles(outPriorReslicedDicom, priorStudyDescription);
-
-                stopwatch.Stop();
-                _log.Info("Finished Converting resliced prior series back to Dicom in " +
-                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
-
-                results.Add(new JobResult()
+                tasks.Add(Task.Run(() =>
                 {
-                    DicomFolderPath = outPriorReslicedDicom,
-                    NiftiFilePath = outPriorReslicedNii,
-                    ImagesFolderPath = outPriorReslicedDicom + ImagesFolderSuffix,
-                });
-            });
+                    _log.Info("Start converting results back to Dicom");
 
-            _log.Debug(resultNiis);
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+
+                    var resultsSeriesDescription = string.IsNullOrEmpty(job.Recipe.OutputSettings.ResultsDicomSeriesDescription)
+                        ? CapiConfig.GetConfig().ImagePaths.ResultsDicomSeriesDescription
+                        : job.Recipe.OutputSettings.ResultsDicomSeriesDescription;
+
+                    string dicomFolderPath;
+
+                    dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
+                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
+                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
+                    var description = resultNii.Description;
+                    //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
+                    //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
+                    ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, job.Recipe.OutputSettings.SliceType, job.CurrentSeriesDicomFolder,
+                                        $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", job.ReferenceSeriesDicomFolder);
 
 
-            foreach (var resultNii in resultNiis)
-            {
-                _log.Info("Start converting results back to Dicom");
+                    stopwatch.Stop();
+                    _log.Info("Finished converting results back to Dicom in " +
+                              $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
 
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
+                    results.Add(new JobResult
+                    {
+                        DicomFolderPath = dicomFolderPath,
+                        NiftiFilePath = resultNii.FilePath,
+                        ImagesFolderPath = dicomFolderPath + ImagesFolderSuffix,
+                    });
 
-                var resultsSeriesDescription = string.IsNullOrEmpty(resultsDicomSeriesDescription)
-                    ? CapiConfig.GetConfig().ImagePaths.ResultsDicomSeriesDescription
-                    : resultsDicomSeriesDescription;
-
-                string dicomFolderPath;
-
-                dicomFolderPath = resultNii.Replace(".nii", "");
-                var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(priorDicomFolder).FirstOrDefault());
-                var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(currentDicomFolder).FirstOrDefault());
-                var description = dicomFolderPath.ToLower().Contains("increase") ? "increase" : "decrease";
-                //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
-                //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
-                ConvertNiftiToDicom(resultNii, dicomFolderPath, sliceType, currentDicomFolder,
-                                    $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", referenceDicomFolder);
-                
-
-                stopwatch.Stop();
-                _log.Info("Finished converting results back to Dicom in " +
-                          $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
-
-                results.Add(new JobResult
-                {
-                    DicomFolderPath = dicomFolderPath,
-                    NiftiFilePath = resultNii,
-                    ImagesFolderPath = dicomFolderPath + ImagesFolderSuffix,
-                });
+                }));
             }
 
-            task.Wait();
-            task.Dispose();
+            Task.WaitAll(tasks.ToArray());
+            //task.Wait();
+            //task.Dispose();
+
+            GenerateResultsSlide(metrics, DicomFileOps.GetDicomTags(SummarySlidePath), job, metadataPath, timer.Elapsed.ToString(@"m\:ss"));
+
+            results.Add(new JobResult
+            {
+                DicomFolderPath = metadataPath,
+            });
 
             return results.ToArray();
         }
@@ -195,7 +292,7 @@ namespace VisTarsier.Service
 
             // Make our metadata...
             string metadataPath = Path.Combine(allResultsFolder, "metadata");
-            Directory.CreateDirectory(metadataPath); 
+            FileSystem.DirectoryExistsIfNotCreate(metadataPath); 
 
             string summary = GenerateSummarySlide(
                 Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault(),
@@ -259,17 +356,6 @@ namespace VisTarsier.Service
             refSeriesUid = dicomFileHeaders.SeriesInstanceUid.Values[0];
         }
 
-        public JobResult[] CompareAndSaveLocally(Job job, IRecipe recipe, SliceType sliceType)
-        {
-            return CompareAndSaveLocally(
-                job.CurrentSeriesDicomFolder, job.PriorSeriesDicomFolder, job.ReferenceSeriesDicomFolder,
-                sliceType,
-                job.Recipe.ExtractBrain, job.Recipe.Register, job.Recipe.BiasFieldCorrection,
-                job.PriorReslicedSeriesDicomFolder,
-                recipe.ResultsDicomSeriesDescription, recipe.PriorReslicedDicomSeriesDescription
-            );
-        }
-
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription,
                                                         string orientationDicomFolder = "")
         {
@@ -303,9 +389,7 @@ namespace VisTarsier.Service
         private void ConvertBmpsToDicom(string bmpFolder, string outDicomFolder, string sourceDicomFolder,
                                         SliceType sliceType, string seriesDescription, bool matchWithFileNames = false)
         {
-            var dicomSliceType = GetDicomSliceType(sliceType);
-
-            DicomFileOps.ConvertBmpsToDicom(bmpFolder, outDicomFolder, dicomSliceType,
+            DicomFileOps.ConvertBmpsToDicom(bmpFolder, outDicomFolder, sliceType,
                                               sourceDicomFolder, matchWithFileNames);
 
             UpdateSeriesDescriptionForAllFiles(outDicomFolder, seriesDescription);
@@ -326,21 +410,6 @@ namespace VisTarsier.Service
             //if (!string.IsNullOrEmpty(lookupTableFilePath) &&
             //    File.Exists(lookupTableFilePath))
             //    _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);
-        }
-
-        private Dicom.Abstractions.SliceType GetDicomSliceType(SliceType sliceType)
-        {
-            switch (sliceType)
-            {
-                case SliceType.Sagittal:
-                    return Dicom.Abstractions.SliceType.Sagittal;
-                case SliceType.Coronal:
-                    return Dicom.Abstractions.SliceType.Coronal;
-                case SliceType.Axial:
-                    return Dicom.Abstractions.SliceType.Axial;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(sliceType), sliceType, null);
-            }
         }
 
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
@@ -415,9 +484,9 @@ namespace VisTarsier.Service
             {
                 var font = new Font("Courier New", 12);
                 var brush = Brushes.White;
-                var priorStudyDate = DateTime.ParseExact(priorTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
-                var dob = DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
-                var currentStudyDate = DateTime.ParseExact(currentTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy");
+                var priorStudyDate = priorTags.StudyDate?.Values?.Length > 0 ? DateTime.ParseExact(priorTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy") : null;
+                var dob = priorTags.PatientBirthDate?.Values.Length > 0 ? DateTime.ParseExact(priorTags.PatientBirthDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy"): null;
+                var currentStudyDate = currentTags.StudyDate?.Values.Length > 0 ? DateTime.ParseExact(currentTags.StudyDate?.Values?[0], "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd-MMM-yyyy") :  null;
 
                 if (priorTags.PatientId?.Values?.Length > 0) g.DrawString(priorTags.PatientId?.Values?[0], font, Brushes.White, patientIdField);
                 if (priorTags.PatientName?.Values?.Length > 0) g.DrawString(priorTags.PatientName?.Values?[0], font, Brushes.White, patientNameField);
@@ -426,9 +495,9 @@ namespace VisTarsier.Service
                 if (priorTags.StudyAccessionNumber?.Values?.Length > 0) g.DrawString(priorTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, priorAccessionField);
                 g.DrawString(priorStudyDate, font, Brushes.White, priorDateField);
                 if (priorTags.StudyDescription?.Values?.Length > 0) g.DrawString(priorTags.StudyDescription?.Values?[0], font, Brushes.White, priorDescField);
-                if (priorTags.StudyAccessionNumber?.Values?.Length > 0) g.DrawString(currentTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, currentAccessionField);
+                if (currentTags.StudyAccessionNumber?.Values?.Length > 0) g.DrawString(currentTags.StudyAccessionNumber?.Values?[0], font, Brushes.White, currentAccessionField);
                 g.DrawString(currentStudyDate, font, Brushes.White, currentDateField);
-                if (priorTags.StudyDescription?.Values?.Length > 0) g.DrawString(currentTags.StudyDescription?.Values?[0], font, Brushes.White, currentDescField);
+                if (currentTags.StudyDescription?.Values?.Length > 0) g.DrawString(currentTags.StudyDescription?.Values?[0], font, Brushes.White, currentDescField);
                 g.DrawString($"[{jobId}]", new Font("Courier New", 14, FontStyle.Bold), Brushes.White, new Point(524,112));
             }
 
@@ -493,14 +562,14 @@ namespace VisTarsier.Service
                 var font = new Font("Courier New", 12);
                 var brush = Brushes.White;
 
-                var priorModality = priorTags.Modality?.Values?[0].ToString();
-                var currentModality = currentTags.Modality?.Values?[0].ToString();
+                var priorModality = priorTags.Modality?.Values?.Length > 0 ? priorTags.Modality?.Values?[0].ToString() : "";
+                var currentModality = currentTags.Modality?.Values?.Length > 0 ? currentTags.Modality?.Values?[0].ToString() : "";
                 brush = priorModality.Equals(currentModality) ? Brushes.White : Brushes.Red;
                 g.DrawString(priorModality, font, brush, new Point(col2X, rowstartY + rowHeight * 0));
                 g.DrawString(currentModality, font, brush, new Point(col3X, rowstartY + rowHeight * 0));
 
-                var priorProtocol = priorTags.ProtocolName?.Values?[0].ToString();
-                var currentProtocol = currentTags.ProtocolName?.Values?[0].ToString();
+                var priorProtocol = priorTags.ProtocolName?.Values?.Length > 0 ? priorTags.ProtocolName?.Values?[0].ToString() : "";
+                var currentProtocol = currentTags.ProtocolName?.Values?.Length > 0 ? currentTags.ProtocolName?.Values?[0].ToString() : "";
                 brush = priorProtocol.Equals(currentProtocol) ? Brushes.White : Brushes.Red;
                 if (priorProtocol.Length > 20) priorProtocol = priorProtocol.Substring(0, 17) + "...";
                 if (currentProtocol.Length > 20) currentProtocol = currentProtocol.Substring(0, 17) + "...";
@@ -516,14 +585,14 @@ namespace VisTarsier.Service
                 g.DrawString(priorOptions, font, brush, new Point(col2X, rowstartY + rowHeight * 2));
                 g.DrawString(currentOptions, font, brush, new Point(col3X, rowstartY + rowHeight * 2));
 
-                var priorScanner = $"{priorTags.Manufacturer?.Values?[0].ToString()} {priorTags.ManufacturersModelName?.Values?[0].ToString()}";
-                var currentScanner = $"{currentTags.Manufacturer?.Values?[0].ToString()} {currentTags.ManufacturersModelName?.Values?[0].ToString()}";
+                var priorScanner = priorTags.Manufacturer?.Values?.Length > 0 && priorTags.ManufacturersModelName?.Values?.Length > 0 ? $"{priorTags.Manufacturer?.Values?[0].ToString()} {priorTags.ManufacturersModelName?.Values?[0].ToString()}" : "";
+                var currentScanner = currentTags.Manufacturer?.Values?.Length > 0 && currentTags.ManufacturersModelName?.Values?.Length > 0 ? $"{currentTags.Manufacturer?.Values?[0].ToString()} {currentTags.ManufacturersModelName?.Values?[0].ToString()}" : "";
                 brush = priorScanner.Equals(currentScanner) ? Brushes.White : Brushes.Orange;
                 g.DrawString(priorScanner, font, brush, new Point(col2X, rowstartY + rowHeight * 3));
                 g.DrawString(currentScanner, font, brush, new Point(col3X, rowstartY + rowHeight * 3));
 
-                var priorSerial = priorTags.DeviceSerialNumber?.Values?[0].ToString();
-                var currentSerial = currentTags.DeviceSerialNumber?.Values?[0].ToString();
+                var priorSerial = priorTags.DeviceSerialNumber?.Values?.Length > 0 ? priorTags.DeviceSerialNumber?.Values?[0].ToString() : "";
+                var currentSerial = currentTags.DeviceSerialNumber?.Values?.Length > 0 ? currentTags.DeviceSerialNumber?.Values?[0].ToString(): "";
                 brush = priorSerial.Equals(currentSerial) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorSerial, font, brush, new Point(col2X, rowstartY + rowHeight * 4));
                 g.DrawString(currentSerial, font, brush, new Point(col3X, rowstartY + rowHeight * 4));
@@ -536,38 +605,38 @@ namespace VisTarsier.Service
                 g.DrawString(priorSoftware, font, brush, new Point(col2X, rowstartY + rowHeight * 5));
                 g.DrawString(currentSoftware, font, brush, new Point(col3X, rowstartY + rowHeight * 5));
 
-                var priorEcho = priorTags.EchoTime?.Values?[0].ToString();
-                var currentEcho = currentTags.EchoTime?.Values?[0].ToString();
+                var priorEcho = priorTags.EchoTime?.Values?.Length > 0 ? priorTags.EchoTime?.Values?[0].ToString() : "";
+                var currentEcho = currentTags.EchoTime?.Values?.Length > 0 ? currentTags.EchoTime?.Values?[0].ToString() : "";
                 brush = priorEcho.Equals(currentEcho) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorEcho, font, brush, new Point(col2X, rowstartY + rowHeight * 6));
                 g.DrawString(currentEcho, font, brush, new Point(col3X, rowstartY + rowHeight * 6));
 
-                var priorIt = priorTags.InversionTime?.Values?[0].ToString();
-                var currentIt = currentTags.InversionTime?.Values?[0].ToString();
+                var priorIt = priorTags.InversionTime?.Values?.Length > 0 ? priorTags.InversionTime?.Values?[0].ToString() : "";
+                var currentIt = currentTags.InversionTime?.Values?.Length > 0 ? currentTags.InversionTime?.Values?[0].ToString() : "";
                 brush = priorIt.Equals(currentIt) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorIt, font, brush, new Point(col2X, rowstartY + rowHeight * 7));
                 g.DrawString(currentIt, font, brush, new Point(col3X, rowstartY + rowHeight * 7));
 
-                var priorIn = priorTags.ImagedNucleus?.Values?[0].ToString();
-                var currentIn = currentTags.ImagedNucleus?.Values?[0].ToString();
+                var priorIn = priorTags.ImagedNucleus?.Values?.Length > 0 ? priorTags.ImagedNucleus?.Values?[0].ToString() : "";
+                var currentIn = currentTags.ImagedNucleus?.Values?.Length > 0 ? currentTags.ImagedNucleus?.Values?[0].ToString() : "";
                 brush = priorIn.Equals(currentIn) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorIn, font, brush, new Point(col2X, rowstartY + rowHeight * 8));
                 g.DrawString(currentIn, font, brush, new Point(col3X, rowstartY + rowHeight * 8));
 
-                var priorTeslas = priorTags.MagneticFieldStrength?.Values?[0].ToString() + "T";
-                var currentTeslas = currentTags.MagneticFieldStrength?.Values?[0].ToString() + "T";
+                var priorTeslas = priorTags.MagneticFieldStrength?.Values?.Length > 0 ? priorTags.MagneticFieldStrength?.Values?[0].ToString() + "T" : "";
+                var currentTeslas = currentTags.MagneticFieldStrength?.Values?.Length > 0 ? currentTags.MagneticFieldStrength?.Values?[0].ToString() + "T" : "";
                 brush = priorTeslas.Equals(currentTeslas) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorTeslas, font, brush, new Point(col2X, rowstartY + rowHeight * 9));
                 g.DrawString(currentTeslas, font, brush, new Point(col3X, rowstartY + rowHeight * 9));
 
-                var priorEt = priorTags.EchoTrainLength?.Values?[0].ToString();
-                var currentEt = currentTags.EchoTrainLength?.Values?[0].ToString();
+                var priorEt = priorTags.EchoTrainLength?.Values?.Length > 0 ? priorTags.EchoTrainLength?.Values?[0].ToString() : "";
+                var currentEt = currentTags.EchoTrainLength?.Values?.Length > 0 ? currentTags.EchoTrainLength?.Values?[0].ToString() : "";
                 brush = priorEt.Equals(currentEt) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorEt, font, brush, new Point(col2X, rowstartY + rowHeight * 10));
                 g.DrawString(currentEt, font, brush, new Point(col3X, rowstartY + rowHeight * 10));
 
-                var priorTc = priorTags.TransmitCoilName?.Values?[0].ToString();
-                var currentTc = currentTags.TransmitCoilName?.Values?[0].ToString();
+                var priorTc = priorTags.TransmitCoilName?.Values?.Length > 0 ? priorTags.TransmitCoilName?.Values?[0].ToString() : "";
+                var currentTc = currentTags.TransmitCoilName?.Values?.Length > 0 ? currentTags.TransmitCoilName?.Values?[0].ToString() : "";
                 brush = priorTc.Equals(currentTc) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorTc, font, brush, new Point(col2X, rowstartY + rowHeight * 11));
                 g.DrawString(currentTc, font, brush, new Point(col3X, rowstartY + rowHeight * 11));
@@ -597,7 +666,7 @@ namespace VisTarsier.Service
             return outpath;
         }
 
-        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, Job job, string outFolder)
+        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, Job job, string outFolder, string time)
         {
             var output = new List<string>();
 
@@ -630,7 +699,11 @@ namespace VisTarsier.Service
                 if (results.Passed) g.DrawString("PASSED", new Font("Courier New", 48, FontStyle.Bold), Brushes.LightGreen, new Point(250, 155));
                 else g.DrawString("FAILED", new Font("Courier New", 48, FontStyle.Bold), Brushes.OrangeRed, new Point(250, 155));
                 g.DrawString(comment, new Font("Courier New", 12), Brushes.White, new Point(141, 289));
-
+                g.DrawString($"Time to process : {time}", new Font("Courier New", 12), Brushes.White, new Point(147, 475));
+                for (int i = 0; i < results.Stats?.Count; ++i)
+                {
+                    g.DrawString(results.Stats[i], new Font("Courier New", 12), Brushes.White, new Point(147, 497 + 22*i));
+                }
                 g.DrawString($"[{job.Id}]", new Font("Courier New", 14, FontStyle.Bold), Brushes.White, new Point(524, 112));
             }
 
@@ -684,6 +757,106 @@ namespace VisTarsier.Service
          
             // ... done.
             return output.ToArray();
+        }
+
+        private void SendToDestinations(JobResult[] results, Job job)
+        {
+            // TODO :: I'm note sure that we should be throwing errors here, since the job results should be 
+            // detemining where we're getting files from 
+            //if (string.IsNullOrEmpty(ResultSeriesDicomFolder) ||
+            //    Directory.GetFiles(ResultSeriesDicomFolder).Length == 0 &&
+            //    Directory.GetDirectories(ResultSeriesDicomFolder).Length == 0)
+            //    throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
+            //                                         $"at following path: [{ResultSeriesDicomFolder}] or empty!");
+
+            //if (string.IsNullOrEmpty(PriorReslicedSeriesDicomFolder) || Directory.GetFiles(PriorReslicedSeriesDicomFolder).Length == 0)
+            //    throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
+            //                                         $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
+
+            _log.Info("Sending to destinations...");
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // Sending to Dicom Destinations
+            SendToDicomDestinations(results, job);
+            // Sending to Filesystem Destinations
+            SendToFilesystemDestinations(results, job);
+
+            stopwatch.Stop();
+            _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
+        }
+        private void SendToFilesystemDestinations(JobResult[] results, Job job)
+        {
+            if (job.Recipe.OutputSettings.FilesystemDestinations == null) return;
+            foreach (var fsDestination in job.Recipe.OutputSettings.FilesystemDestinations)
+            {
+                var jobFolderName = Path.GetFileName(job.ProcessingFolder) ?? throw new InvalidOperationException();
+                var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
+
+                _log.Info($"Sending to folder [{destJobFolderPath}]...");
+                if (job.Recipe.OutputSettings.OnlyCopyResults)
+                {
+                    foreach (var result in results)
+                    {
+                        var resultParentFolderPath = Path.GetDirectoryName(result.NiftiFilePath);
+                        var resultParentFolderName = Path.GetFileName(resultParentFolderPath);
+                        var resultDestinationFolder = Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException());
+                        FileSystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
+                    }
+
+                    //var priorFolderName = Path.GetFileName(PriorReslicedSeriesDicomFolder);
+                    //var priorDestinationFolder = Path.Combine(destJobFolderPath, priorFolderName ?? throw new InvalidOperationException());
+                    //FileSystem.CopyDirectory(PriorReslicedSeriesDicomFolder, priorDestinationFolder);
+                }
+                else
+                {
+                    FileSystem.CopyDirectory(job.ProcessingFolder, destJobFolderPath);
+                }
+            }
+        }
+        private void SendToDicomDestinations(JobResult[] results, Job job)
+        {
+            if (job.Recipe.OutputSettings.DicomDestinations == null) return;
+            foreach (var dicomDestination in job.Recipe.OutputSettings.DicomDestinations)
+            {
+                var cfg = CapiConfig.GetConfig();
+                var localNode = cfg.DicomConfig.LocalNode;
+                IDicomNode remoteNode;
+                try
+                {
+                    remoteNode = cfg.DicomConfig.RemoteNodes
+                        .SingleOrDefault(n => n.AeTitle.Equals(dicomDestination, StringComparison.CurrentCultureIgnoreCase));
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failed at getting remote node defined in recipe from config file. AET in recipe: [{dicomDestination}]", ex);
+                    throw new Exception($"Remote node not found in config file [{dicomDestination}]");
+                }
+                if (remoteNode == null)
+                    throw new Exception($"Remote node not found in config file [{dicomDestination}]");
+
+                var dicomServices = new DicomService(localNode, remoteNode);
+
+                _log.Info($"Establishing connection to AET [{remoteNode.AeTitle}]...");
+                dicomServices.CheckRemoteNodeAvailability();
+
+                _log.Info($"Sending results to AET [{remoteNode.AeTitle}]...");
+
+                foreach (var result in results)
+                {
+                    // NOTE If there are non-dicom files in the directory you'll get an exception 
+                    // That looks like -- ClearCanvas.Dicom.DicomException: Invalid abstract syntax for presentation context, UID is zero length. 
+                    // TODO: Handle this better.
+                    var resultDicomFiles = Directory.GetFiles(result.DicomFolderPath);
+                    dicomServices.SendDicomFiles(resultDicomFiles);
+                }
+                _log.Info($"Finished sending results to AET [{remoteNode.AeTitle}]");
+
+                //_log.Info($"Sending resliced prior series to AET [{remoteNode.AeTitle}]...");
+                //var priorReslicedDicomFiles = Directory.GetFiles(PriorReslicedSeriesDicomFolder);
+                //dicomServices.SendDicomFiles(priorReslicedDicomFiles);
+                //_log.Info($"Finished sending resliced prior series to AET [{remoteNode.AeTitle}]");
+            }
         }
     }
 }

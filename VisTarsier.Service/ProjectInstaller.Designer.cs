@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.serviceProcessInstaller1 = new System.ServiceProcess.ServiceProcessInstaller();
-            this.VisTarsier2Service = new System.ServiceProcess.ServiceInstaller();
+            this.VisTarsier2devService = new System.ServiceProcess.ServiceInstaller();
             // 
             // serviceProcessInstaller1
             // 
@@ -38,25 +38,25 @@
             this.serviceProcessInstaller1.Username = null;
             this.serviceProcessInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.ServiceProcessInstaller1_AfterInstall);
             // 
-            // VisTarsier2Service
+            // VisTarsier2devService
             // 
-            this.VisTarsier2Service.Description = "The VisTarsier2 Imaging service";
-            this.VisTarsier2Service.DisplayName = "VisTarsier2.Service";
-            this.VisTarsier2Service.ServiceName = "VisTarsier2.Service";
-            this.VisTarsier2Service.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
-            this.VisTarsier2Service.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.CAPIService_AfterInstall);
+            this.VisTarsier2devService.Description = "The VisTarsier2 Imaging service";
+            this.VisTarsier2devService.DisplayName = "VisTarsier2.dev.Service";
+            this.VisTarsier2devService.ServiceName = "VisTarsier2.dev.Service";
+            this.VisTarsier2devService.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.VisTarsier2devService.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.CAPIService_AfterInstall);
             // 
             // ProjectInstaller
             // 
             this.Installers.AddRange(new System.Configuration.Install.Installer[] {
             this.serviceProcessInstaller1,
-            this.VisTarsier2Service});
+            this.VisTarsier2devService});
 
         }
 
         #endregion
 
         private System.ServiceProcess.ServiceProcessInstaller serviceProcessInstaller1;
-        private System.ServiceProcess.ServiceInstaller VisTarsier2Service;
+        private System.ServiceProcess.ServiceInstaller VisTarsier2devService;
     }
 }

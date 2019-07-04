@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using VisTarsier.Common;
+using VisTarsier.Config;
 
 namespace VisTarsier.NiftiLib
 {
@@ -63,7 +64,7 @@ namespace VisTarsier.NiftiLib
             GetDimensions(sliceType, out var width, out var height, out var nSlices);
             if (sliceIndex >= nSlices) throw new ArgumentOutOfRangeException($"Slice index out of range. No of slices = {nSlices}");
 
-            var slice = new DirectBitmap(width, height);
+            var slice = new Bitmap(width, height);
 
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
@@ -72,7 +73,9 @@ namespace VisTarsier.NiftiLib
                     slice.SetPixel(x, y, Color.FromArgb(GetPixelColor(x, y, sliceIndex, sliceType)));
                 }
 
-            return slice.Bitmap;
+            //var bmp = new Bitmap(slice.Bitmap);
+            //slice.Dispose();
+            return slice;
         }
 
 

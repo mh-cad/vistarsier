@@ -14,7 +14,7 @@ namespace VisTarsier.NiftiLib.Processing
 
         public abstract T Metrics { get; }
 
-        public abstract bool IsComplete { get; }
+        public abstract bool IsComplete { get; protected set; }
 
         public abstract T Process();
     }

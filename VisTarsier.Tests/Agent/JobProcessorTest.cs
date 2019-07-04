@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using SliceType = VisTarsier.NiftiLib.SliceType;
 
 namespace VisTarsier.Tests.Agent
 {
@@ -32,10 +31,10 @@ namespace VisTarsier.Tests.Agent
             var newFilePath = Path.Combine(_tmpFolder, "test.bmp");
             File.Copy(filepath, newFilePath);
             var overlayText = $"CAPI - Prior re-sliced ({DateTime.Today:dd/MM/yyyy})";
-            var jobProcessor = new JobProcessor(null);
+            //var jobProcessor = new JobProcessor();
 
             // Act
-            jobProcessor.AddOverlayToImage(newFilePath, overlayText);
+            //jobProcessor.AddOverlayToImage(newFilePath, overlayText);
 
             // Assert
         }

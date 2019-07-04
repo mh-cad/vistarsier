@@ -20,7 +20,7 @@ namespace VisTarsier.Module.MS
     public class MSPipeline : Pipeline<MSMetrics>
     {
         public override MSMetrics Metrics { get; }
-        public override bool IsComplete { get; }
+        public override bool IsComplete { get; protected set; }
 
         private readonly ILog _log;
         private string _currentNii;
@@ -149,8 +149,8 @@ namespace VisTarsier.Module.MS
 
             // Compare 
             _log.Info("Starting compare...");
-            var increaseTask = Task.Run(() => { return Compare.CompareMSLesionIncrease(currentNifti, priorNifti); });
-            var decreaseTask = Task.Run(() => { return Compare.CompareMSLesionDecrease(currentNifti, priorNifti); });
+            var increaseTask = Task.Run(() => { return MSCompare.CompareMSLesionIncrease(currentNifti, priorNifti); });
+            var decreaseTask = Task.Run(() => { return MSCompare.CompareMSLesionDecrease(currentNifti, priorNifti); });
             increaseTask.Wait();
             decreaseTask.Wait();
             var increaseNifti = increaseTask.Result;
@@ -189,12 +189,16 @@ namespace VisTarsier.Module.MS
 
             _log.Info($@"..done. [{stopwatch1.Elapsed}]");
 
-            Metrics.Histogram = new Histogram();
-            Metrics.Histogram.Current = currentNifti;
-            Metrics.Histogram.Prior = priorNifti;
-            Metrics.Histogram.Increase = increaseNifti;
-            Metrics.Histogram.Decrease = decreaseNifti;
+            Metrics.Histogram = new Histogram
+            {
+                Current = currentNifti,
+                Prior = priorNifti,
+                Increase = increaseNifti,
+                Decrease = decreaseNifti
+            };
             Metrics.ResultsSlides = new System.Drawing.Bitmap[]{ Metrics.Histogram.GenerateSlide() };
+
+            IsComplete = true;
 
             return Metrics;
         }

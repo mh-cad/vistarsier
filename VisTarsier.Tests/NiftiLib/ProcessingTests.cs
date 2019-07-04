@@ -53,9 +53,9 @@ namespace VisTarsier.Tests.NiftiLib
             niftiB.Voxels[1] = niftiA.Voxels[1] - change;
 
             // Do a heaps compare
-            var decrease = Compare.CompareMSLesionDecrease(niftiB, niftiA);
-            var increase = Compare.CompareMSLesionIncrease(niftiB, niftiA);
-            var changed = Compare.CompareMSLesion(niftiB, niftiA);
+            var decrease = MSCompare.CompareMSLesionDecrease(niftiB, niftiA);
+            var increase = MSCompare.CompareMSLesionIncrease(niftiB, niftiA);
+            var changed = Compare.GatedSubract(niftiB, niftiA);
 
             // Check that things are working as expected (within floating point error range)
             Assert.AreEqual(decrease.Voxels[0], 0, 0.00001, "Problem with CompareMSLesionDecrease");

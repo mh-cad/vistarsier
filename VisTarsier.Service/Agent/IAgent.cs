@@ -13,10 +13,6 @@ namespace VisTarsier.Service
         /// </summary>
         CapiConfig Config { get; set; }
         /// <summary>
-        /// Will be true if the agent is currently processing an image or is otherwise occupied.
-        /// </summary>
-        bool IsBusy { get; set; }
-        /// <summary>
         /// Will return true if there are no errors with the Agent (e.g. a bad or missing configuration).
         /// </summary>
         bool IsHealthy { get; set; }
