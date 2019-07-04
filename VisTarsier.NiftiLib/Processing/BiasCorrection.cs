@@ -42,8 +42,8 @@ namespace VisTarsier.NiftiLib.Processing
             string niftiInPath = inputFile;
             string niftiOutPath = inputFile + ".antsN4.out.nii";
             var args = $"-i {niftiInPath} -o {niftiOutPath}";
-
-            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.N4BiasFieldCorrection, args, outputDataReceived: updates);
+            Log.GetLogger().Info("    --Starting AntsN4..");
+            ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.N4BiasFieldCorrection, args, outputDataReceived: updates, errorOccuredInProcess: updates);
             return niftiOutPath;
         }
     }

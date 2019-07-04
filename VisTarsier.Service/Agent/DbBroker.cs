@@ -25,6 +25,7 @@ namespace VisTarsier.Service
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.UseSqlServer(_connectionString);
         }
 

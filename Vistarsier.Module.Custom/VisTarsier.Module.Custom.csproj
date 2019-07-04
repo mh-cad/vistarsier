@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</ProjectGuid>
+    <ProjectGuid>{21FECF31-4A26-4B92-8202-819F0A317911}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisTarsier.Module.MS</RootNamespace>
-    <AssemblyName>VisTarsier.Module.MS</AssemblyName>
+    <RootNamespace>VisTarsier.Module.Custom</RootNamespace>
+    <AssemblyName>VisTarsier.Module.Custom</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,14 +34,9 @@
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Numerics, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,30 +45,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Histogram.cs" />
-    <Compile Include="MSCompare.cs" />
-    <Compile Include="IncreaseClassifier.cs" />
-    <Compile Include="IClassifier.cs" />
-    <Compile Include="MSMetrics.cs" />
-    <Compile Include="MSPipeline.cs" />
+    <Compile Include="CustomPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
-      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
+      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
       <Name>VisTarsier.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
-      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
+      <Project>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</Project>
       <Name>VisTarsier.Config</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj">
+      <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
+      <Name>VisTarsier.Module.MS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
-      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
+      <Project>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</Project>
       <Name>VisTarsier.NiftiLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using VisTarsier.Config;
 
 namespace VisTarsier.NiftiLib
 {
@@ -26,7 +27,7 @@ namespace VisTarsier.NiftiLib
         /// <param name="filepath"></param>
         /// <returns>This Nifti object as populated from the file.</returns>
         INifti<T> ReadNifti(string filepath);
-        
+
         /// <summary>
         /// Reads the header for this Nifti object from the given header file path.
         /// </summary>

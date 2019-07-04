@@ -39,7 +39,7 @@ namespace VisTarsier.Tests.Dicom
             }
 
             var recipe = GetDefaultRecipe();
-            if (recipe == null || recipe.DicomDestinations == null || recipe.DicomDestinations.Count < 1)
+            if (recipe == null || recipe.OutputSettings.DicomDestinations == null || recipe.OutputSettings.DicomDestinations.Count < 1)
             {
                 //_canConnect = false;
                 Assert.Inconclusive("Recipe contains no dicom destinations.");
@@ -77,7 +77,7 @@ namespace VisTarsier.Tests.Dicom
         private static IDicomService GetDest()
         {
             var config = CapiConfig.GetConfig().DicomConfig;
-            var source = GetDefaultRecipe().DicomDestinations[0];
+            var source = GetDefaultRecipe().OutputSettings.DicomDestinations[0];
             var remoteNode = config.RemoteNodes.Find((node) => node.AeTitle.ToUpper().Equals(source.ToUpper()));
             if (remoteNode == null) remoteNode = config.RemoteNodes[0];
 

@@ -49,6 +49,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>8413D2EF929D935D40E84D00E914F97DFD30A0D1</ManifestCertificateThumbprint>
@@ -251,6 +252,10 @@
     <ProjectReference Include="..\VisTarsier.Dicom\VisTarsier.Dicom.csproj">
       <Project>{3f6510a2-e0c3-44bb-9976-ee4dd578e6ad}</Project>
       <Name>VisTarsier.Dicom</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Vistarsier.Module.Custom\VisTarsier.Module.Custom.csproj">
+      <Project>{21FECF31-4A26-4B92-8202-819F0A317911}</Project>
+      <Name>VisTarsier.Module.Custom</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj">
       <Project>{7ac17e16-85be-4bb4-b1af-6a0eff47739b}</Project>

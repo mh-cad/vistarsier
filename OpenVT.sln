@@ -25,6 +25,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisTarsier.CommandLineTool"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.ConsoleTester", "VisTarsier.ConsoleTester\VisTarsier.ConsoleTester.csproj", "{79EE5650-F44A-4F56-8DD7-876FB33D3D2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Module.Custom", "Vistarsier.Module.Custom\VisTarsier.Module.Custom.csproj", "{21FECF31-4A26-4B92-8202-819F0A317911}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chuck.Tester", "Chuck.Tester\Chuck.Tester.csproj", "{4D7E15B3-4B3E-44E4-A7CA-1933D36155D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,14 @@ Global
 		{79EE5650-F44A-4F56-8DD7-876FB33D3D2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79EE5650-F44A-4F56-8DD7-876FB33D3D2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79EE5650-F44A-4F56-8DD7-876FB33D3D2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21FECF31-4A26-4B92-8202-819F0A317911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21FECF31-4A26-4B92-8202-819F0A317911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21FECF31-4A26-4B92-8202-819F0A317911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21FECF31-4A26-4B92-8202-819F0A317911}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D7E15B3-4B3E-44E4-A7CA-1933D36155D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7E15B3-4B3E-44E4-A7CA-1933D36155D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7E15B3-4B3E-44E4-A7CA-1933D36155D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7E15B3-4B3E-44E4-A7CA-1933D36155D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

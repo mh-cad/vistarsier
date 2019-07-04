@@ -37,6 +37,9 @@
     <Reference Include="ClearCanvas.Dicom">
       <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
     </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
@@ -66,8 +69,9 @@
     <Compile Include="Processing\Metrics.cs" />
     <Compile Include="Processing\Normalization.cs" />
     <Compile Include="Processing\Registration.cs" />
+    <Compile Include="Processing\Compare.cs" />
+    <Compile Include="Processing\ResultFile.cs" />
     <Compile Include="Processing\Tools.cs" />
-    <Compile Include="SliceType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

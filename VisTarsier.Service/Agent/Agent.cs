@@ -18,7 +18,8 @@ namespace VisTarsier.Service
         private readonly ILog _log;
 
         public CapiConfig Config { get; set; }
-        public bool IsBusy { get; set; }
+
+        private readonly object agentLock = new object();
         public bool IsHealthy { get; set; }
         private DbBroker _context;
         private Timer _timer;
@@ -37,10 +38,10 @@ namespace VisTarsier.Service
             IsHealthy = true;
             _log = Log.GetLogger();
             Config = GetCapiConfig();
-            _context = GetAgentRepository(true);
+            _context = GetDBBroker(true);
         }
 
-        private DbBroker GetAgentRepository(bool firstUse = false)
+        private DbBroker GetDBBroker(bool firstUse = false)
         {
             try
             {
@@ -109,7 +110,7 @@ namespace VisTarsier.Service
         private void OnTimeEvent(object sender, ElapsedEventArgs e)
         {
             Console.ForegroundColor = ConsoleColor.Gray;
-            _context = GetAgentRepository();
+            _context = GetDBBroker();
             Run();
         }
         /// <summary>
@@ -117,53 +118,44 @@ namespace VisTarsier.Service
         /// </summary>
         public void Run()
         {
-            // Check if we're busy processing cases.
-            if (IsBusy)
+            // Locking for now because who knows what can go wrong.
+            lock(agentLock)
             {
-                _log.Info("Agent is busy processing cases");
-                return;
-            }
-
-            // Global agent lock.
-            IsBusy = true;
-
-            // Handle newly added cases (add to DB)
-            try
-            {
-                _log.Info("Checking for new cases");
-                Config = CapiConfig.GetConfig();
-                _timer.Interval = int.Parse(Config.RunInterval) * 1000;
-                HandleNewlyAddedCases();
-            }
-            catch (Exception ex)
-            {
-                _log.Error($"{Environment.NewLine}Error occured while adding new cases to database", ex);
-                IsBusy = false;
-                return;
-            }
-
-            // Process next pending case (from the DB)
-            try
-            {
-                var pendingCases = _context.GetCaseByStatus("Pending").ToList();
-                while (pendingCases.Count > 0)
+                // Handle newly added cases (add to DB)
+                try
                 {
-                    _log.Info("Processing next pending case...");
-                    var firstCase = pendingCases.OrderBy(c => c.Id).First();
-                    if (firstCase != null)
+                    _log.Info("Checking for new cases");
+                    Config = CapiConfig.GetConfig();
+                    _timer.Interval = int.Parse(Config.RunInterval) * 1000;
+                    HandleNewlyAddedCases();
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"{Environment.NewLine}Error occured while adding new cases to database", ex);
+                    return;
+                }
+
+                // Process next pending case (from the DB)
+                try
+                {
+                    var pendingCases = _context.GetCaseByStatus("Pending").ToList();
+                    while (pendingCases.Count > 0)
                     {
-                        pendingCases.Remove(firstCase);
-                        ProcessCase(firstCase);
+                        _log.Info("Processing next pending case...");
+                        var firstCase = pendingCases.OrderBy(c => c.Id).First();
+                        if (firstCase != null)
+                        {
+                            pendingCases.Remove(firstCase);
+                            ProcessCase(firstCase);
+                        }
                     }
                 }
-                IsBusy = false;
-            }
-            catch (Exception ex)
-            {
-                var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
-                _log.Error($"{Environment.NewLine}Failed to get pending attempts from database. {dbConnectionString}", ex);
-                IsBusy = false;
-                throw;
+                catch (Exception ex)
+                {
+                    var dbConnectionString = _context.Database.GetDbConnection().ConnectionString;
+                    _log.Error($"{Environment.NewLine}Failed to get pending attempts from database. {dbConnectionString}", ex);
+                    throw;
+                }
             }
         }
 
@@ -180,7 +172,12 @@ namespace VisTarsier.Service
                     $"Accession: [{attempt.CurrentAccession}] Addition method: [{attempt.Method}] Start processing case for this case.");
                 SetCaseStatus(attempt, "Processing");
 
-                attempt.Process(recipe, _context);
+                // Create a new job.
+                var job = new JobBuilder(new ValueComparer(), _context).Build(recipe, attempt);
+                attempt.JobId = job.Id;
+                // Process the job.
+                JobProcessor jp = new JobProcessor();
+                jp.Process(job);
 
                 _log.Info(
                     $"Accession: [{attempt.CurrentAccession}] Addition method: [{attempt.Method}] Processing completed for this case.");
@@ -201,7 +198,6 @@ namespace VisTarsier.Service
             catch (Exception ex)
             {
                 _log.Error($"{Environment.NewLine}Case failed during processing", ex);
-                IsBusy = false;
 
                 SetCaseStatus(attempt, "Failed");
                 SetCaseComment(attempt, ex.Message);

@@ -41,9 +41,9 @@ namespace VisTarsier.Module.MS
             {
                 int x = Math.Min(1023, (int)((Prior.Voxels[i] - rangeStart) / range  * 1024));
                 int y = Math.Min(1023, (int)((Current.Voxels[i] - rangeStart) / range * 1024));
-                diffMatrix[x][y] += (double)diff[i];
-                if (Increase != null) increaseMatrix[x][y] += (double)Increase.Voxels[i];
-                if (Decrease != null) decreaseMatrix[x][y] += (double)Decrease.Voxels[i];
+                diffMatrix[x][y] += 1;
+                if (Increase != null && Increase.Voxels[i] != 0) increaseMatrix[x][y] += 1;//(double)Increase.Voxels[i];
+                if (Decrease != null && Decrease.Voxels[i] != 0) decreaseMatrix[x][y] += 1;//(double)Decrease.Voxels[i];
                 if (diffMatrix[x][y] > max && x > 10 && y > 10) max = diffMatrix[x][y];
                 if (diffMatrix[x][y] < min) min = diffMatrix[x][y];
             }
@@ -52,7 +52,7 @@ namespace VisTarsier.Module.MS
             // help us compare between scans.
             var bmp = new DirectBitmap(1024, 1024);
             Log.GetLogger().Info($"Min {min}, Max {max}, Range = { max - min}, ideal multi={255.0 / (max - min)}");
-            var multiplier = 0.25;//255.0 / (max - min);
+            var multiplier = 3;//255.0 / (max - min);
 
             for (int x = 0; x < 1024; ++x)
             {
