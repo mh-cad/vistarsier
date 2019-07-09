@@ -40,7 +40,10 @@ namespace VisTarsier.NiftiLib.Processing
             if (!Directory.Exists(tmpDir))
                 throw new DirectoryNotFoundException("dcm2niix output folder does not exist!");
             var outFiles = Directory.GetFiles(tmpDir);
-            var nim = outFiles.Single(f => Path.GetExtension(f) == ".nii");
+            // Rather than cracking a tanty when we have more than one nii in the stack, we're just going to use the biggest one.
+            // This is in case we have a reference slide at the front or end of the dicom stack, which can happen.
+            var nims = outFiles.Where(f => Path.GetExtension(f) == ".nii").OrderByDescending(f => new FileInfo(f)?.Length);
+            var nim = nims.FirstOrDefault();
             if (File.Exists(niftiPath)) File.Delete(niftiPath);
             File.Move(nim, niftiPath);
 

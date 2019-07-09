@@ -202,8 +202,8 @@ namespace VisTarsier.Dicom
                 bmpFiles = MatchBmpFilesWithDicomFiles(bmpFiles, orderedDicomFiles);
 
             // check if number of dicom and bmp files match
-            if (bmpFiles.Length != orderedDicomFiles.Count)
-                throw new Exception($"Number of Bmp files and dicom files to read header from don't match {bmpFiles.Length} != {orderedDicomFiles.Count}");
+            if (bmpFiles.Length > orderedDicomFiles.Count)
+                throw new Exception($"BMP file count must not be greater than dicom file count. {bmpFiles.Length} > {orderedDicomFiles.Count}");
 
             for (var i = 0; i < bmpFiles.Length; i++)
             {

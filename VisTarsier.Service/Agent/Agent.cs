@@ -378,39 +378,41 @@ namespace VisTarsier.Service
                         && ((c.CurrentSeriesUID == null && mc.CurrentSeriesUID == null) || c.CurrentSeriesUID.Equals(mc.CurrentSeriesUID))
                         && ((c.PriorSeriesUID == null && mc.PriorSeriesUID == null) || c.PriorSeriesUID.Equals(mc.PriorSeriesUID)))));
 
-                if (inDb)
-                { // If already in database, set status to Pending
-                    var inDbCase = _context.Attempts
-                        .Single((System.Linq.Expressions.Expression<Func<Attempt, bool>>)(c => (bool)c.CurrentAccession.Equals((string)mc.CurrentAccession, StringComparison.InvariantCultureIgnoreCase)));
-                    inDbCase.Status = "Pending";
-                    inDbCase.Method = Attempt.AdditionMethod.Manually;
-                    try
-                    {
-                        _context.Attempts.Update(inDbCase);
-                        _context.SaveChanges();
-                        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.CurrentAccession}]");
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{inDbCase.CurrentAccession}]", ex);
-                    }
-                }
-                else // if not in database, add to database
+                //if (inDb)
+                //{ // If already in database, set status to Pending
+                //    var inDbCase = _context.Attempts
+                //        .Single (c => c.CurrentAccession.Equals(mc.CurrentAccession, StringComparison.InvariantCultureIgnoreCase));
+                //    inDbCase.Status = "Pending";
+                //    inDbCase.Method = Attempt.AdditionMethod.Manually;
+                //    try
+                //    {
+                //        _context.Attempts.Update(inDbCase);
+                //        _context.SaveChanges();
+                //        _log.Info($"Case already in database re-instantiated. Accession: [{inDbCase.CurrentAccession}]");
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                //                   $"{Environment.NewLine}Accession: [{inDbCase.CurrentAccession}]", ex);
+                //    }
+                //}
+                //else // if not in database, add to database
+                //{
+                // TODO: Maybe we do want the single approach, but shut down for no reason?
+                // I realise the intent was initially to have one attempt per accession, but that's not always going to be true.
+                var newCase = new Attempt { CurrentAccession = mc.CurrentAccession.ToUpper(), Status = "Pending", Method = Attempt.AdditionMethod.Manually };
+                try
                 {
-                    var newCase = new Attempt { CurrentAccession = mc.CurrentAccession.ToUpper(), Status = "Pending", Method = Attempt.AdditionMethod.Manually };
-                    try
-                    {
-                        _context.Attempts.Add(newCase);
-                        _context.SaveChanges();
-                        _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.CurrentAccession}]");
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
-                                   $"{Environment.NewLine}Accession: [{newCase.CurrentAccession}]", ex);
-                    }
+                    _context.Attempts.Add(newCase);
+                    _context.SaveChanges();
+                    _log.Info($"Successfully inserted manually added case into database. Accession: [{newCase.CurrentAccession}]");
                 }
+                catch (Exception ex)
+                {
+                    _log.Error($"{Environment.NewLine}Failed to insert manually added case into database." +
+                                $"{Environment.NewLine}Accession: [{newCase.CurrentAccession}]", ex);
+                }
+                //}
             }));
 
         }
