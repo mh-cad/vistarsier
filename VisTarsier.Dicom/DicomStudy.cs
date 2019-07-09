@@ -1,6 +1,7 @@
 ﻿using VisTarsier.Dicom.Abstractions;
 using System;
 using System.Collections.Generic;
+using VisTarsier.Config;
 
 namespace VisTarsier.Dicom
 {

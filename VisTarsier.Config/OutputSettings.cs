@@ -4,7 +4,6 @@ namespace VisTarsier.Config
 {
     public class OutputSettings
     {
-        public SliceType SliceType { get; set; }
         public string ResultsDicomSeriesDescription { get; set; }
         public string ReslicedDicomSeriesDescription { get; set; }
 
