@@ -2,8 +2,8 @@
 {
     public enum SliceType
     {
-        Sagittal,
-        Coronal,
-        Axial
+        Sagittal=0,
+        Coronal=1,
+        Axial=2
     }
 }
