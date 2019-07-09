@@ -72,7 +72,7 @@ namespace VisTarsier.Service
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var sliceType = job.Recipe.OutputSettings.SliceType;
+           // var sliceType = job.Recipe.OutputSettings.SliceType;
 
             // Create pre-metadata slides.
             try
@@ -124,7 +124,7 @@ namespace VisTarsier.Service
             _log.Info($"{Environment.NewLine}");
             _log.Info($"****************  JOB COMPLETE  **********************************");
             _log.Info($" Job ID               *  {job.Id}");
-            _log.Info($" Processing Time      *  {job.End - job.Start}");
+            _log.Info($" Processing Time      *  {stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2}");
             _log.Info($"*****************************************************************");
             _log.Info($"{Environment.NewLine}");
             _log.Info($"{Environment.NewLine}");
@@ -249,10 +249,11 @@ namespace VisTarsier.Service
                     dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
                     var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
                     var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
+                    var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
                     var description = resultNii.Description;
                     //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
                     //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
-                    ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, job.Recipe.OutputSettings.SliceType, job.CurrentSeriesDicomFolder,
+                    ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, sliceType, job.CurrentSeriesDicomFolder,
                                         $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", job.ReferenceSeriesDicomFolder);
 
 
@@ -384,6 +385,38 @@ namespace VisTarsier.Service
             var month = studyDateVal.Substring(4, 2);
             var day = studyDateVal.Substring(6, 2);
             return $"{year}-{month}-{day}";
+        }
+
+        private SliceType GetSliceTypeFromDicomFile(string dicomFile)
+        {
+            var headers = DicomFileOps.GetDicomTags(dicomFile);
+            var iop = headers.ImageOrientation.Values;
+
+            // These are the perfect IOP vectors for each alignment...
+            float[] axial = { 1, 0, 0, 0, 1, 0 };
+            float[] coronal = { 1, 0, 0, 0, 0, 1 };
+            float[] sagittal = { 0, 1, 0, 0, 0, 1 };
+
+            // The total difference between the given IOP and ideal 
+            float axDiff = 0;
+            float corDiff = 0;
+            float sagDiff = 0;
+
+            // Calculate the differences.
+            for (int i = 0; i < iop.Length; ++i)
+            {
+                var abs = Math.Abs(float.Parse(iop[i]));
+                axDiff += Math.Abs(abs - Math.Abs(axial[i]));
+                corDiff += Math.Abs(abs - Math.Abs(coronal[i]));
+                sagDiff += Math.Abs(abs - Math.Abs(sagittal[i]));
+            }
+
+            // Return based on the closest match
+            if (sagDiff <= axDiff && axDiff <= corDiff) return SliceType.Sagittal;
+            if (corDiff <= axDiff && axDiff <= sagDiff) return SliceType.Coronal;
+            if (axDiff <= corDiff && corDiff <= sagDiff) return SliceType.Axial;
+
+            return SliceType.Sagittal; // Should not hit this code, but the compiler doesn't know that.
         }
 
         private void ConvertBmpsToDicom(string bmpFolder, string outDicomFolder, string sourceDicomFolder,

@@ -33,8 +33,8 @@ namespace VisTarsier.Module.Custom
             IsComplete = false;
             _log.Info($"Using bias correction: {recipe.BiasFieldCorrection}");
             _log.Info($"Extracting Brain: {recipe.BiasFieldCorrection}");
-            BiasCorrect = BiasCorrection.AntsN4;// : Nothing;
-            SkullStrip = BrainExtraction.BrainSuiteBSE;// : Nothing;
+            BiasCorrect = recipe.BiasFieldCorrection ? BiasCorrection.AntsN4 : Nothing;
+            SkullStrip = recipe.ExtractBrain ? BrainExtraction.BrainSuiteBSE : Nothing;
 
             Register = Registration.ANTSRegistration;
             Reslicer = Registration.ANTSApplyTransforms;
