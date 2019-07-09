@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class JobBuilder //: IJobBuilder
+    public class JobBuilder
     {
         private const string Current = "Current";
         private const string Prior = "Prior";
@@ -28,7 +28,6 @@ namespace VisTarsier.Service
         private readonly ILog _log;
         private readonly CapiConfig _capiConfig;
         private readonly DbBroker _context;
-        private IDicomService _dicomSource;
 
         /// <summary>
         /// Constructor
@@ -46,9 +45,7 @@ namespace VisTarsier.Service
             _valueComparer = valueComparer;
             _log = Log.GetLogger();
             _context = context;
-
             _capiConfig = CapiConfig.GetConfig();
-
         }
 
         /// <summary>
@@ -59,64 +56,79 @@ namespace VisTarsier.Service
         public Job Build(Recipe recipe, Attempt attempt)
         {
             // Setup out dicom service.
-            GetLocalAndRemoteNodes(recipe.SourceAet, out var localNode, out var sourceNode);
+            var dicomSource = CreateDicomSource(recipe.SourceAet);
 
-            var patientId = GetPatientIdFromRecipe(recipe);
+            // Get patient id
+            var patientId = GetPatientId(recipe, dicomSource);
 
-            var allStudiesForPatient = GetDicomStudiesForPatient(patientId,
-                recipe.PatientFullName, recipe.PatientBirthDate)
-                    .OrderByDescending(s => s.StudyDate).ToList();
-
+            // A list of all studies for the patient.
+            // TODO: I don't love the fact that we can't just use the patient ID which we should have above.
+            // But this code is defensive so I don't want to change it and introduce more bugs.
+            var allStudiesForPatient =
+                GetStudiesForPatient(patientId, recipe.PatientFullName, recipe.PatientBirthDate, dicomSource);
+                        
+            // Update attempt in DB
             @attempt.PatientId = recipe.PatientId;
             _context.Attempts.Update(@attempt);
             _context.SaveChanges();
 
+            // If there are no studies, have a cry.
             if (allStudiesForPatient.Count < 1)
                 throw new Exception(
-                    $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{sourceNode.AeTitle}]");
+                    $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{dicomSource.RemoteNode.AeTitle}]");
 
+            // Update patient ID in DB for a second time?
             @attempt.PatientId = allStudiesForPatient.FirstOrDefault().PatientId;
             _context.Attempts.Update(@attempt);
             _context.SaveChanges();
 
+            // Update the recipe with all the details for the patient?
             recipe = UpdateRecipeWithPatientDetails(recipe, allStudiesForPatient);
 
-            // Find Current Study (Fixed)
+            // Find Current Study
             _log.Info("Finding current series using recipe provided...");
-            var currentDicomStudy = GetCurrentDicomStudy(recipe, allStudiesForPatient);
+            var currentDicomStudy = GetCurrentDicomStudy(recipe, allStudiesForPatient, dicomSource);
 
-            // Update case in DB
+            // Update case in DB with patient name and DOB
             @attempt.PatientFullName = recipe.PatientFullName;
             @attempt.PatientBirthDate = recipe.PatientBirthDate;
             _context.Attempts.Update(@attempt);
             _context.SaveChanges();
 
+            // If we don't have a matching study for current have a cry.
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
                 throw new DirectoryNotFoundException("No workable series were found for accession");
 
+            // Update attempt with accession number.
             @attempt.CurrentAccession = currentDicomStudy.AccessionNumber;
             @attempt.CurrentSeriesUID = currentDicomStudy.Series.FirstOrDefault().SeriesInstanceUid;
             _context.Attempts.Update(@attempt);
             _context.SaveChanges();
 
+            // Create a new job based on the recipe.
             var job = new Job(recipe, attempt);
+            
+            // Setup temp directory for images.
             var imageRepositoryPath = _capiConfig.ImagePaths.ImageRepositoryPath;
-            var patientName = recipe.PatientFullName.Split('^')[0];
-            var accession = job.Attempt.CurrentAccession;
-            var accessionInJobName = string.Empty;
-            if (Regex.IsMatch(accession, @"^\d{4}R\d{7}-\d$")) accessionInJobName = $"-{accession.Substring(2, 10)}-";
-            var patientNameSubstring = patientName.Length > 4 ? patientName.Substring(0, 5) : patientName.Substring(0, patientName.Length);
-            var jobFolderName = $"{patientNameSubstring}{accessionInJobName}{DateTime.Now:yyMMdd_HHmmssfff}";
-            job.ProcessingFolder = Path.Combine(_capiConfig.ImagePaths.ImageRepositoryPath, jobFolderName);
-
-            var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
+            job.ProcessingFolder = Path.Combine(_capiConfig.ImagePaths.ImageRepositoryPath, job.Attempt.CurrentAccession);
+            job.ResultSeriesDicomFolder = Path.Combine(job.ProcessingFolder, Results);
+            job.PriorReslicedSeriesDicomFolder = Path.Combine(job.ProcessingFolder, PriorResliced);
+            job.ReferenceSeriesDicomFolder = GetReferenceSeriesForRegistration(job, allStudiesForPatient, dicomSource);
 
             // Find Prior Study (Floating)
             _log.Info("Finding prior series using recipe provided...");
+            var studyFixedIndex = allStudiesForPatient.IndexOf(currentDicomStudy);
             var priorDicomStudy =
-                GetPriorDicomStudy(recipe, studyFixedIndex, allStudiesForPatient);
+                GetPriorDicomStudy(recipe, studyFixedIndex, allStudiesForPatient, dicomSource);
+            // If we couldn't find the prior study, have a cry.
+            if (priorDicomStudy == null)
+                throw new DirectoryNotFoundException("No prior workable series were found");
+            // Otherwise update the attempt
+            job.Attempt.PriorAccession = priorDicomStudy.AccessionNumber;
+            job.Attempt.PatientId = currentDicomStudy.PatientId;
 
+            // Update attempt with prior accession details.
             @attempt.PriorAccession = priorDicomStudy?.AccessionNumber;
             @attempt.PriorSeriesUID = priorDicomStudy?.Series?.FirstOrDefault()?.SeriesInstanceUid;
             @attempt.SourceAet = recipe.SourceAet;
@@ -126,24 +138,17 @@ namespace VisTarsier.Service
             _context.Jobs.Update(@job);
             _context.SaveChanges();
 
-            if (priorDicomStudy == null)
-                throw new DirectoryNotFoundException("No prior workable series were found");
-
-            job.ResultSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, Results);
-            job.Attempt.PriorAccession = priorDicomStudy.AccessionNumber;
-            job.Attempt.PatientId = currentDicomStudy.PatientId;
-
             // If both current and prior are found, save them to disk for processing
             _log.Info("Saving current series to disk...");
             try
             {
-                job.CurrentSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                                currentDicomStudy, job.ProcessingFolder, Current);
+                job.CurrentSeriesDicomFolder =
+                    SaveDicomFilesToFilesystem(currentDicomStudy, job.ProcessingFolder, Current, dicomSource);
             }
             catch (Exception ex)
             {
                 _log.Error("Failed to save current series dicom files to disk.", ex);
-                throw;
+                throw ex;
             }
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
@@ -151,7 +156,7 @@ namespace VisTarsier.Service
             try
             {
                 job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                    priorDicomStudy, job.ProcessingFolder, Prior);
+                    priorDicomStudy, job.ProcessingFolder, Prior, dicomSource);
             }
             catch (Exception ex)
             {
@@ -160,74 +165,20 @@ namespace VisTarsier.Service
             }
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
-            job.PriorReslicedSeriesDicomFolder = Path.Combine(imageRepositoryPath, jobFolderName, PriorResliced);
-
-            // Get Registration Data for patient if exists in database
-            job.ReferenceSeriesDicomFolder =
-                GetReferenceSeriesForRegistration(job, allStudiesForPatient);
-
+            // All done.
             return job;
         }
 
-        private string GetReferenceSeriesForRegistration(Job job, IEnumerable<IDicomStudy> allStudiesForPatient)
+        /// <summary>
+        /// Creates a DicomService object given a source AET (which should be in the config file)
+        /// </summary>
+        /// <param name="sourceAet"></param>
+        /// <returns></returns>
+        private DicomService CreateDicomSource(string sourceAet)
         {
-            var studiesForPatient = allStudiesForPatient.ToList();
-
-            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries))
-                job.Attempt.ReferenceSeries = FindReferenceSeriesInPreviousJobs(job.Attempt.PatientId);
-
-            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries)) return string.Empty;
-
-            var studyId = job.GetStudyIdFromReferenceSeries();
-            var seriesId = job.GetSeriesIdFromReferenceSeries();
-            var study = studiesForPatient.FirstOrDefault(s => s.StudyInstanceUid == studyId);
-            if (study == null)
-            {
-                _log.Error($"Failed to find reference study to register series against StudyInstanceUid: [{studyId}]");
-                return string.Empty;
-            }
-            var allSeries = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
-            var matchingSeries = allSeries.FirstOrDefault(s => s.SeriesInstanceUid == seriesId);
-            if (matchingSeries == null)
-            {
-                _log.Error($"Failed to find reference study with matching series to register series against StudyInstanceUid: [{studyId}] SeriesInstanceUid: [{seriesId}]");
-                return string.Empty;
-            }
-            study.Series.Add(matchingSeries);
-            _log.Info("Saving reference series to disk...");
-            string referenceFolderPath;
-            try
-            {
-                referenceFolderPath = SaveDicomFilesToFilesystem(study, job.ProcessingFolder, Reference);
-            }
-            catch (Exception ex)
-            {
-                _log.Error("Failed to save reference series dicom files to disk.", ex);
-                throw;
-            }
-            return referenceFolderPath;
-        }
-
-        private string FindReferenceSeriesInPreviousJobs(string patientId)
-        {
-            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
-                                                                    !string.IsNullOrEmpty(j.Attempt.ReferenceSeries));
-
-            return jobWithRefSeries != null && jobWithRefSeries.Attempt != null ? jobWithRefSeries.Attempt.ReferenceSeries : string.Empty;
-        }
-
-        private static Recipe UpdateRecipeWithPatientDetails(Recipe recipe, IReadOnlyCollection<IDicomStudy> studies)
-        {
-            recipe.PatientFullName = studies.FirstOrDefault()?.PatientsName;
-            recipe.PatientBirthDate = studies.FirstOrDefault()?.PatientBirthDate.ToString("yyyyMMdd");
-            return recipe;
-        }
-
-        private void GetLocalAndRemoteNodes(string sourceAet, out IDicomNode localNode, out IDicomNode sourceNode)
-        {
-            localNode = _capiConfig.DicomConfig.LocalNode;
-
+            var localNode = _capiConfig.DicomConfig.LocalNode;
             var remoteNodes = _capiConfig.DicomConfig.RemoteNodes;
+            IDicomNode sourceNode;
 
             if (remoteNodes.Count == 0)
             {
@@ -250,8 +201,9 @@ namespace VisTarsier.Service
 
             try
             {
-                _dicomSource = new DicomService(localNode, sourceNode);
-                _dicomSource.CheckRemoteNodeAvailability();
+                var dicomSource = new DicomService(localNode, sourceNode);
+                dicomSource.CheckRemoteNodeAvailability();
+                return dicomSource;
             }
             catch (Exception ex)
             {
@@ -261,15 +213,121 @@ namespace VisTarsier.Service
             }
         }
 
+        /// <summary>
+        /// In case patient Id is not available get patient Id using accession number
+        /// </summary>
+        /// <param name="recipe"></param>
+        /// <param name="localNode"></param>
+        /// <param name="sourceNode"></param>
+        /// <returns></returns>
+        private string GetPatientId(Recipe recipe, IDicomService dicomSource)
+        {
+            if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
+            if (!string.IsNullOrEmpty(recipe.PatientFullName)
+                && !string.IsNullOrEmpty(recipe.PatientBirthDate))
+                return dicomSource.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate).PatientId;
+
+            if (string.IsNullOrEmpty(recipe.CurrentAccession))
+                throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
+
+            try
+            {
+                var study = dicomSource.GetStudyForAccession(recipe.CurrentAccession);
+                return study.PatientId;
+            }
+            catch
+            {
+                _log.Error($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
+
+                throw new Exception($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
+            }
+        }
+
+        /// <summary>
+        /// Find all studies for patient first trying patient Id and if not provided using patient full name and birth date.
+        /// </summary>
+        /// <param name="patientId"></param>
+        /// <param name="patientFullName"></param>
+        /// <param name="patientBirthDate"></param>
+        /// <param name="localNode">This machine dicome node details</param>
+        /// <param name="sourceNode">Dicom archive where studies reside</param>
+        /// <returns></returns>
+        private List<IDicomStudy> GetStudiesForPatient(
+            string patientId, string patientFullName, string patientBirthDate, IDicomService dicomSource)
+        {
+            var patientIdIsProvided = !string.IsNullOrEmpty(patientId) && !string.IsNullOrWhiteSpace(patientId);
+
+            var result = patientIdIsProvided ?
+                dicomSource.GetStudiesForPatientId(patientId) :
+                dicomSource.GetStudiesForPatient(patientFullName, patientBirthDate);
+
+            return result.OrderByDescending(s => s.StudyDate).ToList();
+        }
+
+        private static Recipe UpdateRecipeWithPatientDetails(Recipe recipe, IReadOnlyCollection<IDicomStudy> studies)
+        {
+            recipe.PatientFullName = studies.FirstOrDefault()?.PatientsName;
+            recipe.PatientBirthDate = studies.FirstOrDefault()?.PatientBirthDate.ToString("yyyyMMdd");
+            return recipe;
+        }
+
+
+        private string GetReferenceSeriesForRegistration(Job job, IEnumerable<IDicomStudy> allStudiesForPatient, DicomService dicomSource)
+        {
+            var studiesForPatient = allStudiesForPatient.ToList();
+
+            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries))
+                job.Attempt.ReferenceSeries = FindReferenceSeriesInPreviousJobs(job.Attempt.PatientId);
+
+            if (string.IsNullOrEmpty(job.Attempt.ReferenceSeries)) return string.Empty;
+
+            var studyId = job.GetStudyIdFromReferenceSeries();
+            var seriesId = job.GetSeriesIdFromReferenceSeries();
+            var study = studiesForPatient.FirstOrDefault(s => s.StudyInstanceUid == studyId);
+            if (study == null)
+            {
+                _log.Error($"Failed to find reference study to register series against StudyInstanceUid: [{studyId}]");
+                return string.Empty;
+            }
+            var allSeries = dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
+            var matchingSeries = allSeries.FirstOrDefault(s => s.SeriesInstanceUid == seriesId);
+            if (matchingSeries == null)
+            {
+                _log.Error($"Failed to find reference study with matching series to register series against StudyInstanceUid: [{studyId}] SeriesInstanceUid: [{seriesId}]");
+                return string.Empty;
+            }
+            study.Series.Add(matchingSeries);
+            _log.Info("Saving reference series to disk...");
+            string referenceFolderPath;
+            try
+            {
+                referenceFolderPath = SaveDicomFilesToFilesystem(study, job.ProcessingFolder, Reference, dicomSource);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Failed to save reference series dicom files to disk.", ex);
+                throw;
+            }
+            return referenceFolderPath;
+        }
+
+        private string FindReferenceSeriesInPreviousJobs(string patientId)
+        {
+            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
+                                                                    !string.IsNullOrEmpty(j.Attempt.ReferenceSeries));
+
+            return jobWithRefSeries != null && jobWithRefSeries.Attempt != null ? jobWithRefSeries.Attempt.ReferenceSeries : string.Empty;
+        }
+
+
         private string SaveDicomFilesToFilesystem(
-                                                  IDicomStudy dicomStudy, string jobProcessingFolder,
-                                                  string studyName)
+            IDicomStudy dicomStudy, string jobProcessingFolder, string studyName, DicomService dicomSource)
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
             var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
 
-            _dicomSource.SaveSeriesToLocalDisk(series, folderPath);
+            dicomSource.SaveSeriesToLocalDisk(series, folderPath);
 
             CopyDicomFilesToRootFolder(folderPath);
 
@@ -294,82 +352,32 @@ namespace VisTarsier.Service
             Directory.Delete(studyFolderPath, true);
         }
 
-        private IDicomStudy GetCurrentDicomStudy(Recipe recipe, IEnumerable<IDicomStudy> allStudiesForPatient)
+        private IDicomStudy GetCurrentDicomStudy(Recipe recipe, List<IDicomStudy> allStudiesForPatient, DicomService dicomSource)
         {
             var currentDicomStudy =
                 string.IsNullOrEmpty(recipe.CurrentAccession)
-                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1)
+                ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1, dicomSource)
                 : FindStudyMatchingAccession(allStudiesForPatient, recipe.CurrentAccession);
 
-            currentDicomStudy = AddMatchingSeriesToStudy(
-                currentDicomStudy, recipe.CurrentSeriesCriteria);
+            currentDicomStudy = AddMatchingSeriesToStudy(currentDicomStudy, recipe.CurrentSeriesCriteria, dicomSource);
 
             return currentDicomStudy;
         }
 
         private IDicomStudy GetPriorDicomStudy(
-                                               Recipe recipe, int studyFixedIndex,
-                                               IEnumerable<IDicomStudy> allStudiesForPatient)
+            Recipe recipe, int studyFixedIndex, IEnumerable<IDicomStudy> allStudiesForPatient, DicomService dicomSource)
         {
             var floatingSeriesBundle =
                 string.IsNullOrEmpty(recipe.PriorAccession)
-                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria, studyFixedIndex)
+                    ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria, studyFixedIndex, dicomSource)
                     : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorAccession);
 
             if (floatingSeriesBundle != null)
-                floatingSeriesBundle = AddMatchingSeriesToStudy(floatingSeriesBundle, recipe.PriorSeriesCriteria);
+                floatingSeriesBundle = AddMatchingSeriesToStudy(floatingSeriesBundle, recipe.PriorSeriesCriteria, dicomSource);
 
             return floatingSeriesBundle;
         }
 
-        /// <summary>
-        /// In case patient Id is not available get patient Id using accession number
-        /// </summary>
-        /// <param name="recipe"></param>
-        /// <param name="localNode"></param>
-        /// <param name="sourceNode"></param>
-        /// <returns></returns>
-        private string GetPatientIdFromRecipe(Recipe recipe)
-        {
-            if (!string.IsNullOrEmpty(recipe.PatientId)) return recipe.PatientId;
-            if (!string.IsNullOrEmpty(recipe.PatientFullName)
-                && !string.IsNullOrEmpty(recipe.PatientBirthDate))
-                return _dicomSource.GetPatientIdFromPatientDetails(recipe.PatientFullName, recipe.PatientBirthDate).PatientId;
-
-            if (string.IsNullOrEmpty(recipe.CurrentAccession))
-                throw new NoNullAllowedException("Either patient details or study accession number should be defined!");
-
-            try
-            {
-                var study = _dicomSource.GetStudyForAccession(recipe.CurrentAccession);
-                return study.PatientId;
-            }
-            catch
-            {
-                _log.Error($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
-
-                throw new Exception($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
-            }
-        }
-
-        /// <summary>
-        /// Find all studies for patient first trying patient Id and if not provided using patient full name and birth date.
-        /// </summary>
-        /// <param name="patientId"></param>
-        /// <param name="patientFullName"></param>
-        /// <param name="patientBirthDate"></param>
-        /// <param name="localNode">This machine dicome node details</param>
-        /// <param name="sourceNode">Dicom archive where studies reside</param>
-        /// <returns></returns>
-        private IEnumerable<IDicomStudy> GetDicomStudiesForPatient(
-            string patientId, string patientFullName, string patientBirthDate)
-        {
-            var patientIdIsProvided = !string.IsNullOrEmpty(patientId) && !string.IsNullOrWhiteSpace(patientId);
-
-            return patientIdIsProvided ?
-                _dicomSource.GetStudiesForPatientId(patientId) :
-                _dicomSource.GetStudiesForPatient(patientFullName, patientBirthDate);
-        }
 
         /// <summary>
         /// Checks each study against all 'Series Selection Criteria' and returns only one that matches it and throws exception if more than one study is returned
@@ -383,20 +391,15 @@ namespace VisTarsier.Service
         /// <param name="sourceNode"></param>
         /// <returns></returns>
         private IDicomStudy FindStudyMatchingCriteria(
-                                                      IEnumerable<IDicomStudy> studies, IEnumerable<ISeriesSelectionCriteria> criteria,
-                                                      int referenceStudyIndex)
+            IEnumerable<IDicomStudy> allStudies,
+            IEnumerable<SeriesSelectionCriteria> seriesSelectionCriteria,
+            int referenceStudyIndex,
+            DicomService dicomSource)
         {
-            var allStudies = studies as IList<IDicomStudy> ?? studies.ToList();
-            var seriesSelectionCriteria = criteria as IList<ISeriesSelectionCriteria> ?? criteria.ToList();
 
-            var studiesMatchingDateCriteria =
-                    GetStudiesMatchingDateCriteria(allStudies, seriesSelectionCriteria, referenceStudyIndex);
-
-            var studiesMatchingStudyDetails =
-                    GetStudiesMatchingStudyDetails(studiesMatchingDateCriteria, seriesSelectionCriteria);
-
-            var studiesContainingMatchingSeries =
-                GetStudiesContainingMatchingSeries(studiesMatchingStudyDetails, seriesSelectionCriteria).ToList();
+            var studiesMatchingDateCriteria = GetStudiesMatchingDateCriteria(allStudies, seriesSelectionCriteria, referenceStudyIndex);
+            var studiesMatchingStudyDetails = GetStudiesMatchingStudyDetails(studiesMatchingDateCriteria, seriesSelectionCriteria);
+            var studiesContainingMatchingSeries = GetStudiesContainingMatchingSeries(studiesMatchingStudyDetails, seriesSelectionCriteria, dicomSource);
 
             var matchedStudies = GetStudiesMatchingOtherCriteria(studiesContainingMatchingSeries, seriesSelectionCriteria).ToList();
 
@@ -410,7 +413,7 @@ namespace VisTarsier.Service
         /// <param name="criteria"></param>
         /// <returns></returns>
         private static IEnumerable<IDicomStudy> GetStudiesMatchingOtherCriteria(
-            IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria)
+            IEnumerable<IDicomStudy> studies, IEnumerable<SeriesSelectionCriteria> criteria)
         {
             var allEligibleStudies = studies as IDicomStudy[] ?? studies.ToArray();
 
@@ -443,25 +446,31 @@ namespace VisTarsier.Service
         /// <param name="localNode"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private IEnumerable<IDicomStudy> GetStudiesContainingMatchingSeries(
-            IEnumerable<IDicomStudy> studies, IList<ISeriesSelectionCriteria> criteria)
+        private List<IDicomStudy> GetStudiesContainingMatchingSeries(
+            IEnumerable<IDicomStudy> studies, IEnumerable<SeriesSelectionCriteria> criteria, IDicomService dicomSource)
         {
+            // A list of studies where...
             return studies
                 .Where(study =>
                 {
+                    // The study matches true to all criteria...
                     return criteria.All(criterion =>
                     {
-                        var seriesList = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
+                        var seriesList = dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
                         var matchingSeries = seriesList.Where(series =>
                             _valueComparer.CompareStrings(
                                 series.SeriesDescription, criterion.SeriesDescription,
                                 criterion.SeriesDescriptionOperand, criterion.SeriesDescriptionDelimiter)
                             ).ToList();
                         if (!matchingSeries.Any()) return false;
-                        if (matchingSeries.Count > 1) throw new Exception("More than one matching series were found");
+                        // Not sure why this is a problem. We may need to determine "best match" at some point though.
+                        //if (matchingSeries.Count > 1)
+                        //{
+                        //    throw new Exception("More than one matching series were found");
+                        //}
                         return true;
                     });
-                });
+                }).ToList();
         }
 
         /// <summary>
@@ -471,11 +480,14 @@ namespace VisTarsier.Service
         /// <param name="criteria"></param>
         /// <returns></returns>
         private IEnumerable<IDicomStudy> GetStudiesMatchingStudyDetails(
-            IEnumerable<IDicomStudy> studies, IEnumerable<ISeriesSelectionCriteria> criteria)
+            IEnumerable<IDicomStudy> studies, IEnumerable<SeriesSelectionCriteria> criteria)
         {
+            // Check if the study description field is used anywhere...
             var studyDescCriteria = criteria.Where(c => !string.IsNullOrEmpty(c.StudyDescription)).ToArray();
+            // If not then we're good to return the whole set.
             if (!studyDescCriteria.Any()) return studies;
 
+            // Othewise we want to select the studies which match (any of?) the criteria.
             var matchedStudies = studies.Where(s =>
             {
                 return studyDescCriteria.All(criterion =>
@@ -498,11 +510,11 @@ namespace VisTarsier.Service
         /// <returns></returns>
         private static IEnumerable<IDicomStudy> GetStudiesMatchingDateCriteria(
             IEnumerable<IDicomStudy> allStudies,
-            IEnumerable<ISeriesSelectionCriteria> seriesSelectionCriteria,
+            IEnumerable<SeriesSelectionCriteria> seriesSelectionCriteria,
             int referenceStudyIndex)
         {
             var studies = allStudies as IDicomStudy[] ?? allStudies.ToArray();
-            var criteria = seriesSelectionCriteria as ISeriesSelectionCriteria[] ?? seriesSelectionCriteria.ToArray();
+            var criteria = seriesSelectionCriteria as SeriesSelectionCriteria[] ?? seriesSelectionCriteria.ToArray();
 
             var matchedStudies = new List<IDicomStudy>();
 
@@ -568,9 +580,9 @@ namespace VisTarsier.Service
         /// <param name="sourceNode"></param>
         /// <returns></returns>
         private IDicomStudy AddMatchingSeriesToStudy(
-            IDicomStudy study, IEnumerable<ISeriesSelectionCriteria> criteria)
+            IDicomStudy study, IEnumerable<SeriesSelectionCriteria> criteria, DicomService dicomSource)
         {
-            var allSeries = _dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
+            var allSeries = dicomSource.GetSeriesForStudy(study.StudyInstanceUid);
             var criterion = criteria.FirstOrDefault(c => !string.IsNullOrEmpty(c.SeriesDescription));
 
             if (criterion == null)

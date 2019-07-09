@@ -83,7 +83,6 @@ namespace VisTarsier.Tests.Config
                 },
                 OutputSettings = new OutputSettings()
                 {
-                    SliceType = SliceType.Sagittal,
                     ResultsDicomSeriesDescription = "VT Results",
                     ReslicedDicomSeriesDescription = "Resliced",
                     FilesystemDestinations = new List<string>(),
@@ -120,7 +119,6 @@ namespace VisTarsier.Tests.Config
             Assert.IsFalse(recipe2.CompareSettings.CompareDecrease);
             Assert.IsTrue(recipe2.CompareSettings.CompareIncrease);
             Assert.IsTrue(recipe2.CompareSettings.GenerateHistogram);
-            Assert.IsTrue(recipe2.OutputSettings.SliceType == SliceType.Sagittal);
             Assert.IsTrue(recipe2.OutputSettings.ResultsDicomSeriesDescription.Equals("VT Results"));
             Assert.IsTrue(recipe2.OutputSettings.ReslicedDicomSeriesDescription.Equals("Resliced"));
             Assert.IsTrue(recipe2.OutputSettings.FilesystemDestinations.Count == 0);

@@ -60,7 +60,7 @@ namespace VisTarsier.Dicom.Model
             ImageUid = new DicomTag("Sop Instance Id", 524312, TagType.Image, typeof(string[]));
             InstanceNumber = new DicomTag("Instance Number", 2097171, TagType.Image, typeof(string[]));
             ImagePositionPatient = new DicomTag("Image Position (Patient)", 2097202, TagType.Image, typeof(string[]));
-            ImageOrientation = new DicomTag("Image Orientation", 2097207, TagType.Image, typeof(string[]));
+            ImageOrientation = new DicomTag("Image Orientation", 0x200037, TagType.Image, typeof(string[]));
             FrameOfReferenceUid = new DicomTag("Frame Of Reference Uid", 2097234, TagType.Image, typeof(string[]));
             SliceLocation = new DicomTag("Slice Location", 2101313, TagType.Image, typeof(string[]));
             RequestingService = new DicomTag("Requesting Service", 3280947, TagType.Site, typeof(string[])); // e.g. RMH
