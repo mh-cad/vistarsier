@@ -17,6 +17,13 @@ namespace VisTarsier.Service
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JobBuilder
     {
+        public class StudyNotFoundException : Exception
+        {
+            public StudyNotFoundException(string message) : base(message)
+            {
+            }
+        }
+
         private const string Current = "Current";
         private const string Prior = "Prior";
         private const string Reference = "Reference";
@@ -26,7 +33,6 @@ namespace VisTarsier.Service
 
         private readonly IValueComparer _valueComparer;
         private readonly ILog _log;
-        private readonly CapiConfig _capiConfig;
         private readonly DbBroker _context;
 
         /// <summary>
@@ -45,7 +51,6 @@ namespace VisTarsier.Service
             _valueComparer = valueComparer;
             _log = Log.GetLogger();
             _context = context;
-            _capiConfig = CapiConfig.GetConfig();
         }
 
         /// <summary>
@@ -55,6 +60,9 @@ namespace VisTarsier.Service
         /// <returns></returns>
         public Job Build(Recipe recipe, Attempt attempt)
         {
+            recipe.CurrentAccession = attempt.CurrentAccession;
+            recipe.PriorAccession = attempt.PriorAccession;
+            
             // Setup out dicom service.
             var dicomSource = CreateDicomSource(recipe.SourceAet);
 
@@ -74,11 +82,13 @@ namespace VisTarsier.Service
 
             // If there are no studies, have a cry.
             if (allStudiesForPatient.Count < 1)
-                throw new Exception(
+                throw new StudyNotFoundException(
                     $"No studies for patient [{recipe.PatientFullName}] could be found in node AET: [{dicomSource.RemoteNode.AeTitle}]");
 
             // Update patient ID in DB for a second time?
             @attempt.PatientId = allStudiesForPatient.FirstOrDefault().PatientId;
+            @attempt.PatientFullName = allStudiesForPatient.FirstOrDefault().PatientsName;
+            @attempt.PatientBirthDate = allStudiesForPatient.FirstOrDefault().PatientBirthDate.ToString("yyyyMMdd");
             _context.Attempts.Update(@attempt);
             _context.SaveChanges();
 
@@ -98,7 +108,7 @@ namespace VisTarsier.Service
             // If we don't have a matching study for current have a cry.
             if (currentDicomStudy == null ||
                 currentDicomStudy.Series.Count == 0)
-                throw new DirectoryNotFoundException("No workable series were found for accession");
+                throw new StudyNotFoundException("No workable series were found for accession");
 
             // Update attempt with accession number.
             @attempt.CurrentAccession = currentDicomStudy.AccessionNumber;
@@ -108,10 +118,13 @@ namespace VisTarsier.Service
 
             // Create a new job based on the recipe.
             var job = new Job(recipe, attempt);
-            
+            job.Status = "Pending";
+            job.AttemptId = attempt.Id;
+
             // Setup temp directory for images.
-            var imageRepositoryPath = _capiConfig.ImagePaths.ImageRepositoryPath;
-            job.ProcessingFolder = Path.Combine(_capiConfig.ImagePaths.ImageRepositoryPath, job.Attempt.CurrentAccession);
+            var capiConfig = CapiConfig.GetConfig();
+            var imageRepositoryPath = capiConfig.ImagePaths.ImageRepositoryPath;
+            job.ProcessingFolder = Path.Combine(capiConfig.ImagePaths.ImageRepositoryPath, job.Attempt.CurrentAccession + "-" + job.Id);
             job.ResultSeriesDicomFolder = Path.Combine(job.ProcessingFolder, Results);
             job.PriorReslicedSeriesDicomFolder = Path.Combine(job.ProcessingFolder, PriorResliced);
             job.ReferenceSeriesDicomFolder = GetReferenceSeriesForRegistration(job, allStudiesForPatient, dicomSource);
@@ -123,7 +136,7 @@ namespace VisTarsier.Service
                 GetPriorDicomStudy(recipe, studyFixedIndex, allStudiesForPatient, dicomSource);
             // If we couldn't find the prior study, have a cry.
             if (priorDicomStudy == null)
-                throw new DirectoryNotFoundException("No prior workable series were found");
+                throw new StudyNotFoundException("No prior workable series were found");
             // Otherwise update the attempt
             job.Attempt.PriorAccession = priorDicomStudy.AccessionNumber;
             job.Attempt.PatientId = currentDicomStudy.PatientId;
@@ -176,8 +189,9 @@ namespace VisTarsier.Service
         /// <returns></returns>
         private DicomService CreateDicomSource(string sourceAet)
         {
-            var localNode = _capiConfig.DicomConfig.LocalNode;
-            var remoteNodes = _capiConfig.DicomConfig.RemoteNodes;
+            var capiConfig = CapiConfig.GetConfig();
+            var localNode = capiConfig.DicomConfig.LocalNode;
+            var remoteNodes = capiConfig.DicomConfig.RemoteNodes;
             IDicomNode sourceNode;
 
             if (remoteNodes.Count == 0)
@@ -239,7 +253,7 @@ namespace VisTarsier.Service
             {
                 _log.Error($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
 
-                throw new Exception($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
+                throw new StudyNotFoundException($"Failed to find accession {recipe.CurrentAccession} in source {recipe.SourceAet}");
             }
         }
 
@@ -354,10 +368,11 @@ namespace VisTarsier.Service
 
         private IDicomStudy GetCurrentDicomStudy(Recipe recipe, List<IDicomStudy> allStudiesForPatient, DicomService dicomSource)
         {
+            _log.Info($"ssc.c: {recipe.CurrentSeriesCriteria.Count()}");
             var currentDicomStudy =
                 string.IsNullOrEmpty(recipe.CurrentAccession)
                 ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.CurrentSeriesCriteria, -1, dicomSource)
-                : FindStudyMatchingAccession(allStudiesForPatient, recipe.CurrentAccession);
+                : FindStudyMatchingAccession(allStudiesForPatient, recipe.CurrentSeriesCriteria, recipe.CurrentAccession);
 
             currentDicomStudy = AddMatchingSeriesToStudy(currentDicomStudy, recipe.CurrentSeriesCriteria, dicomSource);
 
@@ -370,7 +385,7 @@ namespace VisTarsier.Service
             var floatingSeriesBundle =
                 string.IsNullOrEmpty(recipe.PriorAccession)
                     ? FindStudyMatchingCriteria(allStudiesForPatient, recipe.PriorSeriesCriteria, studyFixedIndex, dicomSource)
-                    : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorAccession);
+                    : FindStudyMatchingAccession(allStudiesForPatient, recipe.PriorSeriesCriteria, recipe.PriorAccession);
 
             if (floatingSeriesBundle != null)
                 floatingSeriesBundle = AddMatchingSeriesToStudy(floatingSeriesBundle, recipe.PriorSeriesCriteria, dicomSource);
@@ -396,9 +411,11 @@ namespace VisTarsier.Service
             int referenceStudyIndex,
             DicomService dicomSource)
         {
-
+            _log.Info($"ssc.c: {seriesSelectionCriteria.Count()}");
             var studiesMatchingDateCriteria = GetStudiesMatchingDateCriteria(allStudies, seriesSelectionCriteria, referenceStudyIndex);
+            _log.Info($"ssc.c: {seriesSelectionCriteria.Count()}");
             var studiesMatchingStudyDetails = GetStudiesMatchingStudyDetails(studiesMatchingDateCriteria, seriesSelectionCriteria);
+            _log.Info($"ssc.c: {seriesSelectionCriteria.Count()}");
             var studiesContainingMatchingSeries = GetStudiesContainingMatchingSeries(studiesMatchingStudyDetails, seriesSelectionCriteria, dicomSource);
 
             var matchedStudies = GetStudiesMatchingOtherCriteria(studiesContainingMatchingSeries, seriesSelectionCriteria).ToList();
@@ -482,9 +499,14 @@ namespace VisTarsier.Service
         private IEnumerable<IDicomStudy> GetStudiesMatchingStudyDetails(
             IEnumerable<IDicomStudy> studies, IEnumerable<SeriesSelectionCriteria> criteria)
         {
+            _log.Info($"Matching study details.");
+            _log.Info($"First criteria desc: { criteria.FirstOrDefault().StudyDescription}");
+            
             // Check if the study description field is used anywhere...
             var studyDescCriteria = criteria.Where(c => !string.IsNullOrEmpty(c.StudyDescription)).ToArray();
             // If not then we're good to return the whole set.
+            _log.Info($"We found {studyDescCriteria?.Count()} criteria: { studyDescCriteria?.FirstOrDefault()?.StudyDescription}");
+
             if (!studyDescCriteria.Any()) return studies;
 
             // Othewise we want to select the studies which match (any of?) the criteria.
@@ -496,7 +518,9 @@ namespace VisTarsier.Service
                     ));
             }).ToList();
 
-            if (!matchedStudies.Any()) throw new Exception("No study found for study criteria");
+            _log.Info($"Matched {matchedStudies.Count} studies.");
+
+            if (!matchedStudies.Any()) throw new StudyNotFoundException("No study found for study criteria");
 
             return matchedStudies;
         }
@@ -555,20 +579,29 @@ namespace VisTarsier.Service
         /// <param name="allStudies">All Studies passed to find one that matches accession number</param>
         /// <param name="accessionNumber">Accession number to check against each study accession number [Attempt insensitive]</param>
         /// <returns></returns>
-        private IDicomStudy FindStudyMatchingAccession(IEnumerable<IDicomStudy> allStudies,
+        private IDicomStudy FindStudyMatchingAccession(
+            IEnumerable<IDicomStudy> allStudies,
+            IEnumerable<SeriesSelectionCriteria> seriesSelectionCriteria,
             string accessionNumber)
         {
             var studyMatchingAccession = allStudies.Where(s =>
                 _valueComparer.CompareStrings(s.AccessionNumber, accessionNumber, StringOperand.Equals));
 
+            // Match to accession
             var matchingAccession = studyMatchingAccession as IList<IDicomStudy> ?? studyMatchingAccession.ToList();
+            // We also want to match to the criteria.
+            var studiesMatchingStudyDetails = GetStudiesMatchingStudyDetails(matchingAccession, seriesSelectionCriteria);
+            var matchedStudies = GetStudiesMatchingOtherCriteria(studiesMatchingStudyDetails, seriesSelectionCriteria).ToList();
 
-            if (!matchingAccession.Any()) throw new Exception($"No study found for accession: {accessionNumber}");
-            if (matchingAccession.Count > 1) throw new Exception(
-                $"Only one study should match accession number. {matchingAccession.Count} " +
+            // Handle "error" cases.
+            if (!matchingAccession.Any()) throw new StudyNotFoundException($"No study found for accession: {accessionNumber}");
+            if (!matchedStudies.Any()) throw new StudyNotFoundException($"No study found for accession: {accessionNumber} which matches the recipe.");
+            if (matchedStudies.Count > 1) throw new StudyNotFoundException(
+                $"Only one study should match accession number. {matchedStudies.Count} " +
                 $"studies found for accession: {accessionNumber}");
 
-            return matchingAccession.FirstOrDefault();
+            // Return the matched study.
+            return matchedStudies.FirstOrDefault();
         }
 
         /// <summary>

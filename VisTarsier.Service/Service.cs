@@ -1,19 +1,15 @@
 ﻿using VisTarsier.Common;
 using VisTarsier.Config;
-using log4net;
-using log4net.Config;
-using System;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.ServiceProcess;
-using System.Threading;
+using System.Collections.Generic;
+using System;
 
 namespace VisTarsier.Service
 {
     public partial class Service : ServiceBase
     {
-        IAgent _agent;
+        List<IAgent> _agents;
 
         public Service()
         {
@@ -22,20 +18,47 @@ namespace VisTarsier.Service
 
         protected override void OnStart(string[] args)
         {
-            CheckConfig();
-            var log = GetLogger();
-            _agent = new Agent();
-            System.Console.ForegroundColor = ConsoleColor.Gray;
-            log.Info("App Started...");
-
-            int triesLeft = 5;
-            while (!_agent.IsHealthy && triesLeft-- > 0)
+            var log = Log.GetLogger();
+            try
             {
-                log.Error("Agent failed to load. Trying again...");
-                Thread.Sleep(10000);
-                _agent = new Agent();
+                log.Info("Cleaning DB...");
+                CleanupDatabase();
+                log.Info("Checking config...");
+                CheckConfig();
+                log.Info("Loading agents...");
+                LoadAgents();
+                log.Info("Starting main loop...");
+                StartLoop();
             }
-            _agent.Start();
+            catch (Exception ex)
+            {
+                log.Fatal(ex.Message);
+                log.Fatal(ex.StackTrace);
+            }
+        }
+
+        private void StartLoop()
+        {
+            // Setup a timer to run the agents every interval.
+            var interval = int.Parse(CapiConfig.GetConfig().RunInterval);
+            var timer = new System.Timers.Timer { Interval = interval * 1000, Enabled = true };
+            timer.Elapsed += (s, e) =>
+            {
+                foreach (var agent in _agents) agent.Run();
+            };
+
+            // Run the agents now to start things off.
+            foreach (var agent in _agents) agent.Run();
+        }
+
+        private void LoadAgents()
+        {
+            _agents = new List<IAgent>
+            {
+                new HL7Agent(),
+                new ManualCaseAgent(),
+                new JobAgent()
+            };
         }
 
         private void CheckConfig()
@@ -55,20 +78,31 @@ namespace VisTarsier.Service
             }
         }
 
-        protected override void OnStop()
+        private void CleanupDatabase()
         {
+            var cfg = CapiConfig.GetConfig();
+            var dbBroker = cfg.AgentDbConnectionString == null ? new DbBroker() : new DbBroker(cfg.AgentDbConnectionString);
+            var failedCases = dbBroker.GetCaseByStatus("Processing");
+
+            foreach (var c in failedCases)
+            {
+                var tmp = c;
+                tmp.Status = "Pending";
+                dbBroker.Attempts.Update(tmp);
+                dbBroker.SaveChanges();
+            }
+            var failedJobs = dbBroker.GetJobByStatus("Processing");
+            foreach (var j in failedJobs)
+            {
+                var tmp = j;
+                tmp.Status = "Failed";
+                dbBroker.Jobs.Update(tmp);
+                dbBroker.SaveChanges();
+            }
         }
 
-        public static ILog GetLogger([CallerFilePath] string filename = "")
+        protected override void OnStop()
         {
-            var fileSplit = filename.Split('\\');
-
-            if (fileSplit.Length > 1)
-                filename = $@"{fileSplit[fileSplit.Length - 2]}\{fileSplit[fileSplit.Length - 1]}";
-
-            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
-            return LogManager.GetLogger(logRepository.Name, filename);
         }
     }
 }

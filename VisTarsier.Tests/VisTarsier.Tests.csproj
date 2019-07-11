@@ -131,7 +131,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent\AgentTests.cs" />
     <Compile Include="Config\Recipe.cs" />
     <Compile Include="Agent\JobProcessorTest.cs" />
     <Compile Include="Config\ConfigTests.cs" />

@@ -12,6 +12,7 @@ namespace VisTarsier.Service
 
         public DbSet<Attempt> Attempts { get; set; }
         public DbSet<Job> Jobs { get; set; }
+        public DbSet<StoredRecipe> StoredRecipes { get; set; }
 
         public DbBroker()
         {
@@ -29,18 +30,14 @@ namespace VisTarsier.Service
             optionsBuilder.UseSqlServer(_connectionString);
         }
 
-        #region "Attempts"
         public IEnumerable<Attempt> GetCaseByStatus(string status)
         {
             return Attempts.Where(c => c != null && c.Status != null && c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
-        #endregion
 
-        #region "Jobs"
         public IEnumerable<Job> GetJobByStatus(string status)
         {
             return Jobs.Where(j => j != null && j.Status != null && j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
-        #endregion
     }
 }
