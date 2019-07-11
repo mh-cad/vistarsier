@@ -24,10 +24,9 @@ namespace VisTarsier.Service
         public string CurrentSeriesUID { get; set; }
         public string PriorAccession { get; set; }
         public string PriorSeriesUID { get; set; }
+        public string CustomRecipe { get; set; }
         public string ReferenceSeries { get; set; }
         public string Status { get; set; }
-        [ForeignKey("JobId")]
-        public long? JobId { get; set; }
         public string Comment { get; set; }
         public string DbExt { get; set; }
 

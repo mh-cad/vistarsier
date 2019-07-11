@@ -173,7 +173,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent\Agent.cs" />
+    <Compile Include="Agent\OldAgent.cs" />
+    <Compile Include="Agent\StoredRecipe.cs" />
+    <Compile Include="Agent\HL7Agent.cs" />
     <Compile Include="Agent\IAgent.cs" />
     <Compile Include="Agent\JobBuilder.cs" />
     <Compile Include="Agent\JobProcessor.cs" />
@@ -182,6 +184,8 @@
     <Compile Include="Agent\IValueComparer.cs" />
     <Compile Include="Agent\Job.cs" />
     <Compile Include="Agent\JobResult.cs" />
+    <Compile Include="Agent\ManualCaseAgent.cs" />
+    <Compile Include="Agent\JobAgent.cs" />
     <Compile Include="Agent\ValueComparer.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

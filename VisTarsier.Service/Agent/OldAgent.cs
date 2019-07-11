@@ -13,7 +13,7 @@ using System.Timers;
 namespace VisTarsier.Service
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Agent : IAgent
+    public class OldAgent
     {
         private readonly ILog _log;
 
@@ -33,7 +33,7 @@ namespace VisTarsier.Service
         /// <param name="fileSystem">CAPI FileSystem service</param>
         /// <param name="processBuilder">CAPI Process Builder</param>
         /// <param name="log">log4net logger</param>
-        public Agent()
+        public OldAgent()
         {
             IsHealthy = true;
             _log = Log.GetLogger();
@@ -121,7 +121,7 @@ namespace VisTarsier.Service
             // Locking for now because who knows what can go wrong.
             lock(agentLock)
             {
-                // Handle newly added cases (add to DB)
+                // Add new cases to the DB from the filesystem drop locations.
                 try
                 {
                     _log.Info("Checking for new cases");
@@ -146,7 +146,36 @@ namespace VisTarsier.Service
                         if (firstCase != null)
                         {
                             pendingCases.Remove(firstCase);
-                            ProcessCase(firstCase);
+
+                            // First we're going to check if there's a manually added recipe
+                            // just for this case...
+                            Recipe manualRecipe = null;
+                            if (firstCase.Method == Attempt.AdditionMethod.Manually)
+                            {
+                                manualRecipe = GetRecipeForManualCase(firstCase);
+                            }
+                            // If there is, great!
+                            if (manualRecipe != null)
+                            {
+                                _log.Info("Processing using manually added recipe...");
+                                manualRecipe.CurrentAccession = firstCase.CurrentAccession;
+                                ProcessCase(firstCase, manualRecipe, StoredRecipe.NO_ID);
+                            }
+                            // Otherwise we're going to throw all our agents at it.
+                            else
+                            {
+                                _log.Info("Attempting to match case using stored recipes...");
+                                var agents = _context.StoredRecipes.ToList();
+                                foreach (var agent in agents)
+                                {
+                                    var recipe = JsonConvert.DeserializeObject<Recipe>(agent.RecipeString);
+                                    recipe.CurrentAccession = firstCase.CurrentAccession;
+                                    ProcessCase(firstCase, recipe, agent.Id);
+                                }
+                            }
+
+                            CleanupProcessFolder(Config.ManualProcessPath, firstCase.CurrentAccession);
+                            CleanupProcessFolder(Config.Hl7ProcessPath, firstCase.CurrentAccession);
                         }
                     }
                 }
@@ -163,9 +192,9 @@ namespace VisTarsier.Service
         /// Do the actual Processing of the case
         /// </summary>
         /// <param name="attempt">Pending case to be processed</param>
-        private void ProcessCase(Attempt attempt)
+        private void ProcessCase(Attempt attempt, Recipe recipe, long agentId)
         {
-            var recipe = FindRecipe(attempt);
+
             try
             {
                 _log.Info(
@@ -174,9 +203,10 @@ namespace VisTarsier.Service
 
                 // Create a new job.
                 var job = new JobBuilder(new ValueComparer(), _context).Build(recipe, attempt);
-                attempt.JobId = job.Id;
+                job.Attempt = attempt;
+                job.AttemptId = attempt.Id;
                 // Process the job.
-                JobProcessor jp = new JobProcessor();
+                JobProcessor jp = new JobProcessor(_context);
                 jp.Process(job);
 
                 _log.Info(
@@ -194,6 +224,12 @@ namespace VisTarsier.Service
                     SetCaseComment(attempt, ex.Message);
                 }
                 else throw;
+            }
+            catch (JobBuilder.StudyNotFoundException ex)
+            {
+                _log.Info($"{ex.Message} Accession: [{attempt.CurrentAccession}]");
+                SetCaseStatus(attempt, "Unworkable");
+                SetCaseComment(attempt, ex.Message);
             }
             catch (Exception ex)
             {
@@ -307,7 +343,7 @@ namespace VisTarsier.Service
                     .StartsWith(@case.CurrentAccession, StringComparison.CurrentCultureIgnoreCase));
 
             if (recipeFilePath == null || string.IsNullOrEmpty(recipeFilePath) || !File.Exists(recipeFilePath) || !recipeFilePath.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase))
-                return GetDefaultRecipe();
+                return null;
 
             var recipeText = File.ReadAllText(recipeFilePath);
             try
@@ -434,8 +470,8 @@ namespace VisTarsier.Service
             {
                 var inDb = _context.Attempts.Any((System.Linq.Expressions.Expression<Func<Attempt, bool>>)(c => 
                         (bool)(c.CurrentAccession.Equals((string)mc.CurrentAccession)
-                        && ((c.CurrentSeriesUID == null && mc.CurrentSeriesUID == null) || c.CurrentSeriesUID.Equals(mc.CurrentSeriesUID))
-                        && ((c.PriorSeriesUID == null && mc.PriorSeriesUID == null) || c.PriorSeriesUID.Equals(mc.PriorSeriesUID)))));
+                        && ((mc.CurrentSeriesUID == null) || mc.CurrentSeriesUID.Equals(c.CurrentSeriesUID))
+                        && ((mc.PriorSeriesUID == null) || mc.PriorSeriesUID.Equals(c.PriorSeriesUID)))));
 
             if (inDb) return; // If not in database, add to db
                 var @newCase = new Attempt
@@ -446,7 +482,7 @@ namespace VisTarsier.Service
                 };
                 try
                 {
-                    _log.Info("JobID for newCase : " + newCase.JobId);
+                    //_log.Info("JobID for newCase : " + newCase.JobId);
                     _context.Attempts.Add(newCase);
                     _context.SaveChanges();
                     _log.Info($"Successfully inserted HL7 added case into database. Accession: [{newCase.CurrentAccession}]");

@@ -22,6 +22,8 @@ namespace VisTarsier.Service
         public DateTime End { get; set; }
         public string RecipeString { get { return JsonConvert.SerializeObject(Recipe); } set { Recipe = JsonConvert.DeserializeObject<Recipe>(value); } } //TODO check this works :/
         public string DbExt { get; set; }
+        [ForeignKey("AttemptId")]
+        public long? AttemptId { get; set; }
 
         [NotMapped]
         public Attempt Attempt { get; set; }

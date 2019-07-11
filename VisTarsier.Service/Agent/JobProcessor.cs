@@ -32,11 +32,11 @@ namespace VisTarsier.Service
 
         public string SummarySlidePath { get; set; }
 
-        public JobProcessor()
+        public JobProcessor(DbBroker dbBroker)
         {
             _log = Log.GetLogger();
             var connectString = CapiConfig.GetConfig()?.AgentDbConnectionString;
-            _dbBroker = connectString != null ? new DbBroker(connectString) : new DbBroker();
+            _dbBroker = dbBroker;
         }
 
         public void Process(Job job)
@@ -52,7 +52,7 @@ namespace VisTarsier.Service
             _dbBroker.Jobs.Update(@dbjob);
             _dbBroker.SaveChanges();
             @dbjob.Attempt = job.Attempt;
-            @dbjob.Attempt.JobId = @dbjob.Id;
+            @dbjob.AttemptId = job.AttemptId;
             _dbBroker.Attempts.Update(@dbjob.Attempt);
             _dbBroker.SaveChanges();
 
@@ -256,6 +256,7 @@ namespace VisTarsier.Service
                     ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, sliceType, job.CurrentSeriesDicomFolder,
                                         $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", job.ReferenceSeriesDicomFolder);
 
+                    UpdateSeriesDescriptionForAllFiles(dicomFolderPath, $"{resultsSeriesDescription}-{description}");
 
                     stopwatch.Stop();
                     _log.Info("Finished converting results back to Dicom in " +
@@ -393,8 +394,13 @@ namespace VisTarsier.Service
             var iop = headers.ImageOrientation.Values;
 
             // These are the perfect IOP vectors for each alignment...
-            float[] axial = { 1, 0, 0, 0, 1, 0 };
-            float[] coronal = { 1, 0, 0, 0, 0, 1 };
+            // Where each value of the normalised vector is the direction of 
+            // left, posterior, superior on the X and Y axis of the image (I think).
+            // It's possible at least one of these is negated, but we're using absolute
+            // values so it will even out.
+                              //XL XP xS  YL YP YS
+            float[] axial =    { 1, 0, 0, 0, 1, 0 };
+            float[] coronal =  { 1, 0, 0, 0, 0, 1 };
             float[] sagittal = { 0, 1, 0, 0, 0, 1 };
 
             // The total difference between the given IOP and ideal 
@@ -427,6 +433,7 @@ namespace VisTarsier.Service
 
             UpdateSeriesDescriptionForAllFiles(outDicomFolder, seriesDescription);
         }
+
         private void ConvertNiftiToDicom(string inNiftiFile, string outDicomFolder,
                                          SliceType sliceType, string dicomFolderForReadingHeaders,
                                          string overlayText, string referenceDicomFolder = "")
@@ -439,10 +446,6 @@ namespace VisTarsier.Service
 
             if (!string.IsNullOrEmpty(referenceDicomFolder) && Directory.Exists(referenceDicomFolder) && Directory.GetFiles(referenceDicomFolder).Length > 0)
                 DicomFileOps.UpdateImagePositionFromReferenceSeries(Directory.GetFiles(outDicomFolder), Directory.GetFiles(referenceDicomFolder));
-
-            //if (!string.IsNullOrEmpty(lookupTableFilePath) &&
-            //    File.Exists(lookupTableFilePath))
-            //    _dicomServices.ConvertBmpToDicomAndAddToExistingFolder(lookupTableFilePath, outDicomFolder);
         }
 
         private void ConvertToBmp(string inNiftiFile, string bmpFolder, SliceType sliceType, string overlayText)
