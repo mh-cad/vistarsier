@@ -36,6 +36,7 @@ namespace VisTarsier.Service
                         if (job != null)
                         {
                             jobs.Add(job);
+                            job.RecipeId = StoredRecipe.NO_ID;
                             dbBroker.SaveChanges();
                         }
                     }
@@ -43,12 +44,14 @@ namespace VisTarsier.Service
                     else
                     {
                         foreach(var storedRecipe in dbBroker.StoredRecipes.ToList())
-                        {    
+                        {
+                            if (storedRecipe.Id < 0) continue; // This is the custom recipe placeholder.
                             var recipe = JsonConvert.DeserializeObject<Recipe>(storedRecipe.RecipeString);
                             var job = BuildJob(attempt, recipe, dbBroker);
                             if (job != null)
                             {
                                 jobs.Add(job);
+                                job.RecipeId = storedRecipe.Id;
                                 dbBroker.SaveChanges();
                             }
                         }

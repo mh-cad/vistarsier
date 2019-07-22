@@ -24,6 +24,7 @@ namespace VisTarsier.Service
         public string DbExt { get; set; }
         [ForeignKey("AttemptId")]
         public long? AttemptId { get; set; }
+        public long? RecipeId { get; set; }
 
         [NotMapped]
         public Attempt Attempt { get; set; }
