@@ -13,66 +13,95 @@ namespace VisTarsier.Dicom
 {
     public static class DicomFileOps
     {
-        /// <summary>
-        /// Update tags in dicom file. 
-        /// </summary>
-        /// <param name="filepath">The path for the local dicom file.</param>
-        /// <param name="tags">The set of tags to be updated</param>
-        /// <param name="dicomNewObjectType">Essentially a mask to stop updating the wrong tags?</param>
-        public static void UpdateDicomHeaders(
-           string filepath, IDicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
-        {
-            var dcmFile = new ClearCanvas.Dicom.DicomFile(filepath);
-            dcmFile.Load(filepath);
+        ///// <summary>
+        ///// Update tags in dicom file. 
+        ///// </summary>
+        ///// <param name="filepath">The path for the local dicom file.</param>
+        ///// <param name="tags">The set of tags to be updated</param>
+        ///// <param name="dicomNewObjectType">Essentially a mask to stop updating the wrong tags?</param>
+        //public static void UpdateDicomHeaders(
+        //   string filepath, DicomTagCollection tags, DicomNewObjectType dicomNewObjectType)
+        //{
+        //    var dcmFile = new ClearCanvas.Dicom.DicomFile(filepath);
+        //    dcmFile.Load(filepath);
 
-            switch (dicomNewObjectType)
+        //    switch (dicomNewObjectType)
+        //    {
+        //        case DicomNewObjectType.Anonymized:
+        //            tags = UpdateUidsForNewStudy(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Patient, true);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
+        //            break;
+        //        case DicomNewObjectType.SiteDetailsRemoved:
+        //            tags = UpdateUidsForNewStudy(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Site, true);
+        //            break;
+        //        case DicomNewObjectType.CareProviderDetailsRemoved:
+        //            tags = UpdateUidsForNewStudy(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.CareProvider, true);
+        //            break;
+        //        case DicomNewObjectType.NewPatient:
+        //            tags = UpdateUidsForNewStudy(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Patient);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
+        //            break;
+        //        case DicomNewObjectType.NewStudy:
+        //            tags = UpdateUidsForNewStudy(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
+        //            break;
+        //        case DicomNewObjectType.NewSeries:
+        //            tags = UpdateUidsForNewSeries(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
+        //            break;
+        //        case DicomNewObjectType.NewImage:
+        //            tags = UpdateUidsForNewImage(tags);
+        //            dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
+        //            break;
+        //        case DicomNewObjectType.NoChange:
+        //            break;
+        //        default:
+        //            throw new ArgumentOutOfRangeException(nameof(dicomNewObjectType), dicomNewObjectType, null);
+        //    }
+        //    dcmFile.Save(filepath);
+        //}
+
+        /// <summary>
+        /// Creates and returns a collection of tags from a file, based on a given type or types.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="types"></param>
+        /// <returns></returns>
+        public static DicomTagCollection GetTagsByType(string filepath, params TagType[] types)
+        {
+            var dcmFile = new DicomFile(filepath);
+            dcmFile.Load();
+            DicomTagCollection tags = new DicomTagCollection();
+
+            var filetags = dcmFile.DataSet;
+            foreach (var tag in tags)
             {
-                case DicomNewObjectType.Anonymized:
-                    tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Patient, true);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
-                    break;
-                case DicomNewObjectType.SiteDetailsRemoved:
-                    tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Site, true);
-                    break;
-                case DicomNewObjectType.CareProviderDetailsRemoved:
-                    tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.CareProvider, true);
-                    break;
-                case DicomNewObjectType.NewPatient:
-                    tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Patient);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
-                    break;
-                case DicomNewObjectType.NewStudy:
-                    tags = UpdateUidsForNewStudy(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Study);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
-                    break;
-                case DicomNewObjectType.NewSeries:
-                    tags = UpdateUidsForNewSeries(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Series);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
-                    break;
-                case DicomNewObjectType.NewImage:
-                    tags = UpdateUidsForNewImage(tags);
-                    dcmFile = UpdateTags(dcmFile, tags, TagType.Image);
-                    break;
-                case DicomNewObjectType.NoChange:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(dicomNewObjectType), dicomNewObjectType, null);
+                if (types.Contains(tag.DicomTagType))
+                {
+                    tags.SetTagValue(tag.GetTagValue(), filetags[tag.GetTagValue()].Values);
+                }
             }
-            dcmFile.Save(filepath);
+
+            return tags;
         }
 
-        public static void ForceUpdateDicomHeaders(string filepath, IDicomTagCollection tags)
+        /// <summary>
+        /// Updates the given Dicom headers without trying to be clever.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="tags"></param>
+        public static void ForceUpdateDicomHeaders(string filepath, DicomTagCollection tags)
         {
             var dcmFile = new ClearCanvas.Dicom.DicomFile(filepath);
             dcmFile.Load(filepath);
@@ -86,7 +115,7 @@ namespace VisTarsier.Dicom
         /// </summary>
         /// <param name="filesPath">List of files to apply the tags to.</param>
         /// <param name="tags">The tags which you'd like to apply to the above files.</param>
-        public static void GenerateSeriesHeaderForAllFiles(string[] filesPath, IDicomTagCollection tags)
+        public static void GenerateSeriesHeaderForAllFiles(string[] filesPath, DicomTagCollection tags)
         {
             tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid() };
             tags.ImageUid.Values = new[] { GenerateNewImageUid() };
@@ -99,8 +128,8 @@ namespace VisTarsier.Dicom
             }
         }
 
-        public static DicomFile UpdateTags(
-            ClearCanvas.Dicom.DicomFile dcmFile, IDicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
+        private static DicomFile UpdateTags(
+            ClearCanvas.Dicom.DicomFile dcmFile, DicomTagCollection newTags, TagType tagType, bool overwriteIfNotProvided = false)
         {
             if (newTags == null) return dcmFile;
             newTags.ToList().ForEach(tag =>
@@ -110,21 +139,33 @@ namespace VisTarsier.Dicom
             });
             return dcmFile;
         }
+
+        /// <summary>
+        /// This method will update a tag 
+        /// </summary>
+        /// <param name="dcmFile"></param>
+        /// <param name="newTag"></param>
+        /// <param name="overwriteIfNotProvided"></param>
+        /// <returns></returns>
         private static DicomFile UpdateTag(
             ClearCanvas.Dicom.DicomFile dcmFile, IDicomTag newTag, bool overwriteIfNotProvided = false)
         {
-            if (newTag.Values == null && !overwriteIfNotProvided) return dcmFile;
-            var value = newTag.Values != null && newTag.Values.Length > 0 ? newTag.Values[0] : "";
+            if (newTag?.Values == null && !overwriteIfNotProvided) return dcmFile;
+            var value = newTag?.Values != null && newTag.Values.Length > 0 ? newTag.Values[0] : "";
 
-            return UpdateTag(dcmFile, newTag, value);
-        }
-        private static DicomFile UpdateTag(
-            ClearCanvas.Dicom.DicomFile dcmFile, IDicomTag newTag, string value)
-        {
-            if (newTag.GetValueType() == typeof(string[])) dcmFile.DataSet[newTag.GetTagValue()].Values = new[] { value };
-            else if (newTag.GetValueType() == typeof(string)) dcmFile.DataSet[newTag.GetTagValue()].Values = value;
+            if (newTag?.GetValueType() == typeof(string[]))
+            {
+                var vals = new string[newTag.Values.Length];
+                newTag.Values.CopyTo(vals, 0);
+                dcmFile.DataSet[newTag.GetTagValue()].Values = vals;
+            }
+            else if (newTag?.GetValueType() == typeof(string))
+            {
+                dcmFile.DataSet[newTag.GetTagValue()].Values = value;
+            }
             return dcmFile;
         }
+
         private static DicomFile UpdateArrayTag(
             ClearCanvas.Dicom.DicomFile dcmFile, IDicomTag newTag, IEnumerable value)
         {
@@ -132,7 +173,7 @@ namespace VisTarsier.Dicom
             return dcmFile;
         }
 
-        public static IDicomTagCollection UpdateUidsForNewStudy(IDicomTagCollection tags)
+        public static DicomTagCollection UpdateUidsForNewStudy(DicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.StudyInstanceUid.Values = new[] { GenerateNewStudyUid() };
@@ -140,14 +181,14 @@ namespace VisTarsier.Dicom
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        public static IDicomTagCollection UpdateUidsForNewSeries(IDicomTagCollection tags)
+        public static DicomTagCollection UpdateUidsForNewSeries(DicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid() };
             tags = UpdateUidsForNewImage(tags);
             return tags;
         }
-        public static IDicomTagCollection UpdateUidsForNewImage(IDicomTagCollection tags)
+        public static DicomTagCollection UpdateUidsForNewImage(DicomTagCollection tags)
         {
             if (tags == null) return null;
             tags.ImageUid.Values = new[] { GenerateNewImageUid() };
@@ -159,7 +200,7 @@ namespace VisTarsier.Dicom
         /// </summary>
         /// <param name="filePath">The dicom file.</param>
         /// <returns></returns>
-        public static IDicomTagCollection GetDicomTags(string filePath)
+        public static DicomTagCollection GetDicomTags(string filePath)
         {
             var dcmFile = new ClearCanvas.Dicom.DicomFile(filePath);
             dcmFile.Load(filePath);
@@ -269,22 +310,50 @@ namespace VisTarsier.Dicom
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.img2dcm, arguments);
         }
 
-        public static void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")
+        /// <summary>
+        /// Replaces the tags in a given Dicom file with those provided, preserving only the pixel data from the original.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="cleanTags"></param>
+        public static void UpdateTags(string file, DicomTagCollection cleanTags, bool overwriteIfNotProvided = false)
         {
-            if (string.IsNullOrEmpty(newFileName)) newFileName = Path.GetFileNameWithoutExtension(bmpFilePath);
-            if (Directory.GetFiles(dicomFolderPath)
-                .Any(f => Path.GetFileName(f).ToLower().Contains(newFileName ?? throw new ArgumentNullException(nameof(newFileName)))))
-                newFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+            DicomFile df = new DicomFile(file);
+            df.Load();
+            foreach (var tag in df.DataSet)
+            {
+                // Don't overwrite or remove the pixel data tag.
+                if (tag.Tag.TagValue == 0x7FE00010)
+                {
+                    continue;
+                }
+                else
+                {
+                    // Find the updated tag (or null / default)
+                    var newTag = cleanTags.FirstOrDefault(t => t.GetTagValue() == tag.Tag.TagValue);
+                    // Update the tag, overwriting with an empty value if no tag is present.
+                    UpdateTag(df, newTag, overwriteIfNotProvided);
+                }
+            }
 
-            var dicomFileHighestInstanceNo = GetDicomFileWithHighestInstanceNumber(dicomFolderPath);
-            var headers = GetDicomTags(dicomFileHighestInstanceNo);
-            var newFilePath = Path.Combine(dicomFolderPath, newFileName ?? throw new ArgumentNullException(nameof(newFileName)));
-
-            ConvertBmpToDicom(bmpFilePath, newFilePath, dicomFileHighestInstanceNo);
-            var newFileInstanceNumber = headers.InstanceNumber.Values == null || headers.InstanceNumber.Values.Length < 1 ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
-            headers.InstanceNumber.Values = new[] { newFileInstanceNumber.ToString() };
-            UpdateDicomHeaders(newFilePath, headers, DicomNewObjectType.NewImage);
+            df.Save();
         }
+
+        //public static void ConvertBmpToDicomAndAddToExistingFolder(string bmpFilePath, string dicomFolderPath, string newFileName = "")
+        //{
+        //    if (string.IsNullOrEmpty(newFileName)) newFileName = Path.GetFileNameWithoutExtension(bmpFilePath);
+        //    if (Directory.GetFiles(dicomFolderPath)
+        //        .Any(f => Path.GetFileName(f).ToLower().Contains(newFileName ?? throw new ArgumentNullException(nameof(newFileName)))))
+        //        newFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+
+        //    var dicomFileHighestInstanceNo = GetDicomFileWithHighestInstanceNumber(dicomFolderPath);
+        //    var headers = GetDicomTags(dicomFileHighestInstanceNo);
+        //    var newFilePath = Path.Combine(dicomFolderPath, newFileName ?? throw new ArgumentNullException(nameof(newFileName)));
+
+        //    ConvertBmpToDicom(bmpFilePath, newFilePath, dicomFileHighestInstanceNo);
+        //    var newFileInstanceNumber = headers.InstanceNumber.Values == null || headers.InstanceNumber.Values.Length < 1 ? 1 : int.Parse(headers.InstanceNumber.Values[0]) + 1;
+        //    headers.InstanceNumber.Values = new[] { newFileInstanceNumber.ToString() };
+        //    UpdateDicomHeaders(newFilePath, headers, DicomNewObjectType.NewImage);
+        //}
 
         public static string GetPatientIdFromDicomFile(string dicomFilePath)
         {
@@ -340,17 +409,6 @@ namespace VisTarsier.Dicom
             }
         }
 
-        private static string GetDicomFileWithHighestInstanceNumber(string dicomFolderPath)
-        {
-            var dicomFiles = Directory.GetFiles(dicomFolderPath);
-            return dicomFiles.OrderByDescending((f) =>
-            {
-                var vals = GetDicomTags(f).InstanceNumber.Values;
-                return vals != null && vals.Length > 0 ?
-                    int.Parse(GetDicomTags(f).InstanceNumber.Values[0])
-                    : 0;
-            }).FirstOrDefault();
-        }
         private static string GetDicomFileWithLowestInstanceNumber(string dicomFolderPath)
         {
             var dicomFiles = Directory.GetFiles(dicomFolderPath);

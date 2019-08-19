@@ -74,7 +74,7 @@ namespace VisTarsier.Module.MS
             FileSystem.FilesExist(new[] { _currentNii, _priorNii });
 
             // Setup our things...
-            DataReceivedEventHandler dataout = null;//(s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
+            DataReceivedEventHandler dataout = (s, e) => { _log.Debug(e.Data); System.Console.WriteLine(e.Data); };
             var stopwatch1 = new Stopwatch();
 
             // BiasCorrection
@@ -125,7 +125,7 @@ namespace VisTarsier.Module.MS
                 stopwatch1.Restart();
 
                 //TODO fix this...
-                priorWithSkull = Reslicer(priorWithSkull, refBrain, dataout);
+                //priorWithSkull = Reslicer(priorWithSkull, refBrain, dataout);
             }
 
             // Convert files to INifti, now that we're done with pre-processing.

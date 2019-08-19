@@ -36,8 +36,9 @@ namespace VisTarsier.Common
             if (!File.Exists(fileFullPath))
                 throw new FileNotFoundException($"Executable file not found at location [{fileFullPath}]");
 
-            var fileNameExt = fileFullPath.Split('\\').LastOrDefault();
-            var folderPath = fileFullPath.Replace($"\\{fileNameExt}", "");
+            
+            var fileNameExt = Path.GetFileName(fileFullPath);//fileFullPath.Split('\\','/').LastOrDefault();
+            var folderPath = Path.GetDirectoryName(fileFullPath); // fileFullPath.Replace($"\\{fileNameExt}", "");
 
             var process = Build(folderPath, fileNameExt, arguments, workingDir);
 

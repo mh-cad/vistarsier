@@ -58,7 +58,7 @@ namespace VisTarsier.Common
 
             public void Debug(object message)
             {
-                System.Console.WriteLine(message.ToString());
+                System.Console.WriteLine(message?.ToString());
             }
 
             public void Debug(object message, Exception exception)
