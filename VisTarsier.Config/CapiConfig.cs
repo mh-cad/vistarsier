@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+using VisTarsier.Common;
 
 namespace VisTarsier.Config
 {
@@ -27,8 +28,27 @@ namespace VisTarsier.Config
         {
             var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/config.json");
 
-            CapiConfig config;
+            return GetConfig(configFilePath);
+        }
 
+        public static void WriteConfig(CapiConfig config)
+        {
+            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/config.json");
+            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/"));
+            File.WriteAllText(configFilePath, JsonConvert.SerializeObject(config, new CapiConfigJsonConverter())); 
+          
+        }
+
+        public static void WriteRecipe(Recipe recipe)
+        {
+            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/defaultrecipe.json");
+            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/"));
+            File.WriteAllText(recipePath, JsonConvert.SerializeObject(recipe, Formatting.Indented));
+        }
+
+        public static CapiConfig GetConfig(string configFilePath)
+        {
+            CapiConfig config;
             if (File.Exists(configFilePath))
             {
                 var configFileContent = File.ReadAllText(configFilePath);
@@ -44,18 +64,35 @@ namespace VisTarsier.Config
             return config;
         }
 
+        public static Recipe GetDefaultRecipe()
+        {
+            Recipe recipe;
+            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/defaultrecipe.json");
+            if (File.Exists(recipePath))
+            {
+                var fileContent = File.ReadAllText(recipePath);
+                recipe = JsonConvert.DeserializeObject<Recipe>(fileContent);
+            }
+            else
+            {
+                recipe = Recipe.Default();
+            }
+
+            return recipe;
+        }
+
         public static CapiConfig GenerateDefault()
         {
             return new CapiConfig
             {
                 AgentDbConnectionString = "Server=;Database=Capi;User Id=;Password=;Connection Timeout=120",
-                Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "3rdparty_bin/")),
+                Binaries = new Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\service\3rdparty_bin\")),
                 DicomConfig = new DicomConfig(),
                 ImagePaths = new ImagePaths(),
                 RunInterval = "30",
-                ManualProcessPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cases/manual/"),
-                Hl7ProcessPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cases/hl7/"),
-                DefaultRecipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "default.recipe.json"),
+                ManualProcessPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cases/manual/"),
+                Hl7ProcessPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cases/hl7/"),
+                DefaultRecipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/default.recipe.json"),
                 ProcessCasesAddedManually = true,
                 ProcessCasesAddedByHL7 = true
             };

@@ -7,12 +7,10 @@ namespace VisTarsier.Config
         public ImagePaths()
         {
             ImageRepositoryPath = AppDomain.CurrentDomain.BaseDirectory + "ImageRepository/";
-            ResultsDicomSeriesDescription = "OVT Modified Signal";
-            PriorReslicedDicomSeriesDescription = "OVT Prior Resliced";
+            ResultsDicomSeriesDescription = "VisTarsier";
         }
 
         public string ImageRepositoryPath { get; set; }
         public string ResultsDicomSeriesDescription { get; set; }
-        public string PriorReslicedDicomSeriesDescription { get; set; }
     }
 }
