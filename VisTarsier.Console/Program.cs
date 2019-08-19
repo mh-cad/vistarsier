@@ -1,14 +1,21 @@
 ﻿
+using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
+using System.IO;
+using VisTarsier.Config;
 using VisTarsier.Module.MS;
 using VisTarsier.NiftiLib;
 
 namespace VisTarsier.CommandLineTool
 {
     class Program
-    {
+    { 
+
         static void Main(string[] args)
         {
+            FixCfg();
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -19,11 +26,16 @@ namespace VisTarsier.CommandLineTool
                 return;
             }
 
+            var prior = args[0];
+            var current = args[1];
+            if (!Path.IsPathRooted(prior)) prior = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, prior);
+            if (!Path.IsPathRooted(current)) current = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, current);
+
             // Create an MS pipeline.
             var pipeline = new MSPipeline(
-                args[1],
-                args[0],
-                args[1],
+                current,
+                prior,
+                current,
                 true, true, true,
                 new string[] { "vt-increase.nii", "vt-decrease.nii" }, "vt-prior.nii");
 
@@ -52,6 +64,13 @@ namespace VisTarsier.CommandLineTool
             var b = val & 255;
 
             return (uint)(b << 16 | g << 8 | r);
+        }
+
+        private static void FixCfg()
+        {
+            var cfg = Config.CapiConfig.GetConfig();
+            cfg.Binaries = new Config.Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"3rdparty_bin\"));
+            CapiConfig.WriteConfig(cfg);
         }
     }
 }
