@@ -16,7 +16,7 @@ namespace VisTarsier.Service
 
         public DbBroker()
         {
-            _connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=Capi;Trusted_Connection=True;";
+            _connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=VisTarsier;Trusted_Connection=True;";
         }
 
         public DbBroker(string connectionString)

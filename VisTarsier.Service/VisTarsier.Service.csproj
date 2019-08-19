@@ -173,7 +173,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent\OldAgent.cs" />
     <Compile Include="Agent\StoredRecipe.cs" />
     <Compile Include="Agent\HL7Agent.cs" />
     <Compile Include="Agent\IAgent.cs" />

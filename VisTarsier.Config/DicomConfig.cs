@@ -1,6 +1,7 @@
 ﻿using VisTarsier.Common;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace VisTarsier.Config
 {
@@ -22,7 +23,7 @@ namespace VisTarsier.Config
             LocalNode = new DicomConfigNode
             {
                 AeTitle = "CAPI",
-                IpAddress = Dns.GetHostName(),
+                IpAddress = GetFQDN(),
                 LogicalName = "CAPI Local",
                 Port = 4104
             };
@@ -37,6 +38,24 @@ namespace VisTarsier.Config
                     Port = 404
                 }
             };
+        }
+
+        /// <summary>
+        /// Returns the fully qualified domain name for the machine
+        /// </summary>
+        /// <returns></returns>
+        private static string GetFQDN()
+        {
+            string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
+            string hostName = Dns.GetHostName();
+
+            domainName = "." + domainName;
+            if (!hostName.EndsWith(domainName))  // if hostname does not already include domain name
+            {
+                hostName += domainName;   // add the domain name part
+            }
+
+            return hostName;                    // return the fully qualified name
         }
     }
 }
