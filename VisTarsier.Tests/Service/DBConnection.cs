@@ -27,7 +27,6 @@ namespace VisTarsier.Tests.Service
                 job.Status = "Test";
                 broker.Jobs.Add(job);
                 broker.SaveChanges();
-                @case.JobId = @job.Id;
 
                 broker.Attempts.Add(@case);
                 broker.SaveChanges();

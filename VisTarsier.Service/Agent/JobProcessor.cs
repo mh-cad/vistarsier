@@ -15,6 +15,7 @@ using VisTarsier.Dicom;
 using System.Globalization;
 using VisTarsier.Module.Custom;
 using Microsoft.EntityFrameworkCore;
+using VisTarsier.Dicom.Model;
 
 namespace VisTarsier.Service
 {
@@ -32,6 +33,10 @@ namespace VisTarsier.Service
 
         public string SummarySlidePath { get; set; }
 
+        /// <summary>
+        /// Creates a new JobProcessor object
+        /// </summary>
+        /// <param name="dbBroker">The broker for the database backend which holds the Job queue</param>
         public JobProcessor(DbBroker dbBroker)
         {
             _log = Log.GetLogger();
@@ -39,6 +44,10 @@ namespace VisTarsier.Service
             _dbBroker = dbBroker;
         }
 
+        /// <summary>
+        /// Process a job from 'go' to 'woah'.
+        /// </summary>
+        /// <param name="job"></param>
         public void Process(Job job)
         {
 
@@ -132,7 +141,12 @@ namespace VisTarsier.Service
 
         }
 
-        public JobResult[] GetResults(Job job)
+        /// <summary>
+        /// Given a job, get the results of the job. This is the majority of the processing work, without a few database actions and logging.
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        private JobResult[] GetResults(Job job)
         {
             var timer = new Stopwatch();
             timer.Start();
@@ -168,17 +182,10 @@ namespace VisTarsier.Service
             var referenceNifti = task3.Result;
             _log.Info($@"Finished converting series dicom files to Nii");
 
-            // Process Nifti files.
-            //var pipe = new MSPipeline(
-            //    currentNifti, priorNifti, referenceNifti,
-            //    extractBrain, register, biasFieldCorrect,
-            //    resultNiis, outPriorReslicedNii);
             var pipe = new CustomPipeline(job.Recipe, priorNifti, currentNifti);
-
             var metrics = pipe.Process();
 
             var results = new List<JobResult>();
-
             string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
             Directory.CreateDirectory(metadataPath);
 
@@ -194,43 +201,7 @@ namespace VisTarsier.Service
                 _dbBroker.SaveChanges();
             }
 
-            // "current" study dicom headers are used as the "prior resliced" series gets sent as part of the "current" study
-            // prior study date will be added to the end of Series Description tag
-            //var task = Task.Run(() =>
-            //{
-            //    _log.Info("Start converting resliced prior series back to Dicom");
-
-            //    var priorStudyDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
-            //    priorStudyDate = FormatDate(priorStudyDate);
-
-            //    var priorStudyDescBase = string.IsNullOrEmpty(job.Recipe.OutputSettings.ReslicedDicomSeriesDescription) ?
-            //        CapiConfig.GetConfig().ImagePaths.PriorReslicedDicomSeriesDescription
-            //        : job.Recipe.OutputSettings.ReslicedDicomSeriesDescription;
-
-            //    var priorStudyDescription = $"{priorStudyDescBase} {priorStudyDate}";
-
-            //    var stopwatch = new Stopwatch();
-            //    stopwatch.Start();
-
-            //    ConvertNiftiToDicom(outPriorReslicedNii, job.PriorReslicedSeriesDicomFolder, job.Recipe.OutputSettings.SliceType,
-            //                        job.CurrentSeriesDicomFolder, priorStudyDescription, job.ReferenceSeriesDicomFolder);
-
-            //    UpdateSeriesDescriptionForAllFiles(job.PriorReslicedSeriesDicomFolder, priorStudyDescription);
-
-            //    stopwatch.Stop();
-            //    _log.Info("Finished Converting resliced prior series back to Dicom in " +
-            //              $"{stopwatch.Elapsed.Minutes}:{stopwatch.Elapsed.Seconds:D2} minutes.");
-
-            //    results.Add(new JobResult()
-            //    {
-            //        DicomFolderPath = job.PriorReslicedSeriesDicomFolder,
-            //        NiftiFilePath = outPriorReslicedNii,
-            //        ImagesFolderPath = job.PriorReslicedSeriesDicomFolder + ImagesFolderSuffix,
-            //    });
-            //});
-
             List<Task> tasks = new List<Task>();
-
             foreach (var resultNii in metrics.ResultFiles)
             {
                 tasks.Add(Task.Run(() =>
@@ -244,19 +215,22 @@ namespace VisTarsier.Service
                         ? CapiConfig.GetConfig().ImagePaths.ResultsDicomSeriesDescription
                         : job.Recipe.OutputSettings.ResultsDicomSeriesDescription;
 
-                    string dicomFolderPath;
+                    string dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
 
-                    dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
                     var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
                     var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
                     var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
                     var description = resultNii.Description;
-                    //lutFilePath = GetLookupTableForResult(resultNii, lookupTablePaths);
-                    //var lutFileName = Path.GetFileNameWithoutExtension(lutFilePath);
+                    
+                    // We're going to begin to convert the Nifti files back to dicom.
                     ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, sliceType, job.CurrentSeriesDicomFolder,
-                                        $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}", job.ReferenceSeriesDicomFolder);
-
+                                        $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}  [{job.Id}]", job.ReferenceSeriesDicomFolder);
+                    // Then add a series description for each file in the dicom folder.
                     UpdateSeriesDescriptionForAllFiles(dicomFolderPath, $"{resultsSeriesDescription}-{description}");
+
+                    // Since the metadata are all taken from the current study, we're going to want to remove or update inaccurate tags based
+                    // on the type of result.
+                    CleanDicomMetadata(dicomFolderPath, resultNii.Type, job.PriorSeriesDicomFolder);
 
                     stopwatch.Stop();
                     _log.Info("Finished converting results back to Dicom in " +
@@ -285,8 +259,51 @@ namespace VisTarsier.Service
 
             return results.ToArray();
         }
+        
+        public static void CleanDicomMetadata(string dicomFolderPath, ResultFile.ResultType type, string priorSeriesFolder)
+        {
+            //_log.Info($"Cleaning tags for {dicomFolderPath}");
 
-        public JobResult[] GenerateMetadataSlides(Job job)
+            foreach (var file in Directory.EnumerateFiles(dicomFolderPath))
+            {
+                var cleanTags = new DicomTagCollection();
+                var currentTags = DicomFileOps.GetDicomTags(file);
+                var priorTags = DicomFileOps.GetDicomTags(Directory.EnumerateFiles(priorSeriesFolder).First());
+
+                // We want to hold onto these two generated values.
+                var seriesInstanceUid = currentTags.SeriesInstanceUid.Values;
+                var imageUid = currentTags.ImageUid.Values;
+
+                // These tags are from the original image source.
+                var sourceTags = type == ResultFile.ResultType.PRIOR_PROCESSED ? priorTags : currentTags;
+                cleanTags.Merge(sourceTags, TagType.Patient);
+                cleanTags.Merge(sourceTags, TagType.Site);
+                cleanTags.Merge(sourceTags, TagType.CareProvider);
+                cleanTags.Merge(sourceTags, TagType.Series);
+                // The image tags are there to tell us about the generated image (ordering, orientation, etc)
+                cleanTags.Merge(currentTags, TagType.Image);
+                // We want to copy the study tags, otherwise the PACS won't know what to do with it. 
+                cleanTags.Merge(currentTags, TagType.Study);
+                // We don't want the UIDs to be copied from the source, since they should be unique (it's in the name)
+                cleanTags.SeriesInstanceUid.Values = seriesInstanceUid;
+                cleanTags.ImageUid.Values = imageUid;
+                cleanTags.SeriesDescription.Values = currentTags.SeriesDescription.Values; // This is the description VT has given
+
+                // I'm assuming this will give us the correct patient age and study date?
+                //cleanTags.StudyDate.Values = priorTags.StudyDate.Values;
+
+                // We're just going to update the tags.
+                DicomFileOps.UpdateTags(file, cleanTags, true);
+            }
+        }
+
+
+        /// <summary>
+        /// This method generates pre-processing metadata slides to add to PACs
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        private JobResult[] GenerateMetadataSlides(Job job)
         {
             // Create results folder
             var allResultsFolder = job.ResultSeriesDicomFolder;
@@ -388,6 +405,11 @@ namespace VisTarsier.Service
             return $"{year}-{month}-{day}";
         }
 
+        /// <summary>
+        /// For the given dicom file, which is the closest slicetype for the patient oritentation.
+        /// </summary>
+        /// <param name="dicomFile"></param>
+        /// <returns></returns>
         private SliceType GetSliceTypeFromDicomFile(string dicomFile)
         {
             var headers = DicomFileOps.GetDicomTags(dicomFile);
@@ -396,7 +418,7 @@ namespace VisTarsier.Service
             // These are the perfect IOP vectors for each alignment...
             // Where each value of the normalised vector is the direction of 
             // left, posterior, superior on the X and Y axis of the image (I think).
-            // It's possible at least one of these is negated, but we're using absolute
+            // It's possible at least one of these should be negated, but we're using absolute
             // values so it will even out.
                               //XL XP xS  YL YP YS
             float[] axial =    { 1, 0, 0, 0, 1, 0 };
@@ -459,7 +481,7 @@ namespace VisTarsier.Service
                 AddOverlayToImage(bmpFilePath, overlayText);
         }
 
-        public void AddOverlayToImage(string bmpFilePath, string overlayText)
+        private void AddOverlayToImage(string bmpFilePath, string overlayText)
         {
             if (string.IsNullOrEmpty(overlayText) || string.IsNullOrWhiteSpace(overlayText)) return;
             Bitmap bmpWithOverlay;
@@ -496,7 +518,7 @@ namespace VisTarsier.Service
             bmpWithOverlay.Save(bmpFilePath);
         }
 
-        public string GenerateSummarySlide(string priorDcm, string currentDcm, string jobId, string outfolder)
+        private string GenerateSummarySlide(string priorDcm, string currentDcm, string jobId, string outfolder)
         {
             var patientIdField = new Point(183, 177);
             var patientNameField = new Point(205, 200);
@@ -577,7 +599,7 @@ namespace VisTarsier.Service
             return outfile;
         }
 
-        public string GenerateMetadataSlide(string priorDcm, string currentDcm, IDicomTagCollection metatags, string outFolder)
+        private string GenerateMetadataSlide(string priorDcm, string currentDcm, DicomTagCollection metatags, string outFolder)
         {
             var priorTags = DicomFileOps.GetDicomTags(priorDcm);
             var currentTags = DicomFileOps.GetDicomTags(currentDcm);
@@ -600,6 +622,8 @@ namespace VisTarsier.Service
 
                 var priorModality = priorTags.Modality?.Values?.Length > 0 ? priorTags.Modality?.Values?[0].ToString() : "";
                 var currentModality = currentTags.Modality?.Values?.Length > 0 ? currentTags.Modality?.Values?[0].ToString() : "";
+                if (priorModality.Length > 20) priorModality = priorModality.Substring(0, 17) + "...";
+                if (currentModality.Length > 20) currentModality = currentModality.Substring(0, 17) + "...";
                 brush = priorModality.Equals(currentModality) ? Brushes.White : Brushes.Red;
                 g.DrawString(priorModality, font, brush, new Point(col2X, rowstartY + rowHeight * 0));
                 g.DrawString(currentModality, font, brush, new Point(col3X, rowstartY + rowHeight * 0));
@@ -617,18 +641,24 @@ namespace VisTarsier.Service
                 foreach (var val in priorTags.ScanOptions?.Values) priorOptions += val + "/";
                 var currentOptions = "";
                 foreach (var val in currentTags.ScanOptions?.Values) currentOptions += val + "/";
+                if (priorOptions.Length > 20) priorOptions = priorOptions.Substring(0, 17) + "...";
+                if (currentOptions.Length > 20) currentOptions = currentOptions.Substring(0, 17) + "...";
                 brush = priorOptions.Equals(currentOptions) ? Brushes.White : Brushes.Orange;
                 g.DrawString(priorOptions, font, brush, new Point(col2X, rowstartY + rowHeight * 2));
                 g.DrawString(currentOptions, font, brush, new Point(col3X, rowstartY + rowHeight * 2));
 
                 var priorScanner = priorTags.Manufacturer?.Values?.Length > 0 && priorTags.ManufacturersModelName?.Values?.Length > 0 ? $"{priorTags.Manufacturer?.Values?[0].ToString()} {priorTags.ManufacturersModelName?.Values?[0].ToString()}" : "";
                 var currentScanner = currentTags.Manufacturer?.Values?.Length > 0 && currentTags.ManufacturersModelName?.Values?.Length > 0 ? $"{currentTags.Manufacturer?.Values?[0].ToString()} {currentTags.ManufacturersModelName?.Values?[0].ToString()}" : "";
+                if (priorScanner.Length > 20) priorScanner = priorScanner.Substring(0, 17) + "...";
+                if (currentScanner.Length > 20) currentScanner = currentScanner.Substring(0, 17) + "...";
                 brush = priorScanner.Equals(currentScanner) ? Brushes.White : Brushes.Orange;
                 g.DrawString(priorScanner, font, brush, new Point(col2X, rowstartY + rowHeight * 3));
                 g.DrawString(currentScanner, font, brush, new Point(col3X, rowstartY + rowHeight * 3));
 
                 var priorSerial = priorTags.DeviceSerialNumber?.Values?.Length > 0 ? priorTags.DeviceSerialNumber?.Values?[0].ToString() : "";
                 var currentSerial = currentTags.DeviceSerialNumber?.Values?.Length > 0 ? currentTags.DeviceSerialNumber?.Values?[0].ToString(): "";
+                if (priorSerial.Length > 20) priorSerial = priorSerial.Substring(0, 17) + "...";
+                if (currentSerial.Length > 20) currentSerial = currentSerial.Substring(0, 17) + "...";
                 brush = priorSerial.Equals(currentSerial) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorSerial, font, brush, new Point(col2X, rowstartY + rowHeight * 4));
                 g.DrawString(currentSerial, font, brush, new Point(col3X, rowstartY + rowHeight * 4));
@@ -637,42 +667,56 @@ namespace VisTarsier.Service
                 foreach (var val in priorTags.SoftwareVersion?.Values) priorSoftware += val + " ";
                 var currentSoftware = "";
                 foreach (var val in currentTags.SoftwareVersion?.Values) currentSoftware += val + " ";
+                if (priorSoftware.Length > 20) priorSoftware = priorSoftware.Substring(0, 17) + "...";
+                if (currentSoftware.Length > 20) currentSoftware = currentSoftware.Substring(0, 17) + "...";
                 brush = priorSoftware.Equals(currentSoftware) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorSoftware, font, brush, new Point(col2X, rowstartY + rowHeight * 5));
                 g.DrawString(currentSoftware, font, brush, new Point(col3X, rowstartY + rowHeight * 5));
 
                 var priorEcho = priorTags.EchoTime?.Values?.Length > 0 ? priorTags.EchoTime?.Values?[0].ToString() : "";
                 var currentEcho = currentTags.EchoTime?.Values?.Length > 0 ? currentTags.EchoTime?.Values?[0].ToString() : "";
+                if (priorEcho.Length > 20) priorEcho = priorEcho.Substring(0, 17) + "...";
+                if (currentEcho.Length > 20) currentEcho = currentEcho.Substring(0, 17) + "...";
                 brush = priorEcho.Equals(currentEcho) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorEcho, font, brush, new Point(col2X, rowstartY + rowHeight * 6));
                 g.DrawString(currentEcho, font, brush, new Point(col3X, rowstartY + rowHeight * 6));
 
                 var priorIt = priorTags.InversionTime?.Values?.Length > 0 ? priorTags.InversionTime?.Values?[0].ToString() : "";
                 var currentIt = currentTags.InversionTime?.Values?.Length > 0 ? currentTags.InversionTime?.Values?[0].ToString() : "";
+                if (priorIt.Length > 20) priorIt = priorIt.Substring(0, 17) + "...";
+                if (currentIt.Length > 20) currentIt = currentIt.Substring(0, 17) + "...";
                 brush = priorIt.Equals(currentIt) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorIt, font, brush, new Point(col2X, rowstartY + rowHeight * 7));
                 g.DrawString(currentIt, font, brush, new Point(col3X, rowstartY + rowHeight * 7));
 
                 var priorIn = priorTags.ImagedNucleus?.Values?.Length > 0 ? priorTags.ImagedNucleus?.Values?[0].ToString() : "";
                 var currentIn = currentTags.ImagedNucleus?.Values?.Length > 0 ? currentTags.ImagedNucleus?.Values?[0].ToString() : "";
+                if (priorIn.Length > 20) priorIn = priorIn.Substring(0, 17) + "...";
+                if (currentIn.Length > 20) currentIn = currentIn.Substring(0, 17) + "...";
                 brush = priorIn.Equals(currentIn) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorIn, font, brush, new Point(col2X, rowstartY + rowHeight * 8));
                 g.DrawString(currentIn, font, brush, new Point(col3X, rowstartY + rowHeight * 8));
 
                 var priorTeslas = priorTags.MagneticFieldStrength?.Values?.Length > 0 ? priorTags.MagneticFieldStrength?.Values?[0].ToString() + "T" : "";
                 var currentTeslas = currentTags.MagneticFieldStrength?.Values?.Length > 0 ? currentTags.MagneticFieldStrength?.Values?[0].ToString() + "T" : "";
+                if (priorTeslas.Length > 20) priorTeslas = priorTeslas.Substring(0, 17) + "...";
+                if (currentTeslas.Length > 20) currentTeslas = currentTeslas.Substring(0, 17) + "...";
                 brush = priorTeslas.Equals(currentTeslas) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorTeslas, font, brush, new Point(col2X, rowstartY + rowHeight * 9));
                 g.DrawString(currentTeslas, font, brush, new Point(col3X, rowstartY + rowHeight * 9));
 
                 var priorEt = priorTags.EchoTrainLength?.Values?.Length > 0 ? priorTags.EchoTrainLength?.Values?[0].ToString() : "";
                 var currentEt = currentTags.EchoTrainLength?.Values?.Length > 0 ? currentTags.EchoTrainLength?.Values?[0].ToString() : "";
+                if (priorEt.Length > 20) priorEt = priorEt.Substring(0, 17) + "...";
+                if (currentEt.Length > 20) currentEt = currentEt.Substring(0, 17) + "...";
                 brush = priorEt.Equals(currentEt) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorEt, font, brush, new Point(col2X, rowstartY + rowHeight * 10));
                 g.DrawString(currentEt, font, brush, new Point(col3X, rowstartY + rowHeight * 10));
 
                 var priorTc = priorTags.TransmitCoilName?.Values?.Length > 0 ? priorTags.TransmitCoilName?.Values?[0].ToString() : "";
                 var currentTc = currentTags.TransmitCoilName?.Values?.Length > 0 ? currentTags.TransmitCoilName?.Values?[0].ToString() : "";
+                if (priorTc.Length > 20) priorTc = priorTc.Substring(0, 17) + "...";
+                if (currentTc.Length > 20) currentTc = currentTc.Substring(0, 17) + "...";
                 brush = priorTc.Equals(currentTc) ? Brushes.White : Brushes.Yellow;
                 g.DrawString(priorTc, font, brush, new Point(col2X, rowstartY + rowHeight * 11));
                 g.DrawString(currentTc, font, brush, new Point(col3X, rowstartY + rowHeight * 11));
@@ -702,7 +746,7 @@ namespace VisTarsier.Service
             return outpath;
         }
 
-        public string[] GenerateResultsSlide(Metrics results, IDicomTagCollection metatags, Job job, string outFolder, string time)
+        private string[] GenerateResultsSlide(Metrics results, DicomTagCollection metatags, Job job, string outFolder, string time)
         {
             var output = new List<string>();
 
@@ -797,18 +841,6 @@ namespace VisTarsier.Service
 
         private void SendToDestinations(JobResult[] results, Job job)
         {
-            // TODO :: I'm note sure that we should be throwing errors here, since the job results should be 
-            // detemining where we're getting files from 
-            //if (string.IsNullOrEmpty(ResultSeriesDicomFolder) ||
-            //    Directory.GetFiles(ResultSeriesDicomFolder).Length == 0 &&
-            //    Directory.GetDirectories(ResultSeriesDicomFolder).Length == 0)
-            //    throw new DirectoryNotFoundException($"No folder found for {nameof(ResultSeriesDicomFolder)} " +
-            //                                         $"at following path: [{ResultSeriesDicomFolder}] or empty!");
-
-            //if (string.IsNullOrEmpty(PriorReslicedSeriesDicomFolder) || Directory.GetFiles(PriorReslicedSeriesDicomFolder).Length == 0)
-            //    throw new DirectoryNotFoundException($"No folder found for {nameof(PriorReslicedSeriesDicomFolder)} " +
-            //                                         $"at following path: [{PriorReslicedSeriesDicomFolder}] or empty!");
-
             _log.Info("Sending to destinations...");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -821,6 +853,7 @@ namespace VisTarsier.Service
             stopwatch.Stop();
             _log.Info($"Finished sending to destinations in {Math.Round(stopwatch.Elapsed.TotalSeconds)} seconds");
         }
+
         private void SendToFilesystemDestinations(JobResult[] results, Job job)
         {
             if (job.Recipe.OutputSettings.FilesystemDestinations == null) return;
@@ -850,6 +883,7 @@ namespace VisTarsier.Service
                 }
             }
         }
+
         private void SendToDicomDestinations(JobResult[] results, Job job)
         {
             if (job.Recipe.OutputSettings.DicomDestinations == null) return;
