@@ -81,7 +81,8 @@ namespace VisTarsier.Service
         private void CleanupDatabase()
         {
             var cfg = CapiConfig.GetConfig();
-            var dbBroker = cfg.AgentDbConnectionString == null ? new DbBroker() : new DbBroker(cfg.AgentDbConnectionString);
+            if (cfg == null) throw new ApplicationException("Unable to find config file.");
+            var dbBroker = new DbBroker(cfg.AgentDbConnectionString);
             var failedCases = dbBroker.GetCaseByStatus("Processing");
 
             foreach (var c in failedCases)

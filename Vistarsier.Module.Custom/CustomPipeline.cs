@@ -9,6 +9,7 @@ using VisTarsier.Config;
 using VisTarsier.Module.MS;
 using VisTarsier.NiftiLib;
 using VisTarsier.NiftiLib.Processing;
+using static VisTarsier.NiftiLib.Processing.ResultFile;
 
 namespace VisTarsier.Module.Custom
 {
@@ -101,7 +102,7 @@ namespace VisTarsier.Module.Custom
                     var increaseOut = currentnii.AddOverlay(increase);
                     var outpath = _currentPath + ".increase.nii";
                     increaseOut.WriteNifti(outpath);
-                    Metrics.ResultFiles.Add(new ResultFile() { FilePath = outpath, Description = "Increased Signal" });
+                    Metrics.ResultFiles.Add(new ResultFile() { FilePath = outpath, Description = "Increased Signal", Type = ResultType.CURRENT_PROCESSED });
                 });
                 tasks.Add(t);
             }
@@ -120,7 +121,7 @@ namespace VisTarsier.Module.Custom
                     var decreaseOut = currentnii.AddOverlay(decrease);
                     var outpath = _currentPath + ".decrease.nii";
                     decreaseOut.WriteNifti(outpath);
-                    Metrics.ResultFiles.Add(new ResultFile() { FilePath = outpath, Description = "Decreased Signal" });
+                    Metrics.ResultFiles.Add(new ResultFile() { FilePath = outpath, Description = "Decreased Signal", Type = ResultType.CURRENT_PROCESSED });
                 });
                 tasks.Add(t);
             }
@@ -157,12 +158,12 @@ namespace VisTarsier.Module.Custom
             if (_recipe.RegisterTo == Recipe.RegisterToOption.CURRENT)
             {
                 _priorPath = Register(_priorPath, _currentPath, (s, e) => { if (e?.Data != null && e.Data.StartsWith(" 2DIAGNOSTIC")) registrationMetric = e.Data; }); 
-                Metrics.ResultFiles.Add(new ResultFile() { FilePath = _priorPath, Description = "Prior resliced" });
+                Metrics.ResultFiles.Add(new ResultFile() { FilePath = _priorPath, Description = ResultFile.PRIOR_RESLICED_DESCRIPTION, Type = ResultType.PRIOR_PROCESSED});
             }
             else if (_recipe.RegisterTo == Recipe.RegisterToOption.PRIOR)
             {
                 _currentPath = Register(_currentPath, _priorPath, (s, e) => { if (e?.Data != null && e.Data.StartsWith(" 2DIAGNOSTIC")) registrationMetric = e.Data; });
-                Metrics.ResultFiles.Add(new ResultFile() { FilePath = _currentPath, Description = "Current resliced" });
+                Metrics.ResultFiles.Add(new ResultFile() { FilePath = _currentPath, Description = "Current resliced", Type=ResultType.CURRENT_PROCESSED });
             }
 
 
