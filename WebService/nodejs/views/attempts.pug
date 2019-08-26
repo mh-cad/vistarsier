@@ -1,0 +1,50 @@
+extends template.pug
+block head
+	meta(http-equiv="refresh" content="90")
+
+block content
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						small(class="form-text text-muted" style="text-align:right") This page will automatically refresh every 90 seconds
+						h4(class="card-title") Attempts
+					div(class="card-body")
+						div(class="table-responsive")
+							table(class="table")
+								thead(class="text-primary")
+									th Attempt Id
+									th Patient Name
+									th Patient DOB
+									th Patient ID
+									th Current Accession
+									th Prior Accession
+									th Status
+									th Comment
+
+								tbody
+									each attempt in vals
+										tr
+											td #{attempt.id}
+											td #{attempt.name}
+											td #{attempt.dob}
+											td #{attempt.patientid}
+											td #{attempt.current}
+											td #{attempt.prior}
+											td #{attempt.status}
+											td #{attempt.comment}
+
+					table(class="table")
+						tr
+							td
+								a(href="/attempts/" + lastid)
+										i(class="now-ui-icons arrows-1_minimal-left a")
+										p Previous 50
+							td(class="text-right")
+								a(href="/attempts/" + (parseInt(lastid) + 100))
+									i(class="now-ui-icons arrows-1_minimal-right a")
+									p Next 50
+										
+						
+					

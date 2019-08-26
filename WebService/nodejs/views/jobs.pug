@@ -1,10 +1,14 @@
 extends template.pug
+block head
+	meta(http-equiv="refresh" content="90")
+
 block content
 	div(class="content")
 		div(class="row")
 			div(class="col-md-12")
 				div(class="card")
 					div(class="card-header")
+						small(class="form-text text-muted" style="text-align:right") This page will automatically refresh every 90 seconds
 						h4(class="card-title") Jobs
 					div(class="card-body")
 						div(class="table-responsive")
@@ -20,6 +24,7 @@ block content
 									th Destination
 									th Status
 									th Complete
+									th Recipe
 									th Processing Time
 								tbody
 									each job in jobs
@@ -34,7 +39,9 @@ block content
 											td #{job.dest}
 											td #{job.status}
 											td #{job.complete}
+											td #{job.recipename}
 											td(class="text-right") #{job.time}
+											
 					
 					
 					table(class="table")

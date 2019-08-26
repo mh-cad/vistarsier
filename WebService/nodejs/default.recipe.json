@@ -1,0 +1,65 @@
+{
+  "SourceAet": "",
+  "PatientId": "",
+  "PatientFullName": "",
+  "PatientBirthDate": "",
+  "CurrentSeriesDicomFolder": "",
+  "CurrentAccession": "",
+  "CurrentSeriesCriteria": [
+    {
+      "PriorStudyIndex": 0,
+      "MostRecentPriorStudy": false,
+      "OldestPriorStudy": false,
+      "CutOffPeriodValueInMonths": null,
+      "Region": null,
+      "StudyDescription": null,
+      "StudyDescriptionOperand": 0,
+      "StudyDate": null,
+      "StudyDateOperand": 0,
+      "SeriesDescription": null,
+      "SeriesDescriptionOperand": 0,
+      "SeriesDescriptionDelimiter": ";"
+    }
+  ],
+  "PriorSeriesDicomFolder": "",
+  "PriorAccession": "",
+  "PriorSeriesCriteria": [
+    {
+      "PriorStudyIndex": 0,
+      "MostRecentPriorStudy": false,
+      "OldestPriorStudy": false,
+      "CutOffPeriodValueInMonths": null,
+      "Region": null,
+      "StudyDescription": null,
+      "StudyDescriptionOperand": 0,
+      "StudyDate": null,
+      "StudyDateOperand": 0,
+      "SeriesDescription": null,
+      "SeriesDescriptionOperand": 0,
+      "SeriesDescriptionDelimiter": ";"
+    }
+  ],
+  "ExtractBrain": true,
+  "RegisterTo": 0,
+  "BiasFieldCorrection": false,
+  "CompareSettings": {
+    "CompareIncrease": true,
+    "CompareDecrease": false,
+    "BackgroundThreshold": 10.0,
+    "MinRelevantStd": -1.0,
+    "MaxRelevantStd": 5.0,
+    "MinChange": 0.8,
+    "MaxChange": 5.0,
+    "GenerateHistogram": true
+  },
+  "OutputSettings": {
+    "SliceType": 0,
+    "ResultsDicomSeriesDescription": "VT.dev Results",
+    "ReslicedDicomSeriesDescription": "VT.dev Resliced",
+    "FilesystemDestinations": [],
+    "OnlyCopyResults": false,
+    "DicomDestinations": [
+      ""
+    ]
+  }
+}

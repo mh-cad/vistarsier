@@ -1,0 +1,102 @@
+extends template.pug
+block content
+	script
+		include scripts.js
+
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						h4(class="card-title") Manually Add a Case
+						p(style="margin-bottom:5px")
+							b USAGE
+						p(style="margin-bottom:5px; margin-left:10px")
+							i VisTarsier has been validated for research purposes for MS whitematter lesion detection and will show increased and decreased signal in the relevant ranges.
+						p(style="margin-bottom:5px; margin-left:10px")
+							b Missing cases:
+							i  Relevant cases should be automatically detected and processed  by the VT service (this usually takes about 10 minutes after the study has been marked 'Complete'). If the service has failed to detect the study, the case can manually be sent to 
+								b RMHSYNSCP 
+								i by setting the destination PACS system and using the default settings for all other options.
+						p(style="margin-bottom:5px; margin-left:10px")
+							b Experimenting with VT: 
+							i VT may be generally useful to register and compare prior and current studies, however usage for non-FLAIR or non-MS studies has not been validated. Feel free to experiment and send the results to 
+								b RMHSYNMINISCP 
+								i but be aware that changes in signal between studies may be outside of range and will not be highlighted. Selecting "Show all change" under "Compare", will highlight all changes at the expense of additional noise.
+					div(class="card-body" style="padding:50px")
+						form
+							div(class="form-group")
+								h5 PACS
+								small(class="form-text text-muted") Source PACS system
+								select(class="form-control" name="source" id="sourcepax")
+									option RMHSYNSCP
+									option RMHSYNMINISCP
+								small(class="form-text text-muted") Destination PACS system
+								select(class="form-control" name="dest")
+									option RMHSYNMINISCP
+									option RMHSYNSCP
+								
+								
+								table(style="min-width:100%")
+									th
+										h4 Current Study
+									tr
+										td(style="padding: 10px")
+											small(class="form-text text-muted") Current Accession
+											input(list="accessionsDL" name="currentAccession" id="currentAccession" value=accession style="min-width: 100%" autocomplete="off"  oninput="updateAccession(this.value, \"currentSeriesDL\"); document.getElementById('currentSeries').value = ''")
+									tr
+										td(style="padding: 10px")
+											small(class="form-text text-muted") Current Series
+											input(list="currentSeriesDL" name="currentSeries" id="currentSeries" autocomplete="off" style="min-width: 100%")
+									th
+										h4 Prior Study
+									tr
+										td(style="padding: 10px")
+											small(class="form-text text-muted") Prior Accession
+											input(list="accessionsDL" name="priorAccession" id="priorAccession" style="min-width: 100%" autocomplete="off" onchange="updateAccession(this.value, \"priorSeriesDL\"); document.getElementById('priorSeries').value = '';")
+									tr
+										td(style="padding: 10px")
+											small(class="form-text text-muted") Prior Series
+											input(list="priorSeriesDL" name="priorSeries" id="priorSeries" autocomplete="off" style="min-width: 100%")
+									tr
+										td(style="padding: 10px")
+											h4 Pre-processing
+											input(class="form-check-input" name="BiasFieldCorrection" type="checkbox" checked)
+											p(style="padding-left:20px; margin:0px") Bias Correction
+											input(class="form-check-input" name="ExtractBrain" type="checkbox" checked)
+											p(style="padding-left:20px; margin:0px") Skull Stripping
+											p
+											small(class="form-text text-muted") Register To
+											select(class="form-control" name="RegisterTo")
+												option CURRENT
+												option PRIOR
+									tr
+										td(style="padding: 10px")
+											h4 Compare
+											small(class="form-text text-muted") Comparison Settings
+											select(class="form-control" name="ComparisonSettings" id="CompareSettings")
+												option Restrict change
+												option Show all change
+									tr
+										td(style="padding: 10px")
+											h4 Output
+											input(class="form-check-input" name="CompareIncrease" type="checkbox" style="left:20px; padding-top:10px" checked)
+											p(style="padding-left:20px") Output Increased Signal
+											input(class="form-check-input" name="CompareDecrease" type="checkbox" style="left:20px; padding-top:10px" checked)
+											p(style="padding-left:20px") Output Decreased Signal
+											input(class="form-check-input" name="GenerateHistogram" type="checkbox" style="left:20px; padding-top:10px" checked)
+											p(style="padding-left:20px") Generate Histogram	
+											small(class="form-text text-muted") Results Description
+											input(class="form-check-input" name="ResultsDicomSeriesDescription" value="VT Manual Results" style="left:20px; margin-left:10px; margin-bottom:20px" )
+											p
+											
+										
+											
+								
+								datalist(id="accessionsDL")
+								datalist(id="priorSeriesDL")
+								datalist(id="currentSeriesDL")
+									
+							button(type="submit" class="btn btn-primary") Submit
+							script
+								!= 'init();'

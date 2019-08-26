@@ -1,0 +1,15 @@
+extends template.pug
+block head
+	meta(http-equiv="refresh" content="90")
+
+
+block content
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						small(class="form-text text-muted" style="text-align:right") This page will automatically refresh every 90 seconds
+						h4(class="card-title") Log
+					div(class="card-body")
+						p(style="font-family: monospace; white-space: nowrap; overflow: auto;") !{logdata}

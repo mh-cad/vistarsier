@@ -1,0 +1,17 @@
+extends template.pug
+block content
+	div(class="content")
+		div(class="row")
+			div(class="col-md-12")
+				div(class="card")
+					div(class="card-header")
+						h4(class="card-title") Manually Add a Case
+					div(class="card-body" style="padding:50px")
+						form
+							small(class="form-text text-muted") Accession
+							input(type="text" class="form-control" name="accession")
+							small(class="form-text text-muted") Source PACS system
+							select(class="form-control" name="source")
+								option RMHSYNSCP
+								option RMHSYNMINISCP
+							button(type="submit" class="btn btn-primary") Submit
