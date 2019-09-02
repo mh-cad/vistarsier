@@ -202,6 +202,7 @@ namespace VisTarsier.Service
             }
 
             List<Task> tasks = new List<Task>();
+            var seriesNumber = 1;
             foreach (var resultNii in metrics.ResultFiles)
             {
                 tasks.Add(Task.Run(() =>
@@ -226,7 +227,7 @@ namespace VisTarsier.Service
                     ConvertNiftiToDicom(resultNii.FilePath, dicomFolderPath, sliceType, job.CurrentSeriesDicomFolder,
                                         $"{resultsSeriesDescription}-{description}\n {FormatDate(priorDate)} -> {FormatDate(currentDate)}  [{job.Id}]", job.ReferenceSeriesDicomFolder);
                     // Then add a series description for each file in the dicom folder.
-                    UpdateSeriesDescriptionForAllFiles(dicomFolderPath, $"{resultsSeriesDescription}-{description}");
+                    UpdateSeriesDescriptionForAllFiles(dicomFolderPath, $"{resultsSeriesDescription}-{description}", uidpostfix:seriesNumber++);
 
                     // Since the metadata are all taken from the current study, we're going to want to remove or update inaccurate tags based
                     // on the type of result.
@@ -376,7 +377,7 @@ namespace VisTarsier.Service
         }
 
         private void UpdateSeriesDescriptionForAllFiles(string dicomFolder, string seriesDescription,
-                                                        string orientationDicomFolder = "")
+                                                        string orientationDicomFolder = "", int uidpostfix=1)
         {
             var dicomFiles = Directory.GetFiles(dicomFolder);
             if (dicomFiles.FirstOrDefault() == null)
@@ -390,7 +391,7 @@ namespace VisTarsier.Service
             var dicomTags = DicomFileOps.GetDicomTags(dicomFiles.FirstOrDefault());
             dicomTags.SeriesDescription.Values = new[] { seriesDescription };
 
-            DicomFileOps.GenerateSeriesHeaderForAllFiles(dicomFiles.ToArray(), dicomTags);
+            DicomFileOps.GenerateSeriesHeaderForAllFiles(dicomFiles.ToArray(), dicomTags, uidpostfix);
             if (!string.IsNullOrEmpty(orientationDicomFolder))
                 DicomFileOps.UpdateImagePositionFromReferenceSeries(dicomFiles.ToArray(), orientationDicomFiles);
         }
