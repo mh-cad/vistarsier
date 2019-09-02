@@ -115,9 +115,9 @@ namespace VisTarsier.Dicom
         /// </summary>
         /// <param name="filesPath">List of files to apply the tags to.</param>
         /// <param name="tags">The tags which you'd like to apply to the above files.</param>
-        public static void GenerateSeriesHeaderForAllFiles(string[] filesPath, DicomTagCollection tags)
+        public static void GenerateSeriesHeaderForAllFiles(string[] filesPath, DicomTagCollection tags, int uidpostfix=1)
         {
-            tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid() };
+            tags.SeriesInstanceUid.Values = new[] { GenerateNewSeriesUid(uidpostfix.ToString()) };
             tags.ImageUid.Values = new[] { GenerateNewImageUid() };
             foreach (var filepath in filesPath)
             {
@@ -211,18 +211,21 @@ namespace VisTarsier.Dicom
             return updatedTags;
         }
 
-        public static string GenerateNewStudyUid()
+        public static string GenerateNewStudyUid(string postfix = "1")
         {
+            var tix = DateTime.Now.Ticks % 9999;
             // By the looks, this prefix is assigned from https://www.medicalconnections.co.uk/FreeUID. I assume for us. -P@
-            return $"1.2.826.0.1.3680043.9.7303.1.1.{DateTime.Now:yyyyMMddHHmmssfff}.1";
+            return $"1.2.826.0.1.3680043.9.7303.1.1.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
         }
-        public static string GenerateNewSeriesUid()
+        public static string GenerateNewSeriesUid(string postfix="1")
         {
-            return $"1.2.826.0.1.3680043.9.7303.1.2.{DateTime.Now:yyyyMMddHHmmssfff}.1";
+            var tix = DateTime.Now.Ticks % 9999;
+            return $"1.2.826.0.1.3680043.9.7303.1.2.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
         }
-        public static string GenerateNewImageUid()
+        public static string GenerateNewImageUid(string postfix = "1")
         {
-            return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}.1";
+            var tix = DateTime.Now.Ticks % 9999;
+            return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
         }
 
         public static void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder, bool matchByFilename = false)
