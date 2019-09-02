@@ -44,7 +44,6 @@ namespace VisTarsier.Tests.Config
             Assert.IsTrue(generated.DicomConfig.RemoteNodes.Count == stored.DicomConfig.RemoteNodes.Count);
             Assert.IsTrue(generated.Hl7ProcessPath.Equals(stored.Hl7ProcessPath));
             Assert.IsTrue(generated.ImagePaths.ImageRepositoryPath.Equals(stored.ImagePaths.ImageRepositoryPath));
-            Assert.IsTrue(generated.ImagePaths.PriorReslicedDicomSeriesDescription.Equals(stored.ImagePaths.PriorReslicedDicomSeriesDescription));
             Assert.IsTrue(generated.ImagePaths.ResultsDicomSeriesDescription.Equals(stored.ImagePaths.ResultsDicomSeriesDescription));
             Assert.IsTrue(generated.ProcessCasesAddedByHL7  == stored.ProcessCasesAddedByHL7);
             Assert.IsTrue(generated.ProcessCasesAddedManually  == stored.ProcessCasesAddedManually);
