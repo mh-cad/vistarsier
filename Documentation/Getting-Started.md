@@ -11,7 +11,7 @@ The VisTarsier service is built for Microsoft .NET Framework 4.6.1 and requires 
 We would recommend dedicating at least 8GB of RAM and 120GB of disk space to any machine running VisTarsier. The software is largely CPU bound and will scale well up to 8 cores.
 
 ## Pre-requisites
-###Database
+### Database
 The VisTarsier service uses [Microsoft SQL Server](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) to store its state. This will need to be installed somewhere on the network. It can be installed on the same box as VisTarsier and the Express edition should be sufficient. If you have a requirement for using a different SQL implementation let us know.
 
 ### RIS/HL7
