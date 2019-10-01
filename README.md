@@ -7,26 +7,40 @@ The software is series-specifics agnostic; not only will it work on any pair of 
 
 It is designed to perform all of these steps automatically upon recieving appropriate HL7 messages and retrieves studies from PACS and pushes results back to PACS within a few minutes of study completion. 
 
-It has been retrospecitvely validated in multiple sclerosis (1) and a prospective study is currently undergoing peer review. 
+It has been retrospecitvely (1) and prospectively (2) validated in multiple sclerosis but is not limited to this single indication and can be used in any scenario where followup is performed. 
 
 ## Image examples
 
 ![Figure 1](https://i.imgur.com/itEQK7r.jpg)
 
-**Figure 1:** New demyelinating plaque is high-lighted in orange where as an existing lesion that has reduced in size appears as a green doughnut. 
+**Figure 1:** VT1: New demyelinating plaque is high-lighted in orange where as an existing lesion that has reduced in size appears as a green doughnut. 
 
 
 ![Figure 2](https://i.imgur.com/8EkHwf6.jpg)
 
-**Figure 2:** VisTarsier is particularly helpful in patients with high lesion load or where new lesions abut existing ones. 
+**Figure 2:** VT1: VisTarsier is particularly helpful in patients with high lesion load or where new lesions abut existing ones. 
+
+## Update
+
+The original (validated) version of the software (VT1) has undergone additional development and the current version (VT2) includes a number of improvements: 
+1. bias field correction
+2. reduction of non-parenchymal signal change
+3. improved skull stripping and masking
+4. progress and QA summary
+5. improved browser-based UI
+
+**Figure 3:** VT1 vs VT2
+![Figure 3](https://i.imgur.com/RYErop6)
 
 ## Publications
 
-1. [Retrospective validation] Improving Multiple Sclerosis Plaque Detection Using a Semiautomated Assistive Approach. AJNR 2015: https://www.ncbi.nlm.nih.gov/pubmed/26089318
+1. [Retrospective validation] Improving Multiple Sclerosis Plaque Detection Using a Semiautomated Assistive Approach. AJNR 2015: https://www.ncbi.nlm.nih.gov/pubmed/26089318 
 
-2. Neuroradiologists Compared with Non-Neuroradiologists in the Detection of New Multiple Sclerosis Plaques. AJNR 2017: https://www.ncbi.nlm.nih.gov/pubmed/28473341
+2. [Prostpecive validation] PACS Integration of Semiautomated Imaging Software Improves Day-to-Day MS Disease Activity Detection AJNR 2019: https://www.ncbi.nlm.nih.gov/pubmed/31515214
 
-3. Computer-Aided Detection Can Bridge the Skill Gap in Multiple Sclerosis Monitoring. JACR 2018: https://www.ncbi.nlm.nih.gov/pubmed/28764954
+3. Neuroradiologists Compared with Non-Neuroradiologists in the Detection of New Multiple Sclerosis Plaques. AJNR 2017: https://www.ncbi.nlm.nih.gov/pubmed/28473341
+
+4. Computer-Aided Detection Can Bridge the Skill Gap in Multiple Sclerosis Monitoring. JACR 2018: https://www.ncbi.nlm.nih.gov/pubmed/28764954
 
 ## Grant Support
 
