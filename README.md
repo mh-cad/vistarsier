@@ -29,8 +29,10 @@ The original (validated) version of the software (VT1) has undergone additional 
 4. progress and QA summary
 5. improved browser-based UI
 
-**Figure 3:** VT1 vs VT2
-![Figure 3](https://i.imgur.com/RYErop6)
+**Figure 3-5:** The following images demonstrate VT1 vs VT2 on the same slice of the same patient. 
+![Figure 3](https://i.imgur.com/RYErop6.jpg)
+![Figure 4](https://i.imgur.com/24Wz5w9.jpg)
+![Figure 5](https://i.imgur.com/kU5mJGd.jpg)
 
 ## Publications
 
