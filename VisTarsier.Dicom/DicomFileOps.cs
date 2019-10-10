@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VisTarsier.Config;
+using System.Threading;
 
 namespace VisTarsier.Dicom
 {
@@ -211,21 +212,39 @@ namespace VisTarsier.Dicom
             return updatedTags;
         }
 
+        private static object _uidlock = new object();
+        private static int _uidseq = 0;
+
         public static string GenerateNewStudyUid(string postfix = "1")
         {
-            var tix = DateTime.Now.Ticks % 9999;
-            // By the looks, this prefix is assigned from https://www.medicalconnections.co.uk/FreeUID. I assume for us. -P@
-            return $"1.2.826.0.1.3680043.9.7303.1.1.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
+            lock(_uidlock)
+            {
+                if (_uidseq > 100) _uidseq = 0;
+                var tix = DateTime.Now.Ticks % 9999;
+                Thread.Sleep(5);
+                // By the looks, this prefix is assigned from https://www.medicalconnections.co.uk/FreeUID. I assume for us. -P@
+                return $"1.2.826.0.1.3680043.9.7303.1.1.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{++_uidseq}.{postfix}";
+            }
         }
         public static string GenerateNewSeriesUid(string postfix="1")
         {
-            var tix = DateTime.Now.Ticks % 9999;
-            return $"1.2.826.0.1.3680043.9.7303.1.2.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
+            lock (_uidlock)
+            {
+                if (_uidseq > 100) _uidseq = 0;
+                var tix = DateTime.Now.Ticks % 9999;
+                Thread.Sleep(5);
+                return $"1.2.826.0.1.3680043.9.7303.1.2.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{++_uidseq}.{postfix}";
+            }
         }
         public static string GenerateNewImageUid(string postfix = "1")
         {
-            var tix = DateTime.Now.Ticks % 9999;
-            return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{postfix}";
+            lock (_uidlock)
+            {
+                if (_uidseq > 100) _uidseq = 0;
+                var tix = DateTime.Now.Ticks % 9999;
+                Thread.Sleep(5);
+                return $"1.2.826.0.1.3680043.9.7303.1.3.{DateTime.Now:yyyyMMddHHmmssfff}{tix}.{++_uidseq}.{postfix}";
+            }
         }
 
         public static void ConvertBmpsToDicom(string bmpFolder, string dicomFolder, SliceType sliceType, string dicomHeadersFolder, bool matchByFilename = false)
