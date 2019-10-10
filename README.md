@@ -1,3 +1,6 @@
+## Disclaimer
+This software has not been approved for clinical use and is for research purposes only.
+
 # VisTarsier
 VisTarsier is an opensource medical imaging software platform designed to automate multi-study comparisons. 
 
