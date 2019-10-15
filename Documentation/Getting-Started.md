@@ -34,6 +34,23 @@ There is an option to install VisTarsier Web services. This will publish a web-i
 ## Troubleshooting
 We will add common issues and solutions to this section as they come up, but for now your best bet is to constact vistarsier-at-gmail-dot-com and we will try to help with any issues that come up. This will also help us improve the software.
 
+### The database was not created during installation. 
+This problem may result in a log entry such as:
+```INFO - Cleaning DB...
+FATAL - Invalid object name 'Attempts'
+```
+
+Work around:
+The database can be manually created using the appropriate script for you version in the Documentation/troubleshooting folder of this repo.
+You will also need to add a default recipe to the StoredRecipes table.
+The default values are:
+
+Id = 1,
+UserEditable = false,
+Name = "MS Lesion Compare",
+RecipeString = <the contents of ./cfg/defaultrecipe.json>
+
+
 # Installing the command line tool
 ## Who is this for?
 The command-line tool is for anyone who just needs the core functionality of VisTarsier for either research or testing and validation purposes, or to integrate VisTarsier into their custom workflow.
