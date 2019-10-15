@@ -36,7 +36,8 @@ We will add common issues and solutions to this section as they come up, but for
 
 ### The database was not created during installation. 
 This problem may result in a log entry such as:
-```INFO - Cleaning DB...
+```
+INFO - Cleaning DB...
 FATAL - Invalid object name 'Attempts'
 ```
 
