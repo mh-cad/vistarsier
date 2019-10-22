@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using VisTarsier.Common;
 using VisTarsier.Config;
@@ -40,8 +41,8 @@ namespace VisTarsier.Module.Custom
             Register = Registration.ANTSRegistration;
             Reslicer = Registration.ANTSApplyTransforms;
 
-            _priorPath = priorPath;
-            _currentPath = currentPath;
+            _priorPath = Path.GetFullPath(priorPath);
+            _currentPath = Path.GetFullPath(currentPath);
             _recipe = recipe;
         }
 
@@ -146,11 +147,11 @@ namespace VisTarsier.Module.Custom
             _log.Info("-  Skull stripping...");
             string priorSSMetric = null;
             string currentSSMetric = null;
-            var ssprior = Task.Run(() => SkullStrip(bcprior.Result, (s, e) => { if(e?.Data != null && e.Data.StartsWith("lowest cost")) priorSSMetric = e.Data; }));
-            var sscurrent = Task.Run(() => SkullStrip(bccurrent.Result, (s, e) => { if (e?.Data != null && e.Data.StartsWith("lowest cost")) currentSSMetric = e.Data; }));
+            var ssprior = Task.Run(() => SkullStrip(Path.GetFullPath(bcprior.Result), (s, e) => { if(e?.Data != null && e.Data.StartsWith("lowest cost")) priorSSMetric = e.Data; }));
+            var sscurrent = Task.Run(() => SkullStrip(Path.GetFullPath(bccurrent.Result), (s, e) => { if (e?.Data != null && e.Data.StartsWith("lowest cost")) currentSSMetric = e.Data; }));
 
-            _currentPath = sscurrent.Result;
-            _priorPath = ssprior.Result;
+            _currentPath = Path.GetFullPath(sscurrent.Result);
+            _priorPath = Path.GetFullPath(ssprior.Result);
 
             // Register based on recipe
             _log.Info("-  Registration...");

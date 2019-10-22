@@ -19,7 +19,7 @@ namespace VisTarsier.Tests.NiftiLib
         [TestInitialize]
         public void TestInit()
         {
-            string testResourcesPath = Helper.GetTestResourcesPath() + "/nifti";
+            string testResourcesPath = Path.Combine(Helper.GetTestResourcesPath(), "nifti");
             _minimalNiftiPath = $@"{testResourcesPath}/minimal.nii";
             _minimalNiftiHdrPath = $@"{testResourcesPath}/minimal.hdr";
             _outfile = $@"{testResourcesPath}/out.nii";

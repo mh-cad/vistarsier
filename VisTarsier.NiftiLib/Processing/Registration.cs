@@ -2,6 +2,7 @@
 using VisTarsier.Config;
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace VisTarsier.NiftiLib.Processing
 {
@@ -98,13 +99,13 @@ namespace VisTarsier.NiftiLib.Processing
         public static INifti<float> ANTSRegistration(INifti<float> floating, INifti<float> reference, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
-            string niftiInPath = Tools.TEMPDIR + floating.GetHashCode() + ".antsrego.in.nii";
-            string niftiRefPath = Tools.TEMPDIR + floating.GetHashCode() + ".antsrego.ref.nii";
+            string niftiInPath = Path.GetFullPath(Tools.TEMPDIR + floating.GetHashCode() + ".antsrego.in.nii");
+            string niftiRefPath = Path.GetFullPath(Tools.TEMPDIR + floating.GetHashCode() + ".antsrego.ref.nii");
 
             floating.WriteNifti(niftiInPath);
             reference.WriteNifti(niftiRefPath);
 
-            string niftiOutPath = ANTSRegistration(niftiInPath, niftiRefPath, updates);
+            string niftiOutPath = Path.GetFullPath(ANTSRegistration(niftiInPath, niftiRefPath, updates));
 
             var output = floating.DeepCopy();
             output = output.ReadNifti(niftiOutPath);
@@ -114,7 +115,10 @@ namespace VisTarsier.NiftiLib.Processing
 
         public static string ANTSApplyTransforms(string floatingFile, string referenceFile, DataReceivedEventHandler updates = null)
         {
-            string niftiOutPath = floatingFile + "warped.nii";
+            floatingFile = Path.GetFullPath(floatingFile);
+            referenceFile = Path.GetFullPath(referenceFile);
+
+            string niftiOutPath = Path.Combine("warped.nii");
 
             string args = $@"-d 3 --float 1 -i {floatingFile} -r {referenceFile} -o {niftiOutPath} -n Linear -t {niftiOutPath}0GenericAffine.mat";
 

@@ -8,15 +8,15 @@ namespace VisTarsier.Config
 
         public Binaries(string basePath)
         {
-            N4BiasFieldCorrection = Path.Combine(basePath, "ants/N4BiasFieldCorrection.exe");
-            antsRegistration = Path.Combine(basePath, "ants/antsRegistration.exe");
-            antsApplyTransforms = Path.Combine(basePath, "ants/antsApplyTransforms.exe");
-            bfc = Path.Combine(basePath, "brain_suite/bfc.exe");
-            bse = Path.Combine(basePath, "brain_suite/bse.exe");
-            reformatx = Path.Combine(basePath, "cmtk/reformatx.exe");
-            registration = Path.Combine(basePath, "cmtk/registration.exe");
-            dcm2niix = Path.Combine(basePath, "dicom/dcm2niix.exe");
-            img2dcm = Path.Combine(basePath, "dicom/img2dcm.exe");
+            N4BiasFieldCorrection = Path.GetFullPath(Path.Combine(basePath, "ants/N4BiasFieldCorrection.exe"));
+            antsRegistration = Path.GetFullPath(Path.Combine(basePath, "ants/antsRegistration.exe"));
+            antsApplyTransforms = Path.GetFullPath(Path.Combine(basePath, "ants/antsApplyTransforms.exe"));
+            bfc = Path.GetFullPath(Path.Combine(basePath, "brain_suite/bfc.exe"));
+            bse = Path.GetFullPath(Path.Combine(basePath, "brain_suite/bse.exe"));
+            reformatx = Path.GetFullPath(Path.Combine(basePath, "cmtk/reformatx.exe"));
+            registration = Path.GetFullPath(Path.Combine(basePath, "cmtk/registration.exe"));
+            dcm2niix = Path.GetFullPath(Path.Combine(basePath, "dicom/dcm2niix.exe"));
+            img2dcm = Path.GetFullPath(Path.Combine(basePath, "dicom/img2dcm.exe"));
         }
 
         // ANTS tools.

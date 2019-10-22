@@ -6,7 +6,7 @@ namespace VisTarsier.Config
     {
         public ImagePaths()
         {
-            ImageRepositoryPath = AppDomain.CurrentDomain.BaseDirectory + "ImageRepository/";
+            ImageRepositoryPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../img/");
             ResultsDicomSeriesDescription = "VisTarsier";
         }
 
