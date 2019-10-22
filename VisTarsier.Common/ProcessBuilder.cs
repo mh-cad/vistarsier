@@ -33,12 +33,17 @@ namespace VisTarsier.Common
                                           DataReceivedEventHandler outputDataReceived = null,
                                           DataReceivedEventHandler errorOccuredInProcess = null)
         {
+            fileFullPath = Path.GetFullPath(fileFullPath);
+
             if (!File.Exists(fileFullPath))
                 throw new FileNotFoundException($"Executable file not found at location [{fileFullPath}]");
 
             
             var fileNameExt = Path.GetFileName(fileFullPath);//fileFullPath.Split('\\','/').LastOrDefault();
             var folderPath = Path.GetDirectoryName(fileFullPath); // fileFullPath.Replace($"\\{fileNameExt}", "");
+
+            Log.GetLogger().Debug("Running: " + fileFullPath);
+            Log.GetLogger().Debug("Args: " + arguments);
 
             var process = Build(folderPath, fileNameExt, arguments, workingDir);
 

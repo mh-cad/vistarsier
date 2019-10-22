@@ -1,6 +1,7 @@
 ﻿using VisTarsier.Common;
 using VisTarsier.Config;
 using System.Diagnostics;
+using System.IO;
 
 namespace VisTarsier.NiftiLib.Processing
 {
@@ -15,8 +16,8 @@ namespace VisTarsier.NiftiLib.Processing
         public static INifti<float> BrainSuiteBSE(INifti<float> input, DataReceivedEventHandler updates = null)
         {
             // Setup our temp file names.
-            string niftiInPath = Tools.TEMPDIR + input.GetHashCode() + ".bse.in.nii";
-            string niftiOutPath = Tools.TEMPDIR + input.GetHashCode() + ".bse.out.nii";
+            string niftiInPath = Path.GetFullPath(Tools.TEMPDIR + input.GetHashCode() + ".bse.in.nii");
+            string niftiOutPath = Path.GetFullPath(Tools.TEMPDIR + input.GetHashCode() + ".bse.out.nii");
             // Write nifti to temp directory.
             input.WriteNifti(niftiInPath);
 
@@ -38,8 +39,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns>The path of the output file.</returns>
         public static string BrainSuiteBSE(string inputFile, DataReceivedEventHandler updates = null)
         {
-            string niftiInPath = inputFile;
-            string niftiOutPath = inputFile + ".bse.out.nii";
+            string niftiInPath = Path.GetFullPath(inputFile);
+            string niftiOutPath = Path.GetFullPath(inputFile + ".bse.out.nii");
 
             var args = $"--auto --trim -i {niftiInPath} -o {niftiOutPath}";
 

@@ -123,11 +123,41 @@ namespace VisTarsier.Service
 
             // Setup temp directory for images.
             var capiConfig = CapiConfig.GetConfig();
-            var imageRepositoryPath = capiConfig.ImagePaths.ImageRepositoryPath;
-            job.ProcessingFolder = Path.Combine(capiConfig.ImagePaths.ImageRepositoryPath, job.Attempt.CurrentAccession + "-" + job.Id);
-            job.ResultSeriesDicomFolder = Path.Combine(job.ProcessingFolder, Results);
-            job.PriorReslicedSeriesDicomFolder = Path.Combine(job.ProcessingFolder, PriorResliced);
-            job.ReferenceSeriesDicomFolder = GetReferenceSeriesForRegistration(job, allStudiesForPatient, dicomSource);
+            try
+            {
+                job.ProcessingFolder = Path.GetFullPath(Path.Combine(capiConfig.ImagePaths.ImageRepositoryPath, job.Attempt.CurrentAccession + "-" + job.Id));
+            }
+            catch (Exception ex)
+            {
+                Log.GetLogger().Error($"{capiConfig.ImagePaths.ImageRepositoryPath} may not be a valid path.");
+                Log.GetLogger().Error(ex.Message);
+            }
+            try
+            { 
+               job.ResultSeriesDicomFolder = Path.GetFullPath(Path.Combine(job.ProcessingFolder, Results));
+            }
+            catch (Exception ex)
+            {
+                Log.GetLogger().Error($"{Path.Combine(job.ProcessingFolder, Results)} may not be a valid path.");
+                Log.GetLogger().Error(ex.Message);
+            }
+            try
+            {
+                job.PriorReslicedSeriesDicomFolder = Path.GetFullPath(Path.Combine(job.ProcessingFolder, PriorResliced));
+            }
+            catch (Exception ex)
+            {
+                Log.GetLogger().Error($"{Path.Combine(job.ProcessingFolder, PriorResliced)} may not be a valid path.");
+                Log.GetLogger().Error(ex.Message);
+            }
+            try
+            { 
+                job.ReferenceSeriesDicomFolder = Path.GetFullPath(GetReferenceSeriesForRegistration(job, allStudiesForPatient, dicomSource));
+            }
+            catch (Exception ex)
+            {
+                Log.GetLogger().Info($"{GetReferenceSeriesForRegistration(job, allStudiesForPatient, dicomSource)} may not be a valid path.");
+            }
 
             // Find Prior Study (Floating)
             _log.Info("Finding prior series using recipe provided...");
@@ -169,7 +199,7 @@ namespace VisTarsier.Service
             try
             {
                 job.PriorSeriesDicomFolder = SaveDicomFilesToFilesystem(
-                    priorDicomStudy, job.ProcessingFolder, Prior, dicomSource);
+                        priorDicomStudy, job.ProcessingFolder, Prior, dicomSource);
             }
             catch (Exception ex)
             {
@@ -345,7 +375,7 @@ namespace VisTarsier.Service
 
             CopyDicomFilesToRootFolder(folderPath);
 
-            return folderPath;
+            return Path.GetFullPath(folderPath);
         }
 
         private static void CopyDicomFilesToRootFolder(string folderPath)

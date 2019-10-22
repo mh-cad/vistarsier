@@ -26,9 +26,9 @@ namespace VisTarsier.NiftiLib.Processing
                 return null;
             }
 
-            var niftiPath = Path.Combine(Path.GetDirectoryName(dicomPath), $@"{name}");
+            var niftiPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(dicomPath), name));
 
-            var tmpDir = $@"{Path.GetDirectoryName(niftiPath)}\tmp";
+            var tmpDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(niftiPath), "./tmp"));
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
             FileSystem.DirectoryExistsIfNotCreate(tmpDir);
 
