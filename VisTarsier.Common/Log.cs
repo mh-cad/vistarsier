@@ -38,7 +38,8 @@ namespace VisTarsier.Common
             }
             else
             {
-                return LogManager.GetLogger("test-logger");
+                const string V = "test-logger";
+                return LogManager.GetLogger(V, typeof(Log));
             }
         }
 

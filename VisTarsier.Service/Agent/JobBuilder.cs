@@ -1,5 +1,4 @@
-﻿using VisTarsier.Config;
-using VisTarsier.Dicom.Abstractions;
+﻿using VisTarsier.Dicom.Abstractions;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using System.Text.RegularExpressions;
 using VisTarsier.Common;
 using VisTarsier.Dicom;
 using Newtonsoft.Json;
+using VisTarsier.Config;
 
 namespace VisTarsier.Service
 {
@@ -60,9 +60,9 @@ namespace VisTarsier.Service
         /// <returns></returns>
         public Job Build(Recipe recipe, Attempt attempt)
         {
-            if (recipe.CurrentAccession == null) recipe.CurrentAccession = attempt.CurrentAccession;
+            if (string.IsNullOrEmpty(recipe.CurrentAccession)) recipe.CurrentAccession = attempt.CurrentAccession;
             // TODO: We probably don't need to replace the prior accession since the attempt shouldn't have anything at this stage.
-            if (recipe.PriorAccession == null) recipe.PriorAccession = attempt.PriorAccession;
+            if (string.IsNullOrEmpty(recipe.PriorAccession)) recipe.PriorAccession = attempt.PriorAccession;
             
             // Setup out dicom service.
             var dicomSource = CreateDicomSource(recipe.SourceAet);
