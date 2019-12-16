@@ -8,6 +8,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Common", "VisTarsier.Common\VisTarsier.Common.csproj", "{06C9CB99-3266-4DD0-B790-B94FFC3CB154}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Config", "VisTarsier.Config\VisTarsier.Config.csproj", "{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06C9CB99-3266-4DD0-B790-B94FFC3CB154} = {06C9CB99-3266-4DD0-B790-B94FFC3CB154}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Dicom", "VisTarsier.Dicom\VisTarsier.Dicom.csproj", "{3F6510A2-E0C3-44BB-9976-EE4DD578E6AD}"
 EndProject
@@ -16,6 +19,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Module.MS", "VisTarsier.MS\VisTarsier.Module.MS.csproj", "{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.NiftiLib", "VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj", "{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9BA8E02-1C38-422F-947F-04624859EDC7} = {A9BA8E02-1C38-422F-947F-04624859EDC7}
+		{06C9CB99-3266-4DD0-B790-B94FFC3CB154} = {06C9CB99-3266-4DD0-B790-B94FFC3CB154}
+		{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3} = {A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisTarsier.Service", "VisTarsier.Service\VisTarsier.Service.csproj", "{134CD45F-8D80-4D2B-862A-0341BAA5A4DB}"
 EndProject
