@@ -14,8 +14,6 @@ namespace VisTarsier.CommandLineTool
 
         static void Main(string[] args)
         {
-            FixCfg();
-
             var sw = new Stopwatch();
             sw.Start();
 
@@ -40,7 +38,7 @@ namespace VisTarsier.CommandLineTool
                 prior,
                 current,
                 true, true, true,
-                new string[] { outputPrefix + "vt-increase.nii", outputPrefix + "vt-decrease.nii" }, outputPrefix + "vt-prior.nii");
+                new string[] { outputPrefix + "vt-increase.nii", outputPrefix + "vt-decrease.nii" },  outputPrefix + "vt-prior.nii");
 
             var metrics = pipeline.Process();
 
@@ -67,13 +65,6 @@ namespace VisTarsier.CommandLineTool
             var b = val & 255;
 
             return (uint)(b << 16 | g << 8 | r);
-        }
-
-        private static void FixCfg()
-        {
-            var cfg = Config.CapiConfig.GetConfig();
-            cfg.Binaries = new Config.Binaries(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"3rdparty_bin\"));
-            CapiConfig.WriteConfig(cfg);
         }
     }
 }
