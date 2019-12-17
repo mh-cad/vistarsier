@@ -49,12 +49,10 @@ RUN apt-get update \
   && apt-get install dotnet-sdk-3.0 -y \
   && apt-get install dotnet-runtime-3.0 -y
 
-ENV DOTNET_CLI_TELEMETRY_OPTOUT = 1
+# Extra libs needed
+RUN apt-get install libc6-dev libgdiplus -y
 
-# VisTarsier compile
-#RUN echo "Cloning VisTarsier repo..." \
-#    && cd ~/code \
-#    && git clone https://github.com/mh-cad/vistarsier.git --branch docker
+ENV DOTNET_CLI_TELEMETRY_OPTOUT = 1
 
 RUN mkdir ~/code/vistarsier 
 
