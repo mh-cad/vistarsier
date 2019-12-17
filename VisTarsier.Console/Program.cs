@@ -22,12 +22,15 @@ namespace VisTarsier.CommandLineTool
             if (args.Length < 2)
             {
                 System.Console.WriteLine("Open-Vistarsier requires at least 2 NiftiFiles as input.");
-                System.Console.WriteLine("Usage: vt [prior nifti] [current nifti]");
+                System.Console.WriteLine("Usage: vt [prior nifti] [current nifti] [output-prefix](optional)");
                 return;
             }
 
             var prior = args[0];
             var current = args[1];
+            var outputPrefix = "";
+            if (args.Length > 2) { outputPrefix = args[2]; }
+
             if (!Path.IsPathRooted(prior)) prior = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, prior);
             if (!Path.IsPathRooted(current)) current = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, current);
 
@@ -37,7 +40,7 @@ namespace VisTarsier.CommandLineTool
                 prior,
                 current,
                 true, true, true,
-                new string[] { "vt-increase.nii", "vt-decrease.nii" }, "vt-prior.nii");
+                new string[] { outputPrefix + "vt-increase.nii", outputPrefix + "vt-decrease.nii" }, outputPrefix + "vt-prior.nii");
 
             var metrics = pipeline.Process();
 
