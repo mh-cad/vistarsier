@@ -27,7 +27,6 @@ namespace VisTarsier.Config
         public static CapiConfig GetConfig()
         {
             var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json");
-            Log.GetLogger().Info("Looking for config in " + configFilePath);
 
             return GetConfig(configFilePath);
         }
@@ -68,7 +67,7 @@ namespace VisTarsier.Config
         public static Recipe GetDefaultRecipe()
         {
             Recipe recipe;
-            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\cfg\defaultrecipe.json");
+            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}defaultrecipe.json");
             if (File.Exists(recipePath))
             {
                 var fileContent = File.ReadAllText(recipePath);
@@ -84,7 +83,6 @@ namespace VisTarsier.Config
 
         public static CapiConfig GenerateDefault()
         {
-            Log.GetLogger().Debug("GENERATING NEW FILE PATHS");
             return new CapiConfig
             {
                 AgentDbConnectionString = "Server=;Database=Capi;User Id=;Password=;Connection Timeout=120",
