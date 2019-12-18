@@ -5,9 +5,9 @@
 /*These are the paths to binary tools used by CAPI. They shouldn't need changing unless you have your own versions.*/
 
   "Binaries": {
-    "N4BiasFieldCorrection": "/usr/local/bin/N4BiasFieldCorrection",
-    "antsRegistration": "/usr/local/bin/antsRegistration",
-    "antsApplyTransforms": "/usr/local/bin/antsApplyTransforms",
+    "N4BiasFieldCorrection": "/opt/ants/N4BiasFieldCorrection",
+    "antsRegistration": "/opt/ants/antsRegistration",
+    "antsApplyTransforms": "/opt/ants/antsApplyTransforms",
     "bfc": "/dev/null",
     "bse": "/usr/share/vistarsier/betasbse.sh",
     "reformatx": "/dev/null",
