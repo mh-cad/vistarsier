@@ -20,7 +20,8 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 # Extra libs needed
 RUN apt-get install libc6-dev libgdiplus -y
 
-RUN mkdir ~/code/vistarsier 
+RUN mkdir /root/code/
+RUN mkdir /root/code/vistarsier 
 
 COPY ./VisTarsier.Common/ /root/code/vistarsier/VisTarsier.Common/
 COPY ./VisTarsier.Config/ /root/code/vistarsier/VisTarsier.Config/
