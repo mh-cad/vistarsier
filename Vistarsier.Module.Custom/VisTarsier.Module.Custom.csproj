@@ -49,25 +49,29 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
-      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
+      <Project>{06c9cb99-3266-4dd0-b790-b94ffc3cb154}</Project>
       <Name>VisTarsier.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
-      <Project>{A5C4BDAD-B4D7-4F97-ACF5-EB240748B5D3}</Project>
+      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
       <Name>VisTarsier.Config</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj">
+      <Project>{a9ba8e02-1c38-422f-947f-04624859edc7}</Project>
+      <Name>VisTarsier.Extensions</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.MS\VisTarsier.Module.MS.csproj">
       <Project>{7AC17E16-85BE-4BB4-B1AF-6A0EFF47739B}</Project>
       <Name>VisTarsier.Module.MS</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisTarsier.NiftiLib\VisTarsier.NiftiLib.csproj">
-      <Project>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</Project>
+      <Project>{0a70d1bd-9328-4f9f-9f0c-84e1768b4e72}</Project>
       <Name>VisTarsier.NiftiLib</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

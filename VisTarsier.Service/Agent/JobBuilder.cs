@@ -358,7 +358,7 @@ namespace VisTarsier.Service
 
         private string FindReferenceSeriesInPreviousJobs(string patientId)
         {
-            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
+            var jobWithRefSeries = _context.Jobs.AsEnumerable().LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
                                                                     !string.IsNullOrEmpty(j.Attempt.ReferenceSeries));
 
             return jobWithRefSeries != null && jobWithRefSeries.Attempt != null ? jobWithRefSeries.Attempt.ReferenceSeries : string.Empty;

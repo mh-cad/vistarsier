@@ -58,7 +58,7 @@ namespace VisTarsier.Service
                     }
 
                     // Check if we've been able to create a job for the attempt and update the status.
-                    if (jobs.Where(j => j.AttemptId == attempt.Id).Count() == 0)
+                    if (jobs.AsEnumerable().Where(j => j.AttemptId == attempt.Id).Count() == 0)
                     {
                         @attempt.Status = "Unworkable";
                         @attempt.Comment = "Could not create a job from known recipes";
@@ -67,7 +67,7 @@ namespace VisTarsier.Service
                     {
                         @attempt.Status = "Complete";
                         @attempt.Comment = "Jobs : [";
-                        foreach(var j in jobs.Where(j => j.AttemptId == attempt.Id).ToList())
+                        foreach(var j in jobs.AsEnumerable().Where(j => j.AttemptId == attempt.Id).ToList())
                         {
                             @attempt.Comment += $"{ j.Id},";
                         }

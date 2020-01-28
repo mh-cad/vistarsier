@@ -26,23 +26,23 @@ namespace VisTarsier.Config
 
         public static CapiConfig GetConfig()
         {
-            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json");
+            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json");
 
             return GetConfig(configFilePath);
         }
 
         public static void WriteConfig(CapiConfig config)
         {
-            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json");
-            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}"));
+            var configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json");
+            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}"));
             File.WriteAllText(configFilePath, JsonConvert.SerializeObject(config, new CapiConfigJsonConverter())); 
           
         }
 
         public static void WriteRecipe(Recipe recipe)
         {
-            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}defaultrecipe.json");
-            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @$"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}"));
+            var recipePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}defaultrecipe.json");
+            FileSystem.DirectoryExistsIfNotCreate(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}"));
             File.WriteAllText(recipePath, JsonConvert.SerializeObject(recipe, Formatting.Indented));
         }
 

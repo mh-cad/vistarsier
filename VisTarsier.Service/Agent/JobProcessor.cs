@@ -117,7 +117,14 @@ namespace VisTarsier.Service
             }
             finally
             {
-                Directory.Delete(job.ProcessingFolder, true);
+                // The environment variable VISTARSIER_DEBUG_MODE being on will keep the files for us to look at.
+                //var debugMode = Environment.GetEnvironmentVariable("VISTARSIER_DEBUG_MODE");
+                //Log.GetLogger().Error("Debug mode: " + debugMode);
+                //if (debugMode == null || "ON".Equals(debugMode.ToUpper()) == false)
+                //{
+                    Directory.Delete(job.ProcessingFolder, true);
+                //}
+                
             }
 
             // Update status of job in database.
@@ -191,7 +198,7 @@ namespace VisTarsier.Service
 
             if (job != null)
             {
-                var jobToUpdate = _dbBroker.Jobs.FirstOrDefault(j => j.Id == job.Id);
+                var jobToUpdate = _dbBroker.Jobs.AsEnumerable().FirstOrDefault(j => j.Id == job.Id);
                 if (jobToUpdate == null) throw new Exception($"No job was found in database with id: [{job.Id}]");
 
                 // Check if there is a reference series from last processes for the patient, if not set the current series as reference for future
@@ -218,9 +225,9 @@ namespace VisTarsier.Service
 
                     string dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
 
-                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
-                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
-                    var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
+                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).AsEnumerable().FirstOrDefault());
+                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).AsEnumerable().FirstOrDefault());
+                    var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).AsEnumerable().FirstOrDefault());
                     var description = resultNii.Description;
                     
                     // We're going to begin to convert the Nifti files back to dicom.
