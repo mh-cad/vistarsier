@@ -67,6 +67,15 @@ namespace VisTarsier.Service
             FileSystem.DirectoryExistsIfNotCreate(conf.ManualProcessPath);
             FileSystem.DirectoryExistsIfNotCreate(conf.Hl7ProcessPath);
 
+            var log = Log.GetLogger();
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.antsRegistration + " exists? " + File.Exists(conf.Binaries.antsRegistration));
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.antsApplyTransforms + " exists? " + File.Exists(conf.Binaries.antsApplyTransforms));
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.N4BiasFieldCorrection + " exists? " + File.Exists(conf.Binaries.N4BiasFieldCorrection));
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.img2dcm + " exists? " + File.Exists(conf.Binaries.img2dcm));
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.dcm2niix + " exists? " + File.Exists(conf.Binaries.dcm2niix));
+            log.Info("conf.Binaries.antsRegistration: " + conf.Binaries.bse + " exists? " + File.Exists(conf.Binaries.bse));
+
+
             if (!File.Exists(conf.Binaries.antsRegistration)
                 || !File.Exists(conf.Binaries.antsApplyTransforms)
                 || !File.Exists(conf.Binaries.N4BiasFieldCorrection)
@@ -74,6 +83,7 @@ namespace VisTarsier.Service
                 || !File.Exists(conf.Binaries.dcm2niix)
                 || !File.Exists(conf.Binaries.bse))
             {
+                
                 throw new FileNotFoundException("Could not find one or more essential binaries as referenced in config.json");
             }
         }
@@ -84,6 +94,16 @@ namespace VisTarsier.Service
             if (cfg == null) throw new ApplicationException("Unable to find config file.");
             var dbBroker = new DbBroker(cfg.AgentDbConnectionString);
             var failedCases = dbBroker.GetCaseByStatus("Processing");
+            // Debugging code
+            var log = Log.GetLogger();
+            log.Info("DB Connection good? " + dbBroker.Database.CanConnect());
+            log.Info("------- RECIPES --------");
+            foreach (var recipe in dbBroker.StoredRecipes)
+            {
+                log.Info(recipe.Name + " : " + recipe.RecipeString);
+            }
+            log.Info("------------------------");
+
 
             foreach (var c in failedCases)
             {

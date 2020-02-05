@@ -16,6 +16,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns></returns>
         public static INifti<float> CMTKRegistration(INifti<float> floating, INifti<float> reference, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.in.nii";
             string niftiRefPath = Tools.TEMPDIR + floating.GetHashCode() + ".cmtkrego.ref.nii";

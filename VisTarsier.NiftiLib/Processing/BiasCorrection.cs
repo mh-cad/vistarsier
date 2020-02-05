@@ -14,6 +14,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns>New, corrected nifti</returns>
         public static INifti<float> AntsN4(INifti<float> input, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + input.GetHashCode() + ".antsN4.in.nii";
             string niftiOutPath = Tools.TEMPDIR + input.GetHashCode() + ".antsN4.out.nii";
@@ -39,6 +41,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns>Path for output nifti file.</returns>
         public static string AntsN4(string inputFile, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
             string niftiInPath = inputFile;
             string niftiOutPath = inputFile + ".antsN4.out.nii";
             var args = $"-i {niftiInPath} -o {niftiOutPath}";

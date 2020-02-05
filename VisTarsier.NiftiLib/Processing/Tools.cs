@@ -21,6 +21,9 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns></returns>
         public static string Dcm2Nii(string dicomPath, string name, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
+
             if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomPath))
             {
                 return null;

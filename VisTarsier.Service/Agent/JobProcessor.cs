@@ -117,7 +117,7 @@ namespace VisTarsier.Service
             }
             finally
             {
-                Directory.Delete(job.ProcessingFolder, true);
+                //Directory.Delete(job.ProcessingFolder, true);
             }
 
             // Update status of job in database.
