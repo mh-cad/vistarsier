@@ -34,7 +34,7 @@ namespace VisTarsier.NiftiLib.Processing
             FileSystem.DirectoryExistsIfNotCreate(tmpDir);
 
 
-            var args = $@" -o {tmpDir} {dicomPath}";
+            var args = $" -o \"{tmpDir}\" \"{dicomPath}\"";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.dcm2niix, args, outputDataReceived: updates);
 
