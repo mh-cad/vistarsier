@@ -23,6 +23,7 @@ namespace VisTarsier.NiftiLib.Processing
         {
             if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomPath))
             {
+                Log.GetLogger().Error("Directory " + dicomPath + " does not seem to exist, or is empty.");
                 return null;
             }
 
