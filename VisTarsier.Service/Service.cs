@@ -83,6 +83,7 @@ namespace VisTarsier.Service
             var cfg = CapiConfig.GetConfig();
             if (cfg == null) throw new ApplicationException("Unable to find config file.");
             var dbBroker = new DbBroker(cfg.AgentDbConnectionString);
+            dbBroker.Database.EnsureCreated();
             var failedCases = dbBroker.GetCaseByStatus("Processing");
 
             foreach (var c in failedCases)
