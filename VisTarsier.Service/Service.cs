@@ -21,6 +21,7 @@ namespace VisTarsier.Service
             var log = Log.GetLogger();
             try
             {
+                log.Info(".NET Version: " + Environment.Version.ToString());
                 log.Info("Cleaning DB...");
                 CleanupDatabase();
                 log.Info("Checking config...");

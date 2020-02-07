@@ -12,6 +12,7 @@ namespace VisTarsier.Config
     /// </summary>
     public class CapiConfig
     {
+        public static int tries = 1;
         public Binaries Binaries { get; set; }
         public DicomConfig DicomConfig { get; set; }
         public ImagePaths ImagePaths { get; set; }
@@ -62,8 +63,12 @@ namespace VisTarsier.Config
             if (File.Exists(configFilePath))
             {
                 var configFileContent = File.ReadAllText(configFilePath);
-                Log.GetLogger().Info("Config file contents: ");
-                Log.GetLogger().Info(configFileContent);
+                if (tries > 0)
+                {
+                    Log.GetLogger().Info("Config file contents: ");
+                    Log.GetLogger().Info(configFileContent);
+                    tries--;
+                }
                 config = JsonConvert.DeserializeObject<CapiConfig>(configFileContent, new CapiConfigJsonConverter());
             }
             else

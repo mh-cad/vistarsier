@@ -14,6 +14,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns>The INifti containing the extracted brain.</returns>
         public static INifti<float> BrainSuiteBSE(INifti<float> input, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
             // Setup our temp file names.
             string niftiInPath = Tools.TEMPDIR + input.GetHashCode() + ".bse.in.nii";
             string niftiOutPath = Tools.TEMPDIR + input.GetHashCode() + ".bse.out.nii";
@@ -38,6 +40,8 @@ namespace VisTarsier.NiftiLib.Processing
         /// <returns>The path of the output file.</returns>
         public static string BrainSuiteBSE(string inputFile, DataReceivedEventHandler updates = null)
         {
+            var log = Log.GetLogger();
+            updates = (s, e) => { log.Info($"<{System.Threading.Tasks.Task.CurrentId}> {e.Data}"); };
             string niftiInPath = inputFile;
             string niftiOutPath = inputFile + ".bse.out.nii";
 
