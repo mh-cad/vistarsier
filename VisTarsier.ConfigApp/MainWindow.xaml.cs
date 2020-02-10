@@ -209,10 +209,10 @@ namespace VisTarsier.ConfigApp
             {
                 var webPort = int.Parse(txtWebPort.Text);
 
-                var uiServerFile = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/server.js");
+                var uiServerFile = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{System.IO.Path.DirectorySeparatorChar}web{System.IO.Path.DirectorySeparatorChar}nodejs{System.IO.Path.DirectorySeparatorChar}server.js"));
 
                 // Setup Dicom backend
-                var dicomServerFile = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/restfuldicom/rest-dicom.py");
+                var dicomServerFile = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{System.IO.Path.DirectorySeparatorChar}web{System.IO.Path.DirectorySeparatorChar}restfuldicom{System.IO.Path.DirectorySeparatorChar}rest-dicom.py"));
                 var dsf = File.ReadAllLines(dicomServerFile);
                 for (int i = 0; i < dsf.Length; ++i)
                 {
@@ -272,8 +272,8 @@ namespace VisTarsier.ConfigApp
                     $"exports.LOCAL_PORT = {txtWebPort.Text};"
                 };
 
-                FileSystem.DirectoryExistsIfNotCreate(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/"));
-                File.WriteAllLines(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js"), confJS);
+                FileSystem.DirectoryExistsIfNotCreate(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/")));
+                File.WriteAllLines(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js")), confJS);
             }
             catch (Exception) { ShowError("Could not write JS settings."); return; }
 

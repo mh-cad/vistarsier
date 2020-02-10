@@ -370,7 +370,7 @@ namespace VisTarsier.Service
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
-            var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
+            var folderPath = Path.GetFullPath(Path.Combine(jobProcessingFolder, studyName, Dicom));
 
             dicomSource.SaveSeriesToLocalDisk(series, folderPath);
 
@@ -392,7 +392,7 @@ namespace VisTarsier.Service
             var files = Directory.GetFiles(seriesFolderPath);
 
             for (var i = 0; i < files.Length; i++)
-                File.Move(files[i], Path.Combine(folderPath, i.ToString("D3")));
+                File.Move(files[i], Path.GetFullPath(Path.Combine(folderPath, i.ToString("D3"))));
 
             Directory.Delete(studyFolderPath, true);
         }

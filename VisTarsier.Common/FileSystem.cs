@@ -8,18 +8,11 @@ namespace VisTarsier.Common
     {
         public static bool DirectoryExistsIfNotCreate(string directoryPath)
         {
-            var pathSections = directoryPath.Split('\\');
-            if (pathSections.Length < 1) return false;
-            if (pathSections.Length == 1) return Directory.Exists(directoryPath);
+            if (Directory.Exists(directoryPath)) { return true; }
+
             try
             {
-                var path = pathSections[0] + '\\';
-                for (var i = 1; i < pathSections.Length; i++)
-                {
-                    var pathToCheck = Path.Combine(path, pathSections[i]);
-                    if (!Directory.Exists(pathToCheck)) Directory.CreateDirectory(pathToCheck);
-                    path = Path.Combine(path, pathSections[i]);
-                }
+                Directory.CreateDirectory(directoryPath);
                 return true;
             }
             catch (Exception e)
@@ -33,7 +26,9 @@ namespace VisTarsier.Common
         {
 
             if (Directory.Exists(target))
-                throw new Exception($"Directory {target} exists already. Unable to copy to destination.");
+            { 
+                throw new Exception($"Directory {target} exists already. Unable to copy to destination."); 
+            }
 
             Directory.CreateDirectory(target);
 

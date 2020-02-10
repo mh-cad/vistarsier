@@ -21,7 +21,7 @@ namespace VisTarsier.NiftiLib.Processing
             // Write nifti to temp directory.
             input.WriteNifti(niftiInPath);
 
-            var args = $"--auto --trim -i {niftiInPath} -o {niftiOutPath}";
+            var args = $"--auto --trim -i \"{niftiInPath}\" -o \"{niftiOutPath}\"";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.bse, args, outputDataReceived: updates);
 
@@ -42,7 +42,7 @@ namespace VisTarsier.NiftiLib.Processing
             string niftiInPath = Path.GetFullPath(inputFile);
             string niftiOutPath = Path.GetFullPath(inputFile + ".bse.out.nii");
 
-            var args = $"--auto --trim -i {niftiInPath} -o {niftiOutPath}";
+            var args = $"--auto --trim -i \"{niftiInPath}\" -o \"{niftiOutPath}\"";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.bse, args, outputDataReceived: updates);
 

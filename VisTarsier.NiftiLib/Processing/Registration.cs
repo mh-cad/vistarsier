@@ -51,10 +51,10 @@ namespace VisTarsier.NiftiLib.Processing
 
             Environment.SetEnvironmentVariable("CMTK_WRITE_UNCOMPRESSED", "1");
 
-            var args = $"-o {regOutPath} {niftiRefPath} {niftiInPath}";
+            var args = $"-o \"{regOutPath}\" \"{niftiRefPath}\" \"{niftiInPath}\"";
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.registration, args, outputDataReceived: updates);
 
-            args = $"-o {niftiOutPath} --floating {niftiInPath} {niftiRefPath} {regOutPath}";
+            args = $"-o \"{niftiOutPath}\" --floating \"{niftiInPath}\" \"{niftiRefPath}\" \"{regOutPath}\"";
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
 
             return niftiOutPath;
@@ -67,7 +67,7 @@ namespace VisTarsier.NiftiLib.Processing
 
             string regOutPath = "reg";
 
-            var args = $"-o {niftiOutPath} --floating {floatingFile} {niftiRefPath} {regOutPath}";
+            var args = $"-o \"{niftiOutPath}\" --floating \"{floatingFile}\" \"{niftiRefPath}\" \"{regOutPath}\"";
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.reformatx, args, outputDataReceived: updates);
 
             return niftiOutPath;
@@ -89,7 +89,7 @@ namespace VisTarsier.NiftiLib.Processing
             // --shrink-factors 8x4x2x1 :: shrink factors control the resolution at each level
             // --smoothing-sigmas 3x2x1x0vox :: not really sure what smoothing sigmas do but the values should be fine
             // --output [_, {niftiOutPath}] :: output the transform value + our sweet nifti file.
-            var args = $@" --dimensionality 3 --float 1 --interpolation Linear --use-histogram-matching 0 --initial-moving-transform [{fixedFile},{floatingFile}, 1] --transform Affine[0.1] --metric MI[{fixedFile},{floatingFile},1,32,Regular,0.25] --convergence [1000x500x250x100,1e-6,10] --shrink-factors 8x4x2x1 --smoothing-sigmas 3x2x1x0vox --output [{niftiOutPath}, {niftiOutPath}]";
+            var args = $" --dimensionality 3 --float 1 --interpolation Linear --use-histogram-matching 0 --initial-moving-transform [\"{fixedFile}\",\"{floatingFile}\", 1] --transform Affine[0.1] --metric MI[\"{fixedFile}\",\"{floatingFile}\",1,32,Regular,0.25] --convergence [1000x500x250x100,1e-6,10] --shrink-factors 8x4x2x1 --smoothing-sigmas 3x2x1x0vox --output [\"{niftiOutPath}\", \"{niftiOutPath}\"]";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.antsRegistration, args, outputDataReceived: updates);
 
@@ -120,7 +120,7 @@ namespace VisTarsier.NiftiLib.Processing
 
             string niftiOutPath = Path.Combine("warped.nii");
 
-            string args = $@"-d 3 --float 1 -i {floatingFile} -r {referenceFile} -o {niftiOutPath} -n Linear -t {niftiOutPath}0GenericAffine.mat";
+            string args = $"-d 3 --float 1 -i \"{floatingFile}\" -r \"{referenceFile}\" -o \"{niftiOutPath}\" -n Linear -t \"{niftiOutPath}0GenericAffine.mat\"";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.antsApplyTransforms, args, outputDataReceived: updates);
 
