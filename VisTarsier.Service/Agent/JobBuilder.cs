@@ -194,6 +194,13 @@ namespace VisTarsier.Service
                 _log.Error("Failed to save current series dicom files to disk.", ex);
                 throw ex;
             }
+            
+            if (Directory.EnumerateFiles(job.CurrentSeriesDicomFolder) < 1)
+            {
+                _log.Error($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw Exception($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+            }
+
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             _log.Info("Saving prior series to disk...");
@@ -207,6 +214,13 @@ namespace VisTarsier.Service
                 _log.Error("Failed to save prior series dicom files to disk.", ex);
                 throw;
             }
+
+            if (Directory.EnumerateFiles(job.PriorSeriesDicomFolder) < 1)
+            {
+                _log.Error($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw Exception($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+            }
+
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
             // All done.
