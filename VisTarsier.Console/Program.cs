@@ -29,8 +29,8 @@ namespace VisTarsier.CommandLineTool
             var outputPrefix = "";
             if (args.Length > 2) { outputPrefix = args[2]; }
 
-            if (!Path.IsPathRooted(prior)) prior = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, prior);
-            if (!Path.IsPathRooted(current)) current = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, current);
+            if (!Path.IsPathRooted(prior)) prior = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, prior));
+            if (!Path.IsPathRooted(current)) current = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, current));
 
             // Create an MS pipeline.
             var pipeline = new MSPipeline(

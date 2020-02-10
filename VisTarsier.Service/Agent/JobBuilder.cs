@@ -195,10 +195,10 @@ namespace VisTarsier.Service
                 throw ex;
             }
             
-            if (Directory.EnumerateFiles(job.CurrentSeriesDicomFolder) < 1)
+            if (Directory.EnumerateFiles(job.CurrentSeriesDicomFolder).Count() < 1)
             {
                 _log.Error($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
-                throw Exception($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw new Exception($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
             }
 
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
@@ -215,10 +215,10 @@ namespace VisTarsier.Service
                 throw;
             }
 
-            if (Directory.EnumerateFiles(job.PriorSeriesDicomFolder) < 1)
+            if (Directory.EnumerateFiles(job.PriorSeriesDicomFolder).Count() < 1)
             {
                 _log.Error($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
-                throw Exception($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw new Exception($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
             }
 
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
