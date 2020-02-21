@@ -1,5 +1,4 @@
-﻿using VisTarsier.Config;
-using VisTarsier.Dicom.Abstractions;
+﻿using VisTarsier.Dicom.Abstractions;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using System.Text.RegularExpressions;
 using VisTarsier.Common;
 using VisTarsier.Dicom;
 using Newtonsoft.Json;
+using VisTarsier.Config;
 
 namespace VisTarsier.Service
 {
@@ -60,9 +60,9 @@ namespace VisTarsier.Service
         /// <returns></returns>
         public Job Build(Recipe recipe, Attempt attempt)
         {
-            if (recipe.CurrentAccession == null) recipe.CurrentAccession = attempt.CurrentAccession;
+            if (string.IsNullOrEmpty(recipe.CurrentAccession)) recipe.CurrentAccession = attempt.CurrentAccession;
             // TODO: We probably don't need to replace the prior accession since the attempt shouldn't have anything at this stage.
-            if (recipe.PriorAccession == null) recipe.PriorAccession = attempt.PriorAccession;
+            if (string.IsNullOrEmpty(recipe.PriorAccession)) recipe.PriorAccession = attempt.PriorAccession;
             
             // Setup out dicom service.
             var dicomSource = CreateDicomSource(recipe.SourceAet);
@@ -194,6 +194,13 @@ namespace VisTarsier.Service
                 _log.Error("Failed to save current series dicom files to disk.", ex);
                 throw ex;
             }
+            
+            if (Directory.EnumerateFiles(job.CurrentSeriesDicomFolder).Count() < 1)
+            {
+                _log.Error($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw new Exception($"Could not find any dicom files for current series in directory {job.CurrentSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+            }
+
             _log.Info($"Saved current series to [{job.CurrentSeriesDicomFolder}]");
 
             _log.Info("Saving prior series to disk...");
@@ -207,6 +214,13 @@ namespace VisTarsier.Service
                 _log.Error("Failed to save prior series dicom files to disk.", ex);
                 throw;
             }
+
+            if (Directory.EnumerateFiles(job.PriorSeriesDicomFolder).Count() < 1)
+            {
+                _log.Error($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+                throw new Exception($"Could not find any dicom files for prior series in directory {job.PriorSeriesDicomFolder}. Check that Accession exists and you can perform a CMOVE to this machine.");
+            }
+
             _log.Info($"Saved prior series to [{job.PriorReslicedSeriesDicomFolder}]");
 
             // All done.
@@ -358,7 +372,7 @@ namespace VisTarsier.Service
 
         private string FindReferenceSeriesInPreviousJobs(string patientId)
         {
-            var jobWithRefSeries = _context.Jobs.LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
+            var jobWithRefSeries = _context.Jobs.AsEnumerable().LastOrDefault(j => j.Attempt != null && j.Attempt.PatientId == patientId &&
                                                                     !string.IsNullOrEmpty(j.Attempt.ReferenceSeries));
 
             return jobWithRefSeries != null && jobWithRefSeries.Attempt != null ? jobWithRefSeries.Attempt.ReferenceSeries : string.Empty;
@@ -370,7 +384,7 @@ namespace VisTarsier.Service
         {
             var series = dicomStudy.Series.FirstOrDefault();
 
-            var folderPath = Path.Combine(jobProcessingFolder, studyName, Dicom);
+            var folderPath = Path.GetFullPath(Path.Combine(jobProcessingFolder, studyName, Dicom));
 
             dicomSource.SaveSeriesToLocalDisk(series, folderPath);
 
@@ -392,7 +406,7 @@ namespace VisTarsier.Service
             var files = Directory.GetFiles(seriesFolderPath);
 
             for (var i = 0; i < files.Length; i++)
-                File.Move(files[i], Path.Combine(folderPath, i.ToString("D3")));
+                File.Move(files[i], Path.GetFullPath(Path.Combine(folderPath, i.ToString("D3"))));
 
             Directory.Delete(studyFolderPath, true);
         }

@@ -1,133 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0A70D1BD-9328-4F9F-9F0C-84E1768B4E72}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisTarsier.NiftiLib</RootNamespace>
-    <AssemblyName>VisTarsier.NiftiLib</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+     <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="ClearCanvas.Dicom">
-      <HintPath>..\lib\ClearCanvas.Dicom.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.7.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="MathNet.Numerics" Version="4.9.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ColorMaps.cs" />
-    <Compile Include="INifti.cs" />
-    <Compile Include="INiftiHeader.cs" />
-    <Compile Include="NiftiBase.cs" />
-    <Compile Include="NiftiFloat32.cs" />
-    <Compile Include="NiftiHeader.cs" />
-    <Compile Include="NiftiType.cs" />
-    <Compile Include="Processing\BiasCorrection.cs" />
-    <Compile Include="Processing\BrainExtraction.cs" />
-    <Compile Include="Processing\Pipeline.cs" />
-    <Compile Include="Processing\Metrics.cs" />
-    <Compile Include="Processing\Normalization.cs" />
-    <Compile Include="Processing\Registration.cs" />
-    <Compile Include="Processing\Compare.cs" />
-    <Compile Include="Processing\ResultFile.cs" />
-    <Compile Include="Processing\Tools.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj" />
+    <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj" />
+    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\VisTarsier.Common\VisTarsier.Common.csproj">
-      <Project>{06C9CB99-3266-4DD0-B790-B94FFC3CB154}</Project>
-      <Name>VisTarsier.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisTarsier.Config\VisTarsier.Config.csproj">
-      <Project>{a5c4bdad-b4d7-4f97-acf5-eb240748b5d3}</Project>
-      <Name>VisTarsier.Config</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj">
-      <Project>{a9ba8e02-1c38-422f-947f-04624859edc7}</Project>
-      <Name>VisTarsier.Extensions</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="3rdparty_bin\ants\antsApplyTransforms.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\ants\antsRegistration.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\ants\N4BiasFieldCorrection.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\brain_suite\bfc.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\brain_suite\bse.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\cmtk\libfftw3-3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\cmtk\libfftw3f-3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\cmtk\libfftw3l-3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\cmtk\reformatx.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\cmtk\registration.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\dicom\dcm2niix.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="3rdparty_bin\dicom\zlib1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

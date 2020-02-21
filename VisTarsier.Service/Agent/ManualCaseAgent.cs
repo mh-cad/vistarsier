@@ -63,7 +63,7 @@ namespace VisTarsier.Service
                 {
                     // Check if the attempt has been added to the database already.
                     var matchingAttempts =
-                        dbBroker.Attempts.Where(
+                        dbBroker.Attempts.AsEnumerable().Where(
                             (a) => a.CurrentAccession == attempt.CurrentAccession
                                     && a.Method == Attempt.AdditionMethod.Manually
                                     && "Pending" == a.Status
@@ -86,7 +86,7 @@ namespace VisTarsier.Service
                 foreach (var file in Directory.GetFiles(cfg.ManualProcessPath))
                 {
                     var accession = Path.GetFileNameWithoutExtension(file.ToLower().Replace(".json", ""));
-                    if (attempts.Where(a => a.CurrentAccession.ToUpper().Equals(accession.ToUpper())).Count() > 0)
+                    if (attempts.AsEnumerable().Where(a => a.CurrentAccession.ToUpper().Equals(accession.ToUpper())).Count() > 0)
                     {
                         log.Info($"Cleaning {file}");
                         File.Delete(file);

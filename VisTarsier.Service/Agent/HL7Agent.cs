@@ -29,7 +29,7 @@ namespace VisTarsier.Service
                 {
                     // Check if the attempt has been added to the database already.
                     var matchingAttempts =
-                        dbBroker.Attempts.Where(
+                        dbBroker.Attempts.AsQueryable().Where(
                             (a) => a.CurrentAccession == attempt.CurrentAccession && a.Method == Attempt.AdditionMethod.Hl7);
                     // If not add it.
                     if (matchingAttempts.Count() == 0)

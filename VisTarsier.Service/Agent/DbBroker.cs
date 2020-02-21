@@ -32,12 +32,12 @@ namespace VisTarsier.Service
 
         public IEnumerable<Attempt> GetCaseByStatus(string status)
         {
-            return Attempts.Where(c => c != null && c.Status != null && c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return Attempts.AsEnumerable().Where(c => c != null && c.Status != null && c.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
 
         public IEnumerable<Job> GetJobByStatus(string status)
         {
-            return Jobs.Where(j => j != null && j.Status != null && j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return Jobs.AsEnumerable().Where(j => j != null && j.Status != null && j.Status.Equals(status, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
     }
 }

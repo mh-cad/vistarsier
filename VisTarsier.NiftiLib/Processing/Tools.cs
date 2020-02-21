@@ -23,17 +23,18 @@ namespace VisTarsier.NiftiLib.Processing
         {
             if (!FileSystem.DirectoryIsValidAndNotEmpty(dicomPath))
             {
+                Log.GetLogger().Error("Directory " + dicomPath + " does not seem to exist, or is empty.");
                 return null;
             }
 
             var niftiPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(dicomPath), name));
 
-            var tmpDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(niftiPath), "./tmp"));
+            var tmpDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(niftiPath), "tmp"));
             if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
             FileSystem.DirectoryExistsIfNotCreate(tmpDir);
 
 
-            var args = $@" -o {tmpDir} {dicomPath}";
+            var args = $" -o \"{tmpDir}\" \"{dicomPath}\"";
 
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.dcm2niix, args, outputDataReceived: updates);
 
@@ -44,6 +45,25 @@ namespace VisTarsier.NiftiLib.Processing
             // This is in case we have a reference slide at the front or end of the dicom stack, which can happen.
             var nims = outFiles.Where(f => Path.GetExtension(f) == ".nii").OrderByDescending(f => new FileInfo(f)?.Length);
             var nim = nims.FirstOrDefault();
+
+            if(nim == null)
+            {
+                if (!File.Exists(CapiConfig.GetConfig().Binaries.dcm2niix))
+                {
+                    Log.GetLogger().Error("Could not find dcm2niix at: " + CapiConfig.GetConfig().Binaries.dcm2niix);
+                }
+
+                var log = Log.GetLogger();
+                log.Error("Could not find valid output for dcm2niix. Files output were: ");
+
+                foreach (var of in outFiles)
+                {
+                    log.Error($"[{of}]");        
+                }
+
+                throw new FileNotFoundException("Could not find output of dcm2niix");
+            }
+
             if (File.Exists(niftiPath)) File.Delete(niftiPath);
             File.Move(nim, niftiPath);
 

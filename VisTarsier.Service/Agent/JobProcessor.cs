@@ -106,7 +106,7 @@ namespace VisTarsier.Service
             {
                 // Hacky error handling. Attempt to send results slide to DICOM.
                 // Obviously this won't work in all cases.
-                string metadataPath = Path.Combine(job.ResultSeriesDicomFolder, "metadata");
+                string metadataPath = Path.GetFullPath(Path.Combine(job.ResultSeriesDicomFolder, "metadata"));
                 FileSystem.DirectoryExistsIfNotCreate(metadataPath);
                 var failedResults = GenerateResultsSlide(new Metrics() { Passed = false, Notes = e.Message }, DicomFileOps.GetDicomTags(SummarySlidePath), job, metadataPath, "N/A");
                 SendToDestinations(new JobResult[] { new JobResult { DicomFolderPath = metadataPath } }, job);
@@ -117,7 +117,14 @@ namespace VisTarsier.Service
             }
             finally
             {
-                Directory.Delete(job.ProcessingFolder, true);
+                // The environment variable VISTARSIER_DEBUG_MODE being on will keep the files for us to look at.
+                //var debugMode = Environment.GetEnvironmentVariable("VISTARSIER_DEBUG_MODE");
+                //Log.GetLogger().Error("Debug mode: " + debugMode);
+                //if (debugMode == null || "ON".Equals(debugMode.ToUpper()) == false)
+                //{
+                    Directory.Delete(job.ProcessingFolder, true);
+                //}
+                
             }
 
             // Update status of job in database.
@@ -155,7 +162,7 @@ namespace VisTarsier.Service
             // We're getting result files based on paths for look up tables??? //TODO deconvolve...
             //var resultNiis = BuildResultNiftiPathsFromLuts(lookupTablePaths, workingDir).ToArray();
             // Create results folder
-            var allResultsFolder = Path.Combine(workingDir, ResultsFolderName);
+            var allResultsFolder = Path.GetFullPath(Path.Combine(workingDir, ResultsFolderName));
             FileSystem.DirectoryExistsIfNotCreate(allResultsFolder);
   
 
@@ -186,12 +193,12 @@ namespace VisTarsier.Service
             var metrics = pipe.Process();
 
             var results = new List<JobResult>();
-            string metadataPath = Path.Combine(allResultsFolder, "resultmetadata");
+            string metadataPath = Path.GetFullPath(Path.Combine(allResultsFolder, "resultmetadata"));
             Directory.CreateDirectory(metadataPath);
 
             if (job != null)
             {
-                var jobToUpdate = _dbBroker.Jobs.FirstOrDefault(j => j.Id == job.Id);
+                var jobToUpdate = _dbBroker.Jobs.AsEnumerable().FirstOrDefault(j => j.Id == job.Id);
                 if (jobToUpdate == null) throw new Exception($"No job was found in database with id: [{job.Id}]");
 
                 // Check if there is a reference series from last processes for the patient, if not set the current series as reference for future
@@ -218,9 +225,9 @@ namespace VisTarsier.Service
 
                     string dicomFolderPath = resultNii.FilePath.Replace(".nii", ".dicom");
 
-                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).FirstOrDefault());
-                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
-                    var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).FirstOrDefault());
+                    var priorDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.PriorSeriesDicomFolder).AsEnumerable().FirstOrDefault());
+                    var currentDate = GetStudyDateFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).AsEnumerable().FirstOrDefault());
+                    var sliceType = GetSliceTypeFromDicomFile(Directory.GetFiles(job.CurrentSeriesDicomFolder).AsEnumerable().FirstOrDefault());
                     var description = resultNii.Description;
                     
                     // We're going to begin to convert the Nifti files back to dicom.
@@ -311,7 +318,7 @@ namespace VisTarsier.Service
             FileSystem.DirectoryExistsIfNotCreate(allResultsFolder);
 
             // Make our metadata...
-            string metadataPath = Path.Combine(allResultsFolder, "metadata");
+            string metadataPath = Path.GetFullPath(Path.Combine(allResultsFolder, "metadata"));
             FileSystem.DirectoryExistsIfNotCreate(metadataPath); 
 
             string summary = GenerateSummarySlide(
@@ -532,12 +539,12 @@ namespace VisTarsier.Service
             var currentDateField = new Point(204, 557);
             var currentDescField = new Point(175, 597);
 
-            var outfile = Path.Combine(outfolder, "summary.dcm");
+            var outfile = Path.GetFullPath(Path.Combine(outfolder, "summary.dcm"));
 
             var priorTags = DicomFileOps.GetDicomTags(priorDcm);
             var currentTags = DicomFileOps.GetDicomTags(currentDcm);
 
-            var bmppath = Path.Combine(".", "resources", "templates", "summary.bmp");
+            var bmppath = Path.GetFullPath(Path.Combine(".", "resources", "templates", "summary.bmp"));
             Bitmap slide = new Bitmap(bmppath);
             using (var g = Graphics.FromImage(slide))
             {
@@ -605,7 +612,7 @@ namespace VisTarsier.Service
             var priorTags = DicomFileOps.GetDicomTags(priorDcm);
             var currentTags = DicomFileOps.GetDicomTags(currentDcm);
 
-            var outpath = Path.Combine(outFolder, "metadata.dcm");
+            var outpath = Path.GetFullPath(Path.Combine(outFolder, "metadata.dcm"));
 
             // References for bitmap template (TODO: Maybe we could put these in a file for easy changing)
             //var col1X = 77;
@@ -615,7 +622,7 @@ namespace VisTarsier.Service
             var rowstartY = 213;
 
             // Lots of ugly code to position text.
-            Bitmap slide = new Bitmap(Path.Combine("resources", "templates", "metadata.bmp"));
+            Bitmap slide = new Bitmap(Path.GetFullPath(Path.Combine("resources", "templates", "metadata.bmp")));
             using (var g = Graphics.FromImage(slide))
             {
                 var font = new Font("Courier New", 12);
@@ -751,8 +758,8 @@ namespace VisTarsier.Service
         {
             var output = new List<string>();
 
-            var resultFile = Path.Combine(outFolder, "resultsSummary.dcm");
-            var bmppath = Path.Combine(".", "resources", "templates", "results.bmp");
+            var resultFile = Path.GetFullPath(Path.Combine(outFolder, "resultsSummary.dcm"));
+            var bmppath = Path.GetFullPath(Path.Combine(".", "resources", "templates", "results.bmp"));
             var comment = results.Notes;
 
             // Do some line splitting on the comments.
@@ -820,7 +827,7 @@ namespace VisTarsier.Service
 
             for (int i = 0; i < results.ResultsSlides.Length; ++i)
             {
-                var outpath = Path.Combine(outFolder, $"results{i+60}.dcm");
+                var outpath = Path.GetFullPath(Path.Combine(outFolder, $"results{i+60}.dcm"));
                 var bmp = new Bitmap(results.ResultsSlides[i]);
                 bmp.Save($"{outpath}.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
                 _log.Info($"Written: {outpath}.bmp");
@@ -861,7 +868,7 @@ namespace VisTarsier.Service
             foreach (var fsDestination in job.Recipe.OutputSettings.FilesystemDestinations)
             {
                 var jobFolderName = Path.GetFileName(job.ProcessingFolder) ?? throw new InvalidOperationException();
-                var destJobFolderPath = Path.Combine(fsDestination, jobFolderName);
+                var destJobFolderPath = Path.GetFullPath(Path.Combine(fsDestination, jobFolderName));
 
                 _log.Info($"Sending to folder [{destJobFolderPath}]...");
                 if (job.Recipe.OutputSettings.OnlyCopyResults)
@@ -870,7 +877,7 @@ namespace VisTarsier.Service
                     {
                         var resultParentFolderPath = Path.GetDirectoryName(result.NiftiFilePath);
                         var resultParentFolderName = Path.GetFileName(resultParentFolderPath);
-                        var resultDestinationFolder = Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException());
+                        var resultDestinationFolder = Path.GetFullPath(Path.Combine(destJobFolderPath, resultParentFolderName ?? throw new InvalidOperationException()));
                         FileSystem.CopyDirectory(resultParentFolderPath, resultDestinationFolder);
                     }
 

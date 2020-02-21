@@ -351,12 +351,16 @@ namespace VisTarsier.Dicom
             String seriesInstanceUid = null;
             DicomUid sopInstanceUid = null;
             String patientName = null;
+            String accession = null;
+            String instanceNumber = null;
 
             bool ok = message.DataSet[DicomTags.SopInstanceUid].TryGetUid(0, out sopInstanceUid);
             if (ok) ok = message.DataSet[DicomTags.SeriesInstanceUid].TryGetString(0, out seriesInstanceUid);
             if (ok) ok = message.DataSet[DicomTags.StudyInstanceUid].TryGetString(0, out studyInstanceUid);
             if (ok) ok = message.DataSet[DicomTags.PatientsName].TryGetString(0, out patientName);
-		
+            if (ok) ok = message.DataSet[DicomTags.AccessionNumber].TryGetString(0, out accession);
+            if (ok) ok = message.DataSet[DicomTags.InstanceNumber].TryGetString(0, out instanceNumber);
+
             if (!ok)
             {
                 Platform.Log(LogLevel.Error, "Unable to retrieve UIDs from request message, sending failure status.");
@@ -387,12 +391,13 @@ namespace VisTarsier.Dicom
                 Directory.CreateDirectory(StorageLocation);
 
             var path = new StringBuilder();
+            var series = seriesInstanceUid.Length > 8 ? seriesInstanceUid.Substring(seriesInstanceUid.Length - 8) : seriesInstanceUid;
             path.AppendFormat("{0}{1}{2}{3}{4}", StorageLocation,  Path.DirectorySeparatorChar,
-                studyInstanceUid, Path.DirectorySeparatorChar,seriesInstanceUid);
+                accession, Path.DirectorySeparatorChar, series);
 
             Directory.CreateDirectory(path.ToString());
 
-            path.AppendFormat("{0}{1}.dcm", Path.DirectorySeparatorChar, sopInstanceUid.UID);
+            path.AppendFormat("{0}{1}.dcm", Path.DirectorySeparatorChar, instanceNumber);
 
             var dicomFile = new ClearCanvas.Dicom.DicomFile(message, path.ToString())
                                 {

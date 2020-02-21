@@ -29,7 +29,7 @@
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE "d:\utils\VisTarsier2.dev\service\LICENSE.txt"
+  !insertmacro MUI_PAGE_LICENSE "d:\utils\VisTarsier2.dev\service\LICENSE.MD"
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
@@ -137,7 +137,6 @@ Section "Uninstall"
   ExecWait '$INSTDIR\web\nssm.exe stop VisTarsier.Web.Dicom confirm'
   ExecWait '$INSTDIR\web\nssm.exe remove VisTarsier.Web.Dicom confirm'
   ExecWait '$INSTDIR\web\nodejs\qckwinsvc.cmd --uninstall --name VisTarsier-Web-UI --script $INSTDIR\web\nodejs\server.js'
-  ExecWait '$INSTDIR\db\postgresql\uninstall-postgresql.exe'
 
   RMDir /r /REBOOTOK "$INSTDIR\cases"
   RMDir /r /REBOOTOK "$INSTDIR\cfg"

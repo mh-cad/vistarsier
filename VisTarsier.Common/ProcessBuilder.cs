@@ -17,7 +17,7 @@ namespace VisTarsier.Common
                     new ProcessStartInfo
                     {
                         WorkingDirectory = workingDir,
-                        FileName = Path.Combine(processPath, processFileNameExt),
+                        FileName = Path.GetFullPath(Path.Combine(processPath, processFileNameExt)),
                         CreateNoWindow = false,
                         UseShellExecute = false,
                         RedirectStandardError = true,

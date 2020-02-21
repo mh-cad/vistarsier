@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisTarsier.ConfigApp"
         mc:Ignorable="d"
-        Title="VisTarsier Settings" Height="357.995" Width="800" ResizeMode="NoResize" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
+        Title="VisTarsier Settings - Please Complete All Tabs" Height="357.995" Width="800" ResizeMode="NoResize" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
     <TabControl Background="{x:Null}" Margin="0,0,-0.333,0" Height="327" VerticalAlignment="Top">
         <TabItem Header="PACS" Background="{x:Null}">
             <Grid Height="308" VerticalAlignment="Top">
@@ -109,7 +109,7 @@
                 <TextBox x:Name="txtDescription" HorizontalAlignment="Left" Height="23" Margin="236,44,0,-67" TextWrapping="Wrap" Text="VisTarsier" VerticalAlignment="Top" Width="340" Grid.ColumnSpan="4" Grid.Column="1" ToolTip="Description prefix for output."/>
                 <Label x:Name="lblWebPort" Content="Web Port (If Applicable)" HorizontalAlignment="Left" VerticalAlignment="Top" Height="27" Width="164" ToolTip="Port for web interface service" Margin="10,72,0,-99" Grid.Column="1"/>
                 <TextBox x:Name="txtWebPort" HorizontalAlignment="Left" Height="23" Margin="10,98,0,-121" TextWrapping="Wrap" VerticalAlignment="Top" Width="201" Grid.Column="1" Text="5000" ToolTip="Port for web interface service"/>
-                <Button x:Name="button" Content="Save" Height="25" Margin="150.333,103,29,0" VerticalAlignment="Top" IsDefault="True" Click="Button_Click" Grid.Column="2" Grid.ColumnSpan="2"/>
+                <Button x:Name="button" Content="Save And Exit" Height="25" Margin="88.333,103,29,0" VerticalAlignment="Top" IsDefault="True" Click="Button_Click" Grid.Column="2" Grid.ColumnSpan="2"/>
             </Grid>
 
         </TabItem>
