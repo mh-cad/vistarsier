@@ -326,9 +326,9 @@ namespace VisTarsier.Dicom
         {
             var arguments = string.Empty;
             if (!string.IsNullOrEmpty(dicomHeadersFilePath))
-                arguments = $@"-df {dicomHeadersFilePath} "; // Copy dicom headers from dicom file: -df = dataset file
+                arguments = $"-df \"{dicomHeadersFilePath}\" "; // Copy dicom headers from dicom file: -df = dataset file
             
-            arguments += $"-i BMP {bmpFilepath} {dicomFilePath}";
+            arguments += $"-i BMP \"{bmpFilepath}\" \"{dicomFilePath}\"";
             ProcessBuilder.CallExecutableFile(CapiConfig.GetConfig().Binaries.img2dcm, arguments);
         }
 

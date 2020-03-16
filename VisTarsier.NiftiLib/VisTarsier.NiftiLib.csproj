@@ -22,4 +22,43 @@
     <ProjectReference Include="..\VisTarsier.Extensions\VisTarsier.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="3rdparty_bin\ants\antsApplyTransforms.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\ants\antsRegistration.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\ants\N4BiasFieldCorrection.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\brain_suite\bfc.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\brain_suite\bse.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\cmtk\libfftw3-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\cmtk\libfftw3f-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\cmtk\libfftw3l-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\cmtk\reformatx.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\cmtk\registration.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\dicom\dcm2niix.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="3rdparty_bin\dicom\zlib1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

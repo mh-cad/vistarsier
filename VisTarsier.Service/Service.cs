@@ -113,6 +113,7 @@ namespace VisTarsier.Service
 
             try
             {
+                log.Info("DB Connection good? " + dbBroker.Database.CanConnect());
                 var failedCases = dbBroker.GetCaseByStatus("Processing");
 
                 foreach (var c in failedCases)

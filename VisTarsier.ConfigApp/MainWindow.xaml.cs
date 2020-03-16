@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -78,6 +79,15 @@ namespace VisTarsier.ConfigApp
             txtDBName.Text = dbname;
         }
 
+        private void log(string line)
+        {
+            line = $"[{new DateTime().ToString()}] - {line}";
+            var lines = new List<string>();
+            lines.Add(line);
+            File.AppendAllLines(AppDomain.CurrentDomain.BaseDirectory + @"\configlog.txt", lines);
+                
+        }
+
         /// <summary>
         /// This is a helper method to help parse the connection string values from the config.
         /// </summary>
@@ -142,7 +152,6 @@ namespace VisTarsier.ConfigApp
             // Just error checking that timeout is a number.
             try { int.Parse(txtDBTimeout.Text); }
             catch (FormatException) { ShowError("Connection Timeout must be a number"); return; }
-
             // Add database settings.
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
             {
@@ -152,7 +161,6 @@ namespace VisTarsier.ConfigApp
                 InitialCatalog = txtDBName.Text,
             };
             conf.AgentDbConnectionString = builder.ConnectionString;
-
 
             // Set run interval.
             try
@@ -164,7 +172,6 @@ namespace VisTarsier.ConfigApp
                 ShowError("Run Interval must be a number");
                 return;
             }
-
             // Setup remote nodes.
             var nodes = new List<IDicomNode>();
             try
@@ -176,7 +183,6 @@ namespace VisTarsier.ConfigApp
                     LogicalName = txtAETitle.Text,
                     Port = int.Parse(txtAEPort.Text)
                 });
-
                 if (!(bool)chkSameDest.IsChecked)
                 {
                     nodes.Add(new DicomConfigNode()
@@ -187,7 +193,6 @@ namespace VisTarsier.ConfigApp
                         Port = int.Parse(txtAEPort1.Text)
                     });
                 }
-
                 conf.DicomConfig.RemoteNodes = nodes;
 
                 // Setup local node
@@ -208,20 +213,25 @@ namespace VisTarsier.ConfigApp
             // Try writing the configuration to file. 
             try { CapiConfig.WriteConfig(conf); }
             catch (Exception) { ShowError("Could not write settings."); return; }
-
             // Create the default recipe
-            var recipe = CapiConfig.GetDefaultRecipe();
-            recipe.SourceAet = txtAETitle.Text;
-            recipe.OutputSettings.DicomDestinations.Clear();
-            recipe.OutputSettings.DicomDestinations.Add(txtAETitle.Text);
-            recipe.OutputSettings.ReslicedDicomSeriesDescription = txtDescription.Text + " Resliced";
-            recipe.OutputSettings.ResultsDicomSeriesDescription = txtDescription.Text + " Results";
-            SetupDefaultRecipeInDb(recipe);
-            try { CapiConfig.WriteRecipe(recipe); }
-            catch (Exception) { ShowError("Could not write recipe."); return; }
-
             try
             {
+                var recipe = CapiConfig.GetDefaultRecipe();
+                recipe.SourceAet = txtAETitle.Text;
+                recipe.OutputSettings.DicomDestinations.Clear();
+                recipe.OutputSettings.DicomDestinations.Add(txtAETitle.Text);
+                recipe.OutputSettings.ReslicedDicomSeriesDescription = txtDescription.Text + " Resliced";
+                recipe.OutputSettings.ResultsDicomSeriesDescription = txtDescription.Text + " Results";
+                SetupDefaultRecipeInDb(recipe);
+                CapiConfig.WriteRecipe(recipe); 
+            }
+            catch (Exception ex) 
+            {
+                ShowError("Could not write recipe." + ex.Message); return; 
+            }
+            try
+            {
+                log("Setting up web configs..");
                 var webPort = int.Parse(txtWebPort.Text);
 
                 var uiServerFile = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{System.IO.Path.DirectorySeparatorChar}web{System.IO.Path.DirectorySeparatorChar}nodejs{System.IO.Path.DirectorySeparatorChar}server.js"));
@@ -255,32 +265,32 @@ namespace VisTarsier.ConfigApp
                     else if (dsf[i].StartsWith("AE_TITLE = "))
                     {
                         // The (open) web port for the UI will be used by the node service
-                        dsf[i] = "AE_TITLE = " + txtAEHostLocal.Text;
+                        dsf[i] = "AE_TITLE = \"" + txtAETitleLocal.Text + "\"";
                     }
                 }
-
+                log("Writing dicom server file to " + dicomServerFile);
                 File.WriteAllLines(dicomServerFile, dsf);
 
             }
             catch (Exception ex)
             {
                 // TODO: Show error only when installing web components.
-                // ShowError("Could not write python settings: " + ex.Message);
+                log("ERROR: Could not write python settings: " + ex.Message);
             }
 
-
+            var nodeDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{System.IO.Path.DirectorySeparatorChar}web{System.IO.Path.DirectorySeparatorChar}nodejs{System.IO.Path.DirectorySeparatorChar}"));
             try
             {
                 var confJS = new string[]
                 {
-                    $"exports.LOG_PATH = '../../log/log.txt';",
-                    $"exports.DEFAULT_RECIPE = 'default.recipe.json';",
-                    $"exports.MANUAL_CASE_PATH = '../../cases/manual';",
+                    $"exports.LOG_PATH = '{nodeDir}' + '../../log/log.txt';",
+                    $"exports.DEFAULT_RECIPE = '{nodeDir}' + default.recipe.json';",
+                    $"exports.MANUAL_CASE_PATH = '{nodeDir}' + '../cases/manual';",
                     $"exports.SQL_CONFIG =",
                     "    {",
                     $"        user: '{txtDBUser.Text}',",
                     $"        password: '{txtDBPassword.Text}',",
-                    $"        server: '{txtDBServer.Text}',",
+                    $"        server: '{txtDBServer.Text.Replace(@"\", @"\\")}',",
                     $"        database: '{txtDBName.Text}',",
                     $"        parseJSON: true,",
                     "    };",
@@ -288,7 +298,16 @@ namespace VisTarsier.ConfigApp
                 };
 
                 FileSystem.DirectoryExistsIfNotCreate(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/")));
+                log("writing node config file to: " + System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js")));
                 File.WriteAllLines(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js")), confJS);
+                if (File.Exists(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js"))))
+                {
+                    log("Wrote config file for web..");
+                }
+                else
+                {
+                    log("something went wrong writing file to " + (System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../web/nodejs/config.js"))));
+                }
             }
             catch (Exception) { ShowError("Could not write JS settings."); return; }
 
@@ -365,6 +384,16 @@ namespace VisTarsier.ConfigApp
             try
             {
                 DbBroker broker = new DbBroker(builder.ConnectionString);
+                broker.Database.EnsureCreated();
+                broker.Database.ExecuteSqlRaw("IF OBJECTPROPERTY(OBJECT_ID('dbo.StoredRecipes'), 'TableHasIdentity') = 1  SET IDENTITY_INSERT [dbo].[StoredRecipes] ON");
+                broker.SaveChanges();
+                broker.StoredRecipes.Add(new StoredRecipe()
+                {
+                    Id = -1,
+                    UserEditable = false,
+                    Name = "Manual Recipe",
+                    RecipeString = "{}"
+                });
                 broker.StoredRecipes.Add(new StoredRecipe()
                 {
                     Id = 1,
@@ -376,7 +405,12 @@ namespace VisTarsier.ConfigApp
             }
             catch (Exception ex)
             {
-                ShowError(ex.Message);
+                do
+                {
+                    log(ex.Message);
+                    ex = ex.InnerException;
+                } while (ex != null);
+               
             }
         }
     }

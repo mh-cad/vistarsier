@@ -11,7 +11,7 @@ namespace VisTarsier.Service
     {
         [NotMapped]
         public const long NO_ID = -1;
-
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
         public bool UserEditable { get; set; }
         public string Name { get; set; }

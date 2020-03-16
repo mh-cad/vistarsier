@@ -36,8 +36,9 @@ app.get('/jobs/:lastid?', function (req, res)
 			var request = new sql.Request();
 			
 			//var query = 'SELECT TOP(50) * from Jobs order by id desc';
-			var query = 'SELECT TOP(50) * from Jobs INNER JOIN Attempts on Jobs.Id = Attempts.JobId order by Jobs.Id desc';
-			if (lastid) query = 'SELECT TOP(50) * from Jobs INNER JOIN Attempts on Jobs.Id = Attempts.JobId where id < ' + lastid + ' order by Jobs.Id desc';
+            var query = 'SELECT TOP(50) * from Jobs INNER JOIN Attempts on Jobs.AttemptId = Attempts.Id INNER JOIN StoredRecipes on StoredRecipes.Id = Jobs.RecipeId order by Jobs.Id desc ';
+			if (lastid) query = 'SELECT TOP(50) * from Jobs INNER JOIN Attempts on Jobs.AttemptId = Attempts.Id INNER JOIN StoredRecipes on StoredRecipes.Id = Jobs.RecipeId where Jobs.Id < '+  lastid +' order by Jobs.Id desc';
+			
 			
 			request.query(query, function(err, recordset)
 			{

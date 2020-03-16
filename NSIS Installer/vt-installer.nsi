@@ -29,7 +29,7 @@
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE "d:\utils\VisTarsier2.dev\service\LICENSE.MD"
+  !insertmacro MUI_PAGE_LICENSE "..\LICENSE.MD"
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
@@ -50,16 +50,16 @@ Section "VisTarsierWeb" SecWeb
   SetOutPath "$INSTDIR\web"
   
   ;ADD YOUR OWN FILES HERE...
-  File /r "d:\utils\VisTarsier2.dev\web\*"
+  File /r "deployment\web\*"
 
 SectionEnd
 
 Section "VisTarsierService" SecService
   SectionIn RO
   SetOutPath "$INSTDIR\service\"
-  File /r "d:\utils\VisTarsier2.dev\service\*"
+  File /r "deployment\service\*"
   SetOutPath "$INSTDIR\installers\" 
-  File /r "d:\utils\VisTarsier2.dev\installers\*"
+  File /r "deployment\installers\*"
   
   ;Store installation folder
   WriteRegStr HKCU "Software\VisTarsier" "" $INSTDIR
@@ -79,6 +79,8 @@ Section "VisTarsierService" SecService
   ; if there was no web install and we want them to happen after the settings)  
   
   ; Install web UI service 
+  SetOutPath "$INSTDIR\web\nodejs\" 
+  ExecWait '$INSTDIR\web\nodejs\nodevars.cmd'
   ExecWait '$INSTDIR\web\nodejs\qckwinsvc.cmd --name VisTarsier-Web-UI --description VisTarsierWebInterface --script $INSTDIR\web\nodejs\server.js --startImmediately'
   ; Install web backend service
   ExecWait '$INSTDIR\web\nssm.exe install VisTarsier.Web.Dicom "$INSTDIR\web\restfuldicom\python-3.7.4-embed-amd64\python.exe"'
@@ -92,6 +94,7 @@ Section "VisTarsierService" SecService
   SimpleSC::StartService "VisTarsier.Web.UI" "" 30
   Pop $0
   SimpleSC::StartService "VisTarsier.Web.Dicom" "" 30
+  Pop $0
   Pop $0
 
   

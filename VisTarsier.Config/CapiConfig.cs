@@ -26,7 +26,17 @@ namespace VisTarsier.Config
 
         public static CapiConfig GetConfig()
         {
-            var configFilePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@"..{Path.DirectorySeparatorChar}cfg{Path.DirectorySeparatorChar}config.json"));
+            var configFilePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cfg/config.json"));
+            var log = Log.GetLogger();
+            log.Debug("Config path: " + configFilePath);
+            if (File.Exists(configFilePath))
+            {
+                //log.Info("Config file found");
+            }
+            else
+            {
+                log.Error("Couldn't find config file at " + configFilePath);
+            }
 
             return GetConfig(configFilePath);
         }
