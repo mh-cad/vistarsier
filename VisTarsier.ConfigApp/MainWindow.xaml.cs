@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -283,9 +284,9 @@ namespace VisTarsier.ConfigApp
             {
                 var confJS = new string[]
                 {
-                    $"exports.LOG_PATH = '{nodeDir}' + '../../log/log.txt';",
-                    $"exports.DEFAULT_RECIPE = '{nodeDir}' + default.recipe.json';",
-                    $"exports.MANUAL_CASE_PATH = '{nodeDir}' + '../cases/manual';",
+                    $"exports.LOG_PATH = '{System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../log/log.txt")).Replace(@"\", @"\\")}';",
+                    $"exports.DEFAULT_RECIPE = '{nodeDir.Replace(@"\", @"\\")}' + 'default.recipe.json';",
+                    $"exports.MANUAL_CASE_PATH = '{(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../cases/manual")).Replace(@"\", @"\\"))}';",
                     $"exports.SQL_CONFIG =",
                     "    {",
                     $"        user: '{txtDBUser.Text}',",

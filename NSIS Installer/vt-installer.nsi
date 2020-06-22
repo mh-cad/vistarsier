@@ -8,8 +8,8 @@
 ;General
 
   ;Name and file
-  Name "VisTarsier"
-  OutFile "VTSetup.exe"
+  Name "VisTarsier 2.0"
+  OutFile "VTSetup_2.exe"
 
   ;Default installation folder
   InstallDir "$EXEDIR\VisTarsier"
@@ -72,6 +72,7 @@ Section "VisTarsierService" SecService
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
   ExecWait '$INSTDIR\installers\dotnet.exe'
+  ExecWait '$INSTDIR\installers\vcredist_x64.exe'
   ExecWait '"$INSTDIR\service\VisTarsier.ConfigApp.exe"'
   
   ;---------------------------------------------------------------------------
