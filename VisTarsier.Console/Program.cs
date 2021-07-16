@@ -49,6 +49,7 @@ namespace VisTarsier.CommandLineTool
             {
                 nii.Voxels[i] = ToBgr((int)nii.Voxels[i]);
             }
+            nii.Header.dim[5] = 1; // This is to allow the result to be read by nibabel
             nii.WriteNifti(outputPrefix + "vt-increase.nii");
 
             System.Console.WriteLine("Complete:");

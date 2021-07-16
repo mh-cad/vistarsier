@@ -1,0 +1,66 @@
+{
+
+  "AgentDbConnectionString": "Server=;Database=;User Id=;Password=;Connection Timeout=120",
+
+/*These are the paths to binary tools used by CAPI. They shouldn't need changing unless you have your own versions.*/
+
+  "Binaries": {
+    "N4BiasFieldCorrection": "/usr/local/bin/N4BiasFieldCorrection",
+    "antsRegistration": "/usr/local/bin/antsRegistration",
+    "antsApplyTransforms": "/usr/local/bin/antsApplyTransforms",
+    "bfc": "/dev/null",
+    "bse": "/usr/share/vistarsier/betasbse.sh",
+    "reformatx": "/dev/null",
+    "registration": "/dev/null",
+    "dcm2niix": "/dev/null",
+    "img2dcm": "/dev/null"
+  }
+
+/*The path to the default recipe file. If the file doesn't exist, one will be created for you.*/
+,
+  "DefaultRecipePath": "D:\\VisTarsier2\\service\\default.recipe.json"
+
+/*This is the DICOM service configuration, which allows VT2 to connect to remote PACS systems. (name must be registered)*/
+,
+  "DicomConfig": {
+    "LocalNode": {
+      "LogicalName": "CAPI Local",
+      "AeTitle": "CAPI",
+      "IpAddress": "0.0.0.0",
+      "Port": 4104
+    },
+    "RemoteNodes": [
+    ]
+  }
+
+/*The folder where new HL7 accession numbers are stored.*/
+,
+  "Hl7ProcessPath": ""
+
+/*Flag to for HL7 processing. If false, these cases will be ignored.*/
+,
+  "ProcessCasesAddedByHL7": false
+
+/*The folder where new maually added accession numbers are stored.*/
+,
+  "ManualProcessPath": ""
+
+/*Flag to for processing manually added cases. If false, these cases will be ignored.*/
+,
+  "ProcessCasesAddedManually": false
+
+/*How often the agent checks for new cases (in seconds).*/
+,
+  "RunInterval": "30"
+
+/*Path for temporary DICOM / NIfTI storage and descriptions for output files.*/
+,
+  "ImagePaths": {
+    "ImageRepositoryPath": "/usr/share/vistarsier/img",
+    "ResultsDicomSeriesDescription": "VT2 Modified Signal",
+    "PriorReslicedDicomSeriesDescription": "VT2 Prior Resliced"
+  }
+
+
+}
+
